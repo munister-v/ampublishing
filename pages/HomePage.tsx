@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Globe } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useApp } from '../AppContext';
+import { AUTHOR_SHOWCASE } from '../services/authorShowcase';
 
 export const HomePage: React.FC = () => {
   const { t, books, news, language, showToast } = useApp();
@@ -11,86 +12,7 @@ export const HomePage: React.FC = () => {
   const heroLine2 = t('home.hero_title_2');
   const heroImageUrl = t('home.hero_image') as string;
   const featureImageUrl = t('home.feature_image') as string;
-  const authorShowcase = {
-    ru: [
-      {
-        id: 'mark-twain',
-        nameMain: 'Марк',
-        nameAccent: 'Твен',
-        initial: 'M',
-        bio: 'Классик приключенческой и социальной прозы. Для визуальной презентации раздела мы используем образ автора, мгновенно считываемого даже без лишних пояснений.',
-        tags: ['классика', 'приключения', 'американская проза', 'editorial mock'],
-      },
-      {
-        id: 'virginia-woolf',
-        nameMain: 'Вирджиния',
-        nameAccent: 'Вулф',
-        initial: 'V',
-        bio: 'Икона модернистской литературы и тихой психологической глубины. Этот блок показывает, как могут выглядеть карточки авторов издательства в более премиальной подаче.',
-        tags: ['модернизм', 'эссе', 'психология', 'editorial mock'],
-      },
-      {
-        id: 'franz-kafka',
-        nameMain: 'Франц',
-        nameAccent: 'Кафка',
-        initial: 'K',
-        bio: 'Лаконичный, узнаваемый, почти архитектурный образ автора. Подходит для витринной секции, где важны имя, тон и ощущение литературного веса.',
-        tags: ['экзистенциализм', 'европейская проза', 'канон', 'editorial mock'],
-      },
-    ],
-    en: [
-      {
-        id: 'mark-twain',
-        nameMain: 'Mark',
-        nameAccent: 'Twain',
-        initial: 'M',
-        bio: 'A classic of adventurous and socially observant prose. This showcase uses instantly recognizable authors as a visual stand-in for the future publishing roster.',
-        tags: ['classics', 'adventure', 'american prose', 'editorial mock'],
-      },
-      {
-        id: 'virginia-woolf',
-        nameMain: 'Virginia',
-        nameAccent: 'Woolf',
-        initial: 'V',
-        bio: 'An icon of literary modernism and psychological nuance. The section is meant to demonstrate how author presentation can feel elegant and editorial rather than generic.',
-        tags: ['modernism', 'essay', 'psychology', 'editorial mock'],
-      },
-      {
-        id: 'franz-kafka',
-        nameMain: 'Franz',
-        nameAccent: 'Kafka',
-        initial: 'K',
-        bio: 'Spare, unmistakable, almost architectural as an authorial image. Well suited to a premium showcase where name, tone, and literary gravity matter most.',
-        tags: ['existentialism', 'european prose', 'canon', 'editorial mock'],
-      },
-    ],
-    de: [
-      {
-        id: 'mark-twain',
-        nameMain: 'Mark',
-        nameAccent: 'Twain',
-        initial: 'M',
-        bio: 'Ein Klassiker der Abenteuer- und Gesellschaftsprosa. Diese Sektion nutzt bekannte Autor:innen als visuelle Platzhalter für die spätere Verlagspräsentation.',
-        tags: ['klassik', 'abenteuer', 'amerikanische prosa', 'editorial mock'],
-      },
-      {
-        id: 'virginia-woolf',
-        nameMain: 'Virginia',
-        nameAccent: 'Woolf',
-        initial: 'V',
-        bio: 'Eine Ikone der literarischen Moderne und psychologischen Feinzeichnung. Die Gestaltung zeigt, wie elegant eine Autor:innen-Sektion des Verlags wirken kann.',
-        tags: ['moderne', 'essay', 'psychologie', 'editorial mock'],
-      },
-      {
-        id: 'franz-kafka',
-        nameMain: 'Franz',
-        nameAccent: 'Kafka',
-        initial: 'K',
-        bio: 'Reduziert, unverwechselbar und fast architektonisch in seiner Wirkung. Ideal für eine literarische Vitrine mit Haltung und Gewicht.',
-        tags: ['existenzialismus', 'europäische prosa', 'kanon', 'editorial mock'],
-      },
-    ],
-  }[language];
+  const authorShowcase = AUTHOR_SHOWCASE[language];
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));
@@ -252,7 +174,9 @@ export const HomePage: React.FC = () => {
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent mb-2">{t('home.authors_kicker')}</p>
             <h2 className="text-3xl md:text-5xl font-serif leading-none">{t('home.authors_title')}</h2>
           </div>
-          <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-gray-400">Editorial showcase</span>
+          <Link to="/our-authors" className="text-xs font-mono uppercase underline hover:text-accent transition-colors">
+            {t('home.authors_cta')}
+          </Link>
         </div>
 
         <div className="px-4 md:px-8 py-10 md:py-16 space-y-8 border-b border-primary">

@@ -3,6 +3,7 @@ import React from 'react';
 import { Mail, Download, PenTool, BookOpen, Send, User, Globe, Clock, Shield, Anchor, CheckCircle } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { Link } from 'react-router-dom';
+import { AUTHOR_SHOWCASE } from '../services/authorShowcase';
 
 // --- Components ---
 const SectionHeader: React.FC<{ title: string; subtitle?: string; bgClass?: string }> = ({ title, subtitle, bgClass = 'bg-primary' }) => (
@@ -267,6 +268,62 @@ export const AuthorsPage: React.FC = () => {
             </p>
           </div>
         </div>
+      </section>
+    </div>
+  );
+};
+
+export const OurAuthorsPage: React.FC = () => {
+  const { t, language } = useApp();
+  const authorShowcase = AUTHOR_SHOWCASE[language];
+
+  return (
+    <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+      <SectionHeader
+        title={t('static.our_authors.title')}
+        subtitle={t('static.our_authors.subtitle')}
+        bgClass="bg-[#0b1623]"
+      />
+
+      <section className="px-4 md:px-8 py-10 md:py-16 space-y-8">
+        {authorShowcase.map((item) => (
+          <article key={item.id} className="grid grid-cols-1 lg:grid-cols-[340px_1fr] border border-primary bg-[#F7F1E6] overflow-hidden">
+            <div className="bg-primary min-h-[240px] md:min-h-[360px] flex items-center justify-center relative overflow-hidden">
+              <span className="text-[6rem] md:text-[9rem] font-serif text-white/10 leading-none">
+                {item.initial}
+              </span>
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))]" />
+            </div>
+
+            <div className="p-8 md:p-12 lg:p-16">
+              <div className="flex items-center gap-4 mb-8">
+                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent whitespace-nowrap">
+                  {t('home.authors_kicker')}
+                </p>
+                <div className="h-px flex-1 bg-primary/15" />
+              </div>
+
+              <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif leading-[0.9] text-primary break-words">
+                {item.nameMain}
+              </h2>
+              <p className="text-3xl sm:text-4xl md:text-6xl font-serif italic text-primary/60 leading-[0.95] mt-2 break-words">
+                {item.nameAccent}
+              </p>
+
+              <div className="mt-8 space-y-6 max-w-4xl text-lg leading-relaxed text-primary/70">
+                <p>{item.bio}</p>
+              </div>
+
+              <div className="mt-10 flex flex-wrap gap-2">
+                {item.tags.map((tag) => (
+                  <span key={tag} className="border border-primary/15 bg-white/50 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </article>
+        ))}
       </section>
     </div>
   );

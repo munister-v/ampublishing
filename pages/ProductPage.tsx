@@ -82,7 +82,7 @@ export const ProductPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 border-b border-primary">
          
          {/* LEFT: IMAGE (Sticky) */}
-         <div className="lg:border-r border-primary bg-[#E8EDF2] relative h-[60vh] lg:h-[calc(100vh-120px)] sticky top-[120px] lg:top-[120px] flex items-center justify-center p-8 lg:p-20 overflow-hidden">
+         <div className="lg:border-r border-primary bg-[#E8EDF2] relative h-[52vh] sm:h-[60vh] lg:h-[calc(100vh-120px)] lg:sticky lg:top-[120px] flex items-center justify-center p-6 md:p-8 lg:p-20 overflow-hidden">
              <div className="relative w-full h-full shadow-[20px_20px_0px_0px_rgba(4,15,30,0.1)] border border-primary bg-white animate-fade-in">
                 <img 
                   src={book.coverUrl} 
@@ -97,12 +97,12 @@ export const ProductPage: React.FC = () => {
          </div>
 
          {/* RIGHT: INFO (Scrollable) */}
-         <div className="bg-white flex flex-col min-h-[calc(100vh-120px)] border-t lg:border-t-0 border-primary">
+         <div className="bg-white flex flex-col lg:min-h-[calc(100vh-120px)] border-t lg:border-t-0 border-primary">
             
-            <div className="p-8 md:p-16 flex-1">
+            <div className="p-6 md:p-16 flex-1">
                <div className="mb-12">
                   <span className="block text-accent font-mono text-xs mb-4 uppercase tracking-widest">{book.genre[0]}</span>
-                  <h1 className="text-6xl md:text-8xl font-serif leading-[0.85] text-primary mb-6 -ml-1">
+                  <h1 className="text-4xl sm:text-5xl md:text-8xl font-serif leading-[0.85] text-primary mb-6 -ml-1 break-words">
                     {book.title}
                   </h1>
                   <p className="text-xl md:text-2xl font-serif italic text-gray-500 border-l-2 border-accent pl-6">
@@ -177,7 +177,7 @@ export const ProductPage: React.FC = () => {
                   )}
                </div>
 
-               <section className="border-t border-primary py-10">
+               <section className="border-t border-primary py-8 md:py-10">
                   <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
                      {t('product.payment_info_title')}
                   </p>
@@ -191,7 +191,7 @@ export const ProductPage: React.FC = () => {
 
             {/* ACTION FOOTER */}
             {/* Added 'pb-safe-b' to respect Safe Area on iOS */}
-            <div className="border-t border-primary bg-[#F4F4F0] p-6 md:p-8 sticky bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+            <div className="border-t border-primary bg-[#F4F4F0] p-6 md:p-8 md:sticky md:bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
                <div className="flex flex-col gap-4">
                   <div className="flex justify-between items-baseline">
                      <span className="font-mono text-xs uppercase">{t('cart.total')}</span>

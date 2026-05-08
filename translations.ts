@@ -337,6 +337,10 @@ export const translations: Record<Language, TranslationTree> = {
           interview_title: "Запросы на интервью",
           interview_desc: "Интервью с авторами, материалы о издательстве и медиазапросы.",
           interview_cta: "Отправить запрос",
+        },
+        our_authors: {
+          title: "Наши авторы",
+          subtitle: "Отдельный editorial-раздел с визуальной подачей авторов и литературным настроением."
         }
       },
       footer: {
@@ -802,6 +806,10 @@ export const translations: Record<Language, TranslationTree> = {
           interview_title: "Interview Requests",
           interview_desc: "Author interviews, publishing house features, and media inquiries.",
           interview_cta: "Send Request",
+        },
+        our_authors: {
+          title: "Our Authors",
+          subtitle: "A dedicated editorial section with a more visual and literary way of presenting authors."
         }
     },
     error: {
@@ -1219,6 +1227,10 @@ export const translations: Record<Language, TranslationTree> = {
           interview_title: "Interviewanfragen",
           interview_desc: "Autor:innen-Interviews, Verlagsprofile und Medienanfragen.",
           interview_cta: "Anfrage senden",
+        },
+        our_authors: {
+          title: "Unsere Autor:innen",
+          subtitle: "Ein eigener Editorial-Bereich mit einer visuellen und literarischen Präsentation von Autor:innen."
         }
       },
     error: {

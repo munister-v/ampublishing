@@ -17,7 +17,7 @@ import { ProductPage } from './pages/ProductPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { ServiceOrderPage } from './pages/ServiceOrderPage';
-import { AuthorsPage, AboutPage, MediaPage, PrivacyPage, ImpressumPage, TermsPage } from './pages/StaticPages';
+import { AuthorsPage, AboutPage, MediaPage, PrivacyPage, ImpressumPage, TermsPage, OurAuthorsPage } from './pages/StaticPages';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminPage } from './pages/AdminPage';
@@ -63,6 +63,7 @@ const AppContent: React.FC = () => {
           <Route path="/services/order" element={<ServiceOrderPage />} />
 
           <Route path="/authors" element={<AuthorsPage />} />
+          <Route path="/our-authors" element={<OurAuthorsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/media" element={<MediaPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
