@@ -3,7 +3,7 @@ import React from 'react';
 import { Mail, Download, PenTool, BookOpen, Send, User, Clock } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { Link } from 'react-router-dom';
-import { AUTHOR_SHOWCASE, FEATURED_PUBLISHER_AUTHOR } from '../services/authorShowcase';
+import { getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 
 // --- Components ---
 const SectionHeader: React.FC<{ title: string; subtitle?: string; bgClass?: string }> = ({ title, subtitle, bgClass = 'bg-primary' }) => (
@@ -275,8 +275,8 @@ export const AuthorsPage: React.FC = () => {
 
 export const OurAuthorsPage: React.FC = () => {
   const { t, language } = useApp();
-  const authorShowcase = AUTHOR_SHOWCASE[language];
-  const featuredAuthor = FEATURED_PUBLISHER_AUTHOR[language];
+  const authorShowcase = getAuthorShowcaseContent(language, t('static.our_authors.showcase_items'));
+  const featuredAuthor = getFeaturedAuthorContent(language, t('static.our_authors.featured_author'));
 
   return (
     <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">

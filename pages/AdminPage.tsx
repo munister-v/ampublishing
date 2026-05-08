@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../AppContext';
 import { api } from '../services/api';
 import { autoTranslateBookFromRu, autoTranslateNewsFromRu, autoTranslateValue } from '../services/autoTranslate';
+import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
-import { Book, Language, LocalizedCatalogData, NewsItem, OrderStatus, TranslationOverrides } from '../types';
+import { Book, Language, LocalizedCatalogData, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
 import {
   BookOpen,
   FileText,
@@ -25,7 +26,7 @@ import {
   X,
 } from 'lucide-react';
 
-type AdminTab = 'copy' | 'books' | 'news' | 'orders';
+type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'payments' | 'orders';
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -165,6 +166,19 @@ const createNewsTemplate = (): NewsItem => ({
   date: new Date().toISOString().slice(0, 10),
   title: '',
   preview: '',
+});
+
+const createPaymentSettingsTemplate = (): PaymentSettings => ({
+  recipientName: 'AM Publishing',
+  cardholder: '',
+  cardNumber: '',
+  bankName: '',
+  iban: '',
+  whatsappNumber: '',
+  telegramUsername: '',
+  contactEmail: 'am.hybridpublishing@gmail.com',
+  paymentNote: 'После оплаты отправьте подтверждение перевода, чтобы мы могли вручную подтвердить заказ.',
+  invoicePrefix: 'AM',
 });
 
 const getNestedValue = (obj: any, path: string) => path.split('.').reduce((acc, key) => (acc && typeof acc === 'object' ? acc[key] : undefined), obj);
@@ -325,6 +339,9 @@ export const AdminPage: React.FC = () => {
   const [bookDraft, setBookDraft] = useState<Book | null>(null);
   const [selectedNewsId, setSelectedNewsId] = useState<string>('');
   const [newsDraft, setNewsDraft] = useState<NewsItem | null>(null);
+  const [featuredAuthorDraft, setFeaturedAuthorDraft] = useState<FeaturedAuthor | null>(null);
+  const [showcaseDraft, setShowcaseDraft] = useState<ShowcaseAuthor[]>([]);
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(createPaymentSettingsTemplate());
   const [copyDrafts, setCopyDrafts] = useState<Record<string, string>>({});
   const [bookJsonDrafts, setBookJsonDrafts] = useState({ variants: '[]', themes: '[]', reviews: '[]' });
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -334,12 +351,14 @@ export const AdminPage: React.FC = () => {
   const loadAdminData = async () => {
     setIsRefreshing(true);
     try {
-      const [db, translationState] = await Promise.all([
+      const [db, translationState, paymentState] = await Promise.all([
         api.getContentDatabase(),
         api.getTranslationOverrides(),
+        api.getPaymentSettings(),
       ]);
       setDatabase(db);
       setOverrides(translationState);
+      setPaymentSettings(paymentState);
       if (!selectedBookId && db[selectedLanguage].books[0]) {
         setSelectedBookId(db[selectedLanguage].books[0].id);
       }
@@ -379,6 +398,11 @@ export const AdminPage: React.FC = () => {
     const currentNews = database[selectedLanguage].news.find(item => item.id === selectedNewsId) || database[selectedLanguage].news[0] || null;
     setNewsDraft(currentNews ? { ...currentNews } : null);
   }, [database, selectedLanguage, selectedNewsId]);
+
+  useEffect(() => {
+    setFeaturedAuthorDraft(getFeaturedAuthorContent(selectedLanguage, overrides[selectedLanguage]?.['static.our_authors.featured_author']));
+    setShowcaseDraft(getAuthorShowcaseContent(selectedLanguage, overrides[selectedLanguage]?.['static.our_authors.showcase_items']));
+  }, [selectedLanguage, overrides]);
 
   useEffect(() => {
     const draftState = getAdminDraftState();
@@ -612,10 +636,62 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  const handleSaveAuthors = async () => {
+    if (!featuredAuthorDraft) return;
+    try {
+      setSavingKey('authors');
+      let nextOverrides = await api.setTranslationValue(selectedLanguage, 'static.our_authors.featured_author', featuredAuthorDraft);
+      nextOverrides = await api.setTranslationValue(selectedLanguage, 'static.our_authors.showcase_items', showcaseDraft);
+
+      if (selectedLanguage === 'ru') {
+        nextOverrides = await api.setTranslationValue('en', 'static.our_authors.featured_author', autoTranslateValue(featuredAuthorDraft, 'en'));
+        nextOverrides = await api.setTranslationValue('en', 'static.our_authors.showcase_items', autoTranslateValue(showcaseDraft, 'en'));
+        nextOverrides = await api.setTranslationValue('de', 'static.our_authors.featured_author', autoTranslateValue(featuredAuthorDraft, 'de'));
+        nextOverrides = await api.setTranslationValue('de', 'static.our_authors.showcase_items', autoTranslateValue(showcaseDraft, 'de'));
+      }
+
+      setOverrides(nextOverrides);
+      await reloadContent();
+      setLastPublishedAt(new Date().toLocaleTimeString());
+      showToast(selectedLanguage === 'ru' ? 'Our authors saved and synced to EN/DE' : 'Our authors saved');
+    } catch {
+      showToast('Could not save authors section', 'error');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const handleSavePaymentSettings = async () => {
+    try {
+      setSavingKey('payment-settings');
+      const next = await api.savePaymentSettings(paymentSettings);
+      setPaymentSettings(next);
+      setLastPublishedAt(new Date().toLocaleTimeString());
+      showToast('Payment and invoice settings saved');
+    } catch {
+      showToast('Could not save payment settings', 'error');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
   const handleStatusChange = async (orderId: string, status: OrderStatus) => {
     setSavingKey(`order:${orderId}`);
     await updateOrderStatus(orderId, status);
     setSavingKey(null);
+  };
+
+  const handlePaymentStatusChange = async (orderId: string, paymentStatus: PaymentStatus) => {
+    try {
+      setSavingKey(`payment:${orderId}`);
+      await api.updatePaymentStatus(orderId, paymentStatus);
+      await refreshOrders();
+      showToast(`Payment status for ${orderId} updated`);
+    } catch {
+      showToast('Could not update payment status', 'error');
+    } finally {
+      setSavingKey(null);
+    }
   };
 
   const handleExport = async () => {
@@ -680,6 +756,8 @@ export const AdminPage: React.FC = () => {
             { id: 'copy', label: 'Site Copy', icon: <FileText size={16} /> },
             { id: 'books', label: 'Books', icon: <BookOpen size={16} /> },
             { id: 'news', label: 'News', icon: <Newspaper size={16} /> },
+            { id: 'authors', label: 'Our Authors', icon: <Globe size={16} /> },
+            { id: 'payments', label: 'Payments', icon: <Gavel size={16} /> },
             { id: 'orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
           ].map(item => (
             <button
@@ -1013,6 +1091,136 @@ export const AdminPage: React.FC = () => {
           </div>
         ) : null}
 
+        {database && activeTab === 'authors' ? (
+          <div className="space-y-8">
+            <section className="bg-white border border-primary/10 p-6 md:p-8">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+                <div>
+                  <h3 className="text-3xl font-serif">Our Authors</h3>
+                  <p className="mt-2 text-sm text-gray-500">Manage the featured author block and the showcase cards that appear on the homepage and the dedicated authors page.</p>
+                </div>
+                <button onClick={handleSaveAuthors} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                  {savingKey === 'authors' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                  Save authors section
+                </button>
+              </div>
+
+              {featuredAuthorDraft ? (
+                <div className="space-y-8">
+                  <div className="border border-primary/10 p-6 bg-[#F8F8F5]">
+                    <h4 className="font-serif text-2xl mb-6">Featured author</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <input value={featuredAuthorDraft.label} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, label: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Label" />
+                      <input value={featuredAuthorDraft.nameMain} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, nameMain: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Main name" />
+                      <input value={featuredAuthorDraft.nameAccent} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, nameAccent: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Accent name" />
+                      <input value={featuredAuthorDraft.tags.join(', ')} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, tags: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Tags, comma separated" />
+                    </div>
+                    <textarea value={featuredAuthorDraft.intro} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, intro: e.target.value } : prev)} rows={3} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Intro" />
+                    <textarea value={featuredAuthorDraft.body.join('\n\n')} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, body: parseParagraphs(e.target.value) } : prev)} rows={6} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Body paragraphs, separated by empty line" />
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-serif text-2xl">Showcase cards</h4>
+                      <button
+                        onClick={() => setShowcaseDraft(prev => [
+                          ...prev,
+                          {
+                            id: `author-${Date.now()}`,
+                            nameMain: '',
+                            nameAccent: '',
+                            initial: 'A',
+                            years: '',
+                            knownFor: '',
+                            bio: '',
+                            tags: [],
+                            imageUrl: '',
+                          },
+                        ])}
+                        className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
+                      >
+                        <Plus size={12} />
+                        Add author
+                      </button>
+                    </div>
+
+                    {showcaseDraft.map((item, index) => (
+                      <div key={item.id} className="border border-primary/10 p-6 bg-white">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-5">
+                          <h5 className="font-serif text-xl">Card {index + 1}</h5>
+                          <button
+                            onClick={() => setShowcaseDraft(prev => prev.filter(entry => entry.id !== item.id))}
+                            className="px-3 py-2 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest"
+                          >
+                            <Trash2 size={12} />
+                            Remove
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <input value={item.id} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, id: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="ID" />
+                          <input value={item.initial} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, initial: e.target.value.slice(0, 1).toUpperCase() } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Initial" />
+                          <input value={item.nameMain} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameMain: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Main name" />
+                          <input value={item.nameAccent} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameAccent: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Accent name" />
+                          <input value={item.years} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, years: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Years" />
+                          <input value={item.knownFor} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, knownFor: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Known for" />
+                        </div>
+                        <div className="mt-5">
+                          <ImageField
+                            label="Author image"
+                            value={item.imageUrl}
+                            onChange={value => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, imageUrl: value } : entry))}
+                          />
+                        </div>
+                        <textarea value={item.bio} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, bio: e.target.value } : entry))} rows={4} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Bio" />
+                        <input value={item.tags.join(', ')} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean) } : entry))} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Tags, comma separated" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </section>
+          </div>
+        ) : null}
+
+        {activeTab === 'payments' ? (
+          <section className="bg-white border border-primary/10 p-6 md:p-8 space-y-8">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+              <div>
+                <h3 className="text-3xl font-serif">Payments and Invoice Flow</h3>
+                <p className="mt-2 text-sm text-gray-500">Set the card / transfer details customers will see during checkout and configure where they can send payment proof.</p>
+              </div>
+              <button onClick={handleSavePaymentSettings} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                {savingKey === 'payment-settings' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                Save payment setup
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <input value={paymentSettings.recipientName} onChange={e => setPaymentSettings(prev => ({ ...prev, recipientName: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Recipient / brand name" />
+              <input value={paymentSettings.invoicePrefix} onChange={e => setPaymentSettings(prev => ({ ...prev, invoicePrefix: e.target.value.toUpperCase() }))} className="border border-gray-300 px-4 py-3" placeholder="Invoice prefix" />
+              <input value={paymentSettings.cardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, cardholder: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Cardholder" />
+              <input value={paymentSettings.cardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, cardNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Card number" />
+              <input value={paymentSettings.bankName} onChange={e => setPaymentSettings(prev => ({ ...prev, bankName: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Bank name" />
+              <input value={paymentSettings.iban} onChange={e => setPaymentSettings(prev => ({ ...prev, iban: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="IBAN / account" />
+              <input value={paymentSettings.whatsappNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="WhatsApp number, international format" />
+              <input value={paymentSettings.telegramUsername} onChange={e => setPaymentSettings(prev => ({ ...prev, telegramUsername: e.target.value.replace(/^@/, '') }))} className="border border-gray-300 px-4 py-3" placeholder="Telegram username" />
+              <input value={paymentSettings.contactEmail} onChange={e => setPaymentSettings(prev => ({ ...prev, contactEmail: e.target.value }))} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Contact email" />
+            </div>
+
+            <textarea value={paymentSettings.paymentNote} onChange={e => setPaymentSettings(prev => ({ ...prev, paymentNote: e.target.value }))} rows={4} className="w-full border border-gray-300 px-4 py-3" placeholder="Payment note shown to the customer" />
+
+            <div className="border border-primary/10 bg-[#F8F8F5] p-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400 mb-4">Recommended flow</p>
+              <div className="space-y-3 text-sm text-gray-700">
+                <p>1. Customer places the order with `Invoice / Card transfer`.</p>
+                <p>2. Checkout shows your card / bank details and a unique payment reference.</p>
+                <p>3. After payment, the customer sends proof to your WhatsApp, Telegram, or email.</p>
+                <p>4. You confirm the payment in the `Orders` tab by changing `payment status` to `paid`.</p>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         {activeTab === 'orders' ? (
           <section className="bg-white border border-primary/10 overflow-hidden">
             <div className="p-6 border-b border-primary/10 flex items-center justify-between">
@@ -1030,7 +1238,7 @@ export const AdminPage: React.FC = () => {
                     <th className="p-4">Customer</th>
                     <th className="p-4">Items</th>
                     <th className="p-4">Total</th>
-                    <th className="p-4">Status</th>
+                    <th className="p-4">Flow</th>
                     <th className="p-4">Update</th>
                   </tr>
                 </thead>
@@ -1044,6 +1252,7 @@ export const AdminPage: React.FC = () => {
                       <td className="p-4">
                         <div>{order.customer.name}</div>
                         <div className="text-xs text-gray-400">{order.customer.email}</div>
+                        {order.customer.phone ? <div className="text-xs text-gray-400">{order.customer.phone}</div> : null}
                         <div className="text-xs text-gray-400">{order.customer.location}</div>
                       </td>
                       <td className="p-4 text-sm">
@@ -1053,12 +1262,18 @@ export const AdminPage: React.FC = () => {
                       </td>
                       <td className="p-4 font-bold">{order.total.toFixed(2)} {order.currency}</td>
                       <td className="p-4">
-                        <span className="inline-flex px-3 py-1 text-[10px] uppercase tracking-[0.18em] bg-[#F4F4F0] border border-gray-200">
-                          {order.status}
-                        </span>
+                        <div className="space-y-2">
+                          <span className="inline-flex px-3 py-1 text-[10px] uppercase tracking-[0.18em] bg-[#F4F4F0] border border-gray-200">
+                            {order.paymentMethod || 'card'}
+                          </span>
+                          <div className="text-[10px] uppercase tracking-[0.16em] text-gray-500">
+                            Payment: <span className="text-primary">{order.paymentStatus}</span>
+                          </div>
+                          {order.paymentReference ? <div className="text-[10px] font-mono text-gray-400">{order.paymentReference}</div> : null}
+                        </div>
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-start gap-3">
                           <select
                             value={order.status}
                             onChange={e => handleStatusChange(order.id, e.target.value as OrderStatus)}
@@ -1070,7 +1285,17 @@ export const AdminPage: React.FC = () => {
                             <option value="delivered">Delivered</option>
                             <option value="cancelled">Cancelled</option>
                           </select>
-                          {savingKey === `order:${order.id}` ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} className="text-green-600" />}
+                          <select
+                            value={order.paymentStatus}
+                            onChange={e => handlePaymentStatusChange(order.id, e.target.value as PaymentStatus)}
+                            className="border border-gray-300 px-3 py-2 text-sm"
+                          >
+                            <option value="pending">Payment pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="failed">Failed</option>
+                            <option value="refunded">Refunded</option>
+                          </select>
+                          {(savingKey === `order:${order.id}` || savingKey === `payment:${order.id}`) ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} className="text-green-600" />}
                         </div>
                       </td>
                     </tr>

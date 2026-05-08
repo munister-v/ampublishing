@@ -1,8 +1,8 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
-import { CheckoutFormData } from '../types';
+import { CheckoutFormData, PaymentSettings } from '../types';
 import { api } from '../services/api';
 import { formatLabel } from '../utils/formatLabel';
 import { 
@@ -142,6 +142,21 @@ const CardLogos = ({ activeType }: { activeType: 'visa' | 'mastercard' | null })
 
 const STEPS = ['details', 'shipping', 'payment'] as const;
 
+const EMPTY_PAYMENT_SETTINGS: PaymentSettings = {
+  recipientName: 'AM Publishing',
+  cardholder: '',
+  cardNumber: '',
+  bankName: '',
+  iban: '',
+  whatsappNumber: '',
+  telegramUsername: '',
+  contactEmail: 'am.hybridpublishing@gmail.com',
+  paymentNote: '',
+  invoicePrefix: 'AM',
+};
+
+const digitsOnly = (value: string) => value.replace(/\D/g, '');
+
 export const CheckoutPage: React.FC = () => {
   // Хуки приложения
   const { cart, region, t, clearCart, language } = useApp();
@@ -153,6 +168,7 @@ export const CheckoutPage: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false); // Успешное завершение
   const [orderId, setOrderId] = useState<string>('');
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(EMPTY_PAYMENT_SETTINGS);
 
   // Данные формы (Адрес, Контакты)
   const [formData, setFormData] = useState<CheckoutFormData>({
@@ -186,6 +202,30 @@ export const CheckoutPage: React.FC = () => {
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
   const shippingCost = formData.shippingMethod === 'express' ? 15 : 5;
   const finalTotal = total + shippingCost;
+
+  const paymentProofMessage = useMemo(() => {
+    const customerName = `${formData.firstName} ${formData.lastName}`.trim();
+    return [
+      `Order: ${orderId || 'pending'}`,
+      `Amount: ${finalTotal.toFixed(2)} ${region.currency}`,
+      `Customer: ${customerName || formData.email || 'Unknown customer'}`,
+      `Please confirm the payment for this order.`,
+    ].join('\n');
+  }, [finalTotal, formData.email, formData.firstName, formData.lastName, orderId, region.currency]);
+
+  const whatsappHref = paymentSettings.whatsappNumber
+    ? `https://wa.me/${digitsOnly(paymentSettings.whatsappNumber)}?text=${encodeURIComponent(paymentProofMessage)}`
+    : '';
+  const telegramHref = paymentSettings.telegramUsername
+    ? `https://t.me/${paymentSettings.telegramUsername.replace(/^@/, '')}`
+    : '';
+  const emailHref = paymentSettings.contactEmail
+    ? `mailto:${paymentSettings.contactEmail}?subject=${encodeURIComponent(`Payment confirmation ${orderId || ''}`)}&body=${encodeURIComponent(paymentProofMessage)}`
+    : '';
+
+  useEffect(() => {
+    api.getPaymentSettings().then(setPaymentSettings).catch(() => {});
+  }, []);
 
   // Проверка валидности всей формы.
   // Используется для блокировки кнопки "Place Order".
@@ -346,6 +386,28 @@ export const CheckoutPage: React.FC = () => {
                     <span className="font-bold text-primary">{finalTotal.toFixed(2)} {region.currency}</span>
                  </div>
               </div>
+              {formData.paymentMethod === 'invoice' ? (
+                <div className="mb-8 border border-primary bg-[#F8F9FA] p-6 text-left space-y-4">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400">{t('checkout.payment_transfer_title')}</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{paymentSettings.paymentNote || t('checkout.success_payment_pending')}</p>
+                  <div className="grid grid-cols-1 gap-3 text-sm">
+                    {paymentSettings.recipientName ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_recipient')}</span><div>{paymentSettings.recipientName}</div></div> : null}
+                    {paymentSettings.cardholder ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_cardholder')}</span><div>{paymentSettings.cardholder}</div></div> : null}
+                    {paymentSettings.cardNumber ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_card_number')}</span><div className="font-mono text-primary">{paymentSettings.cardNumber}</div></div> : null}
+                    {paymentSettings.bankName ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_bank')}</span><div>{paymentSettings.bankName}</div></div> : null}
+                    {paymentSettings.iban ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_iban')}</span><div className="font-mono text-primary break-all">{paymentSettings.iban}</div></div> : null}
+                    <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_reference')}</span><div className="font-mono text-primary">{orderId}</div></div>
+                  </div>
+                  <div className="pt-2">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">{t('checkout.payment_send_proof')}</p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      {whatsappHref ? <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1 border border-primary bg-primary text-white px-4 py-3 text-center text-xs uppercase tracking-[0.18em] font-bold hover:bg-accent transition-colors">{t('checkout.payment_send_whatsapp')}</a> : null}
+                      {telegramHref ? <a href={telegramHref} target="_blank" rel="noopener noreferrer" className="flex-1 border border-primary px-4 py-3 text-center text-xs uppercase tracking-[0.18em] font-bold hover:bg-primary hover:text-white transition-colors">{t('checkout.payment_send_telegram')}</a> : null}
+                      {emailHref ? <a href={emailHref} className="flex-1 border border-primary px-4 py-3 text-center text-xs uppercase tracking-[0.18em] font-bold hover:bg-primary hover:text-white transition-colors">{t('checkout.payment_send_email')}</a> : null}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
               <button onClick={() => navigate('/')} className="w-full bg-primary text-white py-4 uppercase font-bold text-xs tracking-[0.2em] hover:bg-accent transition-colors">
                  Back to Home
               </button>
@@ -446,6 +508,14 @@ export const CheckoutPage: React.FC = () => {
                          onChange={e => setFormData({...formData, email: e.target.value})}
                          required
                          placeholder="john@example.com"
+                      />
+
+                      <InputField
+                         label={t('checkout.phone')}
+                         type="tel"
+                         value={formData.phone}
+                         onChange={e => setFormData({...formData, phone: e.target.value})}
+                         placeholder="+49 ..."
                       />
 
                       <InputField 
@@ -636,6 +706,13 @@ export const CheckoutPage: React.FC = () => {
                           <p className="text-gray-500 font-mono text-sm mb-6">{t('checkout.invoice_desc')}</p>
                           <div className="w-16 h-16 mx-auto bg-gray-200 text-gray-500 rounded-full flex items-center justify-center">
                               <FileText size={32} />
+                          </div>
+                          <div className="mt-8 max-w-xl mx-auto text-left border border-primary/10 bg-white p-6 space-y-3">
+                            {paymentSettings.recipientName ? <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{t('checkout.payment_recipient')}</p><p className="text-sm text-primary">{paymentSettings.recipientName}</p></div> : null}
+                            {paymentSettings.cardholder ? <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{t('checkout.payment_cardholder')}</p><p className="text-sm text-primary">{paymentSettings.cardholder}</p></div> : null}
+                            {paymentSettings.cardNumber ? <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{t('checkout.payment_card_number')}</p><p className="text-sm font-mono text-primary break-all">{paymentSettings.cardNumber}</p></div> : null}
+                            {paymentSettings.bankName ? <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{t('checkout.payment_bank')}</p><p className="text-sm text-primary">{paymentSettings.bankName}</p></div> : null}
+                            {paymentSettings.iban ? <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{t('checkout.payment_iban')}</p><p className="text-sm font-mono text-primary break-all">{paymentSettings.iban}</p></div> : null}
                           </div>
                           <div className="mt-8 text-left max-w-xl mx-auto">
                             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4">{t('checkout.invoice_steps_title')}</p>

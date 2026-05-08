@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Globe } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useApp } from '../AppContext';
-import { AUTHOR_SHOWCASE, FEATURED_PUBLISHER_AUTHOR } from '../services/authorShowcase';
+import { getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 
 export const HomePage: React.FC = () => {
   const { t, books, news, language, showToast } = useApp();
@@ -12,8 +12,8 @@ export const HomePage: React.FC = () => {
   const heroLine2 = t('home.hero_title_2');
   const heroImageUrl = t('home.hero_image') as string;
   const featureImageUrl = t('home.feature_image') as string;
-  const authorShowcase = AUTHOR_SHOWCASE[language];
-  const featuredAuthor = FEATURED_PUBLISHER_AUTHOR[language];
+  const authorShowcase = getAuthorShowcaseContent(language, t('static.our_authors.showcase_items'));
+  const featuredAuthor = getFeaturedAuthorContent(language, t('static.our_authors.featured_author'));
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));

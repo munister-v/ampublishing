@@ -1,8 +1,10 @@
-import { DATABASE } from '../constants';
-import { Book, Language, LocalizedCatalogData, NewsItem, TranslationOverrides } from '../types';
+import { DATABASE, MOCK_ORDERS } from '../constants';
+import { Book, Language, LocalizedCatalogData, NewsItem, Order, OrderPayload, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
 
 const DB_KEY = 'am-editable-database-v1';
 const OVERRIDES_KEY = 'am-translation-overrides-v1';
+const ORDERS_KEY = 'am-orders-v1';
+const PAYMENT_SETTINGS_KEY = 'am-payment-settings-v1';
 
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
@@ -48,6 +50,24 @@ const sanitizeTranslationOverrides = (overrides: TranslationOverrides): Translat
 
   return next;
 };
+
+const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
+  recipientName: 'AM Publishing',
+  cardholder: '',
+  cardNumber: '',
+  bankName: '',
+  iban: '',
+  whatsappNumber: '',
+  telegramUsername: '',
+  contactEmail: 'am.hybridpublishing@gmail.com',
+  paymentNote: 'После оплаты отправьте подтверждение перевода, чтобы мы могли вручную подтвердить заказ.',
+  invoicePrefix: 'AM',
+};
+
+const sanitizePaymentSettings = (settings?: Partial<PaymentSettings>): PaymentSettings => ({
+  ...DEFAULT_PAYMENT_SETTINGS,
+  ...(settings || {}),
+});
 
 export const contentStore = {
   getDatabase(): Record<Language, LocalizedCatalogData> {
@@ -160,18 +180,125 @@ export const contentStore = {
     return {
       database: this.getDatabase(),
       overrides: this.getTranslationOverrides(),
+      orders: this.getOrders(),
+      paymentSettings: this.getPaymentSettings(),
       exportedAt: new Date().toISOString(),
-      version: 1,
+      version: 2,
     };
   },
 
-  importContent(payload: { database?: Record<Language, LocalizedCatalogData>; overrides?: TranslationOverrides }) {
+  importContent(payload: { database?: Record<Language, LocalizedCatalogData>; overrides?: TranslationOverrides; orders?: Order[]; paymentSettings?: PaymentSettings }) {
     if (payload.database) {
       this.saveDatabase(payload.database);
     }
     if (payload.overrides) {
       this.saveTranslationOverrides(payload.overrides);
     }
+    if (payload.orders) {
+      this.saveOrders(payload.orders);
+    }
+    if (payload.paymentSettings) {
+      this.savePaymentSettings(payload.paymentSettings);
+    }
     return this.exportContent();
+  },
+
+  getOrders(): Order[] {
+    const storage = getStorage();
+    if (!storage) return clone(MOCK_ORDERS);
+
+    try {
+      const raw = storage.getItem(ORDERS_KEY);
+      if (!raw) return clone(MOCK_ORDERS);
+      return clone(JSON.parse(raw));
+    } catch {
+      return clone(MOCK_ORDERS);
+    }
+  },
+
+  saveOrders(orders: Order[]) {
+    const storage = getStorage();
+    const normalized = clone(orders);
+    if (storage) {
+      storage.setItem(ORDERS_KEY, JSON.stringify(normalized));
+    }
+    return normalized;
+  },
+
+  createOrder(payload: OrderPayload) {
+    const database = this.getDatabase();
+    const books = [...database.ru.books, ...database.en.books, ...database.de.books];
+    const status = payload.customer.paymentMethod === 'invoice' ? 'pending' : 'processing';
+    const paymentReference = `${payload.customer.paymentMethod === 'invoice' ? 'INV' : 'PAY'}-${Date.now().toString().slice(-6)}`;
+    const items = payload.items.map(item => {
+      const book = books.find(entry => entry.variants.some(variant => variant.id === item.variantId));
+      const variant = book?.variants.find(entry => entry.id === item.variantId);
+      return {
+        variantId: item.variantId,
+        bookTitle: book?.title || item.variantId,
+        quantity: item.quantity,
+        priceAtPurchase: variant?.price || 0,
+      };
+    });
+
+    const nextOrder: Order = {
+      id: `${this.getPaymentSettings().invoicePrefix || 'AM'}-${Math.floor(Math.random() * 100000)}`,
+      date: new Date().toISOString(),
+      customer: {
+        name: `${payload.customer.firstName} ${payload.customer.lastName}`.trim(),
+        email: payload.customer.email,
+        phone: payload.customer.phone,
+        location: [payload.customer.city, payload.customer.country].filter(Boolean).join(', '),
+        addressLine: payload.customer.address,
+        zip: payload.customer.zip,
+        country: payload.customer.country,
+      },
+      items,
+      total: payload.totalAmount,
+      currency: payload.currency,
+      status,
+      paymentStatus: 'pending',
+      paymentMethod: payload.customer.paymentMethod,
+      paymentReference,
+    };
+
+    const orders = this.getOrders();
+    orders.unshift(nextOrder);
+    this.saveOrders(orders);
+    return nextOrder;
+  },
+
+  updateOrderStatus(orderId: string, status: Order['status']) {
+    const orders = this.getOrders().map(order => (order.id === orderId ? { ...order, status } : order));
+    this.saveOrders(orders);
+    return true;
+  },
+
+  updatePaymentStatus(orderId: string, paymentStatus: PaymentStatus) {
+    const orders = this.getOrders().map(order => (order.id === orderId ? { ...order, paymentStatus } : order));
+    this.saveOrders(orders);
+    return true;
+  },
+
+  getPaymentSettings(): PaymentSettings {
+    const storage = getStorage();
+    if (!storage) return clone(DEFAULT_PAYMENT_SETTINGS);
+
+    try {
+      const raw = storage.getItem(PAYMENT_SETTINGS_KEY);
+      if (!raw) return clone(DEFAULT_PAYMENT_SETTINGS);
+      return clone(sanitizePaymentSettings(JSON.parse(raw)));
+    } catch {
+      return clone(DEFAULT_PAYMENT_SETTINGS);
+    }
+  },
+
+  savePaymentSettings(settings: PaymentSettings) {
+    const storage = getStorage();
+    const normalized = sanitizePaymentSettings(settings);
+    if (storage) {
+      storage.setItem(PAYMENT_SETTINGS_KEY, JSON.stringify(normalized));
+    }
+    return clone(normalized);
   },
 };

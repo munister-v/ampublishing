@@ -109,6 +109,19 @@ export interface LocalizedCatalogData {
 
 export type TranslationOverrides = Record<Language, Record<string, any>>;
 
+export interface PaymentSettings {
+  recipientName: string;
+  cardholder: string;
+  cardNumber: string;
+  bankName: string;
+  iban: string;
+  whatsappNumber: string;
+  telegramUsername: string;
+  contactEmail: string;
+  paymentNote: string;
+  invoicePrefix: string;
+}
+
 export interface CheckoutFormData {
   email: string;
   firstName: string;
@@ -141,12 +154,18 @@ export interface Order {
     name: string;
     email: string;
     location: string; // City, Country
+    phone?: string;
+    addressLine?: string;
+    zip?: string;
+    country?: string;
   };
   items: OrderItem[];
   total: number;
   currency: string;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
+  paymentMethod?: CheckoutFormData['paymentMethod'];
+  paymentReference?: string;
   trackingNumber?: string;
 }
 

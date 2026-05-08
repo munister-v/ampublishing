@@ -1,6 +1,6 @@
 
-import { Book, NewsItem, Language, OrderPayload, ApiResponse, OrderResponse, Order, OrderStatus, LocalizedCatalogData, TranslationOverrides } from '../types';
-import { DATABASE, MOCK_ORDERS } from '../constants';
+import { Book, NewsItem, Language, OrderPayload, ApiResponse, OrderResponse, Order, OrderStatus, LocalizedCatalogData, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
+import { DATABASE } from '../constants';
 import { contentStore } from './contentStore';
 
 // --- CONFIGURATION ---
@@ -180,6 +180,16 @@ export const api = {
     return contentStore.importContent(payload);
   },
 
+  getPaymentSettings: async (): Promise<PaymentSettings> => {
+    await mockDelay(120);
+    return contentStore.getPaymentSettings();
+  },
+
+  savePaymentSettings: async (settings: PaymentSettings): Promise<PaymentSettings> => {
+    await mockDelay(150);
+    return contentStore.savePaymentSettings(settings);
+  },
+
   submitOrder: async (payload: OrderPayload): Promise<ApiResponse<OrderResponse>> => {
     if (!isMockMode()) {
         return request<ApiResponse<OrderResponse>>(`/orders`, {
@@ -189,13 +199,14 @@ export const api = {
     }
 
     console.log('📦 [Mock] Submitting Order:', payload);
-    await mockDelay(2000); 
+    await mockDelay(1200);
+    const createdOrder = contentStore.createOrder(payload);
     
     return {
         success: true,
         data: {
-            orderId: `AM-${Math.floor(Math.random() * 100000)}`,
-            status: 'processing'
+            orderId: createdOrder.id,
+            status: createdOrder.status
         }
     };
   },
@@ -237,8 +248,8 @@ export const api = {
   getOrders: async (): Promise<Order[]> => {
       if (!isMockMode()) return request<Order[]>('/admin/orders');
       
-      await mockDelay(800);
-      return MOCK_ORDERS;
+      await mockDelay(300);
+      return contentStore.getOrders();
   },
 
   updateOrderStatus: async (orderId: string, status: OrderStatus): Promise<boolean> => {
@@ -251,7 +262,21 @@ export const api = {
       }
 
       await mockDelay(500);
-      console.log(`📝 [Mock] Order ${orderId} status changed to ${status}`);
+      contentStore.updateOrderStatus(orderId, status);
+      return true;
+  },
+
+  updatePaymentStatus: async (orderId: string, paymentStatus: PaymentStatus): Promise<boolean> => {
+      if (!isMockMode()) {
+          await request(`/admin/orders/${orderId}/payment`, {
+              method: 'PATCH',
+              body: JSON.stringify({ paymentStatus })
+          });
+          return true;
+      }
+
+      await mockDelay(300);
+      contentStore.updatePaymentStatus(orderId, paymentStatus);
       return true;
   },
 

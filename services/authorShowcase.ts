@@ -21,6 +21,29 @@ export type FeaturedAuthor = {
   tags: string[];
 };
 
+const isFeaturedAuthor = (value: any): value is FeaturedAuthor =>
+  value &&
+  typeof value === 'object' &&
+  typeof value.nameMain === 'string' &&
+  typeof value.nameAccent === 'string' &&
+  typeof value.label === 'string' &&
+  typeof value.intro === 'string' &&
+  Array.isArray(value.body) &&
+  Array.isArray(value.tags);
+
+const isShowcaseAuthor = (value: any): value is ShowcaseAuthor =>
+  value &&
+  typeof value === 'object' &&
+  typeof value.id === 'string' &&
+  typeof value.nameMain === 'string' &&
+  typeof value.nameAccent === 'string' &&
+  typeof value.initial === 'string' &&
+  typeof value.years === 'string' &&
+  typeof value.knownFor === 'string' &&
+  typeof value.bio === 'string' &&
+  Array.isArray(value.tags) &&
+  typeof value.imageUrl === 'string';
+
 export const FEATURED_PUBLISHER_AUTHOR: Record<Language, FeaturedAuthor> = {
   ru: {
     nameMain: 'Сергей',
@@ -164,3 +187,9 @@ export const AUTHOR_SHOWCASE: Record<Language, ShowcaseAuthor[]> = {
     },
   ],
 };
+
+export const getFeaturedAuthorContent = (language: Language, override?: unknown): FeaturedAuthor =>
+  isFeaturedAuthor(override) ? override : FEATURED_PUBLISHER_AUTHOR[language];
+
+export const getAuthorShowcaseContent = (language: Language, override?: unknown): ShowcaseAuthor[] =>
+  Array.isArray(override) && override.every(isShowcaseAuthor) ? override : AUTHOR_SHOWCASE[language];
