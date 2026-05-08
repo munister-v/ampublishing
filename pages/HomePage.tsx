@@ -8,19 +8,89 @@ import { useApp } from '../AppContext';
 export const HomePage: React.FC = () => {
   const { t, books, news, language, showToast } = useApp();
   const newBooks = books.filter(b => b.badges.includes('new')).slice(0, 4);
-  const featuredAuthors = books
-    .map(book => ({
-      id: book.id,
-      author: book.author,
-      coverUrl: book.coverUrl,
-      bio: book.story?.authorBio?.[0] || book.description,
-      title: book.title,
-    }))
-    .filter((item, index, array) => array.findIndex(candidate => candidate.author === item.author) === index)
-    .slice(0, 3);
   const heroLine2 = t('home.hero_title_2');
   const heroImageUrl = t('home.hero_image') as string;
   const featureImageUrl = t('home.feature_image') as string;
+  const authorShowcase = {
+    ru: [
+      {
+        id: 'mark-twain',
+        nameMain: 'Марк',
+        nameAccent: 'Твен',
+        initial: 'M',
+        bio: 'Классик приключенческой и социальной прозы. Для визуальной презентации раздела мы используем образ автора, мгновенно считываемого даже без лишних пояснений.',
+        tags: ['классика', 'приключения', 'американская проза', 'editorial mock'],
+      },
+      {
+        id: 'virginia-woolf',
+        nameMain: 'Вирджиния',
+        nameAccent: 'Вулф',
+        initial: 'V',
+        bio: 'Икона модернистской литературы и тихой психологической глубины. Этот блок показывает, как могут выглядеть карточки авторов издательства в более премиальной подаче.',
+        tags: ['модернизм', 'эссе', 'психология', 'editorial mock'],
+      },
+      {
+        id: 'franz-kafka',
+        nameMain: 'Франц',
+        nameAccent: 'Кафка',
+        initial: 'K',
+        bio: 'Лаконичный, узнаваемый, почти архитектурный образ автора. Подходит для витринной секции, где важны имя, тон и ощущение литературного веса.',
+        tags: ['экзистенциализм', 'европейская проза', 'канон', 'editorial mock'],
+      },
+    ],
+    en: [
+      {
+        id: 'mark-twain',
+        nameMain: 'Mark',
+        nameAccent: 'Twain',
+        initial: 'M',
+        bio: 'A classic of adventurous and socially observant prose. This showcase uses instantly recognizable authors as a visual stand-in for the future publishing roster.',
+        tags: ['classics', 'adventure', 'american prose', 'editorial mock'],
+      },
+      {
+        id: 'virginia-woolf',
+        nameMain: 'Virginia',
+        nameAccent: 'Woolf',
+        initial: 'V',
+        bio: 'An icon of literary modernism and psychological nuance. The section is meant to demonstrate how author presentation can feel elegant and editorial rather than generic.',
+        tags: ['modernism', 'essay', 'psychology', 'editorial mock'],
+      },
+      {
+        id: 'franz-kafka',
+        nameMain: 'Franz',
+        nameAccent: 'Kafka',
+        initial: 'K',
+        bio: 'Spare, unmistakable, almost architectural as an authorial image. Well suited to a premium showcase where name, tone, and literary gravity matter most.',
+        tags: ['existentialism', 'european prose', 'canon', 'editorial mock'],
+      },
+    ],
+    de: [
+      {
+        id: 'mark-twain',
+        nameMain: 'Mark',
+        nameAccent: 'Twain',
+        initial: 'M',
+        bio: 'Ein Klassiker der Abenteuer- und Gesellschaftsprosa. Diese Sektion nutzt bekannte Autor:innen als visuelle Platzhalter für die spätere Verlagspräsentation.',
+        tags: ['klassik', 'abenteuer', 'amerikanische prosa', 'editorial mock'],
+      },
+      {
+        id: 'virginia-woolf',
+        nameMain: 'Virginia',
+        nameAccent: 'Woolf',
+        initial: 'V',
+        bio: 'Eine Ikone der literarischen Moderne und psychologischen Feinzeichnung. Die Gestaltung zeigt, wie elegant eine Autor:innen-Sektion des Verlags wirken kann.',
+        tags: ['moderne', 'essay', 'psychologie', 'editorial mock'],
+      },
+      {
+        id: 'franz-kafka',
+        nameMain: 'Franz',
+        nameAccent: 'Kafka',
+        initial: 'K',
+        bio: 'Reduziert, unverwechselbar und fast architektonisch in seiner Wirkung. Ideal für eine literarische Vitrine mit Haltung und Gewicht.',
+        tags: ['existenzialismus', 'europäische prosa', 'kanon', 'editorial mock'],
+      },
+    ],
+  }[language];
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));
@@ -177,29 +247,50 @@ export const HomePage: React.FC = () => {
 
       {/* 6. OUR AUTHORS */}
       <section className="border-t border-primary bg-[#F4F4F0]">
-        <div className="border-b border-primary px-6 py-5 flex items-center justify-between gap-4">
+        <div className="border-b border-primary px-6 md:px-10 py-5 flex items-center justify-between gap-4">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent mb-2">{t('home.authors_kicker')}</p>
             <h2 className="text-3xl md:text-5xl font-serif leading-none">{t('home.authors_title')}</h2>
           </div>
-          <Link to="/authors" className="text-xs font-mono uppercase underline hover:text-accent transition-colors">
-            {t('home.authors_cta')}
-          </Link>
+          <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-gray-400">Editorial showcase</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 border-b border-primary">
-          {featuredAuthors.map((item) => (
-            <article key={item.author} className="border-r border-primary last:border-r-0 bg-white">
-              <div className="aspect-[4/3] border-b border-primary overflow-hidden bg-[#E8EDF2]">
-                <img src={item.coverUrl} alt={item.author} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+
+        <div className="px-4 md:px-8 py-10 md:py-16 space-y-8 border-b border-primary">
+          {authorShowcase.map((item) => (
+            <article key={item.id} className="grid grid-cols-1 lg:grid-cols-[340px_1fr] border border-primary bg-[#F7F1E6] overflow-hidden">
+              <div className="bg-primary min-h-[260px] md:min-h-[360px] flex items-center justify-center relative overflow-hidden">
+                <span className="text-[7rem] md:text-[9rem] font-serif text-white/10 leading-none">
+                  {item.initial}
+                </span>
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))]" />
               </div>
-              <div className="p-6 md:p-8">
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400 mb-4">{t('home.authors_card_label')}</p>
-                <h3 className="text-3xl font-serif mb-4">{item.author}</h3>
-                <p className="text-sm leading-relaxed text-gray-600 mb-6">{item.bio}</p>
-                <Link to={`/product/${item.id}`} className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-bold hover:text-accent transition-colors">
-                  {t('home.discover_author')}
-                  <ArrowRight size={14} />
-                </Link>
+
+              <div className="p-8 md:p-12 lg:p-16">
+                <div className="flex items-center gap-4 mb-8">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent whitespace-nowrap">
+                    {t('home.authors_kicker')}
+                  </p>
+                  <div className="h-px flex-1 bg-primary/15" />
+                </div>
+
+                <h3 className="text-5xl md:text-7xl font-serif leading-[0.9] text-primary">
+                  {item.nameMain}
+                </h3>
+                <p className="text-4xl md:text-6xl font-serif italic text-primary/60 leading-[0.95] mt-2">
+                  {item.nameAccent}
+                </p>
+
+                <div className="mt-8 space-y-6 max-w-4xl text-lg md:text-[1.85rem] leading-relaxed text-primary/70">
+                  <p>{item.bio}</p>
+                </div>
+
+                <div className="mt-10 flex flex-wrap gap-2">
+                  {item.tags.map((tag) => (
+                    <span key={tag} className="border border-primary/15 bg-white/50 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </article>
           ))}

@@ -36,7 +36,7 @@ export const translations: Record<Language, TranslationTree> = {
       }
     },
     home: {
-      hero_title_1: "Книги в дорогу",
+      hero_title_1: "Книги с собой",
       hero_title_2: "",
       hero_subtitle: "Мы издаём современную литературную прозу с глубиной и психологической тонкостью — книги, которые легко взять с собой и невозможно забыть.",
       hero_cta: "Перейти в каталог",

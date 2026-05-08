@@ -165,16 +165,7 @@ export const PrivacyPage: React.FC = () => {
 
 // --- Authors Page ---
 export const AuthorsPage: React.FC = () => {
-  const { t, books } = useApp();
-  const authorCards = books
-    .map(book => ({
-      id: book.id,
-      author: book.author,
-      title: book.title,
-      coverUrl: book.coverUrl,
-      bio: book.story?.authorBio?.[0] || book.description,
-    }))
-    .filter((item, index, array) => array.findIndex(candidate => candidate.author === item.author) === index);
+  const { t } = useApp();
   
   return (
     <div className="bg-bg min-h-screen pt-[60px] md:pt-[80px]">
@@ -182,37 +173,6 @@ export const AuthorsPage: React.FC = () => {
         title={t('static.authors.title')} 
         subtitle={t('static.authors.subtitle')}
       />
-
-      <section className="bg-white border-b border-primary">
-        <div className="container mx-auto px-4 py-20">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
-            <div>
-              <p className="text-accent text-xs font-bold uppercase tracking-[0.25em] mb-4">{t('static.authors.our_authors_kicker')}</p>
-              <h2 className="text-4xl md:text-5xl font-serif text-primary">{t('static.authors.our_authors_title')}</h2>
-            </div>
-            <p className="max-w-xl text-gray-500 font-light text-lg">{t('static.authors.our_authors_sub')}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-0 border border-primary">
-            {authorCards.map((item) => (
-              <article key={item.author} className="border-r border-b border-primary last:border-r-0 bg-[#F8F8F5]">
-                <div className="aspect-[4/3] overflow-hidden border-b border-primary bg-[#E8EDF2]">
-                  <img src={item.coverUrl} alt={item.author} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
-                </div>
-                <div className="p-8">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400 mb-3">{item.title}</p>
-                  <h3 className="text-3xl font-serif text-primary mb-4">{item.author}</h3>
-                  <p className="text-gray-600 font-light leading-relaxed mb-6">{item.bio}</p>
-                  <Link to={`/product/${item.id}`} className="inline-flex items-center gap-3 text-xs uppercase tracking-[0.18em] font-bold hover:text-accent transition-colors">
-                    <BookOpen size={14} />
-                    {t('static.authors.open_book')}
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
       
       {/* Manifesto / Intro */}
       <section className="py-24 container mx-auto px-4">
