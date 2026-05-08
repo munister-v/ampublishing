@@ -56,7 +56,7 @@ export const LoginPage: React.FC = () => {
                         onChange={e => setPassword(e.target.value)}
                         className="w-full bg-[#F8F9FA] border-b-2 border-gray-200 p-3 outline-none focus:border-accent transition-colors"
                         required
-                        placeholder="admin"
+                        placeholder="AMPub!Berlin2026#Control"
                     />
                 </div>
 
@@ -74,7 +74,7 @@ export const LoginPage: React.FC = () => {
             </form>
             
             <div className="mt-8 pt-8 border-t border-gray-100 text-center">
-                <p className="text-[10px] text-gray-400 font-mono">Restricted area. All activities logged.</p>
+                <p className="text-[10px] text-gray-400 font-mono">Restricted area. Static demo auth only, use backend auth for real security.</p>
             </div>
         </div>
       </div>

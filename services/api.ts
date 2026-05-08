@@ -5,6 +5,9 @@ import { contentStore } from './contentStore';
 
 // --- CONFIGURATION ---
 
+const ADMIN_EMAIL = 'admin@ampublishing.de';
+const ADMIN_PASSWORD = 'AMPub!Berlin2026#Control';
+
 const getBaseUrl = () => localStorage.getItem('api_url') || 'http://localhost:3000/api/v1';
 const isMockMode = () => localStorage.getItem('use_mock_api') !== 'false'; // Default to true
 
@@ -212,7 +215,7 @@ export const api = {
       }
 
       await mockDelay(1000);
-      if (email === 'admin@ampublishing.de' && password === 'admin') {
+      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
           return {
               token: 'mock-jwt-token-' + Date.now(),
               user: { name: 'Admin User', role: 'superadmin' }
