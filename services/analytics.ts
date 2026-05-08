@@ -22,7 +22,7 @@ interface AnalyticsEvent {
 }
 
 class AnalyticsService {
-  private debug: boolean = process.env.NODE_ENV === 'development';
+  private debug: boolean = import.meta.env.DEV;
 
   constructor() {
     if (this.debug) {

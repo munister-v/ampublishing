@@ -4,7 +4,7 @@ import { Server, Database, Save, RefreshCw } from 'lucide-react';
 
 export const DevTools: React.FC = () => {
   // Only show in development
-  if (process.env.NODE_ENV === 'production') return null;
+  if (import.meta.env.PROD) return null;
 
   const [isOpen, setIsOpen] = useState(false);
   const [useMock, setUseMock] = useState(localStorage.getItem('use_mock_api') !== 'false');
