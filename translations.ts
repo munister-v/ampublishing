@@ -341,7 +341,9 @@ export const translations: Record<Language, TranslationTree> = {
         },
         our_authors: {
           title: "Наши авторы",
-          subtitle: "Отдельный editorial-раздел с визуальной подачей авторов и литературным настроением."
+          subtitle: "Отдельный editorial-раздел с визуальной подачей авторов и литературным настроением.",
+          gallery_label: "Литературная галерея",
+          gallery_title: "Имена, формирующие настроение раздела"
         }
       },
       footer: {
@@ -811,7 +813,9 @@ export const translations: Record<Language, TranslationTree> = {
         },
         our_authors: {
           title: "Our Authors",
-          subtitle: "A dedicated editorial section with a more visual and literary way of presenting authors."
+          subtitle: "A dedicated editorial section with a more visual and literary way of presenting authors.",
+          gallery_label: "Literary gallery",
+          gallery_title: "Names shaping the mood of the section"
         }
     },
     error: {
@@ -1233,7 +1237,9 @@ export const translations: Record<Language, TranslationTree> = {
         },
         our_authors: {
           title: "Unsere Autor:innen",
-          subtitle: "Ein eigener Editorial-Bereich mit einer visuellen und literarischen Präsentation von Autor:innen."
+          subtitle: "Ein eigener Editorial-Bereich mit einer visuellen und literarischen Präsentation von Autor:innen.",
+          gallery_label: "Literarische Galerie",
+          gallery_title: "Namen, die die Stimmung des Bereichs prägen"
         }
       },
     error: {

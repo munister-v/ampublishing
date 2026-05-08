@@ -98,6 +98,8 @@ const contentGroups: ContentGroup[] = [
       { key: 'nav.our_authors', label: 'Our authors menu label', type: 'text' },
       { key: 'static.our_authors.title', label: 'Our authors title', type: 'text' },
       { key: 'static.our_authors.subtitle', label: 'Our authors subtitle', type: 'textarea' },
+      { key: 'static.our_authors.gallery_label', label: 'Our authors gallery label', type: 'text' },
+      { key: 'static.our_authors.gallery_title', label: 'Our authors gallery title', type: 'text' },
       { key: 'static.media.title', label: 'Media title', type: 'text' },
       { key: 'static.media.subtitle', label: 'Media subtitle', type: 'textarea' },
       { key: 'static.media.kit_desc', label: 'Press kit text', type: 'textarea' },

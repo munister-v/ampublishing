@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Globe } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useApp } from '../AppContext';
-import { AUTHOR_SHOWCASE } from '../services/authorShowcase';
+import { AUTHOR_SHOWCASE, FEATURED_PUBLISHER_AUTHOR } from '../services/authorShowcase';
 
 export const HomePage: React.FC = () => {
   const { t, books, news, language, showToast } = useApp();
@@ -13,6 +13,7 @@ export const HomePage: React.FC = () => {
   const heroImageUrl = t('home.hero_image') as string;
   const featureImageUrl = t('home.feature_image') as string;
   const authorShowcase = AUTHOR_SHOWCASE[language];
+  const featuredAuthor = FEATURED_PUBLISHER_AUTHOR[language];
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));
@@ -179,7 +180,29 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="px-4 md:px-8 py-10 md:py-16 space-y-8 border-b border-primary">
+        <div className="px-4 md:px-8 py-10 md:py-16 border-b border-primary">
+          <article className="grid grid-cols-1 lg:grid-cols-[300px_1fr] border border-primary bg-[#F7F1E6] overflow-hidden mb-8">
+            <div className="bg-primary min-h-[220px] md:min-h-[320px] flex items-center justify-center relative overflow-hidden">
+              <span className="text-[6rem] md:text-[9rem] font-serif text-white/10 leading-none">S</span>
+            </div>
+
+            <div className="p-8 md:p-12">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent mb-4">
+                {featuredAuthor.label}
+              </p>
+              <h3 className="text-4xl md:text-6xl font-serif leading-[0.9] text-primary">
+                {featuredAuthor.nameMain}
+              </h3>
+              <p className="text-3xl md:text-5xl font-serif italic text-primary/60 leading-[0.92] mt-2">
+                {featuredAuthor.nameAccent}
+              </p>
+              <p className="mt-6 text-lg md:text-2xl font-serif leading-[1.2] text-primary/80 max-w-4xl">
+                {featuredAuthor.intro}
+              </p>
+            </div>
+          </article>
+
+          <div className="space-y-8">
           {authorShowcase.map((item) => (
             <article key={item.id} className="grid grid-cols-1 lg:grid-cols-[340px_1fr] border border-primary bg-[#F7F1E6] overflow-hidden">
               <div className="bg-primary min-h-[260px] md:min-h-[360px] relative overflow-hidden">
@@ -229,6 +252,7 @@ export const HomePage: React.FC = () => {
               </div>
             </article>
           ))}
+          </div>
         </div>
       </section>
 
