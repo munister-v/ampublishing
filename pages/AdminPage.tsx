@@ -173,6 +173,8 @@ const createNewsTemplate = (): NewsItem => ({
 
 const createPaymentSettingsTemplate = (): PaymentSettings => ({
   recipientName: 'AM Publishing',
+  visaPaymentUrl: '',
+  mastercardPaymentUrl: '',
   cardholder: '',
   cardNumber: '',
   bankName: '',
@@ -1209,6 +1211,8 @@ export const AdminPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <input value={paymentSettings.recipientName} onChange={e => setPaymentSettings(prev => ({ ...prev, recipientName: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Recipient / brand name" />
               <input value={paymentSettings.invoicePrefix} onChange={e => setPaymentSettings(prev => ({ ...prev, invoicePrefix: e.target.value.toUpperCase() }))} className="border border-gray-300 px-4 py-3" placeholder="Invoice prefix" />
+              <input value={paymentSettings.visaPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, visaPaymentUrl: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Visa payment URL" />
+              <input value={paymentSettings.mastercardPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, mastercardPaymentUrl: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Mastercard payment URL" />
               <input value={paymentSettings.cardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, cardholder: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Cardholder" />
               <input value={paymentSettings.cardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, cardNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Card number" />
               <input value={paymentSettings.bankName} onChange={e => setPaymentSettings(prev => ({ ...prev, bankName: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Bank name" />
@@ -1239,10 +1243,10 @@ export const AdminPage: React.FC = () => {
             <div className="border border-primary/10 bg-[#F8F8F5] p-6">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400 mb-4">Recommended flow</p>
               <div className="space-y-3 text-sm text-gray-700">
-                <p>1. Customer places the order with `Invoice / Card transfer`.</p>
-                <p>2. Checkout shows your card / bank details and a unique payment reference.</p>
-                <p>3. After payment, the customer sends proof to your WhatsApp, Telegram, or email.</p>
-                <p>4. Webhook forwards the order to Make / n8n / Telegram and you see it instantly.</p>
+                <p>1. Customer places the order with `Visa`, `Mastercard`, `Invoice`, or `MIR`.</p>
+                <p>2. The order is created first and forwarded to your webhook immediately.</p>
+                <p>3. For Visa / Mastercard the customer continues to your external payment link.</p>
+                <p>4. For Invoice / MIR the customer pays manually and sends proof to WhatsApp, Telegram, or email.</p>
                 <p>5. You confirm the payment in the `Orders` tab by changing `payment status` to `paid`.</p>
               </div>
             </div>

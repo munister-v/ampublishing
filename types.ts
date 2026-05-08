@@ -114,6 +114,8 @@ export type TranslationOverrides = Record<Language, Record<string, any>>;
 
 export interface PaymentSettings {
   recipientName: string;
+  visaPaymentUrl: string;
+  mastercardPaymentUrl: string;
   cardholder: string;
   cardNumber: string;
   bankName: string;
@@ -142,7 +144,7 @@ export interface CheckoutFormData {
   zip: string;
   country: string;
   shippingMethod: 'standard' | 'express';
-  paymentMethod: 'amazon' | 'invoice' | 'mir';
+  paymentMethod: 'visa' | 'mastercard' | 'amazon' | 'invoice' | 'mir';
 }
 
 // --- ADMIN & ORDER TYPES ---

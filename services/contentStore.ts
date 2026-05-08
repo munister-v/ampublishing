@@ -53,6 +53,8 @@ const sanitizeTranslationOverrides = (overrides: TranslationOverrides): Translat
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   recipientName: 'AM Publishing',
+  visaPaymentUrl: '',
+  mastercardPaymentUrl: '',
   cardholder: '',
   cardNumber: '',
   bankName: '',
@@ -236,7 +238,16 @@ export const contentStore = {
     const database = this.getDatabase();
     const books = [...database.ru.books, ...database.en.books, ...database.de.books];
     const status = 'pending';
-    const paymentPrefix = payload.customer.paymentMethod === 'amazon' ? 'AMZ' : payload.customer.paymentMethod === 'mir' ? 'MIR' : 'INV';
+    const paymentPrefix =
+      payload.customer.paymentMethod === 'amazon'
+        ? 'AMZ'
+        : payload.customer.paymentMethod === 'mir'
+          ? 'MIR'
+          : payload.customer.paymentMethod === 'visa'
+            ? 'VIS'
+            : payload.customer.paymentMethod === 'mastercard'
+              ? 'MCR'
+              : 'INV';
     const paymentReference = `${paymentPrefix}-${Date.now().toString().slice(-6)}`;
     const items = payload.items.map(item => {
       const book = books.find(entry => entry.variants.some(variant => variant.id === item.variantId));
