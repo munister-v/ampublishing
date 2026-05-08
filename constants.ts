@@ -1,5 +1,4 @@
-
-import { Book, NewsItem, Region, Language, BookVariant, Order } from './types';
+import { Book, NewsItem, Region, Language, BookVariant, Order, BookStory } from './types';
 
 export const REGIONS: Region[] = [
   { id: 'de', name: 'Германия (Deutschland)', currency: '€' },
@@ -9,71 +8,23 @@ export const REGIONS: Region[] = [
 
 export const FREE_SHIPPING_THRESHOLD = 50;
 
-// --- DATA FACTORIES ---
+const asset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`;
 
-const mkVariant = (id: string, format: 'paperback'|'hardcover'|'digital'|'special_edition', lang: string, price: number, stock: number, isbn: string): BookVariant => ({
-  id, format, language: lang, price, stock, isbn
+const mkVariant = (
+  id: string,
+  format: 'paperback' | 'hardcover' | 'digital' | 'special_edition',
+  lang: string,
+  price: number,
+  stock: number,
+  isbn: string
+): BookVariant => ({
+  id,
+  format,
+  language: lang,
+  price,
+  stock,
+  isbn,
 });
-
-// --- MOCK ORDERS ---
-export const MOCK_ORDERS: Order[] = [
-  {
-    id: 'ORD-2026-8821',
-    date: '2026-01-22T14:30:00Z',
-    customer: { name: 'Alex Meyer', email: 'alex@example.com', location: 'Berlin, DE' },
-    items: [{ variantId: '1-1', bookTitle: 'Тени Берлина', quantity: 1, priceAtPurchase: 24.00 }],
-    total: 29.00,
-    currency: '€',
-    status: 'processing',
-    paymentStatus: 'paid'
-  },
-  {
-    id: 'ORD-2026-8820',
-    date: '2026-01-22T10:15:00Z',
-    customer: { name: 'Sarah Connor', email: 'sarah@skynet.com', location: 'Los Angeles, USA' },
-    items: [
-        { variantId: '6-1', bookTitle: 'Бетон и Стекло', quantity: 2, priceAtPurchase: 32.00 },
-        { variantId: '2-1', bookTitle: 'Философия Тишины', quantity: 1, priceAtPurchase: 18.50 }
-    ],
-    total: 97.50, // + shipping
-    currency: '€',
-    status: 'pending',
-    paymentStatus: 'paid'
-  },
-  {
-    id: 'ORD-2026-8819',
-    date: '2026-01-21T18:45:00Z',
-    customer: { name: 'Hans Gruber', email: 'hans@nakatomi.jp', location: 'Munich, DE' },
-    items: [{ variantId: '5-1', bookTitle: 'История Искусств: Том 1', quantity: 1, priceAtPurchase: 45.00 }],
-    total: 45.00,
-    currency: '€',
-    status: 'shipped',
-    paymentStatus: 'paid',
-    trackingNumber: 'DHL-99283812'
-  },
-  {
-    id: 'ORD-2026-8818',
-    date: '2026-01-20T09:00:00Z',
-    customer: { name: 'Jean-Luc Godard', email: 'cinema@verite.fr', location: 'Paris, FR' },
-    items: [{ variantId: '7-1', bookTitle: 'Эстетика Пустоты', quantity: 1, priceAtPurchase: 20.00 }],
-    total: 35.00, // express shipping
-    currency: '€',
-    status: 'delivered',
-    paymentStatus: 'paid'
-  },
-  {
-    id: 'ORD-2026-8817',
-    date: '2026-01-19T11:20:00Z',
-    customer: { name: 'Unknown User', email: 'anon@tor.net', location: 'Hamburg, DE' },
-    items: [{ variantId: '3-1', bookTitle: 'Запретный Архив', quantity: 1, priceAtPurchase: 28.00 }],
-    total: 28.00,
-    currency: '€',
-    status: 'cancelled',
-    paymentStatus: 'refunded'
-  }
-];
-
-// --- LOCALIZED DATA ---
 
 type LocalizedData = {
   books: Book[];
@@ -83,340 +34,253 @@ type LocalizedData = {
   series: string[];
 };
 
-// Generic filler for bulk
-const genericCovers = [
-    'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800', // Classic black (ID 8)
-    'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=800', // White (ID 9)
-    'https://images.unsplash.com/photo-1550684847-75bdda21cc95?auto=format&fit=crop&q=80&w=800', // Red/Dark Abstract (ID 10 - Updated)
-    'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800', // Dark abstract (ID 11)
-    'https://images.unsplash.com/photo-1535905557558-afc4877a26fc?auto=format&fit=crop&q=80&w=800', // Stack (ID 12)
-    'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&q=80&w=800', // Mountain/Abstract
-    'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=800', // Reading
-    'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80&w=800'  // Library
+const coverUrl = asset('images/ambook-cover.jpg');
+const featureImageUrl = asset('images/ambook-object.jpg');
+
+const baseThemes = [
+  {
+    title: 'Память как бремя',
+    text: 'Прошлое не отпускает - оно меняет форму. Воспоминания искажаются, но никуда не уходят.',
+  },
+  {
+    title: 'Три поколения',
+    text: 'Послевоенная провинция, девяностые и сегодняшний день - три эпохи, одна судьба.',
+  },
+  {
+    title: 'Возвращение домой',
+    text: 'Что значит вернуться туда, где тебя больше не ждут? Роман не дает удобных ответов.',
+  },
+  {
+    title: 'Молчание как язык',
+    text: 'То, о чем не говорят, говорит громче всего. Калинин работает с паузами и пустотами.',
+  },
 ];
 
-const generateGenericBooks = (lang: Language, startId: number): Book[] => {
-  const titles = lang === 'ru' ? 'Архивный Том' : lang === 'de' ? 'Archivband' : 'Archive Volume';
-  return Array.from({ length: 8 }).map((_, i) => {
-      const id = (startId + i).toString();
-      return {
-        id,
-        title: `${titles} #${id}`,
-        author: 'AM Collective',
-        price: 15 + i,
-        // Cycle through curated images
-        coverUrl: genericCovers[i % genericCovers.length],
-        badges: [],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 5,
-        description: 'Standard catalog item.',
-        details: { pages: 200, year: 2020 + (i % 4), weight: '300g', dimensions: '120x190mm' },
-        genre: [lang === 'ru' ? 'Теория' : 'Theory'],
-        ageRating: '16+',
-        variants: [mkVariant(`${id}-1`, 'paperback', 'English', 15 + i, 5, `978-0-00-${id}-X`)],
-        releaseDate: `202${i % 4}-01-01`
-      };
-  });
+const baseReviews = [
+  {
+    quote: '«Калинин превращает обыденное в невыносимо точное. Я читала и узнавала людей, места, молчание.»',
+    author: 'Читательница из Москвы',
+  },
+  {
+    quote: '«Роман держит не сюжетом - он держит воздухом. Той особой атмосферой, от которой не можешь оторваться.»',
+    author: 'Читатель из Берлина',
+  },
+  {
+    quote: '«Это книга о том, как больно возвращаться. И как еще больнее не возвращаться.»',
+    author: 'Читатель из Тель-Авива',
+  },
+];
+
+const storyByLanguage: Record<Language, BookStory> = {
+  ru: {
+    quote: 'Он не знал, зачем вернулся. Только - что иначе было нельзя.',
+    quoteSource: 'Из романа, глава III',
+    about: [
+      'Это история о человеке, который возвращается в город своего детства после долгих лет отсутствия и обнаруживает, что прошлое не исчезло. Оно лишь ждало.',
+      'Роман Калинина движется сквозь три временных пласта с редкой уверенностью: послевоенная провинция, распад Советского Союза, наши дни. Память здесь не ностальгия, а улика. Каждая деталь свидетель.',
+      '«Всё, что останется» - это книга о том, что мы несем с собой и чего не можем оставить, даже когда очень хотим.',
+    ],
+    excerpt: [
+      'Город встретил его тем же запахом - мокрым асфальтом и чем-то горелым, что всегда висело над промышленным районом по утрам.',
+      'Дома стояли на месте. Деревья выросли. Магазин на углу стал аптекой. Но что-то главное исчезло. Или, может быть, это он перестал ему принадлежать.',
+      'Переулок Садовый, 14. Дом, в котором он не был двадцать три года.',
+    ],
+    authorBio: [
+      'Сергей Калинин - прозаик, чьи тексты отличает редкое сочетание психологической точности и атмосферной плотности. Он пишет о людях в переломные моменты: когда привычное рушится, а новое еще не обрело форму.',
+      'Его проза не торопится - она живет в деталях, в паузах, в том, что остается за кадром. «Всё, что останется» - его первый роман в AM Publishing. Берлин, 2026.',
+    ],
+    themes: baseThemes,
+    reviews: baseReviews,
+    orderNote: 'Малый тираж. Твёрдая обложка. Офсетная печать. Доставка в 59 стран мира.',
+    featureImageUrl,
+  },
+  en: {
+    quote: 'He did not know why he had come back. Only that there had been no other way.',
+    quoteSource: 'From the novel, Chapter III',
+    about: [
+      'This is the story of a man who returns to the city of his childhood after many years away and discovers that the past never vanished. It was simply waiting.',
+      'Kalinin moves through three time layers with unusual assurance: the post-war province, the collapse of the Soviet Union, and the present day. Memory is not nostalgia here, but evidence. Every detail becomes testimony.',
+      'Everything That Will Remain is a novel about what we carry within us and what we cannot leave behind, even when we want to.',
+    ],
+    excerpt: [
+      'The city met him with the same smell - wet asphalt and something burnt - that always hung over the industrial district in the mornings.',
+      'The houses were still there. The trees had grown. The corner shop had become a pharmacy. But something essential had disappeared. Or perhaps he was no longer part of it.',
+      'Sadovy Lane, 14. The house he had not entered for twenty-three years.',
+    ],
+    authorBio: [
+      'Sergey Kalinin is a prose writer whose work combines psychological precision with a dense, immersive atmosphere. He writes about people at breaking points, when the familiar collapses and the new has not yet taken shape.',
+      'His prose is unhurried. It lives in detail, in pauses, in everything that remains just outside the frame. Everything That Will Remain is his first novel with AM Publishing. Berlin, 2026.',
+    ],
+    themes: [
+      { title: 'Memory as burden', text: 'The past never lets go. It changes shape, but it does not disappear.' },
+      { title: 'Three generations', text: 'Post-war life, the nineties, and the present intertwine inside one family history.' },
+      { title: 'Returning home', text: 'What does it mean to return to a place where no one is waiting for you anymore?' },
+      { title: 'Silence as language', text: 'What is never said becomes louder than any confession.' },
+    ],
+    reviews: [
+      { quote: '“Kalinin turns the ordinary into something unbearably precise.”', author: 'Reader from Moscow' },
+      { quote: '“The novel holds you not by plot, but by atmosphere.”', author: 'Reader from Berlin' },
+      { quote: '“It hurts to return. It hurts even more not to.”', author: 'Reader from Tel Aviv' },
+    ],
+    orderNote: 'Limited print run. Hardcover edition. Offset printing. Shipping to 59 countries.',
+    featureImageUrl,
+  },
+  de: {
+    quote: 'Er wusste nicht, warum er zurückgekehrt war. Nur, dass es keine andere Möglichkeit gab.',
+    quoteSource: 'Aus dem Roman, Kapitel III',
+    about: [
+      'Dies ist die Geschichte eines Mannes, der nach vielen Jahren in die Stadt seiner Kindheit zurückkehrt und entdeckt, dass die Vergangenheit nie verschwunden ist. Sie hat nur gewartet.',
+      'Kalinin bewegt sich mit seltener Sicherheit durch drei Zeitebenen: die Nachkriegsprovinz, den Zerfall der Sowjetunion und die Gegenwart. Erinnerung ist hier keine Nostalgie, sondern Beweismaterial. Jedes Detail legt Zeugnis ab.',
+      'Alles, was bleibt, ist ein Roman über das, was wir mit uns tragen und was wir nicht zurücklassen können, selbst wenn wir es wollen.',
+    ],
+    excerpt: [
+      'Die Stadt empfing ihn mit demselben Geruch - nassem Asphalt und etwas Verbranntem -, der morgens immer über dem Industrieviertel hing.',
+      'Die Häuser standen noch. Die Bäume waren gewachsen. Der Laden an der Ecke war jetzt eine Apotheke. Doch etwas Wesentliches war verschwunden.',
+      'Sadovy-Gasse 14. Das Haus, in dem er seit dreiundzwanzig Jahren nicht mehr gewesen war.',
+    ],
+    authorBio: [
+      'Sergey Kalinin ist ein Prosaautor, dessen Texte psychologische Genauigkeit mit dichter Atmosphäre verbinden. Er schreibt über Menschen in Übergangsmomenten, wenn das Gewohnte zerbricht und das Neue noch keine Form hat.',
+      'Seine Prosa eilt nicht. Sie lebt in Details, in Pausen und in dem, was außerhalb des Bildes bleibt. Alles, was bleibt ist sein erster Roman bei AM Publishing. Berlin, 2026.',
+    ],
+    themes: [
+      { title: 'Erinnerung als Last', text: 'Die Vergangenheit lässt nicht los. Sie verändert nur ihre Gestalt.' },
+      { title: 'Drei Generationen', text: 'Nachkriegszeit, die Neunziger und die Gegenwart treffen in einer Familiengeschichte aufeinander.' },
+      { title: 'Heimkehr', text: 'Was bedeutet es, an einen Ort zurückzukehren, an dem niemand mehr auf dich wartet?' },
+      { title: 'Schweigen als Sprache', text: 'Das Ungesagte spricht oft lauter als jedes Geständnis.' },
+    ],
+    reviews: [
+      { quote: '„Kalinin macht das Alltägliche schmerzhaft präzise.“', author: 'Leserin aus Moskau' },
+      { quote: '„Der Roman hält dich mit Atmosphäre fest, nicht mit Plot.“', author: 'Leser aus Berlin' },
+      { quote: '„Es tut weh zurückzukehren. Noch mehr tut es weh, es nicht zu tun.“', author: 'Leser aus Tel Aviv' },
+    ],
+    orderNote: 'Kleine Auflage. Hardcover. Offsetdruck. Versand in 59 Länder.',
+    featureImageUrl,
+  },
 };
+
+const bookByLanguage = (lang: Language): Book => {
+  const localizedTitle = lang === 'ru' ? 'Всё, что останется' : lang === 'en' ? 'Everything That Will Remain' : 'Alles, was bleibt';
+  const localizedAuthor = lang === 'ru' ? 'Сергей Калинин' : 'Sergey Kalinin';
+
+  return {
+    id: 'ambook-001',
+    title: localizedTitle,
+    author: localizedAuthor,
+    price: 24,
+    coverUrl,
+    badges: ['new'],
+    type: 'publisher',
+    isPreorder: false,
+    stock: 24,
+    description:
+      lang === 'ru'
+        ? 'Роман о возвращении, памяти и том, что прошлое может ждать нас дольше, чем мы готовы признать.'
+        : lang === 'en'
+          ? 'A novel about return, memory, and the way the past can wait longer than we are willing to admit.'
+          : 'Ein Roman über Rückkehr, Erinnerung und darüber, wie lange die Vergangenheit auf uns warten kann.',
+    details: {
+      pages: 368,
+      year: 2026,
+      publisher: 'AM Publishing Berlin',
+      weight: 'Hardcover',
+      dimensions: 'Small print run',
+    },
+    genre:
+      lang === 'ru'
+        ? ['Современная проза', 'Психологическая литература']
+        : lang === 'en'
+          ? ['Contemporary Fiction', 'Psychological Prose']
+          : ['Zeitgenössische Prosa', 'Psychologische Literatur'],
+    series: 'AM Publishing',
+    ageRating: '16+',
+    releaseDate: '2026-05-01',
+    variants: [
+      mkVariant('ambook-001-hc', 'hardcover', lang === 'ru' ? 'Русский' : lang === 'en' ? 'Russian' : 'Russisch', 24, 24, 'AM-BOOK-HC-001'),
+      mkVariant('ambook-001-se', 'special_edition', lang === 'ru' ? 'Русский' : lang === 'en' ? 'Russian' : 'Russisch', 39, 8, 'AM-BOOK-GIFT-001'),
+      mkVariant('ambook-001-dg', 'digital', lang === 'ru' ? 'Русский' : lang === 'en' ? 'Russian' : 'Russisch', 0, 999, 'AM-BOOK-EXCERPT-001'),
+    ],
+    story: storyByLanguage[lang],
+  };
+};
+
+const newsByLanguage: Record<Language, NewsItem[]> = {
+  ru: [
+    {
+      id: 'news-1',
+      date: '08 Май 2026',
+      title: 'Открыт каталог первой книги',
+      preview: 'В каталоге AM Publishing появилась первая книга: «Всё, что останется» Сергея Калинина.',
+    },
+    {
+      id: 'news-2',
+      date: '03 Май 2026',
+      title: 'AM Publishing запускает малый тираж',
+      preview: 'Небольшой стартовый тираж и международная доставка в 59 стран мира.',
+    },
+  ],
+  en: [
+    {
+      id: 'news-1',
+      date: 'May 08, 2026',
+      title: 'The first book is now in the catalog',
+      preview: 'AM Publishing opens its catalog with Sergey Kalinin’s novel Everything That Will Remain.',
+    },
+    {
+      id: 'news-2',
+      date: 'May 03, 2026',
+      title: 'Limited-print launch announced',
+      preview: 'The first AM Publishing edition ships worldwide in a small, carefully produced run.',
+    },
+  ],
+  de: [
+    {
+      id: 'news-1',
+      date: '08. Mai 2026',
+      title: 'Das erste Buch ist jetzt im Katalog',
+      preview: 'AM Publishing startet den Katalog mit Sergey Kalinins Roman Alles, was bleibt.',
+    },
+    {
+      id: 'news-2',
+      date: '03. Mai 2026',
+      title: 'Kleine Auflage zum Start',
+      preview: 'Die erste Ausgabe erscheint in kleiner Auflage und wird weltweit versendet.',
+    },
+  ],
+};
+
+export const MOCK_ORDERS: Order[] = [
+  {
+    id: 'ORD-2026-9001',
+    date: '2026-05-08T09:00:00Z',
+    customer: { name: 'Alex Meyer', email: 'alex@example.com', location: 'Berlin, DE' },
+    items: [{ variantId: 'ambook-001-hc', bookTitle: 'Всё, что останется', quantity: 1, priceAtPurchase: 24.0 }],
+    total: 29.0,
+    currency: '€',
+    status: 'processing',
+    paymentStatus: 'paid',
+  },
+];
 
 export const DATABASE: Record<Language, LocalizedData> = {
   ru: {
-    genres: ['Художественная литература', 'Философия', 'История', 'Искусство', 'Биографии', 'Поэзия', 'Урбанистика', 'Дизайн'],
-    authors: ['Анна Штерн', 'Марк Вебер', 'Елена Кросс', 'Дмитрий Волков', 'Роберт Лэнг', 'Сара Миллер', 'Джон Кейдж', 'Симона Вейль', 'Ле Корбюзье', 'Вальтер Гропиус'],
-    series: ['Берлинские Тайны', 'Новая Философия', 'Поэтика', 'Архивы XX века', 'Modern Classics', 'Bauhaus Archive'],
-    news: [
-      { id: '1', date: '12 Фев 2026', title: 'AM Publishing на Art Book Fair', preview: 'Мы представляем наши новинки и встречаемся с авторами на крупнейшей книжной выставке.' },
-      { id: '2', date: '05 Фев 2026', title: 'Открытие нового сезона', preview: 'Презентация новой серии философской эссеистики и встречи с читателями.' },
-      { id: '3', date: '20 Янв 2026', title: 'Интервью с главным редактором', preview: 'О будущем печатной книги в цифровую эпоху и новых вызовах индустрии.' },
-    ],
-    books: [
-      {
-        id: '1',
-        title: 'Тени Берлина',
-        author: 'Анна Штерн',
-        price: 24.00,
-        coverUrl: 'https://images.unsplash.com/photo-1470219556762-1771e7f9427d?auto=format&fit=crop&q=80&w=800',
-        badges: ['new', 'bestseller'],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 15,
-        description: 'Захватывающий роман о тайнах старого города, переплетающихся с современностью.',
-        details: { pages: 320, year: 2023, publisher: "AM Pub", weight: "450g", dimensions: "140x210mm" },
-        genre: ['Художественная литература', 'История'],
-        series: 'Берлинские Тайны',
-        ageRating: '16+',
-        releaseDate: '2023-10-01',
-        variants: [
-            mkVariant('1-1', 'hardcover', 'Русский', 24.00, 10, '978-3-16-148410-0'),
-            mkVariant('1-2', 'paperback', 'Русский', 18.00, 5, '978-3-16-148410-X'),
-        ]
-      },
-      {
-        id: '2',
-        title: 'Философия Тишины',
-        author: 'Марк Вебер',
-        price: 18.50,
-        oldPrice: 22.00,
-        coverUrl: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&q=80&w=800',
-        badges: [],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 4,
-        description: 'Эссе о поиске покоя в шумном мире. Книга-медитация.',
-        details: { pages: 180, year: 2022, publisher: "AM Pub", weight: "200g", dimensions: "120x190mm" },
-        genre: ['Философия'],
-        series: 'Новая Философия',
-        ageRating: '12+',
-        releaseDate: '2022-05-15',
-        variants: [mkVariant('2-1', 'paperback', 'Русский', 18.50, 4, '978-3-16-148410-1')]
-      },
-      {
-        id: '3',
-        title: 'Запретный Архив',
-        author: 'Дмитрий Волков',
-        price: 28.00,
-        coverUrl: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=800',
-        badges: ['18+', 'preorder'],
-        type: 'author_project',
-        isPreorder: true,
-        stock: 0,
-        description: 'Остросюжетный триллер, основанный на реальных событиях.',
-        details: { pages: 450, year: 2024, publisher: "Samizdat", weight: "600g", dimensions: "150x230mm" },
-        genre: ['История', 'Биографии'],
-        series: 'Архивы XX века',
-        ageRating: '18+',
-        releaseDate: '2024-03-01',
-        variants: [mkVariant('3-1', 'hardcover', 'Русский', 28.00, 0, '978-3-16-148410-2')]
-      },
-      {
-        id: '4',
-        title: 'Стихи о Вечном',
-        author: 'Елена Кросс',
-        price: 15.00,
-        coverUrl: 'https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?auto=format&fit=crop&q=80&w=800',
-        badges: ['new'],
-        type: 'author_project',
-        isPreorder: false,
-        stock: 100,
-        description: 'Сборник современной поэзии. Искренность и глубина.',
-        details: { pages: 120, year: 2023, publisher: "AM Pub", weight: "150g", dimensions: "110x170mm" },
-        genre: ['Поэзия'],
-        series: 'Поэтика',
-        ageRating: '12+',
-        releaseDate: '2023-11-20',
-        variants: [mkVariant('4-1', 'paperback', 'Русский', 15.00, 100, '978-3-16-148410-3')]
-      },
-      {
-        id: '5',
-        title: 'История Искусств: Том 1',
-        author: 'Коллектив авторов',
-        price: 45.00,
-        coverUrl: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&q=80&w=800',
-        badges: ['bestseller'],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 8,
-        description: 'Подарочное издание с иллюстрациями.',
-        details: { pages: 600, year: 2021, publisher: "Art Press", weight: "1200g", dimensions: "240x300mm" },
-        genre: ['Искусство'],
-        ageRating: '6+',
-        releaseDate: '2021-09-10',
-        variants: [mkVariant('5-1', 'hardcover', 'Русский', 45.00, 8, '978-3-16-148410-4')]
-      },
-      {
-        id: '6',
-        title: 'Бетон и Стекло',
-        author: 'Ле Корбюзье',
-        price: 32.00,
-        coverUrl: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=800',
-        badges: [],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 12,
-        description: 'Манифест современной архитектуры.',
-        details: { pages: 240, year: 2020, publisher: "Bauhaus Print", weight: "500g", dimensions: "200x200mm" },
-        genre: ['Урбанистика', 'Искусство'],
-        series: 'Bauhaus Archive',
-        ageRating: '12+',
-        releaseDate: '2020-02-15',
-        variants: [mkVariant('6-1', 'hardcover', 'Русский', 32.00, 12, '978-3-16-148410-6')]
-      },
-      {
-        id: '7',
-        title: 'Эстетика Пустоты',
-        author: 'Джон Кейдж',
-        price: 20.00,
-        coverUrl: 'https://images.unsplash.com/photo-1506806732259-39c2d0268443?auto=format&fit=crop&q=80&w=800',
-        badges: ['last_copy'],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 1,
-        description: 'Лекции о тишине и случайности в искусстве.',
-        details: { pages: 160, year: 2019, publisher: "AM Pub", weight: "220g", dimensions: "130x200mm" },
-        genre: ['Искусство', 'Философия'],
-        ageRating: '16+',
-        releaseDate: '2019-11-01',
-        variants: [mkVariant('7-1', 'paperback', 'Русский', 20.00, 1, '978-3-16-148410-7')]
-      },
-      ...generateGenericBooks('ru', 8)
-    ]
+    genres: ['Современная проза', 'Психологическая литература'],
+    authors: ['Сергей Калинин'],
+    series: ['AM Publishing'],
+    news: newsByLanguage.ru,
+    books: [bookByLanguage('ru')],
   },
-  
   en: {
-    genres: ['Fiction', 'Philosophy', 'History', 'Art Theory', 'Biography', 'Poetry', 'Urbanism', 'Design'],
-    authors: ['Anna Stern', 'Mark Weber', 'Elena Cross', 'Dmitry Volkov', 'Robert Lang', 'Sarah Miller', 'John Cage', 'Simone Weil', 'Le Corbusier'],
-    series: ['Berlin Mysteries', 'New Philosophy', 'Poetics', 'XX Century Archives', 'Modern Classics', 'Bauhaus Archive'],
-    news: [
-      { id: '1', date: 'Feb 12, 2026', title: 'AM Publishing at Art Book Fair', preview: 'We present our new releases and meet with authors at the largest book fair.' },
-      { id: '2', date: 'Feb 05, 2026', title: 'New Season Opening', preview: 'Presentation of a new series of philosophical essays and meetings with readers.' },
-      { id: '3', date: 'Jan 20, 2026', title: 'Interview with Editor-in-Chief', preview: 'On the future of printed books in the digital age and new industry challenges.' },
-    ],
-    books: [
-      {
-        id: '1',
-        title: 'Shadows of Berlin',
-        author: 'Anna Stern',
-        price: 24.00,
-        coverUrl: 'https://images.unsplash.com/photo-1470219556762-1771e7f9427d?auto=format&fit=crop&q=80&w=800',
-        badges: ['new', 'bestseller'],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 15,
-        description: 'A gripping novel about the secrets of the old city.',
-        details: { pages: 320, year: 2023, publisher: "AM Pub", weight: "450g", dimensions: "140x210mm" },
-        genre: ['Fiction', 'History'],
-        series: 'Berlin Mysteries',
-        ageRating: '16+',
-        releaseDate: '2023-10-01',
-        variants: [
-            mkVariant('1-1', 'hardcover', 'English', 24.00, 10, '978-EN-001'),
-            mkVariant('1-2', 'paperback', 'English', 18.00, 5, '978-EN-002'),
-        ]
-      },
-      {
-        id: '2',
-        title: 'Philosophy of Silence',
-        author: 'Mark Weber',
-        price: 18.50,
-        oldPrice: 22.00,
-        coverUrl: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&q=80&w=800',
-        badges: [],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 4,
-        description: 'Essays on finding peace in a noisy world.',
-        details: { pages: 180, year: 2022, publisher: "AM Pub", weight: "200g", dimensions: "120x190mm" },
-        genre: ['Philosophy'],
-        series: 'New Philosophy',
-        ageRating: '12+',
-        releaseDate: '2022-05-15',
-        variants: [mkVariant('2-1', 'paperback', 'English', 18.50, 4, '978-EN-003')]
-      },
-      {
-        id: '3',
-        title: 'Forbidden Archive',
-        author: 'Dmitry Volkov',
-        price: 28.00,
-        coverUrl: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=800',
-        badges: ['18+', 'preorder'],
-        type: 'author_project',
-        isPreorder: true,
-        stock: 0,
-        description: 'An action-packed thriller based on real events.',
-        details: { pages: 450, year: 2024, publisher: "Samizdat", weight: "600g", dimensions: "150x230mm" },
-        genre: ['History', 'Biography'],
-        series: 'XX Century Archives',
-        ageRating: '18+',
-        releaseDate: '2024-03-01',
-        variants: [mkVariant('3-1', 'hardcover', 'English', 28.00, 0, '978-EN-004')]
-      },
-      {
-        id: '6',
-        title: 'Concrete & Glass',
-        author: 'Le Corbusier',
-        price: 35.00,
-        coverUrl: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=800',
-        badges: ['bestseller'],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 20,
-        description: 'A visual journey through modernist architecture.',
-        details: { pages: 240, year: 2020, publisher: "Bauhaus Print", weight: "500g", dimensions: "200x200mm" },
-        genre: ['Urbanism', 'Design'],
-        series: 'Bauhaus Archive',
-        ageRating: '12+',
-        releaseDate: '2020-02-15',
-        variants: [mkVariant('6-1', 'hardcover', 'English', 35.00, 20, '978-EN-006')]
-      },
-      {
-        id: '8',
-        title: 'Digital Decay',
-        author: 'Sarah Miller',
-        price: 12.00,
-        coverUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800',
-        badges: ['new'],
-        type: 'author_project',
-        isPreorder: false,
-        stock: 999,
-        description: 'An exploration of internet culture and memory.',
-        details: { pages: 150, year: 2024, publisher: "Indie", weight: "N/A", dimensions: "PDF/EPUB" },
-        genre: ['Philosophy', 'Urbanism'],
-        ageRating: '16+',
-        releaseDate: '2024-01-10',
-        variants: [mkVariant('8-1', 'digital', 'English', 12.00, 999, '978-EN-DIG-01')]
-      },
-      ...generateGenericBooks('en', 9)
-    ]
+    genres: ['Contemporary Fiction', 'Psychological Prose'],
+    authors: ['Sergey Kalinin'],
+    series: ['AM Publishing'],
+    news: newsByLanguage.en,
+    books: [bookByLanguage('en')],
   },
-
   de: {
-    genres: ['Belletristik', 'Philosophie', 'Geschichte', 'Kunsttheorie', 'Biografie', 'Lyrik', 'Urbanismus', 'Design'],
-    authors: ['Anna Stern', 'Mark Weber', 'Elena Cross', 'Dmitry Volkov', 'Le Corbusier', 'Robert Lang', 'Sarah Miller', 'John Cage', 'Simone Weil'],
-    series: ['Berlin Mysteries', 'Neue Philosophie', 'Poetik', 'Archive des 20. Jahrhunderts', 'Modern Classics', 'Bauhaus Archive'],
-    news: [
-      { id: '1', date: '12. Feb 2026', title: 'AM Publishing auf der Art Book Fair', preview: 'Wir präsentieren unsere Neuheiten und treffen Autoren auf der größten Buchmesse.' },
-      { id: '2', date: '05. Feb 2026', title: 'Eröffnung der neuen Saison', preview: 'Präsentation einer neuen Reihe philosophischer Essays und Treffen mit Lesern.' },
-      { id: '3', date: '20. Jan 2026', title: 'Interview mit dem Chefredakteur', preview: 'Über die Zukunft des gedruckten Buches im digitalen Zeitalter und neue Herausforderungen.' },
-    ],
-    books: [
-      {
-        id: '1',
-        title: 'Schatten von Berlin',
-        author: 'Anna Stern',
-        price: 24.00,
-        coverUrl: 'https://images.unsplash.com/photo-1470219556762-1771e7f9427d?auto=format&fit=crop&q=80&w=800',
-        badges: ['new', 'bestseller'],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 15,
-        description: 'Ein fesselnder Roman über die Geheimnisse der alten Stadt.',
-        details: { pages: 320, year: 2023, publisher: "AM Pub", weight: "450g", dimensions: "140x210mm" },
-        genre: ['Belletristik', 'Geschichte'],
-        series: 'Berlin Mysteries',
-        ageRating: '16+',
-        releaseDate: '2023-10-01',
-        variants: [mkVariant('1-1', 'hardcover', 'Deutsch', 24.00, 15, '978-DE-001')]
-      },
-      {
-        id: '6',
-        title: 'Beton und Glas',
-        author: 'Le Corbusier',
-        price: 32.00,
-        coverUrl: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=800',
-        badges: [],
-        type: 'publisher',
-        isPreorder: false,
-        stock: 12,
-        description: 'Manifest der modernen Architektur.',
-        details: { pages: 240, year: 2020, publisher: "Bauhaus Print", weight: "500g", dimensions: "200x200mm" },
-        genre: ['Urbanismus', 'Kunsttheorie'],
-        series: 'Bauhaus Archive',
-        ageRating: '12+',
-        releaseDate: '2020-02-15',
-        variants: [mkVariant('6-1', 'hardcover', 'Deutsch', 32.00, 12, '978-DE-006')]
-      },
-      ...generateGenericBooks('de', 9)
-    ]
-  }
+    genres: ['Zeitgenössische Prosa', 'Psychologische Literatur'],
+    authors: ['Sergey Kalinin'],
+    series: ['AM Publishing'],
+    news: newsByLanguage.de,
+    books: [bookByLanguage('de')],
+  },
 };

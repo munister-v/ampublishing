@@ -5,6 +5,9 @@ import { ArrowRight, Star, Globe } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useApp } from '../AppContext';
 
+const heroImageUrl = `${import.meta.env.BASE_URL}images/ambook-cover.jpg`;
+const featureImageUrl = `${import.meta.env.BASE_URL}images/ambook-object.jpg`;
+
 export const HomePage: React.FC = () => {
   const { t, books, news, language, showToast } = useApp();
   const newBooks = books.filter(b => b.badges.includes('new')).slice(0, 4);
@@ -53,7 +56,8 @@ export const HomePage: React.FC = () => {
            <div className="lg:col-span-4 bg-primary relative group border-l border-primary -ml-[1px] overflow-hidden min-h-[300px] lg:min-h-auto">
               <div className="w-full h-full overflow-hidden">
                 <img 
-                   src="https://ampublishing.org/media/t/am-publishing-berlin/images/95085dd3-2571-4c50-9ca2-6a2751200d40.webp"
+                   src={heroImageUrl}
+                   alt="Всё, что останется — обложка книги"
                    className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-[2000ms] ease-out-quart mix-blend-luminosity group-hover:scale-105 gpu-accelerated"
                 />
               </div>
@@ -130,7 +134,8 @@ export const HomePage: React.FC = () => {
          <div className="relative group overflow-hidden">
             <div className="w-full h-full overflow-hidden">
                <img 
-                  src="https://images.unsplash.com/photo-1592496431122-2349e0fbc666?auto=format&fit=crop&q=80&w=1200" 
+                  src={featureImageUrl}
+                  alt="Всё, что останется — предметное фото книги"
                   className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-[2000ms] ease-out-quart gpu-accelerated"
                />
             </div>

@@ -6,6 +6,7 @@ import { useApp } from '../AppContext';
 import { ShoppingBag, ArrowUpRight, AlertCircle, Eye, ChevronRight } from 'lucide-react';
 import { FadeImage } from './FadeImage';
 import { analytics } from '../services/analytics';
+import { formatLabel } from '../utils/formatLabel';
 
 interface ProductCardProps {
   book: Book;
@@ -14,7 +15,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ book, featured = false, viewMode = 'grid' }) => {
-  const { region, t, addToCart } = useApp();
+  const { region, t, addToCart, language } = useApp();
 
   // Helper to determine main variant info
   const mainVariant = book.variants[0];
@@ -75,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, featured = false
 
               <div className="flex justify-between items-end mt-4">
                  <div className="flex gap-4 text-[10px] uppercase text-gray-400 font-mono">
-                    <span>{mainVariant?.format}</span>
+                    <span>{mainVariant ? formatLabel(mainVariant.format, language) : ''}</span>
                     <span className="hidden sm:inline">|</span>
                     <span className="hidden sm:inline">{mainVariant?.isbn}</span>
                     <span className="hidden sm:inline">|</span>
@@ -119,7 +120,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, featured = false
            </div>
            <div className="flex gap-2">
              <span className={`${book.variants.length > 1 ? 'text-accent' : ''}`}>
-                {mainVariant?.format || 'Standard'}
+                {mainVariant ? formatLabel(mainVariant.format, language) : 'Standard'}
              </span>
            </div>
         </div>

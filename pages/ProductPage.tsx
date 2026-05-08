@@ -5,12 +5,14 @@ import { useApp } from '../AppContext';
 import { Minus, Plus, ArrowLeft, AlertCircle } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { BookVariant, Format } from '../types';
+import { formatLabel } from '../utils/formatLabel';
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { addToCart, region, t, addRecentlyViewed, books } = useApp();
+  const { addToCart, region, t, addRecentlyViewed, books, language } = useApp();
   const book = books.find(b => b.id === id);
   const [qty, setQty] = useState(1);
+  const relatedBooks = book ? books.filter(b => b.genre[0] === book.genre[0] && b.id !== book.id).slice(0, 4) : [];
   
   // Variant Logic
   const [selectedFormat, setSelectedFormat] = useState<Format | null>(null);
@@ -130,7 +132,7 @@ export const ProductPage: React.FC = () => {
                           onClick={() => handleFormatChange(f)}
                           className={`px-4 py-2 border font-mono text-xs uppercase transition-all ${selectedFormat === f ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-primary hover:bg-gray-100'}`}
                         >
-                          {f}
+                          {formatLabel(f, language)}
                         </button>
                       ))}
                     </div>
@@ -163,6 +165,128 @@ export const ProductPage: React.FC = () => {
                      {book.description}
                   </p>
                </div>
+
+               {book.story?.quote && (
+                  <div className="border-l-4 border-accent pl-6 py-2 mb-12">
+                     <p className="text-3xl md:text-5xl font-serif leading-[1.05] italic text-primary">
+                        {book.story.quote}
+                     </p>
+                     {book.story.quoteSource && (
+                        <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500">
+                           {book.story.quoteSource}
+                        </p>
+                     )}
+                  </div>
+               )}
+
+               {book.story?.about?.length ? (
+                  <section className="border-t border-primary py-10">
+                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
+                        {t('product.story_label')}
+                     </p>
+                     <h2 className="text-4xl md:text-6xl font-serif leading-[0.92] mb-8">
+                        {t('product.about_book')}
+                     </h2>
+                     <div className="space-y-5 text-lg leading-relaxed text-gray-700">
+                        {book.story.about.map((paragraph, index) => (
+                           <p key={index}>{paragraph}</p>
+                        ))}
+                     </div>
+                  </section>
+               ) : null}
+
+               {book.story?.featureImageUrl ? (
+                  <section className="border-t border-primary py-10">
+                     <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] border border-primary overflow-hidden">
+                        <div className="bg-[#E8EDF2] min-h-[360px]">
+                           <img
+                              src={book.story.featureImageUrl}
+                              alt={book.title}
+                              className="w-full h-full object-cover"
+                           />
+                        </div>
+                        <div className="p-8 md:p-10 bg-[#F4F4F0]">
+                           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
+                              {t('product.materiality')}
+                           </p>
+                           <h2 className="text-4xl md:text-5xl font-serif leading-[0.92] mb-6">
+                              {t('product.book_as_object')}
+                           </h2>
+                           <p className="text-lg leading-relaxed text-gray-700">
+                              {book.story.orderNote}
+                           </p>
+                        </div>
+                     </div>
+                  </section>
+               ) : null}
+
+               {book.story?.themes?.length ? (
+                  <section className="border-t border-primary py-10">
+                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
+                        {t('product.themes')}
+                     </p>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-primary">
+                        {book.story.themes.map((theme, index) => (
+                           <article key={theme.title} className="border-b border-r border-primary p-6 md:p-8 bg-white">
+                              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">
+                                 0{index + 1}
+                              </span>
+                              <h3 className="mt-4 mb-3 text-3xl font-serif leading-none text-primary">
+                                 {theme.title}
+                              </h3>
+                              <p className="text-base leading-relaxed text-gray-700">{theme.text}</p>
+                           </article>
+                        ))}
+                     </div>
+                  </section>
+               ) : null}
+
+               {book.story?.excerpt?.length ? (
+                  <section className="border-t border-primary py-10">
+                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
+                        {t('product.excerpt')}
+                     </p>
+                     <div className="space-y-5 text-lg md:text-xl font-serif leading-relaxed text-primary">
+                        {book.story.excerpt.map((paragraph, index) => (
+                           <p key={index}>{paragraph}</p>
+                        ))}
+                     </div>
+                  </section>
+               ) : null}
+
+               {book.story?.authorBio?.length ? (
+                  <section className="border-t border-primary py-10">
+                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
+                        {t('product.author_section')}
+                     </p>
+                     <h2 className="text-4xl md:text-5xl font-serif leading-[0.92] mb-6">
+                        {book.author}
+                     </h2>
+                     <div className="space-y-5 text-lg leading-relaxed text-gray-700">
+                        {book.story.authorBio.map((paragraph, index) => (
+                           <p key={index}>{paragraph}</p>
+                        ))}
+                     </div>
+                  </section>
+               ) : null}
+
+               {book.story?.reviews?.length ? (
+                  <section className="border-t border-primary py-10">
+                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-6">
+                        {t('product.reviews')}
+                     </p>
+                     <div className="grid grid-cols-1 gap-4">
+                        {book.story.reviews.map((review, index) => (
+                           <blockquote key={index} className="border border-primary bg-[#F4F4F0] p-6">
+                              <p className="text-xl font-serif leading-relaxed text-primary">{review.quote}</p>
+                              <footer className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500">
+                                 {review.author}
+                              </footer>
+                           </blockquote>
+                        ))}
+                     </div>
+                  </section>
+               ) : null}
             </div>
 
             {/* ACTION FOOTER */}
@@ -205,17 +329,18 @@ export const ProductPage: React.FC = () => {
          </div>
       </div>
 
-      {/* RELATED GRID */}
-      <div className="border-t border-primary">
-         <div className="p-4 border-b border-primary bg-accent text-primary">
-            <h3 className="font-mono text-xs uppercase tracking-widest">{t('product.you_may_like')}</h3>
-         </div>
-         <div className="grid grid-cols-2 md:grid-cols-4 border-b border-primary">
-            {books.filter(b => b.genre[0] === book.genre[0] && b.id !== book.id).slice(0, 4).map(rb => (
-               <ProductCard key={rb.id} book={rb} />
-            ))}
-         </div>
-      </div>
+      {relatedBooks.length > 0 ? (
+        <div className="border-t border-primary">
+           <div className="p-4 border-b border-primary bg-accent text-primary">
+              <h3 className="font-mono text-xs uppercase tracking-widest">{t('product.you_may_like')}</h3>
+           </div>
+           <div className="grid grid-cols-2 md:grid-cols-4 border-b border-primary">
+              {relatedBooks.map(rb => (
+                 <ProductCard key={rb.id} book={rb} />
+              ))}
+           </div>
+        </div>
+      ) : null}
     </div>
   );
 };

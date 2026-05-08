@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom';
 import { X, Trash2, ArrowRight } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { ConfirmRemoveModal } from './Modals';
+import { formatLabel } from '../utils/formatLabel';
 
 export const CartDrawer: React.FC = () => {
-  const { cart, cartOpen, setCartOpen, removeFromCart, updateQuantity, region, t, books } = useApp();
+  const { cart, cartOpen, setCartOpen, removeFromCart, updateQuantity, region, t, books, language } = useApp();
   const [itemToRemove, setItemToRemove] = useState<{id: string, name: string} | null>(null);
 
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
@@ -60,7 +61,7 @@ export const CartDrawer: React.FC = () => {
                           <span className="text-xs font-bold">{(item.variant.price * item.quantity).toFixed(2)}</span>
                         </div>
                         <div className="text-[10px] uppercase text-gray-500 mb-2">
-                          {item.variant.format} / {item.variant.language}
+                          {formatLabel(item.variant.format, language)} / {item.variant.language}
                         </div>
                         
                         <div className="flex justify-between items-end mt-4">

@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { ConfirmRemoveModal } from '../components/Modals';
 import { Trash2 } from 'lucide-react';
+import { formatLabel } from '../utils/formatLabel';
 
 export const CartPage: React.FC = () => {
-  const { cart, removeFromCart, updateQuantity, region, t } = useApp();
+  const { cart, removeFromCart, updateQuantity, region, t, language } = useApp();
   const [itemToRemove, setItemToRemove] = useState<{id: string, name: string} | null>(null);
 
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
@@ -49,7 +50,7 @@ export const CartPage: React.FC = () => {
                           <h3 className="font-serif text-2xl leading-none mb-2">{item.title}</h3>
                           <p className="font-mono text-xs text-gray-500 uppercase mb-1">{item.author}</p>
                           <div className="flex gap-2 mt-2">
-                             <span className="bg-primary text-white px-2 py-0.5 text-[10px] uppercase">{item.variant.format}</span>
+                             <span className="bg-primary text-white px-2 py-0.5 text-[10px] uppercase">{formatLabel(item.variant.format, language)}</span>
                              <span className="border border-primary px-2 py-0.5 text-[10px] uppercase">{item.variant.language}</span>
                           </div>
                           <span className="block mt-2 text-[9px] font-mono text-gray-400">SKU: {item.variantId}</span>

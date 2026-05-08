@@ -12,6 +12,28 @@ export interface BookVariant {
   isbn: string;
 }
 
+export interface BookTheme {
+  title: string;
+  text: string;
+}
+
+export interface BookReview {
+  quote: string;
+  author: string;
+}
+
+export interface BookStory {
+  quote?: string;
+  quoteSource?: string;
+  about: string[];
+  excerpt: string[];
+  authorBio: string[];
+  themes: BookTheme[];
+  reviews: BookReview[];
+  orderNote?: string;
+  featureImageUrl?: string;
+}
+
 export interface Book {
   id: string;
   title: string;
@@ -38,6 +60,7 @@ export interface Book {
   ageRating: '6+' | '12+' | '16+' | '18+';
   variants: BookVariant[];
   releaseDate: string; // ISO date for sorting
+  story?: BookStory;
 }
 
 export interface CartItem {

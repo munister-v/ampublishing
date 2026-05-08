@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { CheckoutFormData } from '../types';
 import { api } from '../services/api';
+import { formatLabel } from '../utils/formatLabel';
 import { 
   CheckCircle, ArrowRight, ChevronLeft, Lock, AlertCircle, 
   ShieldCheck, CreditCard, ChevronDown, ChevronUp, ShoppingBag, 
@@ -143,7 +144,7 @@ const STEPS = ['details', 'shipping', 'payment'] as const;
 
 export const CheckoutPage: React.FC = () => {
   // Хуки приложения
-  const { cart, region, t, clearCart } = useApp();
+  const { cart, region, t, clearCart, language } = useApp();
   const navigate = useNavigate();
 
   // Локальное состояние UI
@@ -381,7 +382,7 @@ export const CheckoutPage: React.FC = () => {
                                <span className="font-mono text-xs">{item.quantity}x</span>
                                <div>
                                   <p className="font-serif leading-none mb-1">{item.title}</p>
-                                  <p className="text-[10px] uppercase text-gray-500">{item.variant.format}</p>
+                                  <p className="text-[10px] uppercase text-gray-500">{formatLabel(item.variant.format, language)}</p>
                                </div>
                             </div>
                             <span className="font-mono">{(item.variant.price * item.quantity).toFixed(2)}</span>
@@ -679,7 +680,7 @@ export const CheckoutPage: React.FC = () => {
                       <div className="flex-1 min-w-0">
                          <h4 className="font-serif text-lg leading-none mb-1 truncate">{item.title}</h4>
                          <p className="text-[10px] uppercase text-gray-500 tracking-wider mb-1">{item.author}</p>
-                         <p className="text-[10px] uppercase text-gray-400">{item.variant.format} / x{item.quantity}</p>
+                         <p className="text-[10px] uppercase text-gray-400">{formatLabel(item.variant.format, language)} / x{item.quantity}</p>
                       </div>
                       <div className="font-mono text-sm font-bold">
                          {(item.variant.price * item.quantity).toFixed(2)}
