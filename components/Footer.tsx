@@ -1,0 +1,72 @@
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useApp } from '../AppContext';
+import { Send } from 'lucide-react';
+
+export const Footer: React.FC = () => {
+  const { t } = useApp();
+
+  return (
+    <footer className="bg-primary text-white border-t border-white/20">
+      <div className="grid grid-cols-1 md:grid-cols-4 min-h-[400px]">
+         
+         {/* 1. BRAND BLOCK */}
+         <div className="p-10 border-b md:border-b-0 md:border-r border-white/20 flex flex-col justify-between">
+            <div>
+               <h2 className="text-6xl font-serif mb-6 leading-none">AM<br/>Pub.</h2>
+               <p className="font-mono text-xs max-w-[150px] opacity-60">
+                  {t('footer.desc')}
+               </p>
+            </div>
+            <div className="mt-12">
+               <span className="block text-[10px] uppercase tracking-widest opacity-40 mb-2">{t('footer.social_index')}</span>
+               <div className="flex flex-col gap-2 font-mono text-xs">
+                  <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer" className="hover:text-accent flex items-center gap-2">
+                     <Send size={12} /> Telegram {'->'}
+                  </a>
+                  <a href="#" className="hover:text-accent">Instagram {'->'}</a>
+                  <a href="#" className="hover:text-accent">Are.na {'->'}</a>
+               </div>
+            </div>
+         </div>
+
+         {/* 2. LINKS */}
+         <div className="p-10 border-b md:border-b-0 md:border-r border-white/20">
+            <h3 className="font-bold text-xs uppercase tracking-widest mb-8 text-accent">{t('footer.directory')}</h3>
+            <ul className="space-y-4 font-serif text-2xl">
+               <li><Link to="/shop" className="hover:text-accent transition-all">{t('nav.catalog')}</Link></li>
+               <li><Link to="/authors" className="hover:text-accent transition-all">{t('nav.authors')}</Link></li>
+               <li><Link to="/about" className="hover:text-accent transition-all">{t('nav.about')}</Link></li>
+               <li><Link to="/media" className="hover:text-accent transition-all">{t('nav.media')}</Link></li>
+            </ul>
+         </div>
+
+         {/* 3. NEWSLETTER */}
+         <div className="col-span-1 md:col-span-2 p-10 flex flex-col justify-center bg-[#061426]">
+            <h3 className="text-4xl md:text-5xl font-serif mb-8 max-w-lg leading-tight">
+               {t('footer.subscribe_title')}<br/> <span className="text-accent italic">{t('footer.subscribe_span')}</span>
+            </h3>
+            <div className="flex border-b border-white/40 pb-2">
+               <input 
+                 type="email" 
+                 placeholder={t('footer.email_ph')} 
+                 className="bg-transparent w-full outline-none text-xl font-mono uppercase placeholder:text-white/20"
+               />
+               <button className="uppercase font-bold text-xs tracking-widest hover:text-accent">{t('footer.submit')}</button>
+            </div>
+         </div>
+      </div>
+      
+      {/* COPYRIGHT STRIP */}
+      <div className="border-t border-white/20 p-4 flex flex-col md:flex-row justify-between items-center text-[9px] uppercase tracking-widest font-mono opacity-50 gap-4 md:gap-0">
+         <span>© 2026 AM Publishing Berlin</span>
+         <div className="flex gap-4">
+            <Link to="/impressum" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.impressum')}</Link>
+            <Link to="/privacy" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.privacy')}</Link>
+            <Link to="/terms" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.terms')}</Link>
+         </div>
+      </div>
+    </footer>
+  );
+};
