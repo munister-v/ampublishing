@@ -120,6 +120,10 @@ export interface PaymentSettings {
   contactEmail: string;
   paymentNote: string;
   invoicePrefix: string;
+  webhookUrl: string;
+  webhookLabel: string;
+  notifyOnOrderCreated: boolean;
+  notifyOnPaymentConfirmed: boolean;
 }
 
 export interface CheckoutFormData {

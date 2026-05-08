@@ -287,42 +287,58 @@ export const OurAuthorsPage: React.FC = () => {
       />
 
       <section className="px-4 md:px-8 pt-10 md:pt-16">
-        <article className="grid grid-cols-1 lg:grid-cols-[340px_1fr] border border-primary bg-[#F7F1E6] overflow-hidden">
-          <div className="bg-primary min-h-[260px] md:min-h-[420px] flex items-center justify-center relative overflow-hidden">
-            <span className="text-[7rem] md:text-[10rem] font-serif text-white/10 leading-none">S</span>
-          </div>
-
-          <div className="p-8 md:p-12 lg:p-16">
-            <div className="flex items-center gap-4 mb-8">
-              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent whitespace-nowrap">
-                {featuredAuthor.label}
-              </p>
-              <div className="h-px flex-1 bg-primary/15" />
+        <article className="border border-primary bg-[#F7F1E6] overflow-hidden">
+          <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr]">
+            <div className="bg-primary min-h-[220px] xl:min-h-full flex items-center justify-center relative overflow-hidden border-b xl:border-b-0 xl:border-r border-white/10">
+              <span className="text-[7rem] md:text-[10rem] font-serif text-white/10 leading-none">S</span>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_45%)]" />
             </div>
 
-            <h2 className="text-5xl sm:text-6xl md:text-8xl font-serif leading-[0.88] text-primary break-words">
-              {featuredAuthor.nameMain}
-            </h2>
-            <p className="text-4xl sm:text-5xl md:text-7xl font-serif italic text-primary/60 leading-[0.92] mt-2 break-words">
-              {featuredAuthor.nameAccent}
-            </p>
+            <div className="p-8 md:p-12 lg:p-16 xl:p-20">
+              <div className="flex items-center gap-4 mb-8">
+                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent whitespace-nowrap">
+                  {featuredAuthor.label}
+                </p>
+                <div className="h-px flex-1 bg-primary/15" />
+              </div>
 
-            <p className="mt-8 max-w-4xl text-xl md:text-2xl font-serif leading-[1.2] text-primary/80">
-              {featuredAuthor.intro}
-            </p>
+              <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-10 lg:gap-14 items-start">
+                <div>
+                  <h2 className="text-5xl sm:text-6xl md:text-8xl xl:text-[6.5rem] font-serif leading-[0.86] text-primary break-words">
+                    {featuredAuthor.nameMain}
+                  </h2>
+                  <p className="text-4xl sm:text-5xl md:text-7xl xl:text-[5.5rem] font-serif italic text-primary/55 leading-[0.9] mt-2 break-words">
+                    {featuredAuthor.nameAccent}
+                  </p>
 
-            <div className="mt-8 space-y-6 max-w-4xl text-lg leading-relaxed text-primary/70">
-              {featuredAuthor.body.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </div>
+                  <p className="mt-8 max-w-4xl text-xl md:text-3xl font-serif leading-[1.1] text-primary/85">
+                    {featuredAuthor.intro}
+                  </p>
+                </div>
 
-            <div className="mt-10 flex flex-wrap gap-2">
-              {featuredAuthor.tags.map((tag) => (
-                <span key={tag} className="border border-primary/15 bg-white/50 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
-                  {tag}
-                </span>
-              ))}
+                <div className="bg-white/60 border border-primary/10 p-6 md:p-8">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400 mb-4">
+                    Editorial note
+                  </p>
+                  <div className="space-y-3 text-sm md:text-base leading-relaxed text-primary/70">
+                    <p>{featuredAuthor.body[0]}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-px border border-primary bg-primary">
+                {featuredAuthor.tags.slice(0, 3).map((tag) => (
+                  <div key={tag} className="bg-[#F7F1E6] px-5 py-4 text-[10px] uppercase tracking-[0.18em] text-primary/75">
+                    {tag}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-10 space-y-6 max-w-5xl text-lg md:text-xl leading-relaxed text-primary/70">
+                {featuredAuthor.body.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </div>
             </div>
           </div>
         </article>
@@ -339,36 +355,40 @@ export const OurAuthorsPage: React.FC = () => {
         </div>
 
         <div className="space-y-8">
-        {authorShowcase.map((item) => (
-          <article key={item.id} className="grid grid-cols-1 lg:grid-cols-[340px_1fr] border border-primary bg-[#F7F1E6] overflow-hidden">
-            <div className="bg-primary min-h-[240px] md:min-h-[360px] flex items-center justify-center relative overflow-hidden">
-              <span className="text-[6rem] md:text-[9rem] font-serif text-white/10 leading-none">
-                {item.initial}
-              </span>
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))]" />
-            </div>
-
-            <div className="p-8 md:p-12 lg:p-16">
-              <div className="flex items-center gap-4 mb-8">
-                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent whitespace-nowrap">
-                  {t('home.authors_kicker')}
-                </p>
-                <div className="h-px flex-1 bg-primary/15" />
+        {authorShowcase.map((item, index) => (
+          <article key={item.id} className="border border-primary bg-white overflow-hidden">
+            <div className={`grid grid-cols-1 xl:grid-cols-2 ${index % 2 === 1 ? 'xl:[&>*:first-child]:order-2 xl:[&>*:last-child]:order-1' : ''}`}>
+              <div className="relative min-h-[360px] md:min-h-[520px] bg-primary overflow-hidden">
+                <img
+                  src={item.imageUrl}
+                  alt={`${item.nameMain} ${item.nameAccent}`}
+                  className="absolute inset-0 w-full h-full object-cover grayscale"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,15,30,0.12),rgba(4,15,30,0.72))]" />
+                <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 md:px-8 py-5">
+                  <span className="border border-white/20 bg-black/20 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-white/80">
+                    {item.years}
+                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/70">
+                    0{index + 1}
+                  </span>
+                </div>
+                <div className="absolute left-5 md:left-8 bottom-5 md:bottom-8">
+                  <div className="text-[5rem] md:text-[8rem] font-serif text-white/10 leading-none">
+                    {item.initial}
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-8 lg:gap-10 items-start">
-                <div className="border border-primary/10 bg-white p-3">
-                  <img
-                    src={item.imageUrl}
-                    alt={`${item.nameMain} ${item.nameAccent}`}
-                    className="w-full aspect-[4/5] object-cover grayscale"
-                  />
-                </div>
-
+              <div className="bg-[#F7F1E6] p-8 md:p-12 xl:p-16 flex flex-col justify-between">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4">
-                    {item.years}
-                  </p>
+                  <div className="flex items-center gap-4 mb-8">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent whitespace-nowrap">
+                      {t('home.authors_kicker')}
+                    </p>
+                    <div className="h-px flex-1 bg-primary/15" />
+                  </div>
+
                   <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif leading-[0.9] text-primary break-words">
                     {item.nameMain}
                   </h2>
@@ -376,21 +396,22 @@ export const OurAuthorsPage: React.FC = () => {
                     {item.nameAccent}
                   </p>
 
-                  <p className="mt-6 text-sm md:text-base font-mono uppercase tracking-[0.16em] text-accent">
-                    {item.knownFor}
-                  </p>
-
-                  <div className="mt-8 space-y-6 max-w-4xl text-lg leading-relaxed text-primary/70">
-                    <p>{item.bio}</p>
+                  <div className="mt-8 grid grid-cols-1 md:grid-cols-[170px_1fr] gap-6 items-start">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-accent font-mono leading-relaxed">
+                      {item.knownFor}
+                    </div>
+                    <div className="space-y-5 text-lg md:text-xl leading-relaxed text-primary/70">
+                      <p>{item.bio}</p>
+                    </div>
                   </div>
+                </div>
 
-                  <div className="mt-10 flex flex-wrap gap-2">
-                    {item.tags.map((tag) => (
-                      <span key={tag} className="border border-primary/15 bg-white/50 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                <div className="mt-10 flex flex-wrap gap-2">
+                  {item.tags.map((tag) => (
+                    <span key={tag} className="border border-primary/15 bg-white/60 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>

@@ -2,6 +2,7 @@
 import { Book, NewsItem, Language, OrderPayload, ApiResponse, OrderResponse, Order, OrderStatus, LocalizedCatalogData, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
 import { DATABASE } from '../constants';
 import { contentStore } from './contentStore';
+import { notifyOrderChannels } from './orderNotifications';
 
 // --- CONFIGURATION ---
 
@@ -201,6 +202,8 @@ export const api = {
     console.log('📦 [Mock] Submitting Order:', payload);
     await mockDelay(1200);
     const createdOrder = contentStore.createOrder(payload);
+    const paymentSettings = contentStore.getPaymentSettings();
+    await notifyOrderChannels('order_created', createdOrder, paymentSettings);
     
     return {
         success: true,
@@ -277,6 +280,13 @@ export const api = {
 
       await mockDelay(300);
       contentStore.updatePaymentStatus(orderId, paymentStatus);
+      if (paymentStatus === 'paid') {
+          const paymentSettings = contentStore.getPaymentSettings();
+          const order = contentStore.getOrders().find(entry => entry.id === orderId);
+          if (order) {
+            await notifyOrderChannels('payment_confirmed', order, paymentSettings);
+          }
+      }
       return true;
   },
 

@@ -179,6 +179,10 @@ const createPaymentSettingsTemplate = (): PaymentSettings => ({
   contactEmail: 'am.hybridpublishing@gmail.com',
   paymentNote: 'После оплаты отправьте подтверждение перевода, чтобы мы могли вручную подтвердить заказ.',
   invoicePrefix: 'AM',
+  webhookUrl: '',
+  webhookLabel: 'Make / n8n / Telegram bridge',
+  notifyOnOrderCreated: true,
+  notifyOnPaymentConfirmed: true,
 });
 
 const getNestedValue = (obj: any, path: string) => path.split('.').reduce((acc, key) => (acc && typeof acc === 'object' ? acc[key] : undefined), obj);
@@ -1205,9 +1209,22 @@ export const AdminPage: React.FC = () => {
               <input value={paymentSettings.whatsappNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="WhatsApp number, international format" />
               <input value={paymentSettings.telegramUsername} onChange={e => setPaymentSettings(prev => ({ ...prev, telegramUsername: e.target.value.replace(/^@/, '') }))} className="border border-gray-300 px-4 py-3" placeholder="Telegram username" />
               <input value={paymentSettings.contactEmail} onChange={e => setPaymentSettings(prev => ({ ...prev, contactEmail: e.target.value }))} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Contact email" />
+              <input value={paymentSettings.webhookLabel} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookLabel: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Webhook label" />
+              <input value={paymentSettings.webhookUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookUrl: e.target.value }))} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Webhook URL (Make / n8n / Telegram bridge)" />
             </div>
 
             <textarea value={paymentSettings.paymentNote} onChange={e => setPaymentSettings(prev => ({ ...prev, paymentNote: e.target.value }))} rows={4} className="w-full border border-gray-300 px-4 py-3" placeholder="Payment note shown to the customer" />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="flex items-center gap-3 border border-gray-200 px-4 py-4">
+                <input type="checkbox" checked={paymentSettings.notifyOnOrderCreated} onChange={e => setPaymentSettings(prev => ({ ...prev, notifyOnOrderCreated: e.target.checked }))} />
+                <span className="text-sm">Send webhook on new order</span>
+              </label>
+              <label className="flex items-center gap-3 border border-gray-200 px-4 py-4">
+                <input type="checkbox" checked={paymentSettings.notifyOnPaymentConfirmed} onChange={e => setPaymentSettings(prev => ({ ...prev, notifyOnPaymentConfirmed: e.target.checked }))} />
+                <span className="text-sm">Send webhook when payment is marked paid</span>
+              </label>
+            </div>
 
             <div className="border border-primary/10 bg-[#F8F8F5] p-6">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400 mb-4">Recommended flow</p>
@@ -1215,7 +1232,8 @@ export const AdminPage: React.FC = () => {
                 <p>1. Customer places the order with `Invoice / Card transfer`.</p>
                 <p>2. Checkout shows your card / bank details and a unique payment reference.</p>
                 <p>3. After payment, the customer sends proof to your WhatsApp, Telegram, or email.</p>
-                <p>4. You confirm the payment in the `Orders` tab by changing `payment status` to `paid`.</p>
+                <p>4. Webhook forwards the order to Make / n8n / Telegram and you see it instantly.</p>
+                <p>5. You confirm the payment in the `Orders` tab by changing `payment status` to `paid`.</p>
               </div>
             </div>
           </section>

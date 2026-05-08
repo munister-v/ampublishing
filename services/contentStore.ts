@@ -62,6 +62,10 @@ const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   contactEmail: 'am.hybridpublishing@gmail.com',
   paymentNote: 'После оплаты отправьте подтверждение перевода, чтобы мы могли вручную подтвердить заказ.',
   invoicePrefix: 'AM',
+  webhookUrl: '',
+  webhookLabel: 'Make / n8n / Telegram bridge',
+  notifyOnOrderCreated: true,
+  notifyOnPaymentConfirmed: true,
 };
 
 const sanitizePaymentSettings = (settings?: Partial<PaymentSettings>): PaymentSettings => ({
