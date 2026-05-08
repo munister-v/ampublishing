@@ -13,7 +13,7 @@ export const CartPage: React.FC = () => {
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
 
   return (
-    <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
       <div className="border-b border-primary p-6 md:p-12 bg-white">
         <h1 className="text-6xl md:text-9xl font-serif uppercase leading-none text-primary break-words">
            {t('cart.title')} <span className="text-3xl align-top text-gray-400">({cart.length})</span>

@@ -168,7 +168,7 @@ export const CatalogPage: React.FC = () => {
   const allFormats: Format[] = ['hardcover', 'paperback', 'digital', 'special_edition'];
 
   return (
-    <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
       
       {/* 1. CATALOG HEADER */}
       <div className="border-b border-primary p-6 md:p-12 bg-white flex flex-col md:flex-row justify-between items-end gap-6 relative z-20">
@@ -240,7 +240,7 @@ export const CatalogPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row border-b border-primary min-h-screen relative">
+      <div className="flex flex-col md:flex-row border-b border-primary md:min-h-[calc(100vh-80px)] relative">
         
         {/* 2. SIDEBAR FILTERS (Sticky) */}
         <aside className="hidden md:block w-[300px] xl:w-[360px] border-r border-primary bg-[#F4F4F0] flex-shrink-0 relative z-10">
@@ -314,6 +314,7 @@ export const CatalogPage: React.FC = () => {
                              {activeAuthors.includes(a) && <div className="w-2 h-2 bg-white rounded-none" />}
                           </div>
                           <span className={`text-sm font-serif ${activeAuthors.includes(a) ? 'text-primary font-bold italic' : 'text-gray-500 group-hover:text-primary'}`}>{a}</span>
+                          <input type="checkbox" className="hidden" checked={activeAuthors.includes(a)} onChange={() => updateParams('author', a)} />
                        </label>
                     ))}
                  </div>

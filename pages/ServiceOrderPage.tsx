@@ -31,7 +31,7 @@ export const ServiceOrderPage: React.FC = () => {
 
   if (submitted) {
     return (
-      <div className="bg-[#F4F4F0] min-h-screen pt-[80px] flex items-center justify-center p-6">
+      <div className="bg-[#F4F4F0] pt-[80px] flex items-center justify-center p-6">
         <div className="max-w-xl w-full bg-white border border-primary p-12 text-center animate-fade-up">
            <div className="w-20 h-20 bg-primary text-white mx-auto flex items-center justify-center rounded-full mb-8">
               <Check size={40} />
@@ -47,7 +47,7 @@ export const ServiceOrderPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
       
       {/* HEADER */}
       <div className="bg-primary text-white py-20 px-6 border-b border-primary relative overflow-hidden">

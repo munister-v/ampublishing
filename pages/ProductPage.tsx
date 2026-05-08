@@ -68,7 +68,7 @@ export const ProductPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
       
       {/* HEADER NAV */}
       <div className="border-b border-primary px-4 py-2 flex justify-between items-center bg-white sticky top-[60px] md:top-[80px] z-20">

@@ -20,7 +20,7 @@ export const HomePage: React.FC = () => {
   const tickerContent = Array(12).fill(t('home.marquee_h'));
 
   return (
-    <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
       
       {/* 1. HERO - BRUTAL TYPOGRAPHY */}
       <section className="border-b border-primary relative overflow-hidden">

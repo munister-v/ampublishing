@@ -314,7 +314,7 @@ export const CheckoutPage: React.FC = () => {
 
   if (cart.length === 0 && !isSuccess) {
     return (
-      <div className="pt-32 text-center min-h-screen bg-[#F4F4F0]">
+      <div className="pt-32 text-center bg-[#F4F4F0]">
         <p className="font-mono mb-4 text-gray-500 uppercase tracking-widest">{t('cart.empty')}</p>
         <Link to="/catalog" className="bg-primary text-white px-6 py-2 uppercase text-xs font-bold tracking-widest hover:bg-accent transition-colors">
             {t('cart.back_to_catalog')}
@@ -326,7 +326,7 @@ export const CheckoutPage: React.FC = () => {
   // Экран успешного заказа
   if (isSuccess) {
      return (
-        <div className="min-h-screen bg-[#F4F4F0] pt-[80px] flex items-center justify-center p-6">
+        <div className="bg-[#F4F4F0] pt-[80px] flex items-center justify-center p-6">
            <div className="bg-white p-12 max-w-lg w-full border border-primary text-center shadow-[20px_20px_0px_0px_rgba(4,15,30,0.05)] animate-fade-up">
               <div className="flex justify-center mb-8">
                  <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center text-white">
@@ -355,7 +355,7 @@ export const CheckoutPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
        
        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-80px)]">
           

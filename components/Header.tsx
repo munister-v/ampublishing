@@ -60,25 +60,24 @@ export const Header: React.FC = () => {
           {/* Desktop Nav */}
           <nav className="hidden lg:flex flex-1 items-stretch">
             {['catalog', 'our_authors', 'authors', 'about', 'media'].map((path) => (
-              <NavLink 
+              <NavLink
                 key={path}
-                to={path === 'our_authors' ? '/our-authors' : `/${path}`} 
-                className={({ isActive }) => 
-                  `flex-1 flex items-center justify-center text-[10px] uppercase tracking-[0.25em] font-bold border-r border-primary relative group overflow-hidden ${isActive ? 'text-white' : 'text-primary'}`
+                to={path === 'our_authors' ? '/our-authors' : `/${path}`}
+                className={({ isActive }) =>
+                  `flex-1 flex items-center justify-center text-[10px] uppercase tracking-[0.25em] font-bold border-r border-primary relative group overflow-hidden ${
+                    isActive ? 'text-white' : 'text-primary'
+                  }`
                 }
               >
-                {/* Active State Background */}
-                <div className={({ isActive }: any) => `absolute inset-0 bg-primary transition-transform duration-0 ${isActive ? 'translate-y-0' : 'translate-y-full'}`}></div>
-                
-                {/* Hover Animation Background */}
-                <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out-quart"></div>
-                
-                <span className="relative z-10 group-hover:text-white transition-colors duration-500">
-                  {t(`nav.${path}`)}
-                </span>
-                
-                {/* Active Indicator override */}
-                <NavLink to={path === 'our_authors' ? '/our-authors' : `/${path}`} className={({isActive}) => isActive ? "absolute inset-0 bg-primary -z-0" : "hidden"}></NavLink>
+                {({ isActive }) => (
+                  <>
+                    <div className={`absolute inset-0 bg-primary ${isActive ? 'translate-y-0' : 'translate-y-full'} transition-transform duration-300`} />
+                    <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out-quart" />
+                    <span className="relative z-10 group-hover:text-white transition-colors duration-500">
+                      {t(`nav.${path}`)}
+                    </span>
+                  </>
+                )}
               </NavLink>
             ))}
           </nav>
@@ -133,7 +132,7 @@ export const Header: React.FC = () => {
       {/* Advanced Search Overlay */}
       {searchOpen && (
         <div className="fixed top-[60px] md:top-[80px] left-0 w-full bg-primary text-white z-30 border-b border-white/20 animate-slide-down origin-top gpu-accelerated shadow-2xl">
-          <div className="container mx-auto grid grid-cols-1 md:grid-cols-12 min-h-[400px]">
+          <div className="container mx-auto grid grid-cols-1 md:grid-cols-12 min-h-[320px] md:min-h-[400px]">
             
             {/* Input Area */}
             <div className="md:col-span-8 p-8 md:p-16 border-b md:border-b-0 md:border-r border-white/10">

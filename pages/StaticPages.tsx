@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Mail, Download, PenTool, BookOpen, Send, User, Globe, Clock, Shield, Anchor, CheckCircle } from 'lucide-react';
+import { Mail, Download, PenTool, BookOpen, Send, User, Clock } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { Link } from 'react-router-dom';
 import { AUTHOR_SHOWCASE, FEATURED_PUBLISHER_AUTHOR } from '../services/authorShowcase';
@@ -30,7 +30,7 @@ export const ImpressumPage: React.FC = () => {
     const text = t('static.impressum.text') as string;
     
     return (
-        <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+        <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
             <SectionHeader title={t('static.impressum.title')} bgClass="bg-[#0b1623]" />
             <div className="container mx-auto px-6 py-20 max-w-3xl">
                 <div className="bg-white p-12 border border-primary shadow-sm">
@@ -52,7 +52,7 @@ export const TermsPage: React.FC = () => {
     const isArray = Array.isArray(sections);
 
     return (
-        <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+        <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
             <SectionHeader title={t('static.terms.title')} subtitle={t('static.terms.subtitle')} bgClass="bg-[#1a2b42]" />
             
             <div className="container mx-auto px-6 py-20 max-w-4xl">
@@ -100,7 +100,7 @@ export const PrivacyPage: React.FC = () => {
     };
 
     return (
-        <div className="bg-[#F4F4F0] min-h-screen text-primary pt-[60px] md:pt-[80px]">
+        <div className="bg-[#F4F4F0] text-primary pt-[60px] md:pt-[80px]">
             <SectionHeader title={t('static.privacy.title')} bgClass="bg-[#11223A]" />
             
             <div className="container mx-auto px-6 py-16 md:py-24">
@@ -169,7 +169,7 @@ export const AuthorsPage: React.FC = () => {
   const { t } = useApp();
   
   return (
-    <div className="bg-bg min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-bg pt-[60px] md:pt-[80px]">
       <SectionHeader 
         title={t('static.authors.title')} 
         subtitle={t('static.authors.subtitle')}
@@ -279,7 +279,7 @@ export const OurAuthorsPage: React.FC = () => {
   const featuredAuthor = FEATURED_PUBLISHER_AUTHOR[language];
 
   return (
-    <div className="bg-[#F4F4F0] min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
       <SectionHeader
         title={t('static.our_authors.title')}
         subtitle={t('static.our_authors.subtitle')}
@@ -407,7 +407,7 @@ export const AboutPage: React.FC = () => {
   const { t } = useApp();
 
   return (
-    <div className="bg-white min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-white pt-[60px] md:pt-[80px]">
       <SectionHeader 
         title={t('static.about.title')}
         subtitle={t('static.about.subtitle')}
@@ -473,7 +473,7 @@ export const MediaPage: React.FC = () => {
   const { t } = useApp();
 
   return (
-    <div className="bg-bg min-h-screen pt-[60px] md:pt-[80px]">
+    <div className="bg-bg pt-[60px] md:pt-[80px]">
       <SectionHeader 
         title={t('static.media.title')}
         subtitle={t('static.media.subtitle')}

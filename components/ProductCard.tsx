@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Book } from '../types';
 import { useApp } from '../AppContext';
-import { ShoppingBag, ArrowUpRight, AlertCircle, Eye, ChevronRight } from 'lucide-react';
+import { ShoppingBag, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { FadeImage } from './FadeImage';
 import { analytics } from '../services/analytics';
 import { formatLabel } from '../utils/formatLabel';
@@ -14,7 +14,7 @@ interface ProductCardProps {
   viewMode?: 'grid' | 'list';
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ book, featured = false, viewMode = 'grid' }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid' }) => {
   const { region, t, addToCart, language } = useApp();
 
   // Helper to determine main variant info

@@ -9,12 +9,12 @@ export const Footer: React.FC = () => {
 
   return (
     <footer className="bg-primary text-white border-t border-white/20">
-      <div className="grid grid-cols-1 md:grid-cols-4 min-h-[400px]">
+      <div className="grid grid-cols-1 md:grid-cols-4 md:min-h-[400px]">
          
          {/* 1. BRAND BLOCK */}
-         <div className="p-10 border-b md:border-b-0 md:border-r border-white/20 flex flex-col justify-between">
+         <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-white/20 flex flex-col justify-between">
             <div>
-               <h2 className="text-6xl font-serif mb-6 leading-none">AM Publishing</h2>
+               <h2 className="text-4xl md:text-6xl font-serif mb-6 leading-none">AM Publishing</h2>
                <p className="font-mono text-xs max-w-[260px] opacity-60">
                   {t('footer.desc')}
                </p>
@@ -33,10 +33,11 @@ export const Footer: React.FC = () => {
          </div>
 
          {/* 2. LINKS */}
-         <div className="p-10 border-b md:border-b-0 md:border-r border-white/20">
+         <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-white/20">
             <h3 className="font-bold text-xs uppercase tracking-widest mb-8 text-accent">{t('footer.directory')}</h3>
             <ul className="space-y-4 font-serif text-2xl">
                <li><Link to="/catalog" className="hover:text-accent transition-all">{t('nav.catalog')}</Link></li>
+               <li><Link to="/our-authors" className="hover:text-accent transition-all">{t('nav.our_authors')}</Link></li>
                <li><Link to="/authors" className="hover:text-accent transition-all">{t('nav.authors')}</Link></li>
                <li><Link to="/about" className="hover:text-accent transition-all">{t('nav.about')}</Link></li>
                <li><Link to="/media" className="hover:text-accent transition-all">{t('nav.media')}</Link></li>
@@ -44,25 +45,25 @@ export const Footer: React.FC = () => {
          </div>
 
          {/* 3. NEWSLETTER */}
-         <div className="col-span-1 md:col-span-2 p-10 flex flex-col justify-center bg-[#061426]">
-            <h3 className="text-4xl md:text-5xl font-serif mb-8 max-w-lg leading-tight">
+         <div className="col-span-1 md:col-span-2 p-6 md:p-10 flex flex-col justify-center bg-[#061426]">
+            <h3 className="text-3xl md:text-5xl font-serif mb-8 max-w-lg leading-tight">
                {t('footer.subscribe_title')}<br/> <span className="text-accent italic">{t('footer.subscribe_span')}</span>
             </h3>
-            <div className="flex border-b border-white/40 pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 border-b border-white/40 pb-3">
                <input 
                  type="email" 
                  placeholder={t('footer.email_ph')} 
-                 className="bg-transparent w-full outline-none text-xl font-mono uppercase placeholder:text-white/20"
+                 className="bg-transparent w-full outline-none text-lg md:text-xl font-mono uppercase placeholder:text-white/20 min-w-0"
                />
-               <button className="uppercase font-bold text-xs tracking-widest hover:text-accent">{t('footer.submit')}</button>
+               <button className="uppercase font-bold text-xs tracking-widest hover:text-accent text-left sm:text-right whitespace-nowrap">{t('footer.submit')}</button>
             </div>
          </div>
       </div>
       
       {/* COPYRIGHT STRIP */}
-      <div className="border-t border-white/20 p-4 flex flex-col md:flex-row justify-between items-center text-[9px] uppercase tracking-widest font-mono opacity-50 gap-4 md:gap-0">
+      <div className="border-t border-white/20 p-4 flex flex-col md:flex-row justify-between items-start md:items-center text-[9px] uppercase tracking-widest font-mono opacity-50 gap-4 md:gap-0">
          <span>© 2026 AM Publishing Berlin</span>
-         <div className="flex gap-4">
+         <div className="flex flex-wrap gap-4">
             <Link to="/impressum" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.impressum')}</Link>
             <Link to="/privacy" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.privacy')}</Link>
             <Link to="/terms" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.terms')}</Link>
