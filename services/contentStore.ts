@@ -35,6 +35,20 @@ const normalizeDatabase = (database: Record<Language, LocalizedCatalogData>) => 
   de: normalizeLanguageData(database.de),
 });
 
+const sanitizeTranslationOverrides = (overrides: TranslationOverrides): TranslationOverrides => {
+  const next: TranslationOverrides = {
+    ru: { ...(overrides.ru || {}) },
+    en: { ...(overrides.en || {}) },
+    de: { ...(overrides.de || {}) },
+  };
+
+  if (next.ru['home.hero_title_1'] === 'Книги в дорогу') {
+    next.ru['home.hero_title_1'] = 'Книги с собой';
+  }
+
+  return next;
+};
+
 export const contentStore = {
   getDatabase(): Record<Language, LocalizedCatalogData> {
     const storage = getStorage();
@@ -104,11 +118,11 @@ export const contentStore = {
       const raw = storage.getItem(OVERRIDES_KEY);
       if (!raw) return { ru: {}, en: {}, de: {} };
       const parsed = JSON.parse(raw);
-      return {
+      return sanitizeTranslationOverrides({
         ru: parsed.ru || {},
         en: parsed.en || {},
         de: parsed.de || {},
-      };
+      });
     } catch {
       return { ru: {}, en: {}, de: {} };
     }
@@ -116,11 +130,11 @@ export const contentStore = {
 
   saveTranslationOverrides(overrides: TranslationOverrides) {
     const storage = getStorage();
-    const normalized = {
+    const normalized = sanitizeTranslationOverrides({
       ru: overrides.ru || {},
       en: overrides.en || {},
       de: overrides.de || {},
-    };
+    });
     if (storage) {
       storage.setItem(OVERRIDES_KEY, JSON.stringify(normalized));
     }
