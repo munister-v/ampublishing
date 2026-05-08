@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
-import { Minus, Plus, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Minus, Plus, ArrowLeft, AlertCircle, ArrowUpRight } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { BookVariant, Format } from '../types';
 import { formatLabel } from '../utils/formatLabel';
@@ -155,6 +155,23 @@ export const ProductPage: React.FC = () => {
                     </div>
                   )}
 
+                  {book.story?.detailPageUrl ? (
+                    <div className="mt-6">
+                      <a
+                        href={book.story.detailPageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-3 border border-primary px-5 py-3 text-xs uppercase tracking-[0.2em] font-bold hover:bg-primary hover:text-white transition-colors"
+                      >
+                        {t('product.read_full_story')}
+                        <ArrowUpRight size={14} />
+                      </a>
+                      <p className="mt-3 text-sm text-gray-500">
+                        {t('product.full_story_note')}
+                      </p>
+                    </div>
+                  ) : null}
+
                   {!currentVariant && selectedFormat && (
                      <p className="text-red-500 text-xs font-mono flex items-center gap-2 mt-4"><AlertCircle size={12}/> {t('product.variant_unavailable')}</p>
                   )}
@@ -179,22 +196,6 @@ export const ProductPage: React.FC = () => {
                   </div>
                )}
 
-               {book.story?.about?.length ? (
-                  <section className="border-t border-primary py-10">
-                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
-                        {t('product.story_label')}
-                     </p>
-                     <h2 className="text-4xl md:text-6xl font-serif leading-[0.92] mb-8">
-                        {t('product.about_book')}
-                     </h2>
-                     <div className="space-y-5 text-lg leading-relaxed text-gray-700">
-                        {book.story.about.map((paragraph, index) => (
-                           <p key={index}>{paragraph}</p>
-                        ))}
-                     </div>
-                  </section>
-               ) : null}
-
                {book.story?.featureImageUrl ? (
                   <section className="border-t border-primary py-10">
                      <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] border border-primary overflow-hidden">
@@ -216,74 +217,6 @@ export const ProductPage: React.FC = () => {
                               {book.story.orderNote}
                            </p>
                         </div>
-                     </div>
-                  </section>
-               ) : null}
-
-               {book.story?.themes?.length ? (
-                  <section className="border-t border-primary py-10">
-                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
-                        {t('product.themes')}
-                     </p>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-primary">
-                        {book.story.themes.map((theme, index) => (
-                           <article key={theme.title} className="border-b border-r border-primary p-6 md:p-8 bg-white">
-                              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">
-                                 0{index + 1}
-                              </span>
-                              <h3 className="mt-4 mb-3 text-3xl font-serif leading-none text-primary">
-                                 {theme.title}
-                              </h3>
-                              <p className="text-base leading-relaxed text-gray-700">{theme.text}</p>
-                           </article>
-                        ))}
-                     </div>
-                  </section>
-               ) : null}
-
-               {book.story?.excerpt?.length ? (
-                  <section className="border-t border-primary py-10">
-                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
-                        {t('product.excerpt')}
-                     </p>
-                     <div className="space-y-5 text-lg md:text-xl font-serif leading-relaxed text-primary">
-                        {book.story.excerpt.map((paragraph, index) => (
-                           <p key={index}>{paragraph}</p>
-                        ))}
-                     </div>
-                  </section>
-               ) : null}
-
-               {book.story?.authorBio?.length ? (
-                  <section className="border-t border-primary py-10">
-                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
-                        {t('product.author_section')}
-                     </p>
-                     <h2 className="text-4xl md:text-5xl font-serif leading-[0.92] mb-6">
-                        {book.author}
-                     </h2>
-                     <div className="space-y-5 text-lg leading-relaxed text-gray-700">
-                        {book.story.authorBio.map((paragraph, index) => (
-                           <p key={index}>{paragraph}</p>
-                        ))}
-                     </div>
-                  </section>
-               ) : null}
-
-               {book.story?.reviews?.length ? (
-                  <section className="border-t border-primary py-10">
-                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-6">
-                        {t('product.reviews')}
-                     </p>
-                     <div className="grid grid-cols-1 gap-4">
-                        {book.story.reviews.map((review, index) => (
-                           <blockquote key={index} className="border border-primary bg-[#F4F4F0] p-6">
-                              <p className="text-xl font-serif leading-relaxed text-primary">{review.quote}</p>
-                              <footer className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500">
-                                 {review.author}
-                              </footer>
-                           </blockquote>
-                        ))}
                      </div>
                   </section>
                ) : null}

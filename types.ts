@@ -32,6 +32,7 @@ export interface BookStory {
   reviews: BookReview[];
   orderNote?: string;
   featureImageUrl?: string;
+  detailPageUrl?: string;
 }
 
 export interface Book {

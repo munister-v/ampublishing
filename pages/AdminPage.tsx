@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../AppContext';
 import { api } from '../services/api';
+import { autoTranslateBookFromRu, autoTranslateNewsFromRu, autoTranslateValue } from '../services/autoTranslate';
 import { translations } from '../translations';
 import { Book, Language, LocalizedCatalogData, NewsItem, OrderStatus, TranslationOverrides } from '../types';
 import {
@@ -150,6 +151,7 @@ const createBookTemplate = (language: Language): Book => ({
     reviews: [],
     orderNote: '',
     featureImageUrl: '',
+    detailPageUrl: '',
   },
 });
 
@@ -479,11 +481,15 @@ export const AdminPage: React.FC = () => {
     try {
       const parsedValue = field.type === 'json' ? parseJsonField(rawValue) : rawValue;
       setSavingKey(field.key);
-      const nextOverrides = await api.setTranslationValue(selectedLanguage, field.key, parsedValue);
+      let nextOverrides = await api.setTranslationValue(selectedLanguage, field.key, parsedValue);
+      if (selectedLanguage === 'ru') {
+        nextOverrides = await api.setTranslationValue('en', field.key, autoTranslateValue(parsedValue, 'en'));
+        nextOverrides = await api.setTranslationValue('de', field.key, autoTranslateValue(parsedValue, 'de'));
+      }
       setOverrides(nextOverrides);
       await reloadContent();
       setLastPublishedAt(new Date().toLocaleTimeString());
-      showToast(`${field.label} saved`);
+      showToast(selectedLanguage === 'ru' ? `${field.label} saved and synced to EN/DE` : `${field.label} saved`);
     } catch {
       showToast(`Could not save ${field.label}`, 'error');
     } finally {
@@ -512,8 +518,7 @@ export const AdminPage: React.FC = () => {
       const parsedVariants = parseJsonField(bookJsonDrafts.variants);
       const parsedThemes = parseJsonField(bookJsonDrafts.themes);
       const parsedReviews = parseJsonField(bookJsonDrafts.reviews);
-      setSavingKey(`book:${bookDraft.id}`);
-      await api.upsertBook(selectedLanguage, {
+      const nextBook = {
         ...bookDraft,
         genre: bookDraft.genre.filter(Boolean),
         variants: parsedVariants || [],
@@ -522,11 +527,17 @@ export const AdminPage: React.FC = () => {
           themes: parsedThemes || [],
           reviews: parsedReviews || [],
         },
-      });
+      };
+      setSavingKey(`book:${bookDraft.id}`);
+      await api.upsertBook(selectedLanguage, nextBook);
+      if (selectedLanguage === 'ru') {
+        await api.upsertBook('en', autoTranslateBookFromRu(nextBook, 'en'));
+        await api.upsertBook('de', autoTranslateBookFromRu(nextBook, 'de'));
+      }
       await reloadContent();
       await loadAdminData();
       setLastPublishedAt(new Date().toLocaleTimeString());
-      showToast(`Book ${bookDraft.title || bookDraft.id} saved`);
+      showToast(selectedLanguage === 'ru' ? `Book ${bookDraft.title || bookDraft.id} saved and synced to EN/DE` : `Book ${bookDraft.title || bookDraft.id} saved`);
     } catch {
       showToast('Could not save book', 'error');
     } finally {
@@ -539,6 +550,10 @@ export const AdminPage: React.FC = () => {
     try {
       setSavingKey(`book:delete:${bookDraft.id}`);
       await api.deleteBook(selectedLanguage, bookDraft.id);
+      if (selectedLanguage === 'ru') {
+        await api.deleteBook('en', bookDraft.id);
+        await api.deleteBook('de', bookDraft.id);
+      }
       setSelectedBookId('');
       await reloadContent();
       await loadAdminData();
@@ -556,10 +571,14 @@ export const AdminPage: React.FC = () => {
     try {
       setSavingKey(`news:${newsDraft.id}`);
       await api.upsertNewsItem(selectedLanguage, newsDraft);
+      if (selectedLanguage === 'ru') {
+        await api.upsertNewsItem('en', autoTranslateNewsFromRu(newsDraft, 'en'));
+        await api.upsertNewsItem('de', autoTranslateNewsFromRu(newsDraft, 'de'));
+      }
       await reloadContent();
       await loadAdminData();
       setLastPublishedAt(new Date().toLocaleTimeString());
-      showToast(`News ${newsDraft.title || newsDraft.id} saved`);
+      showToast(selectedLanguage === 'ru' ? `News ${newsDraft.title || newsDraft.id} saved and synced to EN/DE` : `News ${newsDraft.title || newsDraft.id} saved`);
     } catch {
       showToast('Could not save news', 'error');
     } finally {
@@ -572,6 +591,10 @@ export const AdminPage: React.FC = () => {
     try {
       setSavingKey(`news:delete:${newsDraft.id}`);
       await api.deleteNewsItem(selectedLanguage, newsDraft.id);
+      if (selectedLanguage === 'ru') {
+        await api.deleteNewsItem('en', newsDraft.id);
+        await api.deleteNewsItem('de', newsDraft.id);
+      }
       setSelectedNewsId('');
       await reloadContent();
       await loadAdminData();
@@ -683,6 +706,9 @@ export const AdminPage: React.FC = () => {
                 </button>
               ))}
             </div>
+            <p className="mt-3 text-[10px] leading-relaxed text-white/55">
+              When you save in `RU`, the admin now auto-generates `EN` and `DE` versions for copy, books, and news.
+            </p>
           </div>
           <div className="bg-white/5 border border-white/10 p-4">
             <p className="text-[10px] uppercase font-mono tracking-[0.22em] text-white/50 mb-3">Backup</p>
@@ -894,6 +920,7 @@ export const AdminPage: React.FC = () => {
                     <h4 className="font-serif text-2xl">Story Page</h4>
                     <input value={bookDraft.story?.quote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quote: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Quote" />
                     <input value={bookDraft.story?.quoteSource || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quoteSource: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Quote source" />
+                    <input value={bookDraft.story?.detailPageUrl || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, detailPageUrl: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="External detail page URL" />
                     <ImageField
                       label="Story feature image"
                       value={bookDraft.story?.featureImageUrl || ''}

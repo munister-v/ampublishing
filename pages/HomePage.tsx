@@ -8,6 +8,16 @@ import { useApp } from '../AppContext';
 export const HomePage: React.FC = () => {
   const { t, books, news, language, showToast } = useApp();
   const newBooks = books.filter(b => b.badges.includes('new')).slice(0, 4);
+  const featuredAuthors = books
+    .map(book => ({
+      id: book.id,
+      author: book.author,
+      coverUrl: book.coverUrl,
+      bio: book.story?.authorBio?.[0] || book.description,
+      title: book.title,
+    }))
+    .filter((item, index, array) => array.findIndex(candidate => candidate.author === item.author) === index)
+    .slice(0, 3);
   const heroLine2 = t('home.hero_title_2');
   const heroImageUrl = t('home.hero_image') as string;
   const featureImageUrl = t('home.feature_image') as string;
@@ -163,6 +173,37 @@ export const HomePage: React.FC = () => {
                </div>
             </div>
          ))}
+      </section>
+
+      {/* 6. OUR AUTHORS */}
+      <section className="border-t border-primary bg-[#F4F4F0]">
+        <div className="border-b border-primary px-6 py-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent mb-2">{t('home.authors_kicker')}</p>
+            <h2 className="text-3xl md:text-5xl font-serif leading-none">{t('home.authors_title')}</h2>
+          </div>
+          <Link to="/authors" className="text-xs font-mono uppercase underline hover:text-accent transition-colors">
+            {t('home.authors_cta')}
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 border-b border-primary">
+          {featuredAuthors.map((item) => (
+            <article key={item.author} className="border-r border-primary last:border-r-0 bg-white">
+              <div className="aspect-[4/3] border-b border-primary overflow-hidden bg-[#E8EDF2]">
+                <img src={item.coverUrl} alt={item.author} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+              </div>
+              <div className="p-6 md:p-8">
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400 mb-4">{t('home.authors_card_label')}</p>
+                <h3 className="text-3xl font-serif mb-4">{item.author}</h3>
+                <p className="text-sm leading-relaxed text-gray-600 mb-6">{item.bio}</p>
+                <Link to={`/product/${item.id}`} className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-bold hover:text-accent transition-colors">
+                  {t('home.discover_author')}
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
     </div>

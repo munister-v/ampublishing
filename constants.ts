@@ -28,6 +28,7 @@ const mkVariant = (
 
 const coverUrl = asset('images/ambook-cover.jpg');
 const featureImageUrl = asset('images/ambook-object.jpg');
+const detailPageUrl = 'https://munister.com.ua/ambook.html';
 
 const baseThemes = [
   {
@@ -85,6 +86,7 @@ const storyByLanguage: Record<Language, BookStory> = {
     reviews: baseReviews,
     orderNote: 'Малый тираж. Твёрдая обложка. Офсетная печать. Доставка в 59 стран мира.',
     featureImageUrl,
+    detailPageUrl,
   },
   en: {
     quote: 'He did not know why he had come back. Only that there had been no other way.',
@@ -116,6 +118,7 @@ const storyByLanguage: Record<Language, BookStory> = {
     ],
     orderNote: 'Limited print run. Hardcover edition. Offset printing. Shipping to 59 countries.',
     featureImageUrl,
+    detailPageUrl,
   },
   de: {
     quote: 'Er wusste nicht, warum er zurückgekehrt war. Nur, dass es keine andere Möglichkeit gab.',
@@ -147,6 +150,7 @@ const storyByLanguage: Record<Language, BookStory> = {
     ],
     orderNote: 'Kleine Auflage. Hardcover. Offsetdruck. Versand in 59 Länder.',
     featureImageUrl,
+    detailPageUrl,
   },
 };
 
