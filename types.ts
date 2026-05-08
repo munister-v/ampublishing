@@ -98,6 +98,16 @@ export interface NewsItem {
   preview: string;
 }
 
+export interface LocalizedCatalogData {
+  books: Book[];
+  news: NewsItem[];
+  genres: string[];
+  authors: string[];
+  series: string[];
+}
+
+export type TranslationOverrides = Record<Language, Record<string, any>>;
+
 export interface CheckoutFormData {
   email: string;
   firstName: string;

@@ -1,389 +1,680 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../AppContext';
-import { 
-  LayoutDashboard, BookOpen, ShoppingBag, LogOut, 
-  Plus, Edit, Trash2, TrendingUp, Users, DollarSign, Search,
-  CheckCircle, Clock, Truck, Package, XCircle, ArrowUp, ArrowDown, Save, Loader2, RefreshCw
+import { api } from '../services/api';
+import { translations } from '../translations';
+import { Book, Language, LocalizedCatalogData, NewsItem, OrderStatus, TranslationOverrides } from '../types';
+import {
+  BookOpen,
+  FileText,
+  Gavel,
+  Globe,
+  LogOut,
+  Newspaper,
+  RefreshCw,
+  Save,
+  ShoppingBag,
+  Trash2,
+  Plus,
+  Loader2,
+  CheckCircle,
 } from 'lucide-react';
-import { OrderStatus } from '../types';
 
-type AdminTab = 'overview' | 'products' | 'orders';
+type AdminTab = 'copy' | 'books' | 'news' | 'orders';
+type FieldType = 'text' | 'textarea' | 'json';
 
-// --- Components ---
-
-const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-    const config: Record<string, string> = {
-        delivered: 'bg-green-100 text-green-700 border-green-200',
-        shipped: 'bg-blue-100 text-blue-700 border-blue-200',
-        processing: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-        pending: 'bg-gray-100 text-gray-700 border-gray-200',
-        cancelled: 'bg-red-100 text-red-700 border-red-200'
-    };
-    return (
-        <span className={`px-2 py-1 border text-[9px] uppercase font-bold tracking-wider ${config[status.toLowerCase()] || 'bg-gray-100'}`}>
-            {status}
-        </span>
-    );
+type ContentField = {
+  key: string;
+  label: string;
+  type: FieldType;
 };
 
-const SimpleLineChart: React.FC<{ data: number[] }> = ({ data }) => {
-    const max = Math.max(...data);
-    const min = Math.min(...data);
-    const height = 60;
-    const width = 200;
-    
-    const points = data.map((val, i) => {
-        const x = (i / (data.length - 1)) * width;
-        const y = height - ((val - min) / (max - min)) * height;
-        return `${x},${y}`;
-    }).join(' ');
-
-    return (
-        <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
-            <polyline fill="none" stroke="currentColor" strokeWidth="2" points={points} vectorEffect="non-scaling-stroke" />
-            <circle cx={(data.length-1)/(data.length-1)*width} cy={height - ((data[data.length-1] - min)/(max-min))*height} r="3" fill="currentColor" />
-        </svg>
-    );
+type ContentGroup = {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  fields: ContentField[];
 };
+
+const contentGroups: ContentGroup[] = [
+  {
+    id: 'home',
+    label: 'Homepage',
+    icon: <Globe size={16} />,
+    fields: [
+      { key: 'home.hero_title_1', label: 'Hero title', type: 'text' },
+      { key: 'home.hero_title_2', label: 'Hero title line 2', type: 'text' },
+      { key: 'home.hero_subtitle', label: 'Hero subtitle', type: 'textarea' },
+      { key: 'home.hero_cta', label: 'Hero CTA', type: 'text' },
+      { key: 'home.hero_image', label: 'Hero image URL', type: 'text' },
+      { key: 'home.feature_image', label: 'Feature image URL', type: 'text' },
+      { key: 'home.feature_kicker', label: 'Feature kicker', type: 'text' },
+      { key: 'home.feature_title', label: 'Feature title', type: 'text' },
+      { key: 'home.global_reach', label: 'Global reach title', type: 'text' },
+      { key: 'home.global_desc', label: 'Global reach description', type: 'textarea' },
+      { key: 'home.stats_countries', label: 'Countries label', type: 'text' },
+      { key: 'home.stats_countries_value', label: 'Countries value', type: 'text' },
+      { key: 'home.stats_delivery', label: 'Delivery label', type: 'text' },
+      { key: 'home.stats_delivery_value', label: 'Delivery value', type: 'text' },
+    ],
+  },
+  {
+    id: 'authors-about-media',
+    label: 'Static Pages',
+    icon: <FileText size={16} />,
+    fields: [
+      { key: 'static.authors.title', label: 'Authors title', type: 'text' },
+      { key: 'static.authors.subtitle', label: 'Authors subtitle', type: 'textarea' },
+      { key: 'static.authors.p1', label: 'Authors text 1', type: 'textarea' },
+      { key: 'static.authors.p2', label: 'Authors text 2', type: 'textarea' },
+      { key: 'static.about.title', label: 'About title', type: 'text' },
+      { key: 'static.about.subtitle', label: 'About subtitle', type: 'textarea' },
+      { key: 'static.about.p1', label: 'About text 1', type: 'textarea' },
+      { key: 'static.about.p2', label: 'About text 2', type: 'textarea' },
+      { key: 'static.media.title', label: 'Media title', type: 'text' },
+      { key: 'static.media.subtitle', label: 'Media subtitle', type: 'textarea' },
+      { key: 'static.media.kit_desc', label: 'Press kit text', type: 'textarea' },
+      { key: 'static.media.review_desc', label: 'Review text', type: 'textarea' },
+      { key: 'static.media.interview_desc', label: 'Interview text', type: 'textarea' },
+      { key: 'footer.desc', label: 'Footer description', type: 'textarea' },
+    ],
+  },
+  {
+    id: 'legal',
+    label: 'Legal',
+    icon: <Gavel size={16} />,
+    fields: [
+      { key: 'static.impressum.text', label: 'Impressum text', type: 'textarea' },
+      { key: 'static.privacy.intro', label: 'Privacy intro', type: 'textarea' },
+      { key: 'static.privacy.sections', label: 'Privacy sections JSON', type: 'json' },
+      { key: 'static.terms.intro', label: 'Terms intro', type: 'textarea' },
+      { key: 'static.terms.text', label: 'Terms text', type: 'textarea' },
+      { key: 'static.terms.sections', label: 'Terms sections JSON', type: 'json' },
+    ],
+  },
+];
+
+const createBookTemplate = (language: Language): Book => ({
+  id: `book-${Date.now()}`,
+  title: '',
+  author: '',
+  price: 0,
+  coverUrl: '',
+  badges: ['new'],
+  type: 'publisher',
+  isPreorder: false,
+  stock: 0,
+  description: '',
+  details: {
+    pages: 0,
+    year: new Date().getFullYear(),
+    publisher: '',
+    weight: '',
+    dimensions: '',
+  },
+  genre: [],
+  series: '',
+  ageRating: '16+',
+  variants: [],
+  releaseDate: new Date().toISOString().slice(0, 10),
+  story: {
+    quote: '',
+    quoteSource: '',
+    about: [],
+    excerpt: [],
+    authorBio: [],
+    themes: [],
+    reviews: [],
+    orderNote: '',
+    featureImageUrl: '',
+  },
+});
+
+const createNewsTemplate = (): NewsItem => ({
+  id: `news-${Date.now()}`,
+  date: new Date().toISOString().slice(0, 10),
+  title: '',
+  preview: '',
+});
+
+const getNestedValue = (obj: any, path: string) => path.split('.').reduce((acc, key) => (acc && typeof acc === 'object' ? acc[key] : undefined), obj);
+
+const serializeFieldValue = (value: any, type: FieldType) => {
+  if (typeof value === 'undefined') return '';
+  if (type === 'json') return JSON.stringify(value, null, 2);
+  if (Array.isArray(value)) return value.join('\n\n');
+  if (typeof value === 'object' && value !== null) return JSON.stringify(value, null, 2);
+  return String(value);
+};
+
+const parseJsonField = (value: string) => JSON.parse(value);
+
+const parseParagraphs = (value: string) =>
+  value
+    .split(/\n{2,}/)
+    .map(item => item.trim())
+    .filter(Boolean);
+
+const cloneBook = (book: Book) => JSON.parse(JSON.stringify(book)) as Book;
 
 export const AdminPage: React.FC = () => {
-  const { books, logout, orders, refreshOrders, updateOrderStatus, updateInventory } = useApp();
-  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
-  const [searchTerm, setSearchTerm] = useState('');
+  const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast } = useApp();
+  const [activeTab, setActiveTab] = useState<AdminTab>('copy');
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>('ru');
+  const [database, setDatabase] = useState<Record<Language, LocalizedCatalogData> | null>(null);
+  const [overrides, setOverrides] = useState<TranslationOverrides>({ ru: {}, en: {}, de: {} });
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  // Inventory Edit State
-  const [editingStock, setEditingStock] = useState<string | null>(null);
-  const [tempStockVal, setTempStockVal] = useState<number>(0);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [selectedBookId, setSelectedBookId] = useState<string>('');
+  const [bookDraft, setBookDraft] = useState<Book | null>(null);
+  const [selectedNewsId, setSelectedNewsId] = useState<string>('');
+  const [newsDraft, setNewsDraft] = useState<NewsItem | null>(null);
+  const [copyDrafts, setCopyDrafts] = useState<Record<string, string>>({});
 
-  const filteredBooks = books.filter(b => b.title.toLowerCase().includes(searchTerm.toLowerCase()));
-  const filteredOrders = orders.filter(o => 
-      o.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      o.customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Stats Logic
-  const totalRevenue = orders.filter(o => o.paymentStatus === 'paid').reduce((acc, o) => acc + o.total, 0);
-  const pendingOrders = orders.filter(o => o.status === 'processing' || o.status === 'pending').length;
-
-  const handleRefresh = async () => {
-      setIsRefreshing(true);
-      await refreshOrders();
-      setTimeout(() => setIsRefreshing(false), 800); // Minimum spin time for visual feedback
+  const loadAdminData = async () => {
+    setIsRefreshing(true);
+    try {
+      const [db, translationState] = await Promise.all([
+        api.getContentDatabase(),
+        api.getTranslationOverrides(),
+      ]);
+      setDatabase(db);
+      setOverrides(translationState);
+      if (!selectedBookId && db[selectedLanguage].books[0]) {
+        setSelectedBookId(db[selectedLanguage].books[0].id);
+      }
+      if (!selectedNewsId && db[selectedLanguage].news[0]) {
+        setSelectedNewsId(db[selectedLanguage].news[0].id);
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
-  const handleStockSave = async (bookId: string) => {
-      setActionLoading(bookId);
-      await updateInventory(bookId, tempStockVal);
-      setActionLoading(null);
-      setEditingStock(null);
+  useEffect(() => {
+    loadAdminData();
+  }, []);
+
+  useEffect(() => {
+    if (!database) return;
+    const currentBook = database[selectedLanguage].books.find(book => book.id === selectedBookId) || database[selectedLanguage].books[0] || null;
+    setBookDraft(currentBook ? cloneBook(currentBook) : null);
+  }, [database, selectedLanguage, selectedBookId]);
+
+  useEffect(() => {
+    if (!database) return;
+    const currentNews = database[selectedLanguage].news.find(item => item.id === selectedNewsId) || database[selectedLanguage].news[0] || null;
+    setNewsDraft(currentNews ? { ...currentNews } : null);
+  }, [database, selectedLanguage, selectedNewsId]);
+
+  const copyValues = useMemo(() => {
+    const defaults = translations[selectedLanguage];
+    const languageOverrides = overrides[selectedLanguage] || {};
+    return contentGroups.reduce<Record<string, any>>((acc, group) => {
+      group.fields.forEach(field => {
+        acc[field.key] = typeof languageOverrides[field.key] !== 'undefined' ? languageOverrides[field.key] : getNestedValue(defaults, field.key);
+      });
+      return acc;
+    }, {});
+  }, [selectedLanguage, overrides]);
+
+  useEffect(() => {
+    const nextDrafts: Record<string, string> = {};
+    contentGroups.forEach(group => {
+      group.fields.forEach(field => {
+        nextDrafts[field.key] = serializeFieldValue(copyValues[field.key], field.type);
+      });
+    });
+    setCopyDrafts(nextDrafts);
+  }, [copyValues]);
+
+  const handleSaveTranslationField = async (field: ContentField) => {
+    const rawValue = copyDrafts[field.key] ?? '';
+    try {
+      const parsedValue = field.type === 'json' ? parseJsonField(rawValue) : rawValue;
+      setSavingKey(field.key);
+      const nextOverrides = await api.setTranslationValue(selectedLanguage, field.key, parsedValue);
+      setOverrides(nextOverrides);
+      await reloadContent();
+      showToast(`${field.label} saved`);
+    } catch {
+      showToast(`Could not save ${field.label}`, 'error');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const handleResetTranslationField = async (field: ContentField) => {
+    try {
+      setSavingKey(`${field.key}:reset`);
+      const nextOverrides = await api.resetTranslationValue(selectedLanguage, field.key);
+      setOverrides(nextOverrides);
+      await reloadContent();
+      showToast(`${field.label} reset`);
+    } catch {
+      showToast(`Could not reset ${field.label}`, 'error');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const handleSaveBook = async () => {
+    if (!bookDraft) return;
+    try {
+      setSavingKey(`book:${bookDraft.id}`);
+      await api.upsertBook(selectedLanguage, {
+        ...bookDraft,
+        genre: bookDraft.genre.filter(Boolean),
+        variants: bookDraft.variants || [],
+      });
+      await reloadContent();
+      await loadAdminData();
+      showToast(`Book ${bookDraft.title || bookDraft.id} saved`);
+    } catch {
+      showToast('Could not save book', 'error');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const handleDeleteBook = async () => {
+    if (!bookDraft) return;
+    try {
+      setSavingKey(`book:delete:${bookDraft.id}`);
+      await api.deleteBook(selectedLanguage, bookDraft.id);
+      setSelectedBookId('');
+      await reloadContent();
+      await loadAdminData();
+      showToast('Book removed');
+    } catch {
+      showToast('Could not remove book', 'error');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const handleSaveNews = async () => {
+    if (!newsDraft) return;
+    try {
+      setSavingKey(`news:${newsDraft.id}`);
+      await api.upsertNewsItem(selectedLanguage, newsDraft);
+      await reloadContent();
+      await loadAdminData();
+      showToast(`News ${newsDraft.title || newsDraft.id} saved`);
+    } catch {
+      showToast('Could not save news', 'error');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const handleDeleteNews = async () => {
+    if (!newsDraft) return;
+    try {
+      setSavingKey(`news:delete:${newsDraft.id}`);
+      await api.deleteNewsItem(selectedLanguage, newsDraft.id);
+      setSelectedNewsId('');
+      await reloadContent();
+      await loadAdminData();
+      showToast('News removed');
+    } catch {
+      showToast('Could not remove news', 'error');
+    } finally {
+      setSavingKey(null);
+    }
   };
 
   const handleStatusChange = async (orderId: string, status: OrderStatus) => {
-      setActionLoading(orderId);
-      await updateOrderStatus(orderId, status);
-      setActionLoading(null);
+    setSavingKey(`order:${orderId}`);
+    await updateOrderStatus(orderId, status);
+    setSavingKey(null);
   };
 
+  const books = database?.[selectedLanguage].books || [];
+  const news = database?.[selectedLanguage].news || [];
+
   return (
-    <div className="min-h-screen bg-[#F4F4F0] pt-[80px] flex flex-col md:flex-row font-sans text-primary">
-      
-      {/* SIDEBAR */}
-      <aside className="w-full md:w-72 bg-primary text-white flex-shrink-0 md:min-h-[calc(100vh-80px)] shadow-xl z-20">
+    <div className="min-h-screen bg-[#F4F4F0] pt-[80px] flex flex-col md:flex-row text-primary">
+      <aside className="w-full md:w-72 bg-primary text-white flex-shrink-0 md:min-h-[calc(100vh-80px)]">
         <div className="p-8 border-b border-white/10">
-            <h2 className="font-serif text-3xl">AM Admin</h2>
-            <p className="text-[10px] font-mono opacity-50 uppercase tracking-widest mt-1">Enterprise Resource Planning</p>
+          <h2 className="font-serif text-3xl">AM Admin</h2>
+          <p className="text-[10px] font-mono opacity-60 uppercase tracking-[0.24em] mt-2">Content Management</p>
         </div>
-        
+
         <nav className="p-6 space-y-3">
-            <button 
-                onClick={() => setActiveTab('overview')}
-                className={`w-full flex items-center gap-4 px-4 py-4 text-xs uppercase font-bold tracking-widest transition-all ${activeTab === 'overview' ? 'bg-accent text-primary translate-x-2 shadow-lg' : 'hover:bg-white/10 text-gray-300'}`}
+          {[
+            { id: 'copy', label: 'Site Copy', icon: <FileText size={16} /> },
+            { id: 'books', label: 'Books', icon: <BookOpen size={16} /> },
+            { id: 'news', label: 'News', icon: <Newspaper size={16} /> },
+            { id: 'orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id as AdminTab)}
+              className={`w-full flex items-center gap-4 px-4 py-4 text-xs uppercase font-bold tracking-widest transition-all ${
+                activeTab === item.id ? 'bg-accent text-primary translate-x-2 shadow-lg' : 'hover:bg-white/10 text-gray-300'
+              }`}
             >
-                <LayoutDashboard size={18} /> Dashboard
+              {item.icon}
+              {item.label}
             </button>
-            <button 
-                onClick={() => setActiveTab('orders')}
-                className={`w-full flex items-center gap-4 px-4 py-4 text-xs uppercase font-bold tracking-widest transition-all ${activeTab === 'orders' ? 'bg-accent text-primary translate-x-2 shadow-lg' : 'hover:bg-white/10 text-gray-300'}`}
-            >
-                <ShoppingBag size={18} /> Orders
-                {pendingOrders > 0 && <span className="ml-auto bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-full">{pendingOrders}</span>}
-            </button>
-            <button 
-                onClick={() => setActiveTab('products')}
-                className={`w-full flex items-center gap-4 px-4 py-4 text-xs uppercase font-bold tracking-widest transition-all ${activeTab === 'products' ? 'bg-accent text-primary translate-x-2 shadow-lg' : 'hover:bg-white/10 text-gray-300'}`}
-            >
-                <BookOpen size={18} /> Inventory
-            </button>
+          ))}
         </nav>
 
-        <div className="p-6 mt-auto border-t border-white/10">
-            <button 
-                onClick={logout}
-                className="w-full flex items-center gap-3 px-4 py-3 text-xs uppercase tracking-widest text-red-300 hover:bg-red-900/20 hover:text-red-100 transition-colors border border-red-900/30"
-            >
-                <LogOut size={16} /> Secure Logout
-            </button>
+        <div className="px-6 pb-6">
+          <div className="bg-white/5 border border-white/10 p-4">
+            <p className="text-[10px] uppercase font-mono tracking-[0.22em] text-white/50 mb-3">Language</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(['ru', 'en', 'de'] as Language[]).map(lang => (
+                <button
+                  key={lang}
+                  onClick={() => setSelectedLanguage(lang)}
+                  className={`py-2 text-[10px] uppercase tracking-[0.2em] border ${
+                    selectedLanguage === lang ? 'bg-accent text-primary border-accent' : 'border-white/20 text-white/70 hover:bg-white/10'
+                  }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 mt-auto border-t border-white/10 flex gap-3">
+          <button
+            onClick={loadAdminData}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-white/15 hover:bg-white/10"
+          >
+            {isRefreshing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+            Reload
+          </button>
+          <button
+            onClick={logout}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-red-500/40 text-red-200 hover:bg-red-900/20"
+          >
+            <LogOut size={14} />
+            Logout
+          </button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <main className="flex-1 p-6 md:p-12 overflow-y-auto bg-[#F4F4F0] relative h-[calc(100vh-80px)]">
-         
-         {/* Background Grid */}
-         <div className="absolute inset-0 pointer-events-none opacity-[0.03]" 
-              style={{ backgroundImage: 'linear-gradient(#040F1E 1px, transparent 1px), linear-gradient(90deg, #040F1E 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
-         </div>
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto h-[calc(100vh-80px)]">
+        {!database ? (
+          <div className="h-full flex items-center justify-center">
+            <Loader2 className="animate-spin text-primary" />
+          </div>
+        ) : null}
 
-         {/* --- GLOBAL ACTION HEADER --- */}
-         <div className="flex justify-between items-end mb-8 relative z-10">
-             <div>
-                <h1 className="text-4xl font-serif text-primary capitalize">{activeTab}</h1>
-                <p className="font-mono text-xs uppercase tracking-widest text-gray-500 mt-1">
-                    {activeTab === 'overview' ? 'System Status: Operational' : activeTab === 'orders' ? 'Manage Customer Orders' : 'Stock & Pricing'}
-                </p>
-             </div>
-             <button 
-                onClick={handleRefresh}
-                className={`p-3 bg-white border border-primary text-primary hover:bg-primary hover:text-white transition-all shadow-sm ${isRefreshing ? 'animate-spin' : ''}`}
-                title="Refresh Data"
-             >
-                <RefreshCw size={18} />
-             </button>
-         </div>
-
-         {/* --- OVERVIEW TAB --- */}
-         {activeTab === 'overview' && (
-            <div className="animate-fade-in relative z-10">
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-                    <div className="bg-white p-6 border border-primary/10 shadow-[8px_8px_0px_0px_rgba(4,15,30,0.05)] hover:-translate-y-1 transition-transform">
-                        <div className="flex justify-between items-start mb-4">
-                            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Net Revenue</span>
-                            <TrendingUp size={16} className="text-green-600" />
-                        </div>
-                        <span className="text-3xl font-serif block mb-2">€{totalRevenue.toLocaleString()}</span>
-                        <div className="h-10 text-green-500">
-                            <SimpleLineChart data={[10, 25, 18, 30, 45, 35, 50]} />
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-6 border border-primary/10 shadow-[8px_8px_0px_0px_rgba(4,15,30,0.05)] hover:-translate-y-1 transition-transform">
-                        <div className="flex justify-between items-start mb-4">
-                            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Total Orders</span>
-                            <Package size={16} className="text-blue-600" />
-                        </div>
-                        <span className="text-3xl font-serif block mb-2">{orders.length}</span>
-                        <span className="text-xs text-green-600 font-mono flex items-center gap-1"><ArrowUp size={10}/> 12% vs last week</span>
-                    </div>
-
-                    <div className="bg-white p-6 border border-primary/10 shadow-[8px_8px_0px_0px_rgba(4,15,30,0.05)] hover:-translate-y-1 transition-transform">
-                        <div className="flex justify-between items-start mb-4">
-                            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Avg. Order Value</span>
-                            <DollarSign size={16} className="text-accent" />
-                        </div>
-                        <span className="text-3xl font-serif block mb-2">€{(totalRevenue / (orders.length || 1)).toFixed(2)}</span>
-                        <span className="text-xs text-gray-400 font-mono">Per customer</span>
-                    </div>
-
-                    <div className="bg-white p-6 border border-primary/10 shadow-[8px_8px_0px_0px_rgba(4,15,30,0.05)] hover:-translate-y-1 transition-transform">
-                        <div className="flex justify-between items-start mb-4">
-                            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Active SKUs</span>
-                            <BookOpen size={16} className="text-purple-600" />
-                        </div>
-                        <span className="text-3xl font-serif block mb-2">{books.length}</span>
-                        <span className="text-xs text-red-500 font-mono flex items-center gap-1">2 items low stock</span>
-                    </div>
+        {database && activeTab === 'copy' ? (
+          <div className="space-y-8">
+            {contentGroups.map(group => (
+              <section key={group.id} className="bg-white border border-primary/10 shadow-sm">
+                <div className="p-6 border-b border-primary/10 flex items-center gap-3">
+                  {group.icon}
+                  <h3 className="text-2xl font-serif">{group.label}</h3>
                 </div>
-
-                {/* Recent Activity Table */}
-                <div className="bg-white border border-primary">
-                    <div className="p-6 border-b border-primary bg-gray-50 flex justify-between items-center">
-                        <h3 className="font-bold uppercase text-xs tracking-widest">Recent System Events</h3>
-                        <button className="text-xs underline hover:text-accent">View All Logs</button>
+                <div className="p-6 grid grid-cols-1 gap-6">
+                  {group.fields.map(field => (
+                    <div key={field.key} className="border border-gray-100 p-5 bg-[#F8F8F5]">
+                      <div className="flex justify-between items-center mb-3 gap-4">
+                        <div>
+                          <p className="font-bold text-sm">{field.label}</p>
+                          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{field.key}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleResetTranslationField(field)}
+                            className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-gray-300 hover:bg-gray-100"
+                          >
+                            Reset
+                          </button>
+                          <button
+                            onClick={() => handleSaveTranslationField(field)}
+                            className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary"
+                          >
+                            {savingKey === field.key ? <Loader2 size={12} className="animate-spin" /> : 'Save'}
+                          </button>
+                        </div>
+                      </div>
+                      {field.type === 'text' ? (
+                        <input
+                          value={copyDrafts[field.key] || ''}
+                          onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: e.target.value }))}
+                          className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary"
+                        />
+                      ) : (
+                        <textarea
+                          value={copyDrafts[field.key] || ''}
+                          onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: e.target.value }))}
+                          rows={field.type === 'json' ? 12 : 5}
+                          className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary font-mono text-sm"
+                        />
+                      )}
                     </div>
-                    <div className="p-0">
-                        {orders.slice(0, 5).map(order => (
-                            <div key={order.id} className="flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                <div className="flex items-center gap-4">
-                                    <div className={`p-2 rounded-full ${order.status === 'delivered' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
-                                        {order.status === 'delivered' ? <CheckCircle size={14}/> : <Clock size={14}/>}
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold">Order {order.id} updated</p>
-                                        <p className="text-xs text-gray-500 font-mono">{order.customer.email}</p>
-                                    </div>
-                                </div>
-                                <span className="text-xs font-mono text-gray-400">{new Date(order.date).toLocaleTimeString()}</span>
-                            </div>
-                        ))}
-                    </div>
+                  ))}
                 </div>
+              </section>
+            ))}
+          </div>
+        ) : null}
+
+        {database && activeTab === 'books' ? (
+          <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-8">
+            <section className="bg-white border border-primary/10">
+              <div className="p-6 border-b border-primary/10 flex items-center justify-between">
+                <h3 className="text-2xl font-serif">Books</h3>
+                <button
+                  onClick={() => {
+                    const next = createBookTemplate(selectedLanguage);
+                    setSelectedBookId(next.id);
+                    setBookDraft(next);
+                  }}
+                  className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
+                >
+                  <Plus size={12} />
+                  Add
+                </button>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {books.map(book => (
+                  <button
+                    key={book.id}
+                    onClick={() => setSelectedBookId(book.id)}
+                    className={`w-full text-left p-4 hover:bg-gray-50 ${selectedBookId === book.id ? 'bg-[#F4F4F0]' : ''}`}
+                  >
+                    <p className="font-serif text-xl leading-none mb-2">{book.title || book.id}</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-gray-400">{book.author}</p>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="bg-white border border-primary/10 p-6">
+              {bookDraft ? (
+                <div className="space-y-8">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-3xl font-serif">Book Editor</h3>
+                    <div className="flex gap-2">
+                      <button onClick={handleDeleteBook} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
+                        <Trash2 size={14} />
+                        Delete
+                      </button>
+                      <button onClick={handleSaveBook} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                        {savingKey === `book:${bookDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        Save
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <input value={bookDraft.id} onChange={e => setBookDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="ID" />
+                    <input value={bookDraft.releaseDate} onChange={e => setBookDraft(prev => prev ? { ...prev, releaseDate: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Release date" />
+                    <input value={bookDraft.title} onChange={e => setBookDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Title" />
+                    <input value={bookDraft.author} onChange={e => setBookDraft(prev => prev ? { ...prev, author: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Author" />
+                    <input value={bookDraft.coverUrl} onChange={e => setBookDraft(prev => prev ? { ...prev, coverUrl: e.target.value } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Cover URL" />
+                    <input type="number" value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Price" />
+                    <input type="number" value={bookDraft.stock} onChange={e => setBookDraft(prev => prev ? { ...prev, stock: Number(e.target.value) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Stock" />
+                    <input value={bookDraft.series || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, series: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Series" />
+                    <input value={bookDraft.details.publisher || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, publisher: e.target.value } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Publisher" />
+                    <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Genres, comma separated" />
+                    <input value={bookDraft.badges.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, badges: e.target.value.split(',').map(item => item.trim()).filter(Boolean) as Book['badges'] } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Badges, comma separated" />
+                  </div>
+
+                  <textarea value={bookDraft.description} onChange={e => setBookDraft(prev => prev ? { ...prev, description: e.target.value } : prev)} rows={4} className="w-full border border-gray-300 px-4 py-3" placeholder="Description" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <input type="number" value={bookDraft.details.pages} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, pages: Number(e.target.value) } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Pages" />
+                    <input type="number" value={bookDraft.details.year} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, year: Number(e.target.value) } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Year" />
+                    <input value={bookDraft.details.weight || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, weight: e.target.value } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Weight" />
+                    <input value={bookDraft.details.dimensions || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, dimensions: e.target.value } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Dimensions" />
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-serif text-2xl">Story Page</h4>
+                    <input value={bookDraft.story?.quote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quote: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Quote" />
+                    <input value={bookDraft.story?.quoteSource || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quoteSource: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Quote source" />
+                    <input value={bookDraft.story?.featureImageUrl || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, featureImageUrl: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Feature image URL" />
+                    <textarea value={(bookDraft.story?.about || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, about: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" placeholder="About paragraphs, separated by empty line" />
+                    <textarea value={(bookDraft.story?.excerpt || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, excerpt: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" placeholder="Excerpt paragraphs, separated by empty line" />
+                    <textarea value={(bookDraft.story?.authorBio || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, authorBio: parseParagraphs(e.target.value) } } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" placeholder="Author bio paragraphs, separated by empty line" />
+                    <textarea value={bookDraft.story?.orderNote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, orderNote: e.target.value } } : prev)} rows={3} className="w-full border border-gray-300 px-4 py-3" placeholder="Order note" />
+                    <textarea value={JSON.stringify(bookDraft.variants, null, 2)} onChange={e => setBookDraft(prev => prev ? { ...prev, variants: parseJsonField(e.target.value) } : prev)} rows={8} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="Variants JSON" />
+                    <textarea value={JSON.stringify(bookDraft.story?.themes || [], null, 2)} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, themes: parseJsonField(e.target.value) } } : prev)} rows={8} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="Themes JSON" />
+                    <textarea value={JSON.stringify(bookDraft.story?.reviews || [], null, 2)} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, reviews: parseJsonField(e.target.value) } } : prev)} rows={8} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="Reviews JSON" />
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-400">Select a book or create a new one.</div>
+              )}
+            </section>
+          </div>
+        ) : null}
+
+        {database && activeTab === 'news' ? (
+          <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-8">
+            <section className="bg-white border border-primary/10">
+              <div className="p-6 border-b border-primary/10 flex items-center justify-between">
+                <h3 className="text-2xl font-serif">News</h3>
+                <button
+                  onClick={() => {
+                    const next = createNewsTemplate();
+                    setSelectedNewsId(next.id);
+                    setNewsDraft(next);
+                  }}
+                  className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
+                >
+                  <Plus size={12} />
+                  Add
+                </button>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {news.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setSelectedNewsId(item.id)}
+                    className={`w-full text-left p-4 hover:bg-gray-50 ${selectedNewsId === item.id ? 'bg-[#F4F4F0]' : ''}`}
+                  >
+                    <p className="font-serif text-xl leading-none mb-2">{item.title || item.id}</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-gray-400">{item.date}</p>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="bg-white border border-primary/10 p-6">
+              {newsDraft ? (
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-3xl font-serif">News Editor</h3>
+                    <div className="flex gap-2">
+                      <button onClick={handleDeleteNews} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
+                        <Trash2 size={14} />
+                        Delete
+                      </button>
+                      <button onClick={handleSaveNews} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                        {savingKey === `news:${newsDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                  <input value={newsDraft.id} onChange={e => setNewsDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="ID" />
+                  <input value={newsDraft.date} onChange={e => setNewsDraft(prev => prev ? { ...prev, date: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Date" />
+                  <input value={newsDraft.title} onChange={e => setNewsDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Title" />
+                  <textarea value={newsDraft.preview} onChange={e => setNewsDraft(prev => prev ? { ...prev, preview: e.target.value } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" placeholder="Preview" />
+                </div>
+              ) : (
+                <div className="text-gray-400">Select a news item or create a new one.</div>
+              )}
+            </section>
+          </div>
+        ) : null}
+
+        {activeTab === 'orders' ? (
+          <section className="bg-white border border-primary/10 overflow-hidden">
+            <div className="p-6 border-b border-primary/10 flex items-center justify-between">
+              <h3 className="text-3xl font-serif">Orders</h3>
+              <button onClick={refreshOrders} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
+                <RefreshCw size={14} />
+                Refresh
+              </button>
             </div>
-         )}
-
-         {/* --- ORDERS TAB --- */}
-         {activeTab === 'orders' && (
-             <div className="animate-fade-in relative z-10 h-full flex flex-col">
-                <div className="bg-white border border-primary shadow-sm flex-1 flex flex-col overflow-hidden">
-                    <div className="p-4 border-b border-primary flex items-center gap-4 bg-gray-50">
-                        <Search size={18} className="text-gray-400" />
-                        <input 
-                            type="text" 
-                            placeholder="Search by Order ID or Email..." 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="flex-1 outline-none font-mono text-sm uppercase bg-transparent"
-                        />
-                    </div>
-                    
-                    <div className="overflow-auto flex-1">
-                        <table className="w-full text-left">
-                            <thead className="bg-primary text-white font-mono text-[10px] uppercase tracking-widest sticky top-0 z-20">
-                                <tr>
-                                    <th className="p-4">Order ID</th>
-                                    <th className="p-4">Date</th>
-                                    <th className="p-4">Customer</th>
-                                    <th className="p-4">Items</th>
-                                    <th className="p-4">Total</th>
-                                    <th className="p-4">Status</th>
-                                    <th className="p-4 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="font-mono text-sm">
-                                {filteredOrders.map(order => (
-                                    <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <td className="p-4 font-bold text-primary">{order.id}</td>
-                                        <td className="p-4 text-gray-500">{new Date(order.date).toLocaleDateString()}</td>
-                                        <td className="p-4">
-                                            <div className="font-bold text-xs">{order.customer.name}</div>
-                                            <div className="text-[10px] text-gray-400">{order.customer.location}</div>
-                                        </td>
-                                        <td className="p-4 text-xs text-gray-600">
-                                            {order.items.map(i => (
-                                                <div key={i.variantId} className="truncate max-w-[150px]">{i.quantity}x {i.bookTitle}</div>
-                                            ))}
-                                        </td>
-                                        <td className="p-4 font-bold">{order.total.toFixed(2)} {order.currency}</td>
-                                        <td className="p-4">
-                                            <StatusBadge status={order.status} />
-                                        </td>
-                                        <td className="p-4 text-right">
-                                            {actionLoading === order.id ? (
-                                                <Loader2 className="animate-spin ml-auto text-primary" size={16} />
-                                            ) : (
-                                                <select 
-                                                    value={order.status}
-                                                    onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                                                    className="bg-white border border-gray-300 text-xs p-1 outline-none focus:border-primary cursor-pointer hover:bg-gray-100"
-                                                >
-                                                    <option value="pending">Pending</option>
-                                                    <option value="processing">Processing</option>
-                                                    <option value="shipped">Shipped</option>
-                                                    <option value="delivered">Delivered</option>
-                                                    <option value="cancelled">Cancelled</option>
-                                                </select>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-             </div>
-         )}
-
-         {/* --- INVENTORY TAB --- */}
-         {activeTab === 'products' && (
-             <div className="animate-fade-in relative z-10 h-full flex flex-col">
-                
-                <div className="flex justify-end mb-4">
-                    <button className="bg-primary text-white px-6 py-3 uppercase text-xs font-bold tracking-widest hover:bg-accent transition-colors flex items-center gap-2 shadow-lg">
-                        <Plus size={16} /> Add SKU
-                    </button>
-                </div>
-
-                <div className="bg-white border border-primary shadow-sm flex-1 flex flex-col overflow-hidden">
-                    <div className="p-4 border-b border-primary flex items-center gap-4 bg-gray-50">
-                        <Search size={18} className="text-gray-400" />
-                        <input 
-                            type="text" 
-                            placeholder="Filter inventory..." 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="flex-1 outline-none font-mono text-sm uppercase bg-transparent"
-                        />
-                    </div>
-                    
-                    <div className="overflow-auto flex-1">
-                        <table className="w-full text-left border-collapse">
-                            <thead className="bg-gray-100 font-mono text-[10px] uppercase tracking-widest text-gray-500 sticky top-0 z-20 border-b border-gray-200">
-                                <tr>
-                                    <th className="p-4 bg-gray-100">Image</th>
-                                    <th className="p-4 bg-gray-100">Product Details</th>
-                                    <th className="p-4 bg-gray-100">Price</th>
-                                    <th className="p-4 bg-gray-100">Stock Level</th>
-                                    <th className="p-4 bg-gray-100 text-right">Quick Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="font-mono text-sm">
-                                {filteredBooks.map(book => (
-                                    <tr key={book.id} className="hover:bg-gray-50 group transition-colors">
-                                        <td className="p-4 border-b border-gray-100 w-20">
-                                            <div className="w-10 h-14 border border-gray-200 overflow-hidden shadow-sm">
-                                                <img src={book.coverUrl} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
-                                            </div>
-                                        </td>
-                                        <td className="p-4 border-b border-gray-100">
-                                            <div className="font-serif text-lg leading-none mb-1 text-primary">{book.title}</div>
-                                            <span className="text-[10px] text-gray-400 block">ID: {book.id}</span>
-                                            <span className="text-[10px] text-accent uppercase font-bold">{book.type.replace('_', ' ')}</span>
-                                        </td>
-                                        <td className="p-4 border-b border-gray-100 font-bold">
-                                            {book.price.toFixed(2)}
-                                        </td>
-                                        <td className="p-4 border-b border-gray-100">
-                                            {editingStock === book.id ? (
-                                                <div className="flex items-center gap-2">
-                                                    <input 
-                                                        type="number" 
-                                                        value={tempStockVal}
-                                                        onChange={(e) => setTempStockVal(Math.max(0, parseInt(e.target.value) || 0))}
-                                                        className="w-20 border border-primary p-1 text-center font-bold"
-                                                        autoFocus
-                                                    />
-                                                    <button onClick={() => handleStockSave(book.id)} className="p-1 bg-green-500 text-white hover:bg-green-600">
-                                                        {actionLoading === book.id ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle size={14}/>}
-                                                    </button>
-                                                    <button onClick={() => setEditingStock(null)} className="p-1 bg-gray-300 text-gray-700 hover:bg-gray-400"><XCircle size={14}/></button>
-                                                </div>
-                                            ) : (
-                                                <span 
-                                                    onClick={() => { setEditingStock(book.id); setTempStockVal(book.stock); }}
-                                                    className={`cursor-pointer px-3 py-1 text-[10px] rounded-full border border-transparent hover:border-gray-300 transition-all ${book.stock > 10 ? 'bg-green-100 text-green-700' : book.stock > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}
-                                                >
-                                                    {book.stock} units
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="p-4 border-b border-gray-100 text-right">
-                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-2 hover:bg-primary hover:text-white border border-gray-200 transition-colors" title="Edit Details"><Edit size={14}/></button>
-                                                <button className="p-2 hover:bg-red-500 hover:text-white border border-gray-200 transition-colors" title="Delete SKU"><Trash2 size={14}/></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-             </div>
-         )}
-
+            <div className="overflow-auto">
+              <table className="w-full text-left">
+                <thead className="bg-[#F4F4F0]">
+                  <tr className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                    <th className="p-4">Order</th>
+                    <th className="p-4">Customer</th>
+                    <th className="p-4">Items</th>
+                    <th className="p-4">Total</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">Update</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map(order => (
+                    <tr key={order.id} className="border-t border-gray-100 align-top">
+                      <td className="p-4">
+                        <div className="font-bold">{order.id}</div>
+                        <div className="text-xs text-gray-400">{new Date(order.date).toLocaleString()}</div>
+                      </td>
+                      <td className="p-4">
+                        <div>{order.customer.name}</div>
+                        <div className="text-xs text-gray-400">{order.customer.email}</div>
+                        <div className="text-xs text-gray-400">{order.customer.location}</div>
+                      </td>
+                      <td className="p-4 text-sm">
+                        {order.items.map(item => (
+                          <div key={item.variantId}>{item.quantity}x {item.bookTitle}</div>
+                        ))}
+                      </td>
+                      <td className="p-4 font-bold">{order.total.toFixed(2)} {order.currency}</td>
+                      <td className="p-4">
+                        <span className="inline-flex px-3 py-1 text-[10px] uppercase tracking-[0.18em] bg-[#F4F4F0] border border-gray-200">
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={order.status}
+                            onChange={e => handleStatusChange(order.id, e.target.value as OrderStatus)}
+                            className="border border-gray-300 px-3 py-2 text-sm"
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                          {savingKey === `order:${order.id}` ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} className="text-green-600" />}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : null}
       </main>
     </div>
   );

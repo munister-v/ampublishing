@@ -5,13 +5,12 @@ import { ArrowRight, Star, Globe } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useApp } from '../AppContext';
 
-const heroImageUrl = `${import.meta.env.BASE_URL}images/home-hero.webp`;
-const featureImageUrl = `${import.meta.env.BASE_URL}images/home-feature.webp`;
-
 export const HomePage: React.FC = () => {
   const { t, books, news, language, showToast } = useApp();
   const newBooks = books.filter(b => b.badges.includes('new')).slice(0, 4);
   const heroLine2 = t('home.hero_title_2');
+  const heroImageUrl = t('home.hero_image') as string;
+  const featureImageUrl = t('home.feature_image') as string;
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));
@@ -122,11 +121,11 @@ export const HomePage: React.FC = () => {
             </p>
             <div className="grid grid-cols-2 gap-px bg-primary border border-primary">
                <div className="bg-[#E8EDF2] p-4 text-center hover:bg-white transition-colors duration-500">
-                  <span className="block text-3xl font-bold">12</span>
+                  <span className="block text-3xl font-bold">{t('home.stats_countries_value')}</span>
                   <span className="text-[9px] uppercase">{t('home.stats_countries')}</span>
                </div>
                <div className="bg-[#E8EDF2] p-4 text-center hover:bg-white transition-colors duration-500">
-                  <span className="block text-3xl font-bold">3d</span>
+                  <span className="block text-3xl font-bold">{t('home.stats_delivery_value')}</span>
                   <span className="text-[9px] uppercase">{t('home.stats_delivery')}</span>
                </div>
             </div>
@@ -141,8 +140,8 @@ export const HomePage: React.FC = () => {
             </div>
             <div className="absolute inset-0 bg-primary/20 mix-blend-multiply transition-opacity duration-700 group-hover:opacity-0"></div>
             <div className="absolute bottom-0 left-0 bg-white border-t border-r border-primary p-6 transition-transform duration-700 ease-out-quart group-hover:-translate-y-2">
-               <span className="font-mono text-xs block mb-2">FEATURED</span>
-               <span className="font-serif text-2xl">The Berlin Review</span>
+               <span className="font-mono text-xs block mb-2">{t('home.feature_kicker')}</span>
+               <span className="font-serif text-2xl">{t('home.feature_title')}</span>
             </div>
          </div>
       </section>

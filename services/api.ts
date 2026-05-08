@@ -1,6 +1,7 @@
 
-import { Book, NewsItem, Language, OrderPayload, ApiResponse, OrderResponse, Order, OrderStatus } from '../types';
+import { Book, NewsItem, Language, OrderPayload, ApiResponse, OrderResponse, Order, OrderStatus, LocalizedCatalogData, TranslationOverrides } from '../types';
 import { DATABASE, MOCK_ORDERS } from '../constants';
+import { contentStore } from './contentStore';
 
 // --- CONFIGURATION ---
 
@@ -104,26 +105,66 @@ export const api = {
     if (!isMockMode()) return request<Book[]>(`/books?lang=${lang}`);
     
     await mockDelay(600);
-    // Return a deep copy to prevent mutation bugs in mock mode
-    return JSON.parse(JSON.stringify(DATABASE[lang].books));
+    return JSON.parse(JSON.stringify(contentStore.getDatabase()[lang].books));
   },
 
   getNews: async (lang: Language): Promise<NewsItem[]> => {
     if (!isMockMode()) return request<NewsItem[]>(`/news?lang=${lang}`);
     
     await mockDelay(400);
-    return DATABASE[lang].news;
+    return JSON.parse(JSON.stringify(contentStore.getDatabase()[lang].news));
   },
 
   getMetadata: async (lang: Language) => {
     if (!isMockMode()) return request<{ genres: string[], authors: string[], series: string[] }>(`/metadata?lang=${lang}`);
     
     await mockDelay(300);
+    const database = contentStore.getDatabase();
     return {
-        genres: DATABASE[lang].genres,
-        authors: DATABASE[lang].authors,
-        series: DATABASE[lang].series,
+        genres: database[lang].genres,
+        authors: database[lang].authors,
+        series: database[lang].series,
     };
+  },
+
+  getContentDatabase: async (): Promise<Record<Language, LocalizedCatalogData>> => {
+    await mockDelay(200);
+    return contentStore.getDatabase();
+  },
+
+  upsertBook: async (lang: Language, book: Book): Promise<Record<Language, LocalizedCatalogData>> => {
+    await mockDelay(200);
+    return contentStore.upsertBook(lang, book);
+  },
+
+  deleteBook: async (lang: Language, bookId: string): Promise<Record<Language, LocalizedCatalogData>> => {
+    await mockDelay(150);
+    return contentStore.deleteBook(lang, bookId);
+  },
+
+  upsertNewsItem: async (lang: Language, item: NewsItem): Promise<Record<Language, LocalizedCatalogData>> => {
+    await mockDelay(150);
+    return contentStore.upsertNewsItem(lang, item);
+  },
+
+  deleteNewsItem: async (lang: Language, itemId: string): Promise<Record<Language, LocalizedCatalogData>> => {
+    await mockDelay(150);
+    return contentStore.deleteNewsItem(lang, itemId);
+  },
+
+  getTranslationOverrides: async (): Promise<TranslationOverrides> => {
+    await mockDelay(100);
+    return contentStore.getTranslationOverrides();
+  },
+
+  setTranslationValue: async (lang: Language, key: string, value: any): Promise<TranslationOverrides> => {
+    await mockDelay(120);
+    return contentStore.setTranslationValue(lang, key, value);
+  },
+
+  resetTranslationValue: async (lang: Language, key: string): Promise<TranslationOverrides> => {
+    await mockDelay(120);
+    return contentStore.resetTranslationValue(lang, key);
   },
 
   submitOrder: async (payload: OrderPayload): Promise<ApiResponse<OrderResponse>> => {

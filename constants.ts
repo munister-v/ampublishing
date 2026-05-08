@@ -1,4 +1,4 @@
-import { Book, NewsItem, Region, Language, BookVariant, Order, BookStory } from './types';
+import { Book, NewsItem, Region, Language, BookVariant, Order, BookStory, LocalizedCatalogData } from './types';
 
 export const REGIONS: Region[] = [
   { id: 'de', name: 'Германия (Deutschland)', currency: '€' },
@@ -25,14 +25,6 @@ const mkVariant = (
   stock,
   isbn,
 });
-
-type LocalizedData = {
-  books: Book[];
-  news: NewsItem[];
-  genres: string[];
-  authors: string[];
-  series: string[];
-};
 
 const coverUrl = asset('images/ambook-cover.jpg');
 const featureImageUrl = asset('images/ambook-object.jpg');
@@ -261,7 +253,7 @@ export const MOCK_ORDERS: Order[] = [
   },
 ];
 
-export const DATABASE: Record<Language, LocalizedData> = {
+export const DATABASE: Record<Language, LocalizedCatalogData> = {
   ru: {
     genres: ['Современная проза', 'Психологическая литература'],
     authors: ['Сергей Калинин'],

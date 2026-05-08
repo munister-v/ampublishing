@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Book, BookVariant, CartItem, Region, Language, NewsItem, Order, OrderStatus } from './types';
+import { Book, BookVariant, CartItem, Region, Language, NewsItem, Order, OrderStatus, TranslationOverrides } from './types';
 import { REGIONS } from './constants';
 import { translations } from './translations';
 import { api } from './services/api';
@@ -26,6 +26,7 @@ interface AppContextType {
   refreshOrders: () => Promise<void>;
   updateOrderStatus: (id: string, status: OrderStatus) => Promise<void>;
   updateInventory: (bookId: string, stock: number) => Promise<void>;
+  reloadContent: () => Promise<void>;
 
   cart: CartItem[];
   addToCart: (book: Book, variant: BookVariant, qty?: number) => void;
@@ -85,6 +86,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // --- ADMIN STATE ---
   const [isAdmin, setIsAdmin] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [translationOverrides, setTranslationOverrides] = useState<TranslationOverrides>({ ru: {}, en: {}, de: {} });
 
   // --- CART STATE ---
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -125,41 +127,47 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // --- INITIAL LOAD ---
-  useEffect(() => {
-    let mounted = true;
+  const reloadContent = async () => {
+      let booksData: Book[] = [];
+      let newsData: NewsItem[] = [];
+      let metaData: { genres: string[]; authors: string[]; series: string[] } = { genres: [], authors: [], series: [] };
+      let overrides: TranslationOverrides = { ru: {}, en: {}, de: {} };
 
-    const fetchData = async () => {
       setIsLoadingData(true);
       
       if (localStorage.getItem('use_mock_api') === 'false') {
          const alive = await api.healthCheck();
-         if (mounted) setIsBackendLive(alive);
+         setIsBackendLive(alive);
          if (!alive) showToast("Backend connection failed", 'error');
       }
 
       try {
-        const [booksData, newsData, metaData] = await Promise.all([
+        [booksData, newsData, metaData, overrides] = await Promise.all([
           api.getBooks(language),
           api.getNews(language),
-          api.getMetadata(language)
+          api.getMetadata(language),
+          api.getTranslationOverrides()
         ]);
-        
-        if (mounted) {
-            setBooks(booksData);
-            setNews(newsData);
-            setGenres(metaData.genres);
-            setAuthors(metaData.authors);
-        }
+        setBooks(booksData);
+        setNews(newsData);
+        setGenres(metaData.genres);
+        setAuthors(metaData.authors);
+        setTranslationOverrides(overrides);
       } catch (e) {
-        if (mounted) {
-            showToast("Could not load content", "error");
-            setBooks([]);
-        }
+        showToast("Could not load content", "error");
+        setBooks([]);
       } finally {
-        if (mounted) setIsLoadingData(false);
+        setIsLoadingData(false);
       }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    const guardedReload = async () => {
+      if (!mounted) return;
+      await reloadContent();
     };
-    fetchData();
+    guardedReload();
 
     // Check Auth Token
     const token = localStorage.getItem('auth_token');
@@ -234,6 +242,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const t = (key: string, params?: Record<string, string | number>) => {
+    const overrideValue = translationOverrides[language]?.[key];
+    if (typeof overrideValue !== 'undefined') {
+      if (typeof overrideValue === 'string' && params) {
+        return overrideValue.replace(/{(\w+)}/g, (_, match) => String(params[match] || `{${match}}`));
+      }
+      return overrideValue;
+    }
+
     const keys = key.split('.');
     let value: any = translations[language];
     for (const k of keys) {
@@ -395,7 +411,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{ 
       books, news, genres, authors, isLoadingData, isBackendLive,
       isAdmin, login, logout,
-      orders, refreshOrders, updateOrderStatus, updateInventory,
+      orders, refreshOrders, updateOrderStatus, updateInventory, reloadContent,
       cart, addToCart, removeFromCart, updateQuantity, clearCart,
       cartOpen, setCartOpen, 
       region, setRegionById,
