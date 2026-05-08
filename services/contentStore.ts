@@ -57,6 +57,9 @@ const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   cardNumber: '',
   bankName: '',
   iban: '',
+  mirCardholder: '',
+  mirCardNumber: '',
+  mirBankName: '',
   whatsappNumber: '',
   telegramUsername: '',
   contactEmail: 'am.hybridpublishing@gmail.com',
@@ -232,8 +235,9 @@ export const contentStore = {
   createOrder(payload: OrderPayload) {
     const database = this.getDatabase();
     const books = [...database.ru.books, ...database.en.books, ...database.de.books];
-    const status = payload.customer.paymentMethod === 'invoice' ? 'pending' : 'processing';
-    const paymentReference = `${payload.customer.paymentMethod === 'invoice' ? 'INV' : 'PAY'}-${Date.now().toString().slice(-6)}`;
+    const status = 'pending';
+    const paymentPrefix = payload.customer.paymentMethod === 'amazon' ? 'AMZ' : payload.customer.paymentMethod === 'mir' ? 'MIR' : 'INV';
+    const paymentReference = `${paymentPrefix}-${Date.now().toString().slice(-6)}`;
     const items = payload.items.map(item => {
       const book = books.find(entry => entry.variants.some(variant => variant.id === item.variantId));
       const variant = book?.variants.find(entry => entry.id === item.variantId);

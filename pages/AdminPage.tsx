@@ -159,6 +159,9 @@ const createBookTemplate = (language: Language): Book => ({
     featureImageUrl: '',
     detailPageUrl: '',
   },
+  purchaseLinks: {
+    amazon: '',
+  },
 });
 
 const createNewsTemplate = (): NewsItem => ({
@@ -174,6 +177,9 @@ const createPaymentSettingsTemplate = (): PaymentSettings => ({
   cardNumber: '',
   bankName: '',
   iban: '',
+  mirCardholder: '',
+  mirCardNumber: '',
+  mirBankName: '',
   whatsappNumber: '',
   telegramUsername: '',
   contactEmail: 'am.hybridpublishing@gmail.com',
@@ -986,6 +992,7 @@ export const AdminPage: React.FC = () => {
                     <input value={bookDraft.details.publisher || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, publisher: e.target.value } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Publisher" />
                     <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Genres, comma separated" />
                     <input value={bookDraft.badges.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, badges: e.target.value.split(',').map(item => item.trim()).filter(Boolean) as Book['badges'] } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Badges, comma separated" />
+                    <input value={bookDraft.purchaseLinks?.amazon || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, purchaseLinks: { ...(prev.purchaseLinks || {}), amazon: e.target.value } } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Amazon product URL" />
                   </div>
 
                   <ImageField
@@ -1206,6 +1213,9 @@ export const AdminPage: React.FC = () => {
               <input value={paymentSettings.cardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, cardNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Card number" />
               <input value={paymentSettings.bankName} onChange={e => setPaymentSettings(prev => ({ ...prev, bankName: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Bank name" />
               <input value={paymentSettings.iban} onChange={e => setPaymentSettings(prev => ({ ...prev, iban: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="IBAN / account" />
+              <input value={paymentSettings.mirCardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardholder: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="MIR cardholder" />
+              <input value={paymentSettings.mirCardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="MIR card number" />
+              <input value={paymentSettings.mirBankName} onChange={e => setPaymentSettings(prev => ({ ...prev, mirBankName: e.target.value }))} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="MIR bank / issuer" />
               <input value={paymentSettings.whatsappNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="WhatsApp number, international format" />
               <input value={paymentSettings.telegramUsername} onChange={e => setPaymentSettings(prev => ({ ...prev, telegramUsername: e.target.value.replace(/^@/, '') }))} className="border border-gray-300 px-4 py-3" placeholder="Telegram username" />
               <input value={paymentSettings.contactEmail} onChange={e => setPaymentSettings(prev => ({ ...prev, contactEmail: e.target.value }))} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Contact email" />

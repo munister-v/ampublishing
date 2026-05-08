@@ -196,6 +196,9 @@ const bookByLanguage = (lang: Language): Book => {
       mkVariant('ambook-001-dg', 'digital', lang === 'ru' ? 'Русский' : lang === 'en' ? 'Russian' : 'Russisch', 0, 999, 'AM-BOOK-EXCERPT-001'),
     ],
     story: storyByLanguage[lang],
+    purchaseLinks: {
+      amazon: '',
+    },
   };
 };
 

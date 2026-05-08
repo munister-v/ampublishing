@@ -62,6 +62,9 @@ export interface Book {
   variants: BookVariant[];
   releaseDate: string; // ISO date for sorting
   story?: BookStory;
+  purchaseLinks?: {
+    amazon?: string;
+  };
 }
 
 export interface CartItem {
@@ -115,6 +118,9 @@ export interface PaymentSettings {
   cardNumber: string;
   bankName: string;
   iban: string;
+  mirCardholder: string;
+  mirCardNumber: string;
+  mirBankName: string;
   whatsappNumber: string;
   telegramUsername: string;
   contactEmail: string;
@@ -136,7 +142,7 @@ export interface CheckoutFormData {
   zip: string;
   country: string;
   shippingMethod: 'standard' | 'express';
-  paymentMethod: 'card' | 'paypal' | 'invoice';
+  paymentMethod: 'amazon' | 'invoice' | 'mir';
 }
 
 // --- ADMIN & ORDER TYPES ---

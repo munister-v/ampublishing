@@ -148,6 +148,9 @@ const EMPTY_PAYMENT_SETTINGS: PaymentSettings = {
   cardNumber: '',
   bankName: '',
   iban: '',
+  mirCardholder: '',
+  mirCardNumber: '',
+  mirBankName: '',
   whatsappNumber: '',
   telegramUsername: '',
   contactEmail: 'am.hybridpublishing@gmail.com',
@@ -159,7 +162,7 @@ const digitsOnly = (value: string) => value.replace(/\D/g, '');
 
 export const CheckoutPage: React.FC = () => {
   // Хуки приложения
-  const { cart, region, t, clearCart, language } = useApp();
+  const { cart, region, t, clearCart, language, books } = useApp();
   const navigate = useNavigate();
 
   // Локальное состояние UI
@@ -181,7 +184,7 @@ export const CheckoutPage: React.FC = () => {
     zip: '',
     country: '',
     shippingMethod: 'standard',
-    paymentMethod: 'card' // Stripe default
+    paymentMethod: 'amazon'
   });
 
   // Отдельное состояние для данных карты (не отправляется на сервер в чистом виде в реальном приложении)
@@ -202,6 +205,13 @@ export const CheckoutPage: React.FC = () => {
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
   const shippingCost = formData.shippingMethod === 'express' ? 15 : 5;
   const finalTotal = total + shippingCost;
+  const amazonUrl = useMemo(() => {
+    if (cart.length !== 1) return '';
+    const item = cart[0];
+    const book = books.find(entry => entry.id === item.bookId);
+    return book?.purchaseLinks?.amazon || '';
+  }, [books, cart]);
+  const canUseAmazon = Boolean(amazonUrl);
 
   const paymentProofMessage = useMemo(() => {
     const customerName = `${formData.firstName} ${formData.lastName}`.trim();
@@ -231,8 +241,8 @@ export const CheckoutPage: React.FC = () => {
   // Используется для блокировки кнопки "Place Order".
   const isFormValid = useMemo(() => {
     if (currentStep !== 'payment') return true; // На первых шагах валидация через HTML5 (required)
-    // No card validation if paying by Invoice or PayPal
-    if (formData.paymentMethod === 'paypal' || formData.paymentMethod === 'invoice') return true;
+    if (formData.paymentMethod === 'invoice' || formData.paymentMethod === 'mir') return true;
+    if (formData.paymentMethod === 'amazon') return canUseAmazon;
 
     // Проверяем наличие ошибок в объекте errors и заполненность полей
     const hasErrors = Object.values(errors).some(err => !!err);
@@ -241,7 +251,7 @@ export const CheckoutPage: React.FC = () => {
     const isExpValid = PaymentUtils.validateExpiry(cardData.expiry);
 
     return !hasErrors && !hasEmptyFields && isLuhnValid && isExpValid;
-  }, [currentStep, formData.paymentMethod, errors, cardData]);
+  }, [currentStep, formData.paymentMethod, errors, cardData, canUseAmazon]);
 
   // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
 
@@ -312,12 +322,8 @@ export const CheckoutPage: React.FC = () => {
 
   // Отправка заказа на сервер
   const submitOrder = async () => {
-      // Финальная проверка перед отправкой
-      if (formData.paymentMethod === 'card' && !isFormValid) {
-          handleBlur('number');
-          handleBlur('expiry');
-          handleBlur('cvc');
-          handleBlur('name');
+      if (formData.paymentMethod === 'amazon' && !canUseAmazon) {
+          setPaymentError(t('checkout.amazon_error'));
           return;
       }
 
@@ -339,6 +345,9 @@ export const CheckoutPage: React.FC = () => {
               setOrderId(response.data.orderId);
               setIsSuccess(true);
               clearCart();
+              if (formData.paymentMethod === 'amazon' && amazonUrl) {
+                window.open(amazonUrl, '_blank', 'noopener,noreferrer');
+              }
           } else {
               throw new Error("Order submission failed");
           }
@@ -386,16 +395,30 @@ export const CheckoutPage: React.FC = () => {
                     <span className="font-bold text-primary">{finalTotal.toFixed(2)} {region.currency}</span>
                  </div>
               </div>
-              {formData.paymentMethod === 'invoice' ? (
+              {formData.paymentMethod === 'amazon' ? (
+                <div className="mb-8 border border-primary bg-[#F8F9FA] p-6 text-left space-y-4">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400">{t('checkout.amazon_title')}</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{t('checkout.amazon_success_note')}</p>
+                  {amazonUrl ? (
+                    <a href={amazonUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center border border-primary bg-primary text-white px-6 py-4 text-xs uppercase tracking-[0.18em] font-bold hover:bg-accent transition-colors">
+                      {t('checkout.amazon_cta')}
+                    </a>
+                  ) : null}
+                </div>
+              ) : null}
+              {formData.paymentMethod === 'invoice' || formData.paymentMethod === 'mir' ? (
                 <div className="mb-8 border border-primary bg-[#F8F9FA] p-6 text-left space-y-4">
                   <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400">{t('checkout.payment_transfer_title')}</p>
                   <p className="text-sm text-gray-700 leading-relaxed">{paymentSettings.paymentNote || t('checkout.success_payment_pending')}</p>
                   <div className="grid grid-cols-1 gap-3 text-sm">
                     {paymentSettings.recipientName ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_recipient')}</span><div>{paymentSettings.recipientName}</div></div> : null}
-                    {paymentSettings.cardholder ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_cardholder')}</span><div>{paymentSettings.cardholder}</div></div> : null}
-                    {paymentSettings.cardNumber ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_card_number')}</span><div className="font-mono text-primary">{paymentSettings.cardNumber}</div></div> : null}
-                    {paymentSettings.bankName ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_bank')}</span><div>{paymentSettings.bankName}</div></div> : null}
-                    {paymentSettings.iban ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_iban')}</span><div className="font-mono text-primary break-all">{paymentSettings.iban}</div></div> : null}
+                    {formData.paymentMethod === 'invoice' && paymentSettings.cardholder ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_cardholder')}</span><div>{paymentSettings.cardholder}</div></div> : null}
+                    {formData.paymentMethod === 'invoice' && paymentSettings.cardNumber ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_card_number')}</span><div className="font-mono text-primary">{paymentSettings.cardNumber}</div></div> : null}
+                    {formData.paymentMethod === 'invoice' && paymentSettings.bankName ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_bank')}</span><div>{paymentSettings.bankName}</div></div> : null}
+                    {formData.paymentMethod === 'invoice' && paymentSettings.iban ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_iban')}</span><div className="font-mono text-primary break-all">{paymentSettings.iban}</div></div> : null}
+                    {formData.paymentMethod === 'mir' && paymentSettings.mirCardholder ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.mir_cardholder')}</span><div>{paymentSettings.mirCardholder}</div></div> : null}
+                    {formData.paymentMethod === 'mir' && paymentSettings.mirCardNumber ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.mir_card_number')}</span><div className="font-mono text-primary">{paymentSettings.mirCardNumber}</div></div> : null}
+                    {formData.paymentMethod === 'mir' && paymentSettings.mirBankName ? <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.mir_bank')}</span><div>{paymentSettings.mirBankName}</div></div> : null}
                     <div><span className="font-mono text-[10px] uppercase text-gray-400">{t('checkout.payment_reference')}</span><div className="font-mono text-primary">{orderId}</div></div>
                   </div>
                   <div className="pt-2">
@@ -600,107 +623,41 @@ export const CheckoutPage: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-3 border border-primary">
                          <button 
                             type="button"
-                            onClick={() => setFormData({...formData, paymentMethod: 'card'})}
-                            className={`py-4 text-xs uppercase tracking-[0.2em] font-bold transition-colors border-b md:border-b-0 md:border-r border-primary ${formData.paymentMethod === 'card' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-400 hover:text-primary'}`}
+                            onClick={() => canUseAmazon && setFormData({...formData, paymentMethod: 'amazon'})}
+                            className={`py-4 text-xs uppercase tracking-[0.2em] font-bold transition-colors border-b md:border-b-0 md:border-r border-primary ${formData.paymentMethod === 'amazon' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-400 hover:text-primary'} ${!canUseAmazon ? 'opacity-40 cursor-not-allowed' : ''}`}
+                            disabled={!canUseAmazon}
                          >
-                            {t('checkout.card')}
-                         </button>
-                         <button 
-                             type="button"
-                             onClick={() => setFormData({...formData, paymentMethod: 'paypal'})}
-                             className={`py-4 text-xs uppercase tracking-[0.2em] font-bold transition-colors border-b md:border-b-0 md:border-r border-primary ${formData.paymentMethod === 'paypal' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-400 hover:text-primary'}`}
-                         >
-                            {t('checkout.paypal')}
+                            {t('checkout.amazon')}
                          </button>
                          <button 
                              type="button"
                              onClick={() => setFormData({...formData, paymentMethod: 'invoice'})}
-                             className={`py-4 text-xs uppercase tracking-[0.2em] font-bold transition-colors ${formData.paymentMethod === 'invoice' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-400 hover:text-primary'}`}
+                             className={`py-4 text-xs uppercase tracking-[0.2em] font-bold transition-colors border-b md:border-b-0 md:border-r border-primary ${formData.paymentMethod === 'invoice' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-400 hover:text-primary'}`}
                          >
                             {t('checkout.invoice')}
                          </button>
+                         <button 
+                             type="button"
+                             onClick={() => setFormData({...formData, paymentMethod: 'mir'})}
+                             className={`py-4 text-xs uppercase tracking-[0.2em] font-bold transition-colors ${formData.paymentMethod === 'mir' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-400 hover:text-primary'}`}
+                         >
+                            {t('checkout.mir')}
+                         </button>
                       </div>
 
-                      {/* ПОЛЯ ДЛЯ КАРТЫ */}
-                      {formData.paymentMethod === 'card' && (
-                          <div className="bg-[#F8F9FA] border border-gray-200 p-8 md:p-10 relative mt-8">
-                              <div className="flex justify-between items-center mb-8">
-                                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-gray-400">
-                                      <Lock size={12} />
-                                      {t('checkout.secure_notice')}
-                                  </div>
-                                  <CardLogos activeType={cardType} />
-                              </div>
-                              
-                              <div className="space-y-6">
-                                  <InputField 
-                                      label={t('checkout.cc_number')}
-                                      placeholder="0000 0000 0000 0000"
-                                      maxLength={19}
-                                      value={cardData.number}
-                                      onChange={e => handleCardChange('number', e.target.value)}
-                                      onBlur={() => handleBlur('number')}
-                                      error={errors.number}
-                                      icon={<CreditCard size={16}/>}
-                                      className="bg-white"
-                                  />
-                                  
-                                  <InputField 
-                                      label={t('checkout.cc_holder')}
-                                      placeholder={t('checkout.cc_holder_ph')}
-                                      value={cardData.name}
-                                      onChange={e => handleCardChange('name', e.target.value)}
-                                      onBlur={() => handleBlur('name')}
-                                      error={errors.name}
-                                      className="bg-white"
-                                  />
-
-                                  <div className="grid grid-cols-2 gap-6">
-                                      <InputField 
-                                          label={t('checkout.cc_expiry')}
-                                          placeholder="MM/YY"
-                                          maxLength={5}
-                                          value={cardData.expiry}
-                                          onChange={e => handleCardChange('expiry', e.target.value)}
-                                          onBlur={() => handleBlur('expiry')}
-                                          error={errors.expiry}
-                                          className="bg-white"
-                                      />
-                                      <InputField 
-                                          label={t('checkout.cc_cvc')}
-                                          placeholder="CVC"
-                                          maxLength={4}
-                                          type="tel" 
-                                          value={cardData.cvc}
-                                          onChange={e => handleCardChange('cvc', e.target.value)}
-                                          onBlur={() => handleBlur('cvc')}
-                                          error={errors.cvc}
-                                          icon={<Lock size={14}/>}
-                                          className="bg-white"
-                                      />
-                                  </div>
-                              </div>
-                              
-                              {paymentError && (
-                                <div className="mt-6 bg-red-50 border border-red-200 text-red-600 p-4 flex items-center gap-3 animate-fade-in">
-                                   <AlertCircle size={16} />
-                                   <span className="text-[10px] font-bold uppercase tracking-widest">{paymentError}</span>
-                                </div>
-                              )}
-                          </div>
-                      )}
-                      
-                      {/* PAYPAL ЗАГЛУШКА */}
-                      {formData.paymentMethod === 'paypal' && (
-                          <div className="bg-[#F8F9FA] border border-gray-200 p-12 text-center animate-fade-in">
-                              <p className="text-gray-500 font-mono text-sm mb-6">{t('checkout.paypal_desc')}</p>
-                              <div className="w-12 h-12 mx-auto bg-[#003087] text-white rounded-full flex items-center justify-center font-bold italic font-serif text-xl">
-                                  P
-                              </div>
-                          </div>
+                      {formData.paymentMethod === 'amazon' && (
+                        <div className="bg-[#F8F9FA] border border-gray-200 p-10 md:p-12 animate-fade-in">
+                          <p className="text-gray-500 font-mono text-sm mb-6">{t('checkout.amazon_desc')}</p>
+                          {amazonUrl ? (
+                            <a href={amazonUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center border border-primary bg-primary text-white px-6 py-4 text-xs uppercase tracking-[0.18em] font-bold hover:bg-accent transition-colors">
+                              {t('checkout.amazon_cta')}
+                            </a>
+                          ) : (
+                            <p className="text-sm text-red-500">{t('checkout.amazon_error')}</p>
+                          )}
+                        </div>
                       )}
 
-                      {/* INVOICE ЗАГЛУШКА */}
                       {formData.paymentMethod === 'invoice' && (
                       <div className="bg-[#F8F9FA] border border-gray-200 p-12 text-center animate-fade-in">
                           <p className="text-gray-500 font-mono text-sm mb-6">{t('checkout.invoice_desc')}</p>
@@ -719,6 +676,26 @@ export const CheckoutPage: React.FC = () => {
                             <div className="space-y-3 text-sm text-gray-600">
                               <p>1. {t('checkout.invoice_step_1')}</p>
                               <p>2. {t('checkout.invoice_step_2')}</p>
+                              <p>3. {t('checkout.invoice_step_3')}</p>
+                            </div>
+                          </div>
+                      </div>
+                  )}
+
+                      {formData.paymentMethod === 'mir' && (
+                      <div className="bg-[#F8F9FA] border border-gray-200 p-12 text-center animate-fade-in">
+                          <p className="text-gray-500 font-mono text-sm mb-6">{t('checkout.mir_desc')}</p>
+                          <div className="mt-8 max-w-xl mx-auto text-left border border-primary/10 bg-white p-6 space-y-3">
+                            {paymentSettings.recipientName ? <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{t('checkout.payment_recipient')}</p><p className="text-sm text-primary">{paymentSettings.recipientName}</p></div> : null}
+                            {paymentSettings.mirCardholder ? <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{t('checkout.mir_cardholder')}</p><p className="text-sm text-primary">{paymentSettings.mirCardholder}</p></div> : null}
+                            {paymentSettings.mirCardNumber ? <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{t('checkout.mir_card_number')}</p><p className="text-sm font-mono text-primary break-all">{paymentSettings.mirCardNumber}</p></div> : null}
+                            {paymentSettings.mirBankName ? <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{t('checkout.mir_bank')}</p><p className="text-sm text-primary">{paymentSettings.mirBankName}</p></div> : null}
+                          </div>
+                          <div className="mt-8 text-left max-w-xl mx-auto">
+                            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4">{t('checkout.invoice_steps_title')}</p>
+                            <div className="space-y-3 text-sm text-gray-600">
+                              <p>1. {t('checkout.invoice_step_1')}</p>
+                              <p>2. {t('checkout.mir_step_2')}</p>
                               <p>3. {t('checkout.invoice_step_3')}</p>
                             </div>
                           </div>
