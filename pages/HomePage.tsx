@@ -5,8 +5,8 @@ import { ArrowRight, Star, Globe } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useApp } from '../AppContext';
 
-const heroImageUrl = `${import.meta.env.BASE_URL}images/ambook-cover.jpg`;
-const featureImageUrl = `${import.meta.env.BASE_URL}images/ambook-object.jpg`;
+const heroImageUrl = `${import.meta.env.BASE_URL}images/home-hero.webp`;
+const featureImageUrl = `${import.meta.env.BASE_URL}images/home-feature.webp`;
 
 export const HomePage: React.FC = () => {
   const { t, books, news, language, showToast } = useApp();
