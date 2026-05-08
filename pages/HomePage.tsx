@@ -182,11 +182,19 @@ export const HomePage: React.FC = () => {
         <div className="px-4 md:px-8 py-10 md:py-16 space-y-8 border-b border-primary">
           {authorShowcase.map((item) => (
             <article key={item.id} className="grid grid-cols-1 lg:grid-cols-[340px_1fr] border border-primary bg-[#F7F1E6] overflow-hidden">
-              <div className="bg-primary min-h-[260px] md:min-h-[360px] flex items-center justify-center relative overflow-hidden">
-                <span className="text-[7rem] md:text-[9rem] font-serif text-white/10 leading-none">
+              <div className="bg-primary min-h-[260px] md:min-h-[360px] relative overflow-hidden">
+                <img
+                  src={item.imageUrl}
+                  alt={`${item.nameMain} ${item.nameAccent}`}
+                  className="w-full h-full object-cover grayscale opacity-90"
+                />
+                <div className="absolute inset-0 bg-primary/35 mix-blend-multiply" />
+                <div className="absolute top-4 left-4 border border-white/20 bg-black/20 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-white/80">
+                  {item.years}
+                </div>
+                <div className="absolute bottom-4 left-4 text-[6rem] md:text-[8rem] font-serif text-white/10 leading-none">
                   {item.initial}
-                </span>
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))]" />
+                </div>
               </div>
 
               <div className="p-8 md:p-12 lg:p-16">
@@ -205,6 +213,9 @@ export const HomePage: React.FC = () => {
                 </p>
 
                 <div className="mt-8 space-y-6 max-w-4xl text-lg md:text-[1.85rem] leading-relaxed text-primary/70">
+                  <p className="text-sm md:text-base font-mono uppercase tracking-[0.16em] text-accent">
+                    {item.knownFor}
+                  </p>
                   <p>{item.bio}</p>
                 </div>
 

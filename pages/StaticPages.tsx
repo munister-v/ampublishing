@@ -303,23 +303,42 @@ export const OurAuthorsPage: React.FC = () => {
                 <div className="h-px flex-1 bg-primary/15" />
               </div>
 
-              <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif leading-[0.9] text-primary break-words">
-                {item.nameMain}
-              </h2>
-              <p className="text-3xl sm:text-4xl md:text-6xl font-serif italic text-primary/60 leading-[0.95] mt-2 break-words">
-                {item.nameAccent}
-              </p>
+              <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-8 lg:gap-10 items-start">
+                <div className="border border-primary/10 bg-white p-3">
+                  <img
+                    src={item.imageUrl}
+                    alt={`${item.nameMain} ${item.nameAccent}`}
+                    className="w-full aspect-[4/5] object-cover grayscale"
+                  />
+                </div>
 
-              <div className="mt-8 space-y-6 max-w-4xl text-lg leading-relaxed text-primary/70">
-                <p>{item.bio}</p>
-              </div>
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4">
+                    {item.years}
+                  </p>
+                  <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif leading-[0.9] text-primary break-words">
+                    {item.nameMain}
+                  </h2>
+                  <p className="text-3xl sm:text-4xl md:text-6xl font-serif italic text-primary/60 leading-[0.95] mt-2 break-words">
+                    {item.nameAccent}
+                  </p>
 
-              <div className="mt-10 flex flex-wrap gap-2">
-                {item.tags.map((tag) => (
-                  <span key={tag} className="border border-primary/15 bg-white/50 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
-                    {tag}
-                  </span>
-                ))}
+                  <p className="mt-6 text-sm md:text-base font-mono uppercase tracking-[0.16em] text-accent">
+                    {item.knownFor}
+                  </p>
+
+                  <div className="mt-8 space-y-6 max-w-4xl text-lg leading-relaxed text-primary/70">
+                    <p>{item.bio}</p>
+                  </div>
+
+                  <div className="mt-10 flex flex-wrap gap-2">
+                    {item.tags.map((tag) => (
+                      <span key={tag} className="border border-primary/15 bg-white/50 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </article>

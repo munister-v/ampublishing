@@ -59,10 +59,10 @@ export const Header: React.FC = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex flex-1 items-stretch">
-            {['catalog', 'authors', 'about', 'media'].map((path) => (
+            {['catalog', 'our_authors', 'authors', 'about', 'media'].map((path) => (
               <NavLink 
                 key={path}
-                to={`/${path}`} 
+                to={path === 'our_authors' ? '/our-authors' : `/${path}`} 
                 className={({ isActive }) => 
                   `flex-1 flex items-center justify-center text-[10px] uppercase tracking-[0.25em] font-bold border-r border-primary relative group overflow-hidden ${isActive ? 'text-white' : 'text-primary'}`
                 }
@@ -78,7 +78,7 @@ export const Header: React.FC = () => {
                 </span>
                 
                 {/* Active Indicator override */}
-                <NavLink to={`/${path}`} className={({isActive}) => isActive ? "absolute inset-0 bg-primary -z-0" : "hidden"}></NavLink>
+                <NavLink to={path === 'our_authors' ? '/our-authors' : `/${path}`} className={({isActive}) => isActive ? "absolute inset-0 bg-primary -z-0" : "hidden"}></NavLink>
               </NavLink>
             ))}
           </nav>
@@ -210,10 +210,10 @@ export const Header: React.FC = () => {
              </button>
            </div>
            <nav className="flex-1 flex flex-col p-6 overflow-y-auto">
-              {['catalog', 'authors', 'about', 'media'].map((path, i) => (
+              {['catalog', 'our_authors', 'authors', 'about', 'media'].map((path, i) => (
                 <Link 
                   key={path}
-                  to={`/${path}`}
+                  to={path === 'our_authors' ? '/our-authors' : `/${path}`}
                   onClick={() => setMobileMenuOpen(false)}
                   className="text-5xl font-serif py-6 border-b border-white/10 hover:pl-6 transition-all duration-700 ease-out-quart flex justify-between items-center group animate-fade-up gpu-accelerated"
                   style={{ animationDelay: `${i * 100}ms` }}
