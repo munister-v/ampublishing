@@ -156,17 +156,17 @@ export const ProductPage: React.FC = () => {
                   )}
 
                   {book.story?.detailPageUrl ? (
-                    <div className="mt-6">
+                    <div className="mt-8 border-t border-dashed border-primary/20 pt-6">
                       <a
                         href={book.story.detailPageUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-3 border border-primary px-5 py-3 text-xs uppercase tracking-[0.2em] font-bold hover:bg-primary hover:text-white transition-colors"
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-3 border border-primary bg-primary text-white px-8 py-5 text-sm uppercase tracking-[0.22em] font-bold hover:bg-accent hover:text-primary transition-colors"
                       >
                         {t('product.read_full_story')}
                         <ArrowUpRight size={14} />
                       </a>
-                      <p className="mt-3 text-sm text-gray-500">
+                      <p className="mt-4 max-w-2xl text-sm text-gray-500 leading-relaxed">
                         {t('product.full_story_note')}
                       </p>
                     </div>
@@ -176,50 +176,6 @@ export const ProductPage: React.FC = () => {
                      <p className="text-red-500 text-xs font-mono flex items-center gap-2 mt-4"><AlertCircle size={12}/> {t('product.variant_unavailable')}</p>
                   )}
                </div>
-
-               <div className="py-12">
-                  <p className="text-lg leading-relaxed font-light text-justify">
-                     {book.description}
-                  </p>
-               </div>
-
-               {book.story?.quote && (
-                  <div className="border-l-4 border-accent pl-6 py-2 mb-12">
-                     <p className="text-3xl md:text-5xl font-serif leading-[1.05] italic text-primary">
-                        {book.story.quote}
-                     </p>
-                     {book.story.quoteSource && (
-                        <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500">
-                           {book.story.quoteSource}
-                        </p>
-                     )}
-                  </div>
-               )}
-
-               {book.story?.featureImageUrl ? (
-                  <section className="border-t border-primary py-10">
-                     <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] border border-primary overflow-hidden">
-                        <div className="bg-[#E8EDF2] min-h-[360px]">
-                           <img
-                              src={book.story.featureImageUrl}
-                              alt={book.title}
-                              className="w-full h-full object-cover"
-                           />
-                        </div>
-                        <div className="p-8 md:p-10 bg-[#F4F4F0]">
-                           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
-                              {t('product.materiality')}
-                           </p>
-                           <h2 className="text-4xl md:text-5xl font-serif leading-[0.92] mb-6">
-                              {t('product.book_as_object')}
-                           </h2>
-                           <p className="text-lg leading-relaxed text-gray-700">
-                              {book.story.orderNote}
-                           </p>
-                        </div>
-                     </div>
-                  </section>
-               ) : null}
 
                <section className="border-t border-primary py-10">
                   <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
