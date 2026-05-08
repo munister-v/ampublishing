@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { Mail, ArrowRight, Download, PenTool, BookOpen, Send, User, Award, Globe, Clock, Shield, Anchor, CheckCircle } from 'lucide-react';
+import { Mail, Download, PenTool, BookOpen, Send, User, Globe, Clock, Shield, Anchor, CheckCircle } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { Link } from 'react-router-dom';
-import { FadeImage } from '../components/FadeImage';
 
 // --- Components ---
 const SectionHeader: React.FC<{ title: string; subtitle?: string; bgClass?: string }> = ({ title, subtitle, bgClass = 'bg-primary' }) => (
@@ -254,12 +253,14 @@ export const AuthorsPage: React.FC = () => {
               {t('static.authors.ready_sub')}
             </p>
             
-            <Link 
-              to="/services/order"
+            <a 
+              href="https://docs.google.com/forms/d/e/1FAIpQLSc9Dxc9XRKuhebrkJP6WmHaXmIrTVY9LwnXZHGLkmEpf5iioA/viewform?usp=publish-editor"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-4 bg-white text-primary px-10 py-5 uppercase tracking-[0.2em] text-xs font-bold hover:bg-accent hover:text-white transition-all duration-300 shadow-2xl hover:-translate-y-1"
             >
               <Send size={16} /> {t('static.authors.go_to_form')}
-            </Link>
+            </a>
             
             <p className="mt-10 text-[10px] text-gray-500 uppercase tracking-widest opacity-60">
               {t('static.authors.format_note')}
@@ -293,12 +294,12 @@ export const AboutPage: React.FC = () => {
             </p>
             <div className="flex gap-12 mt-12 border-t border-gray-100 pt-8">
                <div>
-                 <span className="block text-4xl font-serif text-primary mb-2">20+</span>
-                 <span className="text-[10px] uppercase tracking-widest text-gray-400">Лет опыта</span>
+                 <span className="block text-4xl font-serif text-primary mb-2">300-1000+</span>
+                 <span className="text-[10px] uppercase tracking-widest text-gray-400">{t('static.about.stat1')}</span>
                </div>
                <div>
-                 <span className="block text-4xl font-serif text-primary mb-2">150+</span>
-                 <span className="text-[10px] uppercase tracking-widest text-gray-400">Изданных книг</span>
+                 <span className="block text-4xl font-serif text-primary mb-2">✓</span>
+                 <span className="text-[10px] uppercase tracking-widest text-gray-400">{t('static.about.stat2')}</span>
                </div>
             </div>
           </div>
@@ -319,23 +320,15 @@ export const AboutPage: React.FC = () => {
              <div className="w-12 h-[1px] bg-accent mx-auto"></div>
            </div>
            
-           {/* Team Grid (Replaced RandomUser with Professional Placeholders) */}
            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
              {[
-               { name: "Maryia Surkant", role: "role1", img: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&q=80&w=400&h=500" },
-               { name: "Sophia Lenz", role: "role2", img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400&h=500" },
-               { name: "Markus Weber", role: "role3", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400&h=500" }
+               { role: "role1" },
+               { role: "role2" },
+               { role: "role3" }
              ].map((member, i) => (
-               <div key={i} className="group text-center">
-                 <div className="w-full aspect-[3/4] mx-auto mb-6 relative overflow-hidden bg-white shadow-sm border border-gray-100">
-                    <FadeImage 
-                      src={member.img}
-                      alt={member.name}
-                      className="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-700" 
-                    />
-                 </div>
-                 <h4 className="font-serif text-xl text-primary">{member.name}</h4>
-                 <p className="text-[10px] uppercase tracking-[0.15em] text-accent mt-2 font-bold">{t(`static.about.${member.role}`)}</p>
+               <div key={i} className="group text-center border border-gray-100 bg-white p-10 shadow-sm">
+                 <h4 className="font-serif text-2xl text-primary">{t(`static.about.${member.role}`)}</h4>
+                 <p className="text-[10px] uppercase tracking-[0.15em] text-accent mt-4 font-bold">AM Publishing</p>
                </div>
              ))}
            </div>
@@ -392,43 +385,18 @@ export const MediaPage: React.FC = () => {
               <div className="w-12 h-12 bg-bg flex items-center justify-center mb-6 text-primary rounded-full">
                  <User size={20} />
               </div>
-              <h2 className="text-2xl font-serif text-primary mb-4">Interview Requests</h2>
+              <h2 className="text-2xl font-serif text-primary mb-4">{t('static.media.interview_title')}</h2>
               <p className="text-sm text-gray-500 mb-8 font-light leading-relaxed flex-1">
-                Author interviews, publishing house features, and media inquiries.
+                {t('static.media.interview_desc')}
               </p>
               <a href="mailto:am.hybridpublishing@gmail.com" className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary border-b border-primary pb-1 hover:text-accent hover:border-accent transition-colors">
-                Send Request
+                {t('static.media.interview_cta')}
               </a>
             </div>
 
           </div>
 
-          <div className="border-t border-gray-200 pt-16">
-            <h2 className="text-3xl font-serif text-primary mb-12 text-center">{t('static.media.mentions')}</h2>
-            <div className="grid grid-cols-1 gap-4">
-              {[
-                { source: "The Berlin Review", title: "New Wave of Intellectual Literature in Germany", date: "Oct 2023", icon: Globe },
-                { source: "BookCulture Blog", title: "Anna Stern on 'Shadows of Berlin': Big Interview", date: "Sep 2023", icon: User },
-                { source: "Art & Text", title: "Best Covers of the Year: Editor's Choice", date: "Aug 2023", icon: Award },
-              ].map((item, i) => (
-                 <div key={i} className="flex flex-col md:flex-row justify-between items-start md:items-center p-8 bg-white border border-gray-100 hover:shadow-md transition-all group cursor-pointer">
-                    <div className="flex items-start gap-6">
-                      <div className="hidden md:flex w-12 h-12 bg-gray-50 text-gray-400 items-center justify-center rounded-full shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
-                         <item.icon size={20} />
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-accent uppercase tracking-[0.15em] mb-2 block font-bold">{item.source}</span>
-                        <h3 className="font-serif text-xl text-primary group-hover:text-accent transition-colors">{item.title}</h3>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 mt-4 md:mt-0 pl-[calc(3rem+1.5rem)] md:pl-0">
-                      <span className="text-xs text-gray-400 font-mono">{item.date}</span>
-                      <ArrowRight size={16} className="text-gray-300 group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 duration-300" />
-                    </div>
-                 </div>
-              ))}
-            </div>
-          </div>
+          <div className="h-px w-full bg-gray-200"></div>
         </div>
       </div>
     </div>

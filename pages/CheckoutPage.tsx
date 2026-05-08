@@ -315,7 +315,7 @@ export const CheckoutPage: React.FC = () => {
     return (
       <div className="pt-32 text-center min-h-screen bg-[#F4F4F0]">
         <p className="font-mono mb-4 text-gray-500 uppercase tracking-widest">{t('cart.empty')}</p>
-        <Link to="/shop" className="bg-primary text-white px-6 py-2 uppercase text-xs font-bold tracking-widest hover:bg-accent transition-colors">
+        <Link to="/catalog" className="bg-primary text-white px-6 py-2 uppercase text-xs font-bold tracking-widest hover:bg-accent transition-colors">
             {t('cart.back_to_catalog')}
         </Link>
       </div>

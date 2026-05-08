@@ -71,6 +71,7 @@ const AppContent: React.FC = () => {
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/shop" element={<CatalogPage />} />
+            <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />

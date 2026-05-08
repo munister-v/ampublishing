@@ -32,14 +32,14 @@ export const Header: React.FC = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       addSearchHistory(searchQuery.trim());
-      navigate(`/shop?search=${encodeURIComponent(searchQuery)}`);
+      navigate(`/catalog?search=${encodeURIComponent(searchQuery)}`);
       setSearchOpen(false);
     }
   };
 
   const handleHistoryClick = (term: string) => {
     setSearchQuery(term);
-    navigate(`/shop?search=${encodeURIComponent(term)}`);
+    navigate(`/catalog?search=${encodeURIComponent(term)}`);
     setSearchOpen(false);
   };
 
@@ -59,10 +59,10 @@ export const Header: React.FC = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex flex-1 items-stretch">
-            {['shop', 'services', 'authors', 'about', 'media'].map((path) => (
+            {['catalog', 'authors', 'about', 'media'].map((path) => (
               <NavLink 
                 key={path}
-                to={`/${path === 'shop' ? 'shop' : path}`} 
+                to={`/${path}`} 
                 className={({ isActive }) => 
                   `flex-1 flex items-center justify-center text-[10px] uppercase tracking-[0.25em] font-bold border-r border-primary relative group overflow-hidden ${isActive ? 'text-white' : 'text-primary'}`
                 }
@@ -74,11 +74,11 @@ export const Header: React.FC = () => {
                 <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out-quart"></div>
                 
                 <span className="relative z-10 group-hover:text-white transition-colors duration-500">
-                  {t(`nav.${path === 'shop' ? 'catalog' : path}`)}
+                  {t(`nav.${path}`)}
                 </span>
                 
                 {/* Active Indicator override */}
-                <NavLink to={`/${path === 'shop' ? 'shop' : path}`} className={({isActive}) => isActive ? "absolute inset-0 bg-primary -z-0" : "hidden"}></NavLink>
+                <NavLink to={`/${path}`} className={({isActive}) => isActive ? "absolute inset-0 bg-primary -z-0" : "hidden"}></NavLink>
               </NavLink>
             ))}
           </nav>
@@ -180,17 +180,17 @@ export const Header: React.FC = () => {
                <h3 className="font-bold text-xs uppercase tracking-widest mb-8 text-accent">{t('nav.trending')}</h3>
                <ul className="space-y-4">
                   <li>
-                    <Link to="/shop?genre=Философия" onClick={() => setSearchOpen(false)} className="text-2xl font-serif hover:text-accent transition-all flex justify-between group">
+                    <Link to="/catalog?genre=Философия" onClick={() => setSearchOpen(false)} className="text-2xl font-serif hover:text-accent transition-all flex justify-between group">
                        <span>{t('nav.quick_links.philosophy')}</span> <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">01</span>
                     </Link>
                   </li>
                   <li>
-                    <Link to="/shop?genre=Искусство" onClick={() => setSearchOpen(false)} className="text-2xl font-serif hover:text-accent transition-all flex justify-between group">
+                    <Link to="/catalog?genre=Искусство" onClick={() => setSearchOpen(false)} className="text-2xl font-serif hover:text-accent transition-all flex justify-between group">
                        <span>{t('nav.quick_links.art')}</span> <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">02</span>
                     </Link>
                   </li>
                   <li>
-                    <Link to="/shop?badges=new" onClick={() => setSearchOpen(false)} className="text-2xl font-serif hover:text-accent transition-all flex justify-between group">
+                    <Link to="/catalog?badges=new" onClick={() => setSearchOpen(false)} className="text-2xl font-serif hover:text-accent transition-all flex justify-between group">
                        <span>{t('nav.quick_links.new')}</span> <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">03</span>
                     </Link>
                   </li>
@@ -210,15 +210,15 @@ export const Header: React.FC = () => {
              </button>
            </div>
            <nav className="flex-1 flex flex-col p-6 overflow-y-auto">
-              {['shop', 'services', 'authors', 'about', 'media'].map((path, i) => (
+              {['catalog', 'authors', 'about', 'media'].map((path, i) => (
                 <Link 
                   key={path}
-                  to={`/${path === 'shop' ? 'shop' : path}`}
+                  to={`/${path}`}
                   onClick={() => setMobileMenuOpen(false)}
                   className="text-5xl font-serif py-6 border-b border-white/10 hover:pl-6 transition-all duration-700 ease-out-quart flex justify-between items-center group animate-fade-up gpu-accelerated"
                   style={{ animationDelay: `${i * 100}ms` }}
                 >
-                  {t(`nav.${path === 'shop' ? 'catalog' : path}`)}
+                  {t(`nav.${path}`)}
                   <span className="text-xs font-mono opacity-0 group-hover:opacity-100 text-accent transition-opacity duration-700">0{i+1}</span>
                 </Link>
               ))}

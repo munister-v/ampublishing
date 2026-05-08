@@ -36,9 +36,9 @@ export const translations: Record<Language, TranslationTree> = {
       }
     },
     home: {
-      hero_title_1: "Радикальное",
-      hero_title_2: "Мышление.",
-      hero_subtitle: "Мы создаем книги, которые не просто стоят на полке, а меняют структуру вашего восприятия.",
+      hero_title_1: "Книги в дорогу",
+      hero_title_2: "",
+      hero_subtitle: "Мы издаём современную литературную прозу с глубиной и психологической тонкостью — книги, которые легко взять с собой и невозможно забыть.",
       hero_cta: "Перейти в каталог",
       new_arrivals: "Новинки",
       all_new: "Все новинки",
@@ -47,10 +47,10 @@ export const translations: Record<Language, TranslationTree> = {
       view_all: "Смотреть все",
       journal: "Журнал",
       read_more: "Читать",
-      marquee_v: "Новая Коллекция • Доставка по всему миру • Эксклюзивные издания • ",
-      marquee_h: "Искусство издательского дела — Объекты желания — ",
+      marquee_v: "Новые издания • Доставка по всему миру • Малый тираж • ",
+      marquee_h: "The Art of Publishing • Depth of Thought • Psychological Insight • Humanity • ",
       global_reach: "Глобальный охват",
-      global_desc: "Мы доставляем по всему миру. Наши книги созданы для путешествий, чтобы их держали в руках и читали в пути.",
+      global_desc: "Мы доставляем наши книги по всему миру.",
       stats_countries: "Стран",
       stats_delivery: "Средняя доставка",
     },
@@ -197,7 +197,7 @@ export const translations: Record<Language, TranslationTree> = {
         impressum: {
             title: "Impressum (Выходные данные)",
             subtitle: "Юридическая информация",
-            text: "AM Publishing\nInhaberin: Maryia Surkant\nEinzelunternehmen\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nKontakt:\nE-Mail: am.hybridpublishing@gmail.com\nTelefon: +49 176 40444853\n\nUmsatzsteuer-ID gemäß § 27 a Umsatzsteuergesetz: Wird nachgereicht\n\nVerantwortlich для den Inhalt nach § 55 Abs. 2 RStV:\nMaryia Surkant, Mehrower Allee 71, 12687 Berlin"
+            text: "AM Publishing\nInhaberin: Maryia Surkant\nEinzelunternehmen\n\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nKontakt:\nE-Mail: am.hybridpublishing@gmail.com\nTelefon: 017640444853\n\nUmsatzsteuer-ID gemäß § 27 a Umsatzsteuergesetz:\n33/553/02564\n\nVerantwortlich für den Inhalt nach § 55 Abs. 2 RStV:\nMaryia Surkant\nMehrower Allee 71\n12687 Berlin"
         },
         terms: {
             title: "AGB (Условия использования)",
@@ -208,11 +208,11 @@ export const translations: Record<Language, TranslationTree> = {
         privacy: {
             title: "Политика конфиденциальности",
             updated: "Обновлено: 2026",
-            intro: "Мы очень серьезно относимся к защите ваших персональных данных. Ниже приведена подробная информация о том, как мы собираем, используем и защищаем ваши данные в соответствии с Общим регламентом по защите данных (DSGVO).",
+            intro: "Мы очень серьёзно относимся к защите ваших персональных данных. Ниже приведена подробная информация о том, как мы собираем, используем и защищаем ваши данные в соответствии с DSGVO.",
             sections: [
                 { 
                     title: "1. Ответственное лицо (Controller)", 
-                    text: "Ответственным за обработку данных на этом сайте является:\n\nAM Publishing\nInhaberin: Maryia Surkant\nMehrower Allee 71, 12687 Berlin\nDeutschland\n\nEmail: am.hybridpublishing@gmail.com\nТелефон: +49 176 40444853" 
+                    text: "Ответственным за обработку данных на этом сайте является:\n\nAM Publishing\nInhaberin: Maryia Surkant\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nE-Mail: am.hybridpublishing@gmail.com\nТелефон: +49 176 40444853" 
                 },
                 { 
                     title: "2. Сбор и обработка данных", 
@@ -258,22 +258,22 @@ export const translations: Record<Language, TranslationTree> = {
         },
         authors: {
           title: "Авторам",
-          subtitle: "Мы ищем радикальные идеи, новые голоса и тексты, меняющие архитектуру мышления.",
+          subtitle: "Мы ищем авторов, для которых в литературе важны не только сюжет, но и глубина, психологическая точность и атмосфера.",
           manifesto: "Манифест",
           what_we_publish: "Что мы издаем",
-          p1: "AM Publishing специализируется на интеллектуальной прозе, нон-фикшне в области гуманитарных наук, искусства и философии. Мы верим в книгу как в эстетический объект.",
-          p2: "Мы не ограничиваем себя жанрами, но нас всегда интересует глубина исследования, уникальность авторского языка и актуальность темы для современного контекста.",
+          p1: "AM Publishing специализируется на художественной прозе и автофикшне. Мы верим в книгу как в эстетический объект.",
+          p2: "Мы не ограничиваем себя жанрами, но нас неизменно привлекают тексты с глубиной, психологической точностью и сильным авторским голосом.",
           prose: "Проза",
-          prose_sub: "Художественная и Эссе",
-          poetry: "Поэзия",
-          poetry_sub: "Современная",
+          prose_sub: "Художественная литература",
+          poetry: "Автофикшн",
+          poetry_sub: "Литература прожитого опыта",
           process_title: "Процесс подачи заявки",
           step1_t: "Подготовка",
-          step1_d: "Синопсис (до 2 стр), информация об авторе и список публикаций. Фрагмент рукописи (20-30 стр).",
+          step1_d: "Пожалуйста, отправьте синопсис объёмом до 4 000 знаков с пробелами. Документ должен быть оформлен в Times New Roman, 12 pt, чёрный текст на белом фоне, одинарный интервал и стандартные поля.",
           step2_t: "Отправка",
-          step2_d: "Отправьте материалы через нашу форму. Укажите тип сотрудничества.",
+          step2_d: "Отправьте материалы через нашу форму.",
           step3_t: "Рассмотрение",
-          step3_d: "Мы отвечаем в течение 1-2 месяцев. Из-за большого потока заявок мы не рецензируем отклоненные тексты.",
+          step3_d: "Мы отвечаем в течение 1-3 месяцев. Из-за большого потока заявок мы не рецензируем отклонённые тексты.",
           ready: "Готовы отправить рукопись?",
           ready_sub: "Мы всегда в поиске новых имен. Станьте частью AM Publishing.",
           format_note: "* Принимаем файлы в формате PDF или Word",
@@ -281,10 +281,12 @@ export const translations: Record<Language, TranslationTree> = {
         },
         about: {
           title: "О нас",
-          subtitle: "Независимое издательство в Берлине с глобальным взглядом на культуру.",
+          subtitle: "Независимое русскоязычное издательство, базирующееся в Берлине.",
           mission: "Миссия",
-          p1: "AM Publishing было основано в Берлине как платформа для диалога между культурами и поколениями. Мы верим, что книга — это не просто носитель информации, а объект искусства и инструмент мышления.",
-          p2: "Наш каталог объединяет переводы современной классики, смелые дебюты и глубокие исследования в области теории искусства. Мы стремимся к высочайшему качеству полиграфии и дизайна.",
+          p1: "AM Publishing было основано в Берлине как издательство, посвящённое современной русскоязычной литературе. Мы верим, что книга — это не просто история, а опыт, способный преобразить читателя.",
+          p2: "Наша миссия — продвигать литературу, которая меняет взгляд на мир, побуждает к размышлению и остаётся с человеком надолго после последней страницы.",
+          stat1: "Малые тиражи",
+          stat2: "Редакционное рассмотрение рукописей",
           team: "Команда",
           role1: "Главный редактор",
           role2: "Арт-директор",
@@ -299,11 +301,13 @@ export const translations: Record<Language, TranslationTree> = {
           review_title: "Запрос на рецензию",
           review_desc: "Мы предоставляем электронные и печатные экземпляры новинок книжным обозревателям, журналистам и блогерам с аудиторией от 5000 подписчиков.",
           contact_pr: "Написать PR-менеджеру",
-          mentions: "Последние упоминания",
+          interview_title: "Запросы на интервью",
+          interview_desc: "Интервью с авторами, материалы о издательстве и медиазапросы.",
+          interview_cta: "Отправить запрос",
         }
       },
       footer: {
-        desc: "Независимое издательство в Берлине. Мы ищем новые голоса и сохраняем традиции книжной культуры.",
+        desc: "Независимое русскоязычное издательство из Берлина. Наши истории созданы для дороги — для поездок, перелётов, утреннего метро и тихих домашних вечеров.",
         sections: {
           catalog: "Каталог",
           info: "Информация",
@@ -317,8 +321,8 @@ export const translations: Record<Language, TranslationTree> = {
           terms: "Условия использования (AGB)",
           impressum: "Выходные данные (Impressum)",
         },
-        subscribe_title: "Подпишитесь на",
-        subscribe_span: "Радикальный Архив",
+        subscribe_title: "Подпишитесь на новости",
+        subscribe_span: "AM Publishing",
         social_index: "Социальный Индекс",
         directory: "Навигация",
         email_ph: "ВАШ EMAIL",
@@ -470,9 +474,9 @@ export const translations: Record<Language, TranslationTree> = {
         variant_unavailable: "Variant unavailable",
       },
     home: {
-      hero_title_1: "Radical",
-      hero_title_2: "Thinking.",
-      hero_subtitle: "We create books that don't just sit on a shelf, but change the architecture of your thinking.",
+      hero_title_1: "Prose that slows time",
+      hero_title_2: "",
+      hero_subtitle: "We bring out books for those who want more than a gripping story — readers who appreciate depth, psychological richness, and a distinctive atmosphere.",
       hero_cta: "Go to Catalog",
       new_arrivals: "New Arrivals",
       all_new: "See all new",
@@ -486,15 +490,15 @@ export const translations: Record<Language, TranslationTree> = {
       newsletter_placeholder: "Your Email",
       subscribe: "Subscribe",
       coming_soon: "Coming Soon",
-      marquee_v: "New Collection • Worldwide Shipping • Exclusive Editions • ",
-      marquee_h: "The Art of Publishing — Objects of Desire — ",
+      marquee_v: "New Editions • Worldwide Shipping • Limited Print Run • ",
+      marquee_h: "The Art of Publishing • Depth of Thought • Psychological Insight • Humanity • ",
       global_reach: "Global Reach",
-      global_desc: "We ship worldwide. Our books are designed to travel, to be held, to be read in transit.",
+      global_desc: "We deliver our books worldwide.",
       stats_countries: "Countries",
       stats_delivery: "Avg. Delivery",
     },
     footer: {
-      desc: "Independent publisher in Berlin. We seek new voices and preserve the traditions of book culture.",
+      desc: "Independent Russian-language publishing house in Berlin. We promote literature that broadens perspectives and enriches the inner world.",
       sections: {
         catalog: "Catalog",
         info: "Information",
@@ -508,8 +512,8 @@ export const translations: Record<Language, TranslationTree> = {
         terms: "Terms of Service (AGB)",
         impressum: "Impressum (Legal)",
       },
-      subscribe_title: "Subscribe to the",
-      subscribe_span: "Radical Archive",
+      subscribe_title: "Subscribe to",
+      subscribe_span: "AM Publishing updates",
       social_index: "Social Index",
       directory: "Directory",
       email_ph: "EMAIL ADDRESS",
@@ -624,8 +628,8 @@ export const translations: Record<Language, TranslationTree> = {
     static: {
         impressum: {
             title: "Impressum (Legal Notice)",
-            subtitle: "Legal Information",
-            text: "AM Publishing\nInhaberin: Maryia Surkant\nEinzelunternehmen\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nContact:\nE-Mail: am.hybridpublishing@gmail.com\nPhone: +49 176 40444853\n\nVAT ID: Pending\n\nResponsible for content acc. to § 55 Abs. 2 RStV:\nMaryia Surkant, Mehrower Allee 71, 12687 Berlin"
+            subtitle: "Legal notice (German law)",
+            text: "Information pursuant to Section 5 TMG (Germany)\n\nAM Publishing\nOwner: Maryia Surkant\nSole proprietorship\n\nMehrower Allee 71\n12687 Berlin\nGermany\n\nContact\nEmail: am.hybridpublishing@gmail.com\nPhone: +49 176 40444853\n\nVAT ID pursuant to Section 27a of the German VAT Act\n33/553/02564\n\nResponsible for content (Section 55 (2) RStV)\nMaryia Surkant\nMehrower Allee 71\n12687 Berlin\n\nNote: The German version of this legal notice is legally binding."
         },
         terms: {
             title: "Terms & Conditions (AGB)",
@@ -635,73 +639,73 @@ export const translations: Record<Language, TranslationTree> = {
         },
         privacy: {
             title: "Privacy Policy (Datenschutzerklärung)",
-            updated: "Last updated: 2026",
-            intro: "We take the protection of your personal data very seriously. Below you will find detailed information about how we collect, use, and protect your data in compliance with the General Data Protection Regulation (GDPR).",
+            updated: "German version is legally binding",
+            intro: "This English translation is provided for convenience only. The German version is legally binding.",
             sections: [
                 { 
                     title: "1. Responsible Body (Controller)", 
-                    text: "The data controller responsible for this website is:\n\nAM Publishing\nOwner: Maryia Surkant\nMehrower Allee 71, 12687 Berlin\nGermany\n\nEmail: am.hybridpublishing@gmail.com\nPhone: +49 176 40444853" 
+                    text: "The controller within the meaning of the GDPR is:\n\nAM Publishing\nOwner: Maryia Surkant\nMehrower Allee 71\n12687 Berlin\nGermany\nEmail: am.hybridpublishing@gmail.com\nPhone: +49 176 40444853" 
                 },
                 { 
-                    title: "2. Data Collection and Processing", 
-                    text: "When you visit our website, the web server automatically saves data in so-called server log files, which your browser transmits to us. These include:\n- Browser type and version\n- Operating system used\n- Referrer URL (the previously visited page)\n- Host name of the accessing computer (IP address)\n- Time of the server request\n\nThese data are necessary for technical reasons to display the website and ensure stability and security (legal basis: Art. 6 Para. 1 lit. f GDPR)." 
+                    title: "2. General information", 
+                    text: "We take the protection of your personal data very seriously. We process personal data only to the extent necessary and in accordance with applicable data protection laws." 
                 },
                 { 
-                    title: "3. Cookies", 
-                    text: "Our website uses cookies. These are small text files that are stored on your device. We use only technically necessary session cookies (e.g., to store the contents of your shopping cart or login status).\n\nYou can set your browser so that you are informed about the setting of cookies and allow cookies only in individual cases, exclude the acceptance of cookies for certain cases or in general, and activate the automatic deletion of cookies when closing the browser." 
+                    title: "3. Access data and hosting", 
+                    text: "When you visit our website, the web server automatically collects information (server log files), including:\n- IP address\n- date and time of the request\n- requested page\n- browser type and version\n- operating system\n\nThis data is used solely to ensure the technical operation and security of the website and is not combined with other sources.\n\n(The hosting provider will be added once determined.)" 
                 },
                 { 
-                    title: "4. Contact Forms and E-mail", 
-                    text: "If you send us inquiries via the contact form or e-mail, your details from the inquiry form, including the contact details you provided there, will be stored by us for the purpose of processing the inquiry and in case of follow-up questions. We do not pass on this data without your consent." 
+                    title: "4. Contact form", 
+                    text: "If you contact us via the contact form, we store the data you provide (e.g., name, email address, message) to process your request.\n\nLegal basis:\nArt. 6(1)(b) GDPR (contract / pre-contractual measures)\nArt. 6(1)(f) GDPR (legitimate interest in communication)\n\nWe delete the data once it is no longer necessary for communication." 
                 },
                 { 
-                    title: "5. Processing for Contract Fulfillment", 
-                    text: "We process personal data (e.g., name, address, email, payment details) only to the extent necessary for the establishment, content design, or change of the legal relationship (inventory data). This is done on the basis of Art. 6 Para. 1 lit. b GDPR, which permits the processing of data for the fulfillment of a contract or pre-contractual measures.\n\nWe use your data to:\n- Process and deliver your orders\n- Issue invoices\n- Contact you regarding order status" 
+                    title: "5. Manuscript submissions", 
+                    text: "You can submit manuscripts via our website. We may process personal data such as:\n- name\n- email address\n- additional voluntary information (if any)\n- uploaded files (manuscripts)\n\nWe use this data solely to review the submission and contact you.\n\nLegal basis:\nArt. 6(1)(b) GDPR (pre-contractual measures)\n\nWe delete the data once the submission process is completed, unless legal retention obligations apply." 
                 },
                 { 
-                    title: "6. Payment Providers", 
-                    text: "We use third-party service providers to process payments. We do not store full credit card details on our servers.\n\n6.1. PayPal\nWhen paying via PayPal, data is transferred to PayPal (Europe) S.à r.l. et Cie, S.C.A., 22-24 Boulevard Royal, L-2449 Luxembourg. Data transfer is based on Art. 6 Para. 1 lit. a GDPR (consent) and Art. 6 Para. 1 lit. b GDPR (processing for contract fulfillment).\n\n6.2. Stripe\nFor credit card payments, processing is carried out via Stripe Payments Europe, Ltd., c/o A&L Goodbody, Ifsc, North Wall Quay, Dublin 1, Ireland. Your payment data is transmitted to Stripe solely for payment processing." 
+                    title: "6. Sales of books and digital products", 
+                    text: "When ordering printed or electronic books, we process the personal data required to perform the purchase contract, in particular:\n- name\n- billing address and, where applicable, delivery address\n- email address\n\nLegal basis:\nArt. 6(1)(b) GDPR (performance of contract)\n\n6a. Payments via PayPal\nPayPal (Europe) S.à r.l. et Cie, S.C.A.\n22-24 Boulevard Royal\nL-2449 Luxembourg\n\nIf you choose PayPal, the personal data required for payment processing will be transmitted to PayPal, in particular:\n- name\n- email address\n- payment amount\n- billing and delivery address (if applicable)\n\nLegal basis:\nArt. 6(1)(b) GDPR (performance of contract)\n\nMore information:\nhttps://www.paypal.com/de/webapps/mpp/ua/privacy-full\n\n6b. Payments via Stripe (credit card)\nStripe Payments Europe, Ltd.\n1 Grand Canal Street Lower\nGrand Canal Dock\nDublin, Ireland\n\nStripe processes the personal data required for payment processing, including:\n- name\n- email address\n- payment amount\n- payment data (card data is processed directly by Stripe)\n\nWe do not receive full credit card details.\n\nLegal basis:\nArt. 6(1)(b) GDPR (performance of contract)\n\nMore information:\nhttps://stripe.com/de/privacy" 
                 },
                 { 
-                    title: "7. Retention Periods", 
-                    text: "We store your personal data only as long as necessary to achieve the purposes for which it was collected or as provided by law (e.g., retention periods under commercial and tax law - 10 years for invoices)." 
+                    title: "7. Cookies", 
+                    text: "Our website uses technically necessary cookies and cookies from payment providers (PayPal, Stripe) that are required to process payments.\n\nWe do not use tracking, analytics, or marketing cookies.\n\nLegal basis:\nArt. 6(1)(b) GDPR (performance of contract)\nArt. 6(1)(f) GDPR (legitimate interest in secure payment processing)" 
                 },
                 { 
-                    title: "8. Data Transfer to Third Parties", 
-                    text: "Data is only transferred to third parties within the framework of legal requirements. We only pass on user data to third parties if this is necessary for contract purposes (e.g., to logistics companies for goods delivery) or based on legitimate interests in the economic and effective operation of our business." 
+                    title: "8. Sharing data with third parties", 
+                    text: "We share personal data with third parties only if:\n- it is necessary to perform the contract\n- there is a legal obligation\n- you have explicitly consented\n\nNo further disclosure takes place." 
                 },
                 { 
-                    title: "9. User Rights", 
-                    text: "Under applicable law, you have the right:\n- To request information about your stored personal data (Art. 15 GDPR).\n- To rectification of incorrect data (Art. 16 GDPR).\n- To deletion of data (Art. 17 GDPR), unless retention obligations prevent this.\n- To restriction of processing (Art. 18 GDPR).\n- To data portability (Art. 20 GDPR).\n- To withdraw consent at any time (Art. 7 Para. 3 GDPR)." 
+                    title: "9. Your rights", 
+                    text: "You have the right to access, rectification, erasure, restriction of processing, data portability, and objection (Art. 15-21 GDPR). To exercise your rights, please contact us using the contact details above." 
                 },
                 { 
-                    title: "10. Data Security", 
-                    text: "We use the SSL (Secure Socket Layer) procedure in conjunction with the highest level of encryption supported by your browser to protect data transmission. You can recognize an encrypted connection by the address line of the browser changing from http:// to https:// and by the lock symbol in your browser line." 
+                    title: "10. Right to lodge a complaint", 
+                    text: "You have the right to lodge a complaint with a supervisory authority. The competent authority in particular is:\n\nBerlin Commissioner for Data Protection and Freedom of Information\nAlt-Moabit 59-61\n10555 Berlin\nGermany" 
                 },
                 { 
-                    title: "11. Right to Complain", 
-                    text: "In the event of violations of data protection law, you have the right to lodge a complaint with the competent supervisory authority. The competent authority for data protection issues is the State Data Protection Officer of the federal state of Berlin (Berliner Beauftragte für Datenschutz und Informationsfreiheit)." 
+                    title: "11. Changes to this privacy policy", 
+                    text: "We may update this privacy policy to reflect legal requirements or changes to our services." 
                 }
             ]
         },
         authors: {
           title: "For Authors",
-          subtitle: "We seek radical ideas, new voices, and texts that change the architecture of thinking.",
+          subtitle: "We are looking for authors who value not only plot, but also depth, psychological insight, and atmosphere in literature.",
           manifesto: "Manifest",
           what_we_publish: "What We Publish",
-          p1: "AM Publishing specializes in intellectual prose, non-fiction in humanities, art, and philosophy. We believe in the book as an aesthetic object.",
-          p2: "We do not limit ourselves to genres, but we are always interested in the depth of research, the uniqueness of the author's voice, and the relevance of the topic to the modern context.",
+          p1: "AM Publishing specializes in literary fiction and autofiction. We believe in the book as an aesthetic object.",
+          p2: "We do not limit ourselves by genre, but we are consistently drawn to writing with depth, psychological precision, and a strong authorial voice.",
           prose: "Prose",
-          prose_sub: "Fiction & Essays",
-          poetry: "Poetry",
-          poetry_sub: "Contemporary",
+          prose_sub: "Fiction",
+          poetry: "Autofiction",
+          poetry_sub: "Literature of lived experience",
           process_title: "Submission Process",
           step1_t: "Preparation",
-          step1_d: "Synopsis (up to 2 pages), author info and publication list. Manuscript excerpt (20-30 pages).",
+          step1_d: "Please submit a synopsis of up to 4,000 characters (including spaces). The document should be formatted in Times New Roman, 12 pt, black text on a white background, single line spacing, with standard margins.",
           step2_t: "Submission",
-          step2_d: "Send materials via our form. Specify the type of cooperation.",
+          step2_d: "Send materials via our form.",
           step3_t: "Review",
-          step3_d: "We reply within 1-2 months. Due to the high volume of submissions, we do not review rejected texts.",
+          step3_d: "We reply within 1-3 months. Due to the high volume of submissions, we do not review rejected texts.",
           ready: "Ready to submit a manuscript?",
           ready_sub: "We are always looking for new names. Become part of AM Publishing.",
           format_note: "* We accept files in PDF or Word format",
@@ -709,10 +713,12 @@ export const translations: Record<Language, TranslationTree> = {
         },
         about: {
           title: "About Us",
-          subtitle: "Independent publisher in the heart of Europe with a global view on culture.",
+          subtitle: "Independent Russian-language publisher based in Berlin.",
           mission: "Mission",
-          p1: "AM Publishing was founded in Berlin as a platform for dialogue between cultures and generations. We believe that a book is not just a carrier of information, but an art object and a tool for thinking.",
-          p2: "Our catalog combines translations of modern classics, bold debuts, and deep research in art theory. We strive for the highest quality in printing and design.",
+          p1: "AM Publishing was founded in Berlin as a publishing house dedicated to contemporary Russian-language literature. We believe that a book is not merely a story, but an experience capable of transforming the reader.",
+          p2: "Our mission is to promote literature that reshapes perspectives, encourages reflection, and stays with a person long after the final page.",
+          stat1: "Limited Print Runs",
+          stat2: "Editorial Review of Manuscripts",
           team: "Team",
           role1: "Editor-in-Chief",
           role2: "Art Director",
@@ -727,7 +733,9 @@ export const translations: Record<Language, TranslationTree> = {
           review_title: "Request Review Copy",
           review_desc: "We provide digital and printed copies of new books to book reviewers, journalists, and bloggers with an audience of over 5000 subscribers.",
           contact_pr: "Contact PR Manager",
-          mentions: "Recent Mentions",
+          interview_title: "Interview Requests",
+          interview_desc: "Author interviews, publishing house features, and media inquiries.",
+          interview_cta: "Send Request",
         }
     },
     error: {
@@ -839,9 +847,9 @@ export const translations: Record<Language, TranslationTree> = {
         variant_unavailable: "Variante nicht verfügbar",
       },
     home: {
-      hero_title_1: "Radikales",
-      hero_title_2: "Denken.",
-      hero_subtitle: "Wir kreieren Bücher, die nicht nur im Regal stehen, sondern die Architektur Ihres Denkens verändern.",
+      hero_title_1: "Bücher für unterwegs",
+      hero_title_2: "",
+      hero_subtitle: "Wir veröffentlichen moderne literarische Prosa mit Tiefe und psychologischem Feingefühl — Bücher, die man leicht mitnehmen kann und unmöglich vergisst.",
       hero_cta: "Zum Katalog",
       new_arrivals: "Neuheiten",
       all_new: "Alle Neuheiten ansehen",
@@ -855,15 +863,15 @@ export const translations: Record<Language, TranslationTree> = {
       newsletter_placeholder: "Ihre E-Mail",
       subscribe: "Abonnieren",
       coming_soon: "Demnächst",
-      marquee_v: "Neue Kollektion • Weltweiter Versand • Exklusive Ausgaben • ",
-      marquee_h: "Die Kunst des Verlegens — Objekte der Begierde — ",
+      marquee_v: "Neue Ausgaben • Weltweiter Versand • Kleine Auflage • ",
+      marquee_h: "The Art of Publishing • Depth of Thought • Psychological Insight • Humanity • ",
       global_reach: "Globale Reichweite",
-      global_desc: "Wir versenden weltweit. Unsere Bücher sind zum Reisen gemacht, um gehalten und unterwegs gelesen zu werden.",
+      global_desc: "Wir liefern unsere Bücher weltweit.",
       stats_countries: "Länder",
       stats_delivery: "Durchschn. Lieferzeit",
     },
     footer: {
-      desc: "Unabhängiger Verlag in Berlin. Wir suchen neue Stimmen und bewahren die Traditionen der Buchkultur.",
+      desc: "Ein unabhängiger russischsprachiger Verlag aus Berlin. Unsere Geschichten sind für unterwegs — für Reisen, Flüge, die morgendliche U-Bahn und ruhige Abende zu Hause.",
       sections: {
         catalog: "Katalog",
         info: "Information",
@@ -877,8 +885,8 @@ export const translations: Record<Language, TranslationTree> = {
         terms: "AGB",
         impressum: "Impressum",
       },
-      subscribe_title: "Abonnieren Sie das",
-      subscribe_span: "Radikale Archiv",
+      subscribe_title: "Abonnieren Sie die Neuigkeiten von",
+      subscribe_span: "AM Publishing",
       social_index: "Sozialindex",
       directory: "Verzeichnis",
       email_ph: "E-MAIL ADRESSE",
@@ -994,7 +1002,7 @@ export const translations: Record<Language, TranslationTree> = {
         impressum: {
             title: "Impressum",
             subtitle: "Angaben gemäß § 5 TMG",
-            text: "AM Publishing\nInhaberin: Maryia Surkant\nEinzelunternehmen\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nKontakt:\nE-Mail: am.hybridpublishing@gmail.com\nTelefon: +49 176 40444853\n\nUmsatzsteuer-ID gemäß § 27 a Umsatzsteuergesetz: Wird nachgereicht\n\nVerantwortlich für den Inhalt nach § 55 Abs. 2 RStV:\nMaryia Surkant, Mehrower Allee 71, 12687 Berlin"
+            text: "AM Publishing\nInhaberin: Maryia Surkant\nEinzelunternehmen\n\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nKontakt:\nE-Mail: am.hybridpublishing@gmail.com\nTelefon: 017640444853\n\nUmsatzsteuer-ID gemäß § 27 a Umsatzsteuergesetz\n33/553/02564\n\nVerantwortlich für den Inhalt nach § 55 Abs. 2 RStV\nMaryia Surkant\nMehrower Allee 71\n12687 Berlin"
         },
         terms: {
             title: "AGB",
@@ -1015,73 +1023,73 @@ export const translations: Record<Language, TranslationTree> = {
         },
         privacy: {
             title: "Datenschutzerklärung",
-            updated: "Stand: 2026",
-            intro: "Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Nachfolgend finden Sie detaillierte Informationen darüber, wie wir Ihre Daten erfassen, nutzen und schützen, in Übereinstimmung mit der Datenschutz-Grundverordnung (DSGVO).",
+            updated: "(Deutsch – maßgebliche Version)",
+            intro: "Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Personenbezogene Daten werden von uns nur im notwendigen Umfang und gemäß den gesetzlichen Datenschutzvorschriften verarbeitet.",
             sections: [
                 { 
                     title: "1. Verantwortliche Stelle", 
-                    text: "Verantwortlich für die Datenverarbeitung auf dieser Website ist:\n\nAM Publishing\nInhaberin: Maryia Surkant\nMehrower Allee 71, 12687 Berlin\nDeutschland\n\nEmail: am.hybridpublishing@gmail.com\nTelefon: +49 176 40444853" 
+                    text: "Verantwortlich für die Datenverarbeitung im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:\n\nAM Publishing\nInhaberin: Maryia Surkant\nMehrower Allee 71\n12687 Berlin\nDeutschland\nE-Mail: am.hybridpublishing@gmail.com\nTelefon: +49 176 40444853" 
                 },
                 { 
-                    title: "2. Datenerfassung und -verarbeitung", 
-                    text: "Beim Aufrufen unserer Website speichert der Webserver automatisch Daten in sogenannten Server-Log-Files, die Ihr Browser an uns übermittelt. Dies sind:\n- Browsertyp und -version\n- Verwendetes Betriebssystem\n- Referrer URL (die zuvor besuchte Seite)\n- Hostname des zugreifenden Rechners (IP-Adresse)\n- Uhrzeit der Serveranfrage\n\nDiese Daten sind technisch erforderlich, um die Website anzuzeigen sowie die Stabilität und Sicherheit zu gewährleisten (Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO)." 
+                    title: "2. Allgemeine Hinweise zur Datenverarbeitung", 
+                    text: "Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Personenbezogene Daten werden von uns nur im notwendigen Umfang und gemäß den gesetzlichen Datenschutzvorschriften verarbeitet.\n\nDiese Datenschutzerklärung informiert Sie darüber, welche personenbezogenen Daten wir erheben, wie wir sie verwenden und welche Rechte Sie haben." 
                 },
                 { 
-                    title: "3. Cookies", 
-                    text: "Unsere Website verwendet Cookies. Das sind kleine Textdateien, die auf Ihrem Endgerät gespeichert werden. Wir setzen nur technisch notwendige Session-Cookies ein (z.B. zur Speicherung des Warenkorbinhalts oder des Login-Status).\n\nSie können Ihren Browser so einstellen, dass Sie über das Setzen von Cookies informiert werden und Cookies nur im Einzelfall erlauben, die Annahme von Cookies für bestimmte Fälle oder generell ausschließen sowie das automatische Löschen der Cookies beim Schließen des Browsers aktivieren." 
+                    title: "3. Zugriffsdaten und Hosting", 
+                    text: "Beim Besuch unserer Website werden automatisch Informationen durch den Webserver erhoben (sogenannte Server-Logfiles), darunter:\n- IP-Adresse\n- Datum und Uhrzeit der Anfrage\n- aufgerufene Seite\n- Browsertyp und -version\n- Betriebssystem\n\nDiese Daten dienen ausschließlich der technischen Sicherstellung des Betriebs der Website und werden nicht mit anderen Datenquellen zusammengeführt.\n\n(Der Hosting-Anbieter wird ergänzt, sobald festgelegt.)" 
                 },
                 { 
-                    title: "4. Kontaktformular und E-Mail", 
-                    text: "Wenn Sie uns per Kontaktformular oder E-Mail Anfragen zukommen lassen, werden Ihre Angaben aus dem Anfrageformular inklusive der von Ihnen dort angegebenen Kontaktdaten zwecks Bearbeitung der Anfrage und für den Fall von Anschlussfragen bei uns gespeichert. Diese Daten geben wir nicht ohne Ihre Einwilligung weiter." 
+                    title: "4. Kontaktformular", 
+                    text: "Wenn Sie uns über das Kontaktformular kontaktieren, werden die von Ihnen angegebenen Daten (z. B. Name, E-Mail-Adresse, Nachricht) zur Bearbeitung Ihrer Anfrage gespeichert.\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertrag oder vorvertragliche Maßnahmen)\nArt. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an Kommunikation)\n\nDie Daten werden gelöscht, sobald sie für den Zweck der Kommunikation nicht mehr erforderlich sind." 
                 },
                 { 
-                    title: "5. Datenverarbeitung zur Vertragserfüllung", 
-                    text: "Wir verarbeiten personenbezogene Daten (z.B. Name, Adresse, E-Mail, Zahlungsdaten) nur, soweit sie für die Begründung, inhaltliche Ausgestaltung oder Änderung des Rechtsverhältnisses erforderlich sind (Bestandsdaten). Dies erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO, der die Verarbeitung von Daten zur Erfüllung eines Vertrags oder vorvertraglicher Maßnahmen gestattet.\n\nWir nutzen Ihre Daten um:\n- Ihre Bestellungen abzuwickeln und zu liefern\n- Rechnungen zu stellen\n- Sie über den Bestellstatus zu informieren" 
+                    title: "5. Einreichung von Manuskripten", 
+                    text: "Auf unserer Website besteht die Möglichkeit, Manuskripte einzureichen. Dabei verarbeiten wir personenbezogene Daten wie:\n- Name\n- E-Mail-Adresse\n- ggf. weitere freiwillige Angaben\n- hochgeladene Dateien (Manuskripte)\n\nDiese Daten werden ausschließlich zur Prüfung der Einreichung und zur Kontaktaufnahme verwendet.\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen)\n\nDie übermittelten Daten werden gelöscht, sobald das Einreichungsverfahren abgeschlossen ist, sofern keine gesetzlichen Aufbewahrungspflichten bestehen." 
                 },
                 { 
-                    title: "6. Zahlungsdienstleister", 
-                    text: "Zur Abwicklung von Zahlungen nutzen wir externe Dienstleister. Wir speichern keine vollständigen Kreditkartendaten auf unseren Servern.\n\n6.1. PayPal\nBei Zahlung via PayPal werden Daten an PayPal (Europe) S.à r.l. et Cie, S.C.A., 22-24 Boulevard Royal, L-2449 Luxembourg übermittelt. Die Datenübermittlung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. a DSGVO (Einwilligung) und Art. 6 Abs. 1 lit. b DSGVO (Verarbeitung zur Vertragserfüllung).\n\n6.2. Stripe\nBei Kreditkartenzahlung erfolgt die Abwicklung über Stripe Payments Europe, Ltd., c/o A&L Goodbody, Ifsc, North Wall Quay, Dublin 1, Ireland. Ihre Zahlungsdaten werden ausschließlich zur Zahlungsabwicklung an Stripe übermittelt." 
+                    title: "6. Verkauf von Büchern und digitalen Produkten", 
+                    text: "Bei der Bestellung von gedruckten oder elektronischen Büchern verarbeiten wir personenbezogene Daten, die zur Abwicklung des Kaufvertrags erforderlich sind, insbesondere:\n- Name\n- Rechnungs- und ggf. Lieferadresse\n- E-Mail-Adresse\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\n\n6a. Zahlungsabwicklung über PayPal\nPayPal (Europe) S.à r.l. et Cie, S.C.A.\n22–24 Boulevard Royal\nL-2449 Luxemburg\n\nWenn Sie die Zahlung via PayPal auswählen, werden die zur Zahlungsabwicklung erforderlichen personenbezogenen Daten an PayPal übermittelt. Dazu gehören insbesondere:\n- Name\n- E-Mail-Adresse\n- Zahlungsbetrag\n- ggf. Rechnungs- und Lieferadresse\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\n\nWeitere Informationen zum Datenschutz bei PayPal:\nhttps://www.paypal.com/de/webapps/mpp/ua/privacy-full\n\n6b. Zahlungsabwicklung über Stripe (Kreditkarte)\nStripe Payments Europe, Ltd.\n1 Grand Canal Street Lower\nGrand Canal Dock\nDublin, Irland\n\nStripe verarbeitet personenbezogene Daten, die zur Zahlungsabwicklung erforderlich sind, darunter:\n- Name\n- E-Mail-Adresse\n- Zahlungsbetrag\n- Zahlungsdaten (Kreditkartendaten werden direkt von Stripe verarbeitet)\n\nWir erhalten keine vollständigen Kreditkartendaten.\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\n\nWeitere Informationen zum Datenschutz bei Stripe:\nhttps://stripe.com/de/privacy" 
                 },
                 { 
-                    title: "7. Speicherdauer", 
-                    text: "Wir speichern Ihre personenbezogenen Daten nur so lange, wie es zur Erreichung der Zwecke erforderlich ist, für die sie erhoben wurden, oder wie es gesetzlich vorgesehen ist (z.B. Aufbewahrungsfristen nach Handels- und Steuerrecht - 10 Jahre für Rechnungen)." 
+                    title: "7. Cookies", 
+                    text: "Unsere Website verwendet technisch notwendige Cookies sowie Cookies von Zahlungsdienstleistern (PayPal, Stripe), die zur Durchführung des Bezahlvorgangs erforderlich sind.\n\nEs werden keine Tracking-, Analyse- oder Marketing-Cookies eingesetzt.\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\nArt. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer sicheren Zahlungsabwicklung)" 
                 },
                 { 
-                    title: "8. Weitergabe an Dritte", 
-                    text: "Eine Übermittlung von Daten an Dritte erfolgt nur im Rahmen der gesetzlichen Vorgaben. Wir geben die Daten der Nutzer an Dritte nur dann weiter, wenn dies z.B. auf Grundlage des Art. 6 Abs. 1 lit. b DSGVO für Vertragszwecke erforderlich ist (z.B. an Logistikunternehmen zur Warenlieferung) oder auf Grundlage berechtigter Interessen an einem wirtschaftlichen und effektiven Betrieb unseres Geschäftsbetriebes." 
+                    title: "8. Weitergabe von Daten an Dritte", 
+                    text: "Eine Weitergabe personenbezogener Daten an Dritte erfolgt nur, wenn:\n- dies zur Vertragserfüllung erforderlich ist\n- eine gesetzliche Verpflichtung besteht\n- Sie ausdrücklich eingewilligt haben\n\nEine darüberhinausgehende Weitergabe findet nicht statt." 
                 },
                 { 
-                    title: "9. Rechte der Nutzer", 
-                    text: "Sie haben nach geltendem Recht jederzeit das Recht:\n- Auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten (Art. 15 DSGVO).\n- Auf Berichtigung unrichtiger Daten (Art. 16 DSGVO).\n- Auf Löschung Ihrer Daten (Art. 17 DSGVO), sofern keine Aufbewahrungspflichten entgegenstehen.\n- Auf Einschränkung der Verarbeitung (Art. 18 DSGVO).\n- Auf Datenübertragbarkeit (Art. 20 DSGVO).\n- Auf Widerruf Ihrer Einwilligung zur Datenverarbeitung (Art. 7 Abs. 3 DSGVO)." 
+                    title: "9. Ihre Rechte", 
+                    text: "Sie haben das Recht:\n- auf Auskunft über Ihre gespeicherten Daten (Art. 15 DSGVO)\n- auf Berichtigung unrichtiger Daten (Art. 16 DSGVO)\n- auf Löschung Ihrer Daten (Art. 17 DSGVO)\n- auf Einschränkung der Verarbeitung (Art. 18 DSGVO)\n- auf Datenübertragbarkeit (Art. 20 DSGVO)\n- auf Widerspruch gegen die Verarbeitung (Art. 21 DSGVO)\n\nZur Ausübung Ihrer Rechte wenden Sie sich bitte an die oben genannte Kontaktadresse." 
                 },
                 { 
-                    title: "10. Datensicherheit", 
-                    text: "Wir nutzen aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte eine SSL-bzw. TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von “http://” auf “https://” wechselt und an dem Schloss-Symbol in Ihrer Browserzeile." 
+                    title: "10. Beschwerderecht bei der Aufsichtsbehörde", 
+                    text: "Sie haben das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren. Zuständig ist insbesondere:\n\nBerliner Beauftragte für Datenschutz und Informationsfreiheit\nAlt-Moabit 59–61\n10555 Berlin" 
                 },
                 { 
-                    title: "11. Beschwerderecht", 
-                    text: "Im Falle von Verstößen gegen die DSGVO steht Ihnen ein Beschwerderecht bei einer Aufsichtsbehörde zu. Die zuständige Aufsichtsbehörde für datenschutzrechtliche Fragen ist der Landesdatenschutzbeauftragte des Bundeslandes Berlin (Berliner Beauftragte für Datenschutz und Informationsfreiheit)." 
+                    title: "11. Änderungen dieser Datenschutzerklärung", 
+                    text: "Wir behalten uns vor, diese Datenschutzerklärung anzupassen, um sie an rechtliche Anforderungen oder Änderungen unserer Leistungen anzupassen." 
                 }
             ]
         },
         authors: {
           title: "Für Autoren",
-          subtitle: "Wir suchen radikale Ideen, neue Stimmen und Texte, die die Architektur des Denkens verändern.",
+          subtitle: "Wir suchen Autor:innen, denen in der Literatur nicht nur Handlung, sondern auch Tiefe, psychologische Präzision und Atmosphäre wichtig sind.",
           manifesto: "Manifest",
           what_we_publish: "Was wir veröffentlichen",
-          p1: "AM Publishing ist spezialisiert auf intellektuelle Prosa, Sachbücher in Geisteswissenschaften, Kunst und Philosophie. Wir glauben an das Buch als ästhetisches Objekt.",
-          p2: "Wir beschränken uns nicht auf Genres, sind aber immer an der Tiefe der Recherche, der Einzigartigkeit der Stimme des Autors und der Relevanz des Themas für den modernen Kontext interessiert.",
+          p1: "AM Publishing ist spezialisiert auf literarische Prosa und Autofiktion. Wir glauben an das Buch als ästhetisches Objekt.",
+          p2: "Wir beschränken uns nicht auf Genres, fühlen uns jedoch immer wieder zu Texten mit Tiefe, psychologischer Präzision und einer starken eigenen Stimme hingezogen.",
           prose: "Prosa",
-          prose_sub: "Belletristik & Essays",
-          poetry: "Lyrik",
-          poetry_sub: "Zeitgenössisch",
+          prose_sub: "Fiktion",
+          poetry: "Autofiktion",
+          poetry_sub: "Literatur gelebter Erfahrung",
           process_title: "Einreichungsprozess",
           step1_t: "Vorbereitung",
-          step1_d: "Exposé (bis zu 2 Seiten), Autoreninfo und Publikationsliste. Manuskriptauszug (20-30 Seiten).",
+          step1_d: "Bitte senden Sie eine Synopsis mit maximal 4.000 Zeichen inklusive Leerzeichen. Das Dokument sollte in Times New Roman, 12 pt, schwarzer Schrift auf weißem Hintergrund, einzeilig und mit Standardrändern formatiert sein.",
           step2_t: "Einreichung",
-          step2_d: "Senden Sie Materialien über unser Formular. Geben Sie die Art der Zusammenarbeit an.",
+          step2_d: "Senden Sie Materialien über unser Formular.",
           step3_t: "Prüfung",
-          step3_d: "Wir antworten innerhalb von 1-2 Monaten. Aufgrund der hohen Anzahl an Einsendungen begutachten wir keine abgelehnten Texte.",
+          step3_d: "Wir antworten innerhalb von 1-3 Monaten. Aufgrund der hohen Anzahl an Einsendungen begutachten wir keine abgelehnten Texte.",
           ready: "Bereit, ein Manuskript einzureichen?",
           ready_sub: "Wir sind immer auf der Suche nach neuen Namen. Werden Sie Teil von AM Publishing.",
           format_note: "* Wir akzeptieren Dateien im PDF- oder Word-Format",
@@ -1089,10 +1097,12 @@ export const translations: Record<Language, TranslationTree> = {
         },
         about: {
           title: "Über uns",
-          subtitle: "Unabhängiger Verlag im Herzen Europas mit einem globalen Blick auf Kultur.",
+          subtitle: "Unabhängiger russischsprachiger Verlag mit Sitz in Berlin.",
           mission: "Mission",
-          p1: "AM Publishing wurde in Berlin als Plattform für den Dialog zwischen Kulturen und Generationen gegründet. Wir glauben, dass ein Buch nicht nur ein Informationsträger ist, sondern ein Kunstobjekt und ein Werkzeug zum Denken.",
-          p2: "Unser Katalog vereint Übersetzungen moderner Klassiker, mutige Debüts und tiefe Forschungen in der Kunsttheorie. Wir streben nach höchster Qualität in Druck und Design.",
+          p1: "AM Publishing wurde in Berlin als Verlag gegründet, der sich der zeitgenössischen russischsprachigen Literatur widmet. Wir glauben, dass ein Buch nicht bloß eine Geschichte ist, sondern eine Erfahrung, die Leser:innen verwandeln kann.",
+          p2: "Unsere Mission ist es, Literatur zu fördern, die Perspektiven verschiebt, zum Nachdenken anregt und noch lange nach der letzten Seite in einem Menschen nachhallt.",
+          stat1: "Kleine Auflagen",
+          stat2: "Redaktionelle Manuskriptprüfung",
           team: "Team",
           role1: "Chefredakteur",
           role2: "Art Director",
@@ -1107,7 +1117,9 @@ export const translations: Record<Language, TranslationTree> = {
           review_title: "Rezensionsexemplar anfordern",
           review_desc: "Wir stellen Buchrezensenten, Journalisten und Bloggern mit einem Publikum von über 5000 Abonnenten digitale und gedruckte Exemplare neuer Bücher zur Verfügung.",
           contact_pr: "PR-Manager kontaktieren",
-          mentions: "Aktuelle Erwähnungen",
+          interview_title: "Interviewanfragen",
+          interview_desc: "Autor:innen-Interviews, Verlagsprofile und Medienanfragen.",
+          interview_cta: "Anfrage senden",
         }
       },
     error: {

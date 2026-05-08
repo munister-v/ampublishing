@@ -14,8 +14,8 @@ export const Footer: React.FC = () => {
          {/* 1. BRAND BLOCK */}
          <div className="p-10 border-b md:border-b-0 md:border-r border-white/20 flex flex-col justify-between">
             <div>
-               <h2 className="text-6xl font-serif mb-6 leading-none">AM<br/>Pub.</h2>
-               <p className="font-mono text-xs max-w-[150px] opacity-60">
+               <h2 className="text-6xl font-serif mb-6 leading-none">AM Publishing</h2>
+               <p className="font-mono text-xs max-w-[260px] opacity-60">
                   {t('footer.desc')}
                </p>
             </div>
@@ -25,8 +25,9 @@ export const Footer: React.FC = () => {
                   <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer" className="hover:text-accent flex items-center gap-2">
                      <Send size={12} /> Telegram {'->'}
                   </a>
-                  <a href="#" className="hover:text-accent">Instagram {'->'}</a>
-                  <a href="#" className="hover:text-accent">Are.na {'->'}</a>
+                  <a href="https://www.instagram.com/am.publishing?igsh=b2JoMDZqdDJzMXdj" target="_blank" rel="noopener noreferrer" className="hover:text-accent">
+                     Instagram {'->'}
+                  </a>
                </div>
             </div>
          </div>
@@ -35,7 +36,7 @@ export const Footer: React.FC = () => {
          <div className="p-10 border-b md:border-b-0 md:border-r border-white/20">
             <h3 className="font-bold text-xs uppercase tracking-widest mb-8 text-accent">{t('footer.directory')}</h3>
             <ul className="space-y-4 font-serif text-2xl">
-               <li><Link to="/shop" className="hover:text-accent transition-all">{t('nav.catalog')}</Link></li>
+               <li><Link to="/catalog" className="hover:text-accent transition-all">{t('nav.catalog')}</Link></li>
                <li><Link to="/authors" className="hover:text-accent transition-all">{t('nav.authors')}</Link></li>
                <li><Link to="/about" className="hover:text-accent transition-all">{t('nav.about')}</Link></li>
                <li><Link to="/media" className="hover:text-accent transition-all">{t('nav.media')}</Link></li>

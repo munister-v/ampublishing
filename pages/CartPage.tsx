@@ -22,7 +22,7 @@ export const CartPage: React.FC = () => {
       {cart.length === 0 ? (
         <div className="p-20 text-center">
            <p className="font-mono text-xl mb-8 uppercase text-gray-500">{t('cart.empty_desc')}</p>
-           <Link to="/shop" className="bg-primary text-white px-8 py-3 uppercase font-bold text-xs hover:bg-accent transition-colors">
+           <Link to="/catalog" className="bg-primary text-white px-8 py-3 uppercase font-bold text-xs hover:bg-accent transition-colors">
               {t('cart.go_to_catalog')}
            </Link>
         </div>

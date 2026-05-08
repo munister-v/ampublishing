@@ -8,6 +8,7 @@ import { useApp } from '../AppContext';
 export const HomePage: React.FC = () => {
   const { t, books, news, language, showToast } = useApp();
   const newBooks = books.filter(b => b.badges.includes('new')).slice(0, 4);
+  const heroLine2 = t('home.hero_title_2');
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));
@@ -30,9 +31,11 @@ export const HomePage: React.FC = () => {
               <div className="z-10 mt-12 md:mt-0 overflow-hidden">
                 <h1 className="text-6xl md:text-8xl lg:text-[8vw] xl:text-[7vw] leading-[0.85] font-serif text-primary uppercase mix-blend-darken break-words hyphens-auto">
                   <div className="animate-fade-up gpu-accelerated">{t('home.hero_title_1')}</div>
-                  <div className="animate-fade-up delay-200 gpu-accelerated">
-                    {t('home.hero_title_2')}
-                  </div>
+                  {heroLine2 ? (
+                    <div className="animate-fade-up delay-200 gpu-accelerated">
+                      {heroLine2}
+                    </div>
+                  ) : null}
                 </h1>
               </div>
 
@@ -40,7 +43,7 @@ export const HomePage: React.FC = () => {
                  <p className="max-w-xs text-sm font-mono leading-tight">
                     {t('home.hero_subtitle')}
                  </p>
-                 <Link to="/shop" className="bg-primary text-white px-10 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent hover:text-primary transition-colors border border-transparent hover:border-primary duration-500">
+                 <Link to="/catalog" className="bg-primary text-white px-10 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent hover:text-primary transition-colors border border-transparent hover:border-primary duration-500">
                     {t('home.hero_cta')}
                  </Link>
               </div>
@@ -50,7 +53,7 @@ export const HomePage: React.FC = () => {
            <div className="lg:col-span-4 bg-primary relative group border-l border-primary -ml-[1px] overflow-hidden min-h-[300px] lg:min-h-auto">
               <div className="w-full h-full overflow-hidden">
                 <img 
-                   src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800" 
+                   src="https://ampublishing.org/media/t/am-publishing-berlin/images/95085dd3-2571-4c50-9ca2-6a2751200d40.webp"
                    className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-[2000ms] ease-out-quart mix-blend-luminosity group-hover:scale-105 gpu-accelerated"
                 />
               </div>
@@ -95,7 +98,7 @@ export const HomePage: React.FC = () => {
                   ))}
                </div>
                <div className="border-b border-primary p-4 flex justify-end">
-                  <Link to="/shop" className="text-xs font-mono uppercase underline hover:text-accent transition-colors duration-300">
+                  <Link to="/catalog" className="text-xs font-mono uppercase underline hover:text-accent transition-colors duration-300">
                      {t('home.view_all')} &rarr;
                   </Link>
                </div>

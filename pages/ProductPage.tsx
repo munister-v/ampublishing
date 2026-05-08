@@ -70,7 +70,7 @@ export const ProductPage: React.FC = () => {
       
       {/* HEADER NAV */}
       <div className="border-b border-primary px-4 py-2 flex justify-between items-center bg-white sticky top-[60px] md:top-[80px] z-20">
-         <Link to="/shop" className="flex items-center gap-2 text-[10px] uppercase font-bold hover:text-accent">
+         <Link to="/catalog" className="flex items-center gap-2 text-[10px] uppercase font-bold hover:text-accent">
             <ArrowLeft size={12} /> {t('cart.back_to_catalog')}
          </Link>
          {/* Fix: Display variant ISBN or fallback */}
