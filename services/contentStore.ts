@@ -141,4 +141,23 @@ export const contentStore = {
     }
     return this.saveTranslationOverrides(overrides);
   },
+
+  exportContent() {
+    return {
+      database: this.getDatabase(),
+      overrides: this.getTranslationOverrides(),
+      exportedAt: new Date().toISOString(),
+      version: 1,
+    };
+  },
+
+  importContent(payload: { database?: Record<Language, LocalizedCatalogData>; overrides?: TranslationOverrides }) {
+    if (payload.database) {
+      this.saveDatabase(payload.database);
+    }
+    if (payload.overrides) {
+      this.saveTranslationOverrides(payload.overrides);
+    }
+    return this.exportContent();
+  },
 };

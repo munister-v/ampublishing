@@ -632,14 +632,28 @@ export const CheckoutPage: React.FC = () => {
 
                       {/* INVOICE ЗАГЛУШКА */}
                       {formData.paymentMethod === 'invoice' && (
-                          <div className="bg-[#F8F9FA] border border-gray-200 p-12 text-center animate-fade-in">
-                              <p className="text-gray-500 font-mono text-sm mb-6">{t('checkout.invoice_desc')}</p>
-                              <div className="w-16 h-16 mx-auto bg-gray-200 text-gray-500 rounded-full flex items-center justify-center">
-                                  <FileText size={32} />
-                              </div>
+                      <div className="bg-[#F8F9FA] border border-gray-200 p-12 text-center animate-fade-in">
+                          <p className="text-gray-500 font-mono text-sm mb-6">{t('checkout.invoice_desc')}</p>
+                          <div className="w-16 h-16 mx-auto bg-gray-200 text-gray-500 rounded-full flex items-center justify-center">
+                              <FileText size={32} />
                           </div>
-                      )}
-                   </div>
+                          <div className="mt-8 text-left max-w-xl mx-auto">
+                            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4">{t('checkout.invoice_steps_title')}</p>
+                            <div className="space-y-3 text-sm text-gray-600">
+                              <p>1. {t('checkout.invoice_step_1')}</p>
+                              <p>2. {t('checkout.invoice_step_2')}</p>
+                              <p>3. {t('checkout.invoice_step_3')}</p>
+                            </div>
+                          </div>
+                      </div>
+                  )}
+
+                  <div className="bg-[#F8F9FA] border border-gray-200 p-6 animate-fade-in">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">{t('checkout.payment_method')}</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">{t('checkout.payment_note')}</p>
+                    <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-accent">{t('checkout.payment_timeline')}</p>
+                  </div>
+               </div>
                 )}
 
                 {/* НАВИГАЦИЯ ПО ФОРМЕ */}

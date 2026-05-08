@@ -287,6 +287,17 @@ export const ProductPage: React.FC = () => {
                      </div>
                   </section>
                ) : null}
+
+               <section className="border-t border-primary py-10">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
+                     {t('product.payment_info_title')}
+                  </p>
+                  <div className="border border-primary bg-[#F4F4F0] p-6 md:p-8">
+                     <p className="text-lg leading-relaxed text-gray-700">
+                        {t('product.payment_info_text')}
+                     </p>
+                  </div>
+               </section>
             </div>
 
             {/* ACTION FOOTER */}

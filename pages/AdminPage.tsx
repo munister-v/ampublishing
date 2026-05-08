@@ -17,6 +17,11 @@ import {
   Plus,
   Loader2,
   CheckCircle,
+  Upload,
+  Download,
+  ImagePlus,
+  Menu,
+  X,
 } from 'lucide-react';
 
 type AdminTab = 'copy' | 'books' | 'news' | 'orders';
@@ -34,6 +39,17 @@ type ContentGroup = {
   icon: React.ReactNode;
   fields: ContentField[];
 };
+
+type AdminDraftState = {
+  copyDraftsByLanguage: Partial<Record<Language, Record<string, string>>>;
+  selectedBookIdByLanguage: Partial<Record<Language, string>>;
+  selectedNewsIdByLanguage: Partial<Record<Language, string>>;
+  bookDraftByLanguage: Partial<Record<Language, Book>>;
+  newsDraftByLanguage: Partial<Record<Language, NewsItem>>;
+  bookJsonDraftsByLanguage: Partial<Record<Language, { variants: string; themes: string; reviews: string }>>;
+};
+
+const ADMIN_DRAFTS_KEY = 'am-admin-drafts-v2';
 
 const contentGroups: ContentGroup[] = [
   {
@@ -55,6 +71,14 @@ const contentGroups: ContentGroup[] = [
       { key: 'home.stats_countries_value', label: 'Countries value', type: 'text' },
       { key: 'home.stats_delivery', label: 'Delivery label', type: 'text' },
       { key: 'home.stats_delivery_value', label: 'Delivery value', type: 'text' },
+      { key: 'product.payment_info_title', label: 'Product payment title', type: 'text' },
+      { key: 'product.payment_info_text', label: 'Product payment text', type: 'textarea' },
+      { key: 'checkout.payment_note', label: 'Checkout payment note', type: 'textarea' },
+      { key: 'checkout.payment_timeline', label: 'Checkout payment timeline', type: 'text' },
+      { key: 'checkout.invoice_steps_title', label: 'Invoice steps title', type: 'text' },
+      { key: 'checkout.invoice_step_1', label: 'Invoice step 1', type: 'text' },
+      { key: 'checkout.invoice_step_2', label: 'Invoice step 2', type: 'text' },
+      { key: 'checkout.invoice_step_3', label: 'Invoice step 3', type: 'text' },
     ],
   },
   {
@@ -156,6 +180,132 @@ const parseParagraphs = (value: string) =>
 
 const cloneBook = (book: Book) => JSON.parse(JSON.stringify(book)) as Book;
 
+const getAdminDraftState = (): AdminDraftState => {
+  if (typeof window === 'undefined') {
+    return {
+      copyDraftsByLanguage: {},
+      selectedBookIdByLanguage: {},
+      selectedNewsIdByLanguage: {},
+      bookDraftByLanguage: {},
+      newsDraftByLanguage: {},
+      bookJsonDraftsByLanguage: {},
+    };
+  }
+
+  try {
+    const raw = localStorage.getItem(ADMIN_DRAFTS_KEY);
+    if (!raw) {
+      return {
+        copyDraftsByLanguage: {},
+        selectedBookIdByLanguage: {},
+        selectedNewsIdByLanguage: {},
+        bookDraftByLanguage: {},
+        newsDraftByLanguage: {},
+        bookJsonDraftsByLanguage: {},
+      };
+    }
+    return JSON.parse(raw);
+  } catch {
+    return {
+      copyDraftsByLanguage: {},
+      selectedBookIdByLanguage: {},
+      selectedNewsIdByLanguage: {},
+      bookDraftByLanguage: {},
+      newsDraftByLanguage: {},
+      bookJsonDraftsByLanguage: {},
+    };
+  }
+};
+
+const saveAdminDraftState = (nextState: AdminDraftState) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ADMIN_DRAFTS_KEY, JSON.stringify(nextState));
+};
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('File read failed'));
+    reader.readAsDataURL(file);
+  });
+
+const optimizeImageFile = async (file: File) => {
+  const source = await readFileAsDataUrl(file);
+
+  if (!file.type.startsWith('image/')) {
+    return source;
+  }
+
+  const img = new Image();
+  img.src = source;
+
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error('Image load failed'));
+  });
+
+  const maxSide = 1600;
+  const ratio = Math.min(1, maxSide / Math.max(img.width, img.height));
+  const width = Math.max(1, Math.round(img.width * ratio));
+  const height = Math.max(1, Math.round(img.height * ratio));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return source;
+  ctx.drawImage(img, 0, 0, width, height);
+
+  return canvas.toDataURL('image/webp', 0.84);
+};
+
+const ImageField: React.FC<{
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}> = ({ label, value, onChange }) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploading(true);
+      const dataUrl = await optimizeImageFile(file);
+      onChange(dataUrl);
+    } finally {
+      setIsUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-bold">{label}</label>
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary"
+        placeholder="Image URL or uploaded image data"
+      />
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+        <label className="inline-flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-xs uppercase tracking-[0.18em] cursor-pointer hover:bg-gray-50">
+          {isUploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
+          {isUploading ? 'Optimizing...' : 'Upload image'}
+          <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+        </label>
+        {value ? <span className="text-xs text-gray-400 break-all">Uploaded from PC, optimized automatically and stored in admin content state</span> : null}
+      </div>
+      {value ? (
+        <div className="border border-gray-200 bg-[#F8F8F5] p-3">
+          <img src={value} alt={label} className="max-h-48 w-auto object-contain" />
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 export const AdminPage: React.FC = () => {
   const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast } = useApp();
   const [activeTab, setActiveTab] = useState<AdminTab>('copy');
@@ -169,6 +319,10 @@ export const AdminPage: React.FC = () => {
   const [selectedNewsId, setSelectedNewsId] = useState<string>('');
   const [newsDraft, setNewsDraft] = useState<NewsItem | null>(null);
   const [copyDrafts, setCopyDrafts] = useState<Record<string, string>>({});
+  const [bookJsonDrafts, setBookJsonDrafts] = useState({ variants: '[]', themes: '[]', reviews: '[]' });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [lastDraftSavedAt, setLastDraftSavedAt] = useState<string>('');
+  const [lastPublishedAt, setLastPublishedAt] = useState<string>('');
 
   const loadAdminData = async () => {
     setIsRefreshing(true);
@@ -195,16 +349,51 @@ export const AdminPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    setSidebarOpen(false);
+  }, [activeTab]);
+
+  useEffect(() => {
     if (!database) return;
     const currentBook = database[selectedLanguage].books.find(book => book.id === selectedBookId) || database[selectedLanguage].books[0] || null;
     setBookDraft(currentBook ? cloneBook(currentBook) : null);
   }, [database, selectedLanguage, selectedBookId]);
 
   useEffect(() => {
+    if (!bookDraft) return;
+    setBookJsonDrafts({
+      variants: JSON.stringify(bookDraft.variants || [], null, 2),
+      themes: JSON.stringify(bookDraft.story?.themes || [], null, 2),
+      reviews: JSON.stringify(bookDraft.story?.reviews || [], null, 2),
+    });
+  }, [bookDraft]);
+
+  useEffect(() => {
     if (!database) return;
     const currentNews = database[selectedLanguage].news.find(item => item.id === selectedNewsId) || database[selectedLanguage].news[0] || null;
     setNewsDraft(currentNews ? { ...currentNews } : null);
   }, [database, selectedLanguage, selectedNewsId]);
+
+  useEffect(() => {
+    const draftState = getAdminDraftState();
+    if (draftState.selectedBookIdByLanguage?.[selectedLanguage]) {
+      setSelectedBookId(draftState.selectedBookIdByLanguage[selectedLanguage] || '');
+    }
+    if (draftState.selectedNewsIdByLanguage?.[selectedLanguage]) {
+      setSelectedNewsId(draftState.selectedNewsIdByLanguage[selectedLanguage] || '');
+    }
+    if (draftState.copyDraftsByLanguage?.[selectedLanguage]) {
+      setCopyDrafts(draftState.copyDraftsByLanguage[selectedLanguage] || {});
+    }
+    if (draftState.bookDraftByLanguage?.[selectedLanguage]) {
+      setBookDraft(cloneBook(draftState.bookDraftByLanguage[selectedLanguage] as Book));
+    }
+    if (draftState.newsDraftByLanguage?.[selectedLanguage]) {
+      setNewsDraft({ ...(draftState.newsDraftByLanguage[selectedLanguage] as NewsItem) });
+    }
+    if (draftState.bookJsonDraftsByLanguage?.[selectedLanguage]) {
+      setBookJsonDrafts(draftState.bookJsonDraftsByLanguage[selectedLanguage] || { variants: '[]', themes: '[]', reviews: '[]' });
+    }
+  }, [selectedLanguage]);
 
   const copyValues = useMemo(() => {
     const defaults = translations[selectedLanguage];
@@ -224,8 +413,66 @@ export const AdminPage: React.FC = () => {
         nextDrafts[field.key] = serializeFieldValue(copyValues[field.key], field.type);
       });
     });
-    setCopyDrafts(nextDrafts);
+    setCopyDrafts(prev => (Object.keys(prev).length === 0 ? nextDrafts : prev));
   }, [copyValues]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      const previous = getAdminDraftState();
+      saveAdminDraftState({
+        ...previous,
+        copyDraftsByLanguage: { ...(previous.copyDraftsByLanguage || {}), [selectedLanguage]: copyDrafts },
+        selectedBookIdByLanguage: { ...(previous.selectedBookIdByLanguage || {}), [selectedLanguage]: selectedBookId },
+        selectedNewsIdByLanguage: { ...(previous.selectedNewsIdByLanguage || {}), [selectedLanguage]: selectedNewsId },
+        bookDraftByLanguage: bookDraft ? { ...(previous.bookDraftByLanguage || {}), [selectedLanguage]: bookDraft } : previous.bookDraftByLanguage || {},
+        newsDraftByLanguage: newsDraft ? { ...(previous.newsDraftByLanguage || {}), [selectedLanguage]: newsDraft } : previous.newsDraftByLanguage || {},
+        bookJsonDraftsByLanguage: { ...(previous.bookJsonDraftsByLanguage || {}), [selectedLanguage]: bookJsonDrafts },
+      });
+      setLastDraftSavedAt(new Date().toLocaleTimeString());
+    }, 500);
+
+    return () => window.clearTimeout(timeout);
+  }, [selectedLanguage, copyDrafts, selectedBookId, selectedNewsId, bookDraft, newsDraft, bookJsonDrafts]);
+
+  const copyJsonErrors = useMemo(() => {
+    const errors: Record<string, string> = {};
+    contentGroups.forEach(group => {
+      group.fields.forEach(field => {
+        if (field.type !== 'json') return;
+        try {
+          parseJsonField(copyDrafts[field.key] || '');
+        } catch {
+          errors[field.key] = 'Invalid JSON';
+        }
+      });
+    });
+    return errors;
+  }, [copyDrafts]);
+
+  const bookJsonErrors = useMemo(() => {
+    const errors: Record<string, string> = {};
+    try { parseJsonField(bookJsonDrafts.variants); } catch { errors.variants = 'Invalid variants JSON'; }
+    try { parseJsonField(bookJsonDrafts.themes); } catch { errors.themes = 'Invalid themes JSON'; }
+    try { parseJsonField(bookJsonDrafts.reviews); } catch { errors.reviews = 'Invalid reviews JSON'; }
+    return errors;
+  }, [bookJsonDrafts]);
+
+  const bookRequiredErrors = useMemo(() => {
+    if (!bookDraft) return [];
+    const issues: string[] = [];
+    if (!bookDraft.title.trim()) issues.push('Title missing');
+    if (!bookDraft.author.trim()) issues.push('Author missing');
+    if (!bookDraft.coverUrl.trim()) issues.push('Cover image missing');
+    return issues;
+  }, [bookDraft]);
+
+  const newsRequiredErrors = useMemo(() => {
+    if (!newsDraft) return [];
+    const issues: string[] = [];
+    if (!newsDraft.title.trim()) issues.push('News title missing');
+    if (!newsDraft.preview.trim()) issues.push('News preview missing');
+    return issues;
+  }, [newsDraft]);
 
   const handleSaveTranslationField = async (field: ContentField) => {
     const rawValue = copyDrafts[field.key] ?? '';
@@ -235,6 +482,7 @@ export const AdminPage: React.FC = () => {
       const nextOverrides = await api.setTranslationValue(selectedLanguage, field.key, parsedValue);
       setOverrides(nextOverrides);
       await reloadContent();
+      setLastPublishedAt(new Date().toLocaleTimeString());
       showToast(`${field.label} saved`);
     } catch {
       showToast(`Could not save ${field.label}`, 'error');
@@ -249,6 +497,7 @@ export const AdminPage: React.FC = () => {
       const nextOverrides = await api.resetTranslationValue(selectedLanguage, field.key);
       setOverrides(nextOverrides);
       await reloadContent();
+      setLastPublishedAt(new Date().toLocaleTimeString());
       showToast(`${field.label} reset`);
     } catch {
       showToast(`Could not reset ${field.label}`, 'error');
@@ -260,14 +509,23 @@ export const AdminPage: React.FC = () => {
   const handleSaveBook = async () => {
     if (!bookDraft) return;
     try {
+      const parsedVariants = parseJsonField(bookJsonDrafts.variants);
+      const parsedThemes = parseJsonField(bookJsonDrafts.themes);
+      const parsedReviews = parseJsonField(bookJsonDrafts.reviews);
       setSavingKey(`book:${bookDraft.id}`);
       await api.upsertBook(selectedLanguage, {
         ...bookDraft,
         genre: bookDraft.genre.filter(Boolean),
-        variants: bookDraft.variants || [],
+        variants: parsedVariants || [],
+        story: {
+          ...bookDraft.story!,
+          themes: parsedThemes || [],
+          reviews: parsedReviews || [],
+        },
       });
       await reloadContent();
       await loadAdminData();
+      setLastPublishedAt(new Date().toLocaleTimeString());
       showToast(`Book ${bookDraft.title || bookDraft.id} saved`);
     } catch {
       showToast('Could not save book', 'error');
@@ -284,6 +542,7 @@ export const AdminPage: React.FC = () => {
       setSelectedBookId('');
       await reloadContent();
       await loadAdminData();
+      setLastPublishedAt(new Date().toLocaleTimeString());
       showToast('Book removed');
     } catch {
       showToast('Could not remove book', 'error');
@@ -299,6 +558,7 @@ export const AdminPage: React.FC = () => {
       await api.upsertNewsItem(selectedLanguage, newsDraft);
       await reloadContent();
       await loadAdminData();
+      setLastPublishedAt(new Date().toLocaleTimeString());
       showToast(`News ${newsDraft.title || newsDraft.id} saved`);
     } catch {
       showToast('Could not save news', 'error');
@@ -315,6 +575,7 @@ export const AdminPage: React.FC = () => {
       setSelectedNewsId('');
       await reloadContent();
       await loadAdminData();
+      setLastPublishedAt(new Date().toLocaleTimeString());
       showToast('News removed');
     } catch {
       showToast('Could not remove news', 'error');
@@ -329,12 +590,58 @@ export const AdminPage: React.FC = () => {
     setSavingKey(null);
   };
 
+  const handleExport = async () => {
+    try {
+      const payload = await api.exportContentBundle();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ampublishing-admin-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast('Backup exported');
+    } catch {
+      showToast('Could not export backup', 'error');
+    }
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      await api.importContentBundle(parsed);
+      await reloadContent();
+      await loadAdminData();
+      setLastPublishedAt(new Date().toLocaleTimeString());
+      showToast('Backup imported');
+    } catch {
+      showToast('Could not import backup', 'error');
+    } finally {
+      event.target.value = '';
+    }
+  };
+
   const books = database?.[selectedLanguage].books || [];
   const news = database?.[selectedLanguage].news || [];
 
   return (
     <div className="min-h-screen bg-[#F4F4F0] pt-[80px] flex flex-col md:flex-row text-primary">
-      <aside className="w-full md:w-72 bg-primary text-white flex-shrink-0 md:min-h-[calc(100vh-80px)]">
+      <div className="md:hidden sticky top-[80px] z-30 bg-primary text-white border-b border-white/10">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div>
+            <h2 className="font-serif text-2xl">AM Admin</h2>
+            <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-white/60">Content Management</p>
+          </div>
+          <button onClick={() => setSidebarOpen(prev => !prev)} className="p-2 border border-white/20">
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
+      </div>
+
+      <aside className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-full md:w-72 bg-primary text-white flex-shrink-0 md:min-h-[calc(100vh-80px)]`}>
         <div className="p-8 border-b border-white/10">
           <h2 className="font-serif text-3xl">AM Admin</h2>
           <p className="text-[10px] font-mono opacity-60 uppercase tracking-[0.24em] mt-2">Content Management</p>
@@ -361,7 +668,7 @@ export const AdminPage: React.FC = () => {
         </nav>
 
         <div className="px-6 pb-6">
-          <div className="bg-white/5 border border-white/10 p-4">
+          <div className="bg-white/5 border border-white/10 p-4 mb-4">
             <p className="text-[10px] uppercase font-mono tracking-[0.22em] text-white/50 mb-3">Language</p>
             <div className="grid grid-cols-3 gap-2">
               {(['ru', 'en', 'de'] as Language[]).map(lang => (
@@ -375,6 +682,20 @@ export const AdminPage: React.FC = () => {
                   {lang}
                 </button>
               ))}
+            </div>
+          </div>
+          <div className="bg-white/5 border border-white/10 p-4">
+            <p className="text-[10px] uppercase font-mono tracking-[0.22em] text-white/50 mb-3">Backup</p>
+            <div className="grid grid-cols-1 gap-3">
+              <button onClick={handleExport} className="flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-white/15 hover:bg-white/10">
+                <Download size={14} />
+                Export content
+              </button>
+              <label className="flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-white/15 hover:bg-white/10 cursor-pointer">
+                <Upload size={14} />
+                Import backup
+                <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
+              </label>
             </div>
           </div>
         </div>
@@ -397,10 +718,31 @@ export const AdminPage: React.FC = () => {
         </div>
       </aside>
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto h-[calc(100vh-80px)]">
+      <main className="flex-1 p-4 md:p-10 overflow-y-auto min-h-[calc(100vh-80px)] md:h-[calc(100vh-80px)]">
         {!database ? (
           <div className="h-full flex items-center justify-center">
             <Loader2 className="animate-spin text-primary" />
+          </div>
+        ) : null}
+
+        {database ? (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white border border-primary/10 p-4">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Content status</p>
+              <p className="mt-2 font-serif text-2xl">{database ? 'Loaded' : 'Loading'}</p>
+            </div>
+            <div className="bg-white border border-primary/10 p-4">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Validation</p>
+              <p className="mt-2 font-serif text-2xl">{Object.keys(copyJsonErrors).length || Object.keys(bookJsonErrors).length || bookRequiredErrors.length || newsRequiredErrors.length ? 'Needs attention' : 'OK'}</p>
+            </div>
+            <div className="bg-white border border-primary/10 p-4">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Draft autosave</p>
+              <p className="mt-2 font-serif text-2xl">{lastDraftSavedAt || 'Waiting'}</p>
+            </div>
+            <div className="bg-white border border-primary/10 p-4">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Last publish</p>
+              <p className="mt-2 font-serif text-2xl">{lastPublishedAt || 'Not yet'}</p>
+            </div>
           </div>
         ) : null}
 
@@ -429,13 +771,20 @@ export const AdminPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleSaveTranslationField(field)}
+                            disabled={!!copyJsonErrors[field.key]}
                             className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary"
                           >
                             {savingKey === field.key ? <Loader2 size={12} className="animate-spin" /> : 'Save'}
                           </button>
                         </div>
                       </div>
-                      {field.type === 'text' ? (
+                      {field.key === 'home.hero_image' || field.key === 'home.feature_image' ? (
+                        <ImageField
+                          label={field.label}
+                          value={copyDrafts[field.key] || ''}
+                          onChange={value => setCopyDrafts(prev => ({ ...prev, [field.key]: value }))}
+                        />
+                      ) : field.type === 'text' ? (
                         <input
                           value={copyDrafts[field.key] || ''}
                           onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: e.target.value }))}
@@ -446,9 +795,10 @@ export const AdminPage: React.FC = () => {
                           value={copyDrafts[field.key] || ''}
                           onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: e.target.value }))}
                           rows={field.type === 'json' ? 12 : 5}
-                          className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary font-mono text-sm"
+                          className={`w-full border px-4 py-3 bg-white outline-none focus:border-primary font-mono text-sm ${copyJsonErrors[field.key] ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`}
                         />
                       )}
+                      {copyJsonErrors[field.key] ? <p className="mt-2 text-xs text-red-500 font-mono">{copyJsonErrors[field.key]}</p> : null}
                     </div>
                   ))}
                 </div>
@@ -491,7 +841,7 @@ export const AdminPage: React.FC = () => {
             <section className="bg-white border border-primary/10 p-6">
               {bookDraft ? (
                 <div className="space-y-8">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h3 className="text-3xl font-serif">Book Editor</h3>
                     <div className="flex gap-2">
                       <button onClick={handleDeleteBook} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
@@ -504,13 +854,19 @@ export const AdminPage: React.FC = () => {
                       </button>
                     </div>
                   </div>
+                  {bookRequiredErrors.length || Object.keys(bookJsonErrors).length ? (
+                    <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                      {[...bookRequiredErrors, ...Object.values(bookJsonErrors)].map(item => (
+                        <div key={item}>{item}</div>
+                      ))}
+                    </div>
+                  ) : null}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <input value={bookDraft.id} onChange={e => setBookDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="ID" />
                     <input value={bookDraft.releaseDate} onChange={e => setBookDraft(prev => prev ? { ...prev, releaseDate: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Release date" />
                     <input value={bookDraft.title} onChange={e => setBookDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Title" />
                     <input value={bookDraft.author} onChange={e => setBookDraft(prev => prev ? { ...prev, author: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Author" />
-                    <input value={bookDraft.coverUrl} onChange={e => setBookDraft(prev => prev ? { ...prev, coverUrl: e.target.value } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Cover URL" />
                     <input type="number" value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Price" />
                     <input type="number" value={bookDraft.stock} onChange={e => setBookDraft(prev => prev ? { ...prev, stock: Number(e.target.value) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Stock" />
                     <input value={bookDraft.series || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, series: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Series" />
@@ -518,6 +874,12 @@ export const AdminPage: React.FC = () => {
                     <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Genres, comma separated" />
                     <input value={bookDraft.badges.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, badges: e.target.value.split(',').map(item => item.trim()).filter(Boolean) as Book['badges'] } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Badges, comma separated" />
                   </div>
+
+                  <ImageField
+                    label="Cover image"
+                    value={bookDraft.coverUrl}
+                    onChange={value => setBookDraft(prev => prev ? { ...prev, coverUrl: value } : prev)}
+                  />
 
                   <textarea value={bookDraft.description} onChange={e => setBookDraft(prev => prev ? { ...prev, description: e.target.value } : prev)} rows={4} className="w-full border border-gray-300 px-4 py-3" placeholder="Description" />
 
@@ -532,14 +894,18 @@ export const AdminPage: React.FC = () => {
                     <h4 className="font-serif text-2xl">Story Page</h4>
                     <input value={bookDraft.story?.quote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quote: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Quote" />
                     <input value={bookDraft.story?.quoteSource || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quoteSource: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Quote source" />
-                    <input value={bookDraft.story?.featureImageUrl || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, featureImageUrl: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Feature image URL" />
+                    <ImageField
+                      label="Story feature image"
+                      value={bookDraft.story?.featureImageUrl || ''}
+                      onChange={value => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, featureImageUrl: value } } : prev)}
+                    />
                     <textarea value={(bookDraft.story?.about || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, about: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" placeholder="About paragraphs, separated by empty line" />
                     <textarea value={(bookDraft.story?.excerpt || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, excerpt: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" placeholder="Excerpt paragraphs, separated by empty line" />
                     <textarea value={(bookDraft.story?.authorBio || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, authorBio: parseParagraphs(e.target.value) } } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" placeholder="Author bio paragraphs, separated by empty line" />
                     <textarea value={bookDraft.story?.orderNote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, orderNote: e.target.value } } : prev)} rows={3} className="w-full border border-gray-300 px-4 py-3" placeholder="Order note" />
-                    <textarea value={JSON.stringify(bookDraft.variants, null, 2)} onChange={e => setBookDraft(prev => prev ? { ...prev, variants: parseJsonField(e.target.value) } : prev)} rows={8} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="Variants JSON" />
-                    <textarea value={JSON.stringify(bookDraft.story?.themes || [], null, 2)} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, themes: parseJsonField(e.target.value) } } : prev)} rows={8} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="Themes JSON" />
-                    <textarea value={JSON.stringify(bookDraft.story?.reviews || [], null, 2)} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, reviews: parseJsonField(e.target.value) } } : prev)} rows={8} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="Reviews JSON" />
+                    <textarea value={bookJsonDrafts.variants} onChange={e => setBookJsonDrafts(prev => ({ ...prev, variants: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.variants ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} placeholder="Variants JSON" />
+                    <textarea value={bookJsonDrafts.themes} onChange={e => setBookJsonDrafts(prev => ({ ...prev, themes: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.themes ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} placeholder="Themes JSON" />
+                    <textarea value={bookJsonDrafts.reviews} onChange={e => setBookJsonDrafts(prev => ({ ...prev, reviews: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.reviews ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} placeholder="Reviews JSON" />
                   </div>
                 </div>
               ) : (
@@ -583,7 +949,7 @@ export const AdminPage: React.FC = () => {
             <section className="bg-white border border-primary/10 p-6">
               {newsDraft ? (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h3 className="text-3xl font-serif">News Editor</h3>
                     <div className="flex gap-2">
                       <button onClick={handleDeleteNews} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
@@ -596,6 +962,13 @@ export const AdminPage: React.FC = () => {
                       </button>
                     </div>
                   </div>
+                  {newsRequiredErrors.length ? (
+                    <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                      {newsRequiredErrors.map(item => (
+                        <div key={item}>{item}</div>
+                      ))}
+                    </div>
+                  ) : null}
                   <input value={newsDraft.id} onChange={e => setNewsDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="ID" />
                   <input value={newsDraft.date} onChange={e => setNewsDraft(prev => prev ? { ...prev, date: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Date" />
                   <input value={newsDraft.title} onChange={e => setNewsDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Title" />

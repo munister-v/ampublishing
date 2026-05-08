@@ -170,6 +170,16 @@ export const api = {
     return contentStore.resetTranslationValue(lang, key);
   },
 
+  exportContentBundle: async () => {
+    await mockDelay(80);
+    return contentStore.exportContent();
+  },
+
+  importContentBundle: async (payload: { database?: Record<Language, LocalizedCatalogData>; overrides?: TranslationOverrides }) => {
+    await mockDelay(120);
+    return contentStore.importContent(payload);
+  },
+
   submitOrder: async (payload: OrderPayload): Promise<ApiResponse<OrderResponse>> => {
     if (!isMockMode()) {
         return request<ApiResponse<OrderResponse>>(`/orders`, {
