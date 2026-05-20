@@ -6,6 +6,7 @@ import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAu
 import { translations } from '../translations';
 import { Book, Language, LocalizedCatalogData, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
 import {
+  Activity,
   BookOpen,
   FileText,
   Gavel,
@@ -26,7 +27,7 @@ import {
   X,
 } from 'lucide-react';
 
-type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'payments' | 'orders';
+type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'payments' | 'orders' | 'status';
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -336,6 +337,238 @@ const ImageField: React.FC<{
         </div>
       ) : null}
     </div>
+  );
+};
+
+// --- STATUS PANEL ---
+
+type WorkflowRun = {
+  id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  html_url: string;
+  head_sha: string;
+  head_commit?: { message?: string };
+  created_at: string;
+  updated_at: string;
+};
+
+const formatRelative = (iso: string) => {
+  if (!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 0) return new Date(iso).toLocaleString();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} h ago`;
+  return `${Math.floor(hours / 24)} d ago`;
+};
+
+const formatBytes = (n: number) => {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+};
+
+const StatusPanel: React.FC = () => {
+  const [runs, setRuns] = useState<WorkflowRun[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [siteCheck, setSiteCheck] = useState<{ status: 'idle' | 'ok' | 'fail'; ms?: number }>({ status: 'idle' });
+  const [storage, setStorage] = useState<{ key: string; bytes: number; preview?: string }[]>([]);
+  const [now, setNow] = useState(Date.now());
+
+  const REPO = 'munister-v/ampublishing';
+
+  const fetchRuns = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=5`, {
+        headers: { Accept: 'application/vnd.github+json' },
+      });
+      if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+      const data = await res.json();
+      setRuns(data.workflow_runs || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'fetch failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const probeSite = async () => {
+    setSiteCheck({ status: 'idle' });
+    const t0 = performance.now();
+    try {
+      // no-cors returns opaque response but resolves on reachable host
+      await fetch('https://ampublishing.org/', { mode: 'no-cors', cache: 'no-store' });
+      setSiteCheck({ status: 'ok', ms: Math.round(performance.now() - t0) });
+    } catch {
+      setSiteCheck({ status: 'fail', ms: Math.round(performance.now() - t0) });
+    }
+  };
+
+  const collectStorage = () => {
+    try {
+      const interesting = Object.keys(localStorage).filter(k =>
+        /^(am-|am_|ampublishing|admin_)/.test(k),
+      );
+      const rows = interesting.map(k => {
+        const v = localStorage.getItem(k) || '';
+        return {
+          key: k,
+          bytes: new Blob([v]).size,
+          preview: v.length > 80 ? v.slice(0, 80) + '…' : v,
+        };
+      });
+      setStorage(rows.sort((a, b) => b.bytes - a.bytes));
+    } catch {
+      setStorage([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchRuns();
+    probeSite();
+    collectStorage();
+    const tick = setInterval(() => setNow(Date.now()), 5000);
+    return () => clearInterval(tick);
+  }, []);
+
+  const latest = runs[0];
+  const lastDeployTime = latest?.updated_at ? new Date(latest.updated_at).getTime() : 0;
+  const minutesSinceDeploy = lastDeployTime ? Math.floor((now - lastDeployTime) / 60000) : null;
+  const isFresh = minutesSinceDeploy !== null && minutesSinceDeploy < 5;
+
+  return (
+    <section className="space-y-8">
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="bg-white border border-primary/10 p-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">Deploy</p>
+          <p className="font-serif text-3xl mt-2">
+            {latest ? (latest.conclusion || latest.status) : '—'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {latest ? `${formatRelative(latest.updated_at)} · ${latest.head_sha.slice(0, 7)}` : 'no data'}
+          </p>
+          {isFresh ? <p className="text-[10px] uppercase tracking-widest text-accent mt-2">fresh</p> : null}
+        </div>
+        <div className="bg-white border border-primary/10 p-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">ampublishing.org</p>
+          <p className="font-serif text-3xl mt-2">
+            {siteCheck.status === 'ok' ? 'reachable' : siteCheck.status === 'fail' ? 'unreachable' : 'checking…'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">{siteCheck.ms ? `${siteCheck.ms} ms round-trip` : ''}</p>
+        </div>
+        <div className="bg-white border border-primary/10 p-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">Local store</p>
+          <p className="font-serif text-3xl mt-2">{storage.length} keys</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {formatBytes(storage.reduce((sum, row) => sum + row.bytes, 0))}
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-white border border-primary/10">
+        <div className="p-6 border-b border-primary/10 flex items-center justify-between">
+          <div>
+            <h3 className="text-2xl font-serif">GitHub Pages deploys</h3>
+            <p className="text-xs text-gray-500 mt-1">{REPO}</p>
+          </div>
+          <button onClick={fetchRuns} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+            Refresh
+          </button>
+        </div>
+        {error ? <p className="px-6 py-4 text-sm text-red-600">{error}</p> : null}
+        <table className="w-full text-left">
+          <thead className="bg-[#F4F4F0]">
+            <tr className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
+              <th className="p-4">When</th>
+              <th className="p-4">Workflow</th>
+              <th className="p-4">Status</th>
+              <th className="p-4">Commit</th>
+              <th className="p-4">Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            {runs.map(run => (
+              <tr key={run.id} className="border-t border-gray-100">
+                <td className="p-4 text-sm">
+                  <div>{formatRelative(run.updated_at)}</div>
+                  <div className="text-xs text-gray-400">{new Date(run.updated_at).toLocaleString()}</div>
+                </td>
+                <td className="p-4 text-sm">{run.name}</td>
+                <td className="p-4 text-sm">
+                  <span className={`px-2 py-1 text-[10px] uppercase tracking-[0.18em] border ${
+                    run.conclusion === 'success' ? 'border-green-600 text-green-700' :
+                    run.conclusion === 'failure' ? 'border-red-600 text-red-700' :
+                    run.status === 'in_progress' || run.status === 'queued' ? 'border-amber-500 text-amber-700' :
+                    'border-gray-400 text-gray-500'
+                  }`}>{run.conclusion || run.status}</span>
+                </td>
+                <td className="p-4 text-xs font-mono">
+                  <div>{run.head_sha.slice(0, 7)}</div>
+                  <div className="text-gray-500 max-w-[28ch] truncate" title={run.head_commit?.message || ''}>
+                    {run.head_commit?.message?.split('\n')[0] || ''}
+                  </div>
+                </td>
+                <td className="p-4 text-xs">
+                  <a href={run.html_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-accent">open ↗</a>
+                </td>
+              </tr>
+            ))}
+            {!runs.length && !loading ? (
+              <tr><td colSpan={5} className="p-6 text-sm text-gray-500">No runs found.</td></tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-white border border-primary/10">
+        <div className="p-6 border-b border-primary/10 flex items-center justify-between">
+          <div>
+            <h3 className="text-2xl font-serif">Local autosave & cache</h3>
+            <p className="text-xs text-gray-500 mt-1">localStorage keys persisted by the admin/site</p>
+          </div>
+          <button onClick={collectStorage} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
+            <RefreshCw size={14} /> Refresh
+          </button>
+        </div>
+        <table className="w-full text-left">
+          <thead className="bg-[#F4F4F0]">
+            <tr className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
+              <th className="p-4">Key</th>
+              <th className="p-4">Size</th>
+              <th className="p-4">Preview</th>
+            </tr>
+          </thead>
+          <tbody>
+            {storage.map(row => (
+              <tr key={row.key} className="border-t border-gray-100 align-top">
+                <td className="p-4 text-xs font-mono">{row.key}</td>
+                <td className="p-4 text-xs font-mono whitespace-nowrap">{formatBytes(row.bytes)}</td>
+                <td className="p-4 text-xs font-mono text-gray-500 break-all">{row.preview}</td>
+              </tr>
+            ))}
+            {!storage.length ? (
+              <tr><td colSpan={3} className="p-6 text-sm text-gray-500">No local-cache entries.</td></tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-white border border-primary/10 p-6 text-xs text-gray-500 space-y-2">
+        <p><span className="font-mono uppercase tracking-[0.18em] text-gray-400">Probe:</span> ampublishing.org is checked via opaque <code>fetch</code> (no-cors). 200/0 both register as «reachable»; an actual network error is the only fail signal.</p>
+        <p><span className="font-mono uppercase tracking-[0.18em] text-gray-400">Deploys:</span> unauthenticated GitHub API allows 60 req/h per source IP. If you hit «GitHub API 403», the rate-limit reset takes ~1 h.</p>
+        <button onClick={() => { probeSite(); fetchRuns(); collectStorage(); }} className="mt-2 px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 inline-flex items-center gap-2">
+          <RefreshCw size={14} /> Refresh all
+        </button>
+      </div>
+    </section>
   );
 };
 
@@ -771,6 +1004,7 @@ export const AdminPage: React.FC = () => {
             { id: 'authors', label: 'Our Authors', icon: <Globe size={16} /> },
             { id: 'payments', label: 'Payments', icon: <Gavel size={16} /> },
             { id: 'orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
+            { id: 'status', label: 'Status', icon: <Activity size={16} /> },
           ].map(item => (
             <button
               key={item.id}
@@ -1253,6 +1487,8 @@ export const AdminPage: React.FC = () => {
           </section>
         ) : null}
 
+        {activeTab === 'status' ? <StatusPanel /> : null}
+
         {activeTab === 'orders' ? (
           <section className="bg-white border border-primary/10 overflow-hidden">
             <div className="p-6 border-b border-primary/10 flex items-center justify-between">
@@ -1276,7 +1512,8 @@ export const AdminPage: React.FC = () => {
                 </thead>
                 <tbody>
                   {orders.map(order => (
-                    <tr key={order.id} className="border-t border-gray-100 align-top">
+                    <React.Fragment key={order.id}>
+                    <tr className="border-t border-gray-100 align-top">
                       <td className="p-4">
                         <div className="font-bold">{order.id}</div>
                         <div className="text-xs text-gray-400">{new Date(order.date).toLocaleString()}</div>
@@ -1286,6 +1523,7 @@ export const AdminPage: React.FC = () => {
                         <div className="text-xs text-gray-400">{order.customer.email}</div>
                         {order.customer.phone ? <div className="text-xs text-gray-400">{order.customer.phone}</div> : null}
                         <div className="text-xs text-gray-400">{order.customer.location}</div>
+                        {order.customer.addressLine ? <div className="text-xs text-gray-400 mt-1">{order.customer.addressLine}{order.customer.zip ? `, ${order.customer.zip}` : ''}</div> : null}
                       </td>
                       <td className="p-4 text-sm">
                         {order.items.map(item => (
@@ -1331,6 +1569,36 @@ export const AdminPage: React.FC = () => {
                         </div>
                       </td>
                     </tr>
+                    {order.diagnostics ? (
+                      <tr className="border-t border-dashed border-gray-100 bg-[#F8F8F4]">
+                        <td colSpan={6} className="p-4">
+                          <details className="text-xs">
+                            <summary className="cursor-pointer font-mono uppercase tracking-[0.2em] text-gray-500 hover:text-primary">
+                              Diagnostics · {order.diagnostics.ip || 'IP n/a'}
+                              {order.diagnostics.ipCountry ? ` · ${order.diagnostics.ipCountry}` : ''}
+                              {order.diagnostics.timezone ? ` · ${order.diagnostics.timezone}` : ''}
+                            </summary>
+                            <div className="grid md:grid-cols-3 gap-x-6 gap-y-1 mt-3 text-[11px] font-mono text-gray-600">
+                              {order.diagnostics.ip ? <div><span className="text-gray-400">ip:</span> {order.diagnostics.ip}</div> : null}
+                              {order.diagnostics.ipCity || order.diagnostics.ipRegion || order.diagnostics.ipCountry ? <div><span className="text-gray-400">ip-geo:</span> {[order.diagnostics.ipCity, order.diagnostics.ipRegion, order.diagnostics.ipCountry].filter(Boolean).join(', ')}</div> : null}
+                              {order.diagnostics.ipOrg ? <div><span className="text-gray-400">ip-org:</span> {order.diagnostics.ipOrg}</div> : null}
+                              {order.diagnostics.timezone ? <div><span className="text-gray-400">tz:</span> {order.diagnostics.timezone} ({order.diagnostics.timezoneOffset ?? '?'}m)</div> : null}
+                              {order.diagnostics.language ? <div><span className="text-gray-400">lang:</span> {order.diagnostics.language}</div> : null}
+                              {order.diagnostics.regionId ? <div><span className="text-gray-400">region:</span> {order.diagnostics.regionId}</div> : null}
+                              {order.diagnostics.storeLanguage ? <div><span className="text-gray-400">store-lang:</span> {order.diagnostics.storeLanguage}</div> : null}
+                              {order.diagnostics.platform ? <div><span className="text-gray-400">platform:</span> {order.diagnostics.platform}</div> : null}
+                              {order.diagnostics.screen ? <div><span className="text-gray-400">screen:</span> {order.diagnostics.screen}</div> : null}
+                              {order.diagnostics.viewport ? <div><span className="text-gray-400">viewport:</span> {order.diagnostics.viewport}</div> : null}
+                              {order.diagnostics.devicePixelRatio ? <div><span className="text-gray-400">dpr:</span> {order.diagnostics.devicePixelRatio}</div> : null}
+                              {order.diagnostics.referer ? <div className="md:col-span-3 break-all"><span className="text-gray-400">referer:</span> {order.diagnostics.referer}</div> : null}
+                              {order.diagnostics.pageUrl ? <div className="md:col-span-3 break-all"><span className="text-gray-400">url:</span> {order.diagnostics.pageUrl}</div> : null}
+                              {order.diagnostics.userAgent ? <div className="md:col-span-3 break-all"><span className="text-gray-400">ua:</span> {order.diagnostics.userAgent}</div> : null}
+                            </div>
+                          </details>
+                        </td>
+                      </tr>
+                    ) : null}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>

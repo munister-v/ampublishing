@@ -159,6 +159,28 @@ export interface OrderItem {
   priceAtPurchase: number;
 }
 
+export interface OrderDiagnostics {
+  userAgent?: string;
+  language?: string;
+  languages?: string[];
+  platform?: string;
+  screen?: string;       // e.g. 1280x800
+  viewport?: string;     // e.g. 1280x749
+  devicePixelRatio?: number;
+  timezone?: string;     // IANA TZ
+  timezoneOffset?: number; // minutes
+  referer?: string;
+  pageUrl?: string;
+  regionId?: string;
+  storeLanguage?: string;
+  capturedAt?: string;   // ISO timestamp
+  ip?: string;
+  ipCity?: string;
+  ipRegion?: string;
+  ipCountry?: string;
+  ipOrg?: string;
+}
+
 export interface Order {
   id: string;
   date: string; // ISO
@@ -179,6 +201,7 @@ export interface Order {
   paymentMethod?: CheckoutFormData['paymentMethod'];
   paymentReference?: string;
   trackingNumber?: string;
+  diagnostics?: OrderDiagnostics;
 }
 
 // --- BACKEND INTEGRATION TYPES ---
@@ -192,6 +215,7 @@ export interface OrderPayload {
   regionId: string;
   totalAmount: number;
   currency: string;
+  diagnostics?: OrderDiagnostics;
 }
 
 export interface OrderResponse {

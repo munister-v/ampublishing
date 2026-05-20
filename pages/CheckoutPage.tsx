@@ -2,9 +2,49 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
-import { CheckoutFormData, PaymentSettings } from '../types';
+import { CheckoutFormData, OrderDiagnostics, PaymentSettings } from '../types';
 import { api } from '../services/api';
 import { formatLabel } from '../utils/formatLabel';
+
+const collectOrderDiagnostics = async (regionId: string, storeLanguage: string): Promise<OrderDiagnostics> => {
+  const base: OrderDiagnostics = {
+    capturedAt: new Date().toISOString(),
+    regionId,
+    storeLanguage,
+  };
+  try {
+    base.userAgent = navigator.userAgent;
+    base.language = navigator.language;
+    base.languages = Array.isArray(navigator.languages) ? Array.from(navigator.languages) : undefined;
+    base.platform = (navigator as any).platform;
+    base.screen = `${window.screen?.width || 0}x${window.screen?.height || 0}`;
+    base.viewport = `${window.innerWidth}x${window.innerHeight}`;
+    base.devicePixelRatio = window.devicePixelRatio;
+    base.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    base.timezoneOffset = new Date().getTimezoneOffset();
+    base.referer = document.referrer || '';
+    base.pageUrl = window.location.href;
+  } catch {
+    // ignore — diagnostics are best-effort
+  }
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+    clearTimeout(timeout);
+    if (res.ok) {
+      const data = await res.json();
+      base.ip = data.ip;
+      base.ipCity = data.city;
+      base.ipRegion = data.region;
+      base.ipCountry = data.country_name || data.country;
+      base.ipOrg = data.org;
+    }
+  } catch {
+    // network/cors/timeout — skip; diagnostics are best-effort
+  }
+  return base;
+};
 import {
   CheckCircle, ArrowRight, ChevronLeft, AlertCircle,
   ShieldCheck, ChevronDown, ChevronUp, ShoppingBag,
@@ -292,12 +332,14 @@ export const CheckoutPage: React.FC = () => {
       setPaymentError(null);
 
       try {
+          const diagnostics = await collectOrderDiagnostics(region.id, language);
           const payload = {
               customer: formData,
               items: cart.map(i => ({ variantId: i.variantId, quantity: i.quantity })),
               regionId: region.id,
               totalAmount: finalTotal,
-              currency: region.currency
+              currency: region.currency,
+              diagnostics,
           };
 
           const response = await api.submitOrder(payload);

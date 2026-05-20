@@ -279,6 +279,7 @@ export const contentStore = {
       paymentStatus: 'pending',
       paymentMethod: payload.customer.paymentMethod,
       paymentReference,
+      diagnostics: payload.diagnostics ? { ...payload.diagnostics, regionId: payload.regionId } : { regionId: payload.regionId },
     };
 
     const orders = this.getOrders();
