@@ -19,7 +19,8 @@ export const LoginPage: React.FC = () => {
         const response = await api.login(email, password);
         login(response.token);
     } catch (err) {
-        showToast("Invalid credentials or server error", "error");
+        const msg = err instanceof Error && err.message ? err.message : 'Invalid credentials';
+        showToast(msg, 'error');
         setLoading(false);
     }
   };

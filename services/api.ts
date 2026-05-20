@@ -7,7 +7,73 @@ import { notifyOrderChannels } from './orderNotifications';
 // --- CONFIGURATION ---
 
 const ADMIN_EMAIL = 'admin@ampublishing.org';
-const ADMIN_PASSWORD = 'AmPub-Berlin!2026#Catal0g$Authors';
+// Password is stored as a PBKDF2-SHA256 hash, not plaintext.
+// Recompute hash + salt with `node scripts/hash-admin-password.mjs` if rotated.
+const ADMIN_PASSWORD_SALT_B64 = 'jpXJaD7EJTjlaOM4U+xgLA==';
+const ADMIN_PASSWORD_HASH_B64 = 'tyVzJeool9jsyba+heUE+7C7+g6Zxxw9zDRClYjkywo=';
+const ADMIN_PASSWORD_ITER = 250000;
+
+const LOGIN_ATTEMPTS_KEY = 'am_auth_state';
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
+
+type LoginState = { failures: number; lockedUntil: number };
+
+const readLoginState = (): LoginState => {
+  try {
+    const raw = localStorage.getItem(LOGIN_ATTEMPTS_KEY);
+    if (!raw) return { failures: 0, lockedUntil: 0 };
+    const parsed = JSON.parse(raw);
+    return {
+      failures: Number(parsed.failures) || 0,
+      lockedUntil: Number(parsed.lockedUntil) || 0,
+    };
+  } catch {
+    return { failures: 0, lockedUntil: 0 };
+  }
+};
+
+const writeLoginState = (state: LoginState) => {
+  try {
+    localStorage.setItem(LOGIN_ATTEMPTS_KEY, JSON.stringify(state));
+  } catch {
+    // ignore quota errors
+  }
+};
+
+const b64ToBytes = (b64: string): Uint8Array =>
+  Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+
+const constantTimeEqual = (a: Uint8Array, b: Uint8Array): boolean => {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
+};
+
+const derivePasswordHash = async (password: string): Promise<Uint8Array> => {
+  const enc = new TextEncoder();
+  const salt = b64ToBytes(ADMIN_PASSWORD_SALT_B64);
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: ADMIN_PASSWORD_ITER, hash: 'SHA-256' },
+    baseKey,
+    256,
+  );
+  return new Uint8Array(bits);
+};
+
+const verifyAdminPassword = async (input: string): Promise<boolean> => {
+  const expected = b64ToBytes(ADMIN_PASSWORD_HASH_B64);
+  const actual = await derivePasswordHash(input);
+  return constantTimeEqual(expected, actual);
+};
 
 const getBaseUrl = () => localStorage.getItem('api_url') || 'http://localhost:3000/api/v1';
 const isMockMode = () => localStorage.getItem('use_mock_api') !== 'false'; // Default to true
@@ -238,12 +304,33 @@ export const api = {
           });
       }
 
-      await mockDelay(1000);
-      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      const state = readLoginState();
+      const now = Date.now();
+      if (state.lockedUntil > now) {
+          const minutes = Math.ceil((state.lockedUntil - now) / 60000);
+          throw new Error(`Too many failed attempts. Try again in ~${minutes} min.`);
+      }
+
+      // Throttle with exponential delay based on prior failures (capped at 4s)
+      const delay = Math.min(800 + state.failures * 600, 4000);
+      await mockDelay(delay);
+
+      const emailOk = email.trim().toLowerCase() === ADMIN_EMAIL;
+      const passOk = await verifyAdminPassword(password);
+
+      if (emailOk && passOk) {
+          writeLoginState({ failures: 0, lockedUntil: 0 });
           return {
               token: 'mock-jwt-token-' + Date.now(),
               user: { name: 'Admin User', role: 'superadmin' }
           };
+      }
+
+      const failures = state.failures + 1;
+      const lockedUntil = failures >= LOGIN_MAX_ATTEMPTS ? now + LOGIN_LOCKOUT_MS : 0;
+      writeLoginState({ failures, lockedUntil });
+      if (lockedUntil) {
+          throw new Error(`Too many failed attempts. Locked for 15 minutes.`);
       }
       throw new Error('Invalid credentials');
   },
