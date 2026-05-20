@@ -10,6 +10,7 @@ import {
   LocalizedCatalogData,
   PaymentSettings,
   PaymentStatus,
+  SiteSettings,
   TranslationOverrides,
 } from '../types';
 import { contentStore, verifyPAT } from './contentStore';
@@ -104,6 +105,11 @@ export const api = {
 
   savePaymentSettings: async (settings: PaymentSettings): Promise<PaymentSettings> =>
     contentStore.savePaymentSettings(settings),
+
+  getSiteSettings: async (): Promise<SiteSettings> => contentStore.getSiteSettings(),
+
+  saveSiteSettings: async (settings: SiteSettings): Promise<SiteSettings> =>
+    contentStore.saveSiteSettings(settings),
 
   submitOrder: async (payload: OrderPayload): Promise<ApiResponse<OrderResponse>> => {
     const createdOrder = contentStore.createOrder(payload);

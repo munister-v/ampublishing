@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Book, BookVariant, CartItem, Region, Language, NewsItem, Order, OrderStatus, TranslationOverrides } from './types';
+import { Book, BookVariant, CartItem, Region, Language, NewsItem, Order, OrderStatus, SiteSettings, TranslationOverrides } from './types';
 import { REGIONS } from './constants';
 import { translations } from './translations';
 import { api } from './services/api';
@@ -63,6 +63,10 @@ interface AppContextType {
   // Region Modal
   showRegionModal: boolean;
   setShowRegionModal: (v: boolean) => void;
+
+  // Site settings (header/footer/menu/contacts)
+  siteSettings: SiteSettings | null;
+  setSiteSettings: (s: SiteSettings) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -88,6 +92,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isAdmin, setIsAdmin] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [translationOverrides, setTranslationOverrides] = useState<TranslationOverrides>({ ru: {}, en: {}, de: {} });
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
 
   // --- CART STATE ---
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -138,17 +143,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setIsBackendLive(true);
 
       try {
-        [booksData, newsData, metaData, overrides] = await Promise.all([
+        const [b, n, m, ov, site] = await Promise.all([
           api.getBooks(language),
           api.getNews(language),
           api.getMetadata(language),
-          api.getTranslationOverrides()
+          api.getTranslationOverrides(),
+          api.getSiteSettings(),
         ]);
+        booksData = b; newsData = n; metaData = m; overrides = ov;
         setBooks(booksData);
         setNews(newsData);
         setGenres(metaData.genres);
         setAuthors(metaData.authors);
         setTranslationOverrides(overrides);
+        setSiteSettings(site);
       } catch (e) {
         showToast("Could not load content", "error");
         setBooks([]);
@@ -415,7 +423,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       language, setLanguage, t,
       searchHistory, addSearchHistory, clearSearchHistory,
       toasts, showToast, removeToast,
-      showRegionModal, setShowRegionModal
+      showRegionModal, setShowRegionModal,
+      siteSettings, setSiteSettings,
     }}>
       {children}
     </AppContext.Provider>
