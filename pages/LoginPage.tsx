@@ -45,7 +45,7 @@ export const LoginPage: React.FC = () => {
                         onChange={e => setEmail(e.target.value)}
                         className="w-full bg-[#F8F9FA] border-b-2 border-gray-200 p-3 outline-none focus:border-accent transition-colors"
                         required
-                        placeholder="admin@ampublishing.de"
+                        placeholder="admin@ampublishing.org"
                     />
                 </div>
                 <div>
@@ -56,7 +56,7 @@ export const LoginPage: React.FC = () => {
                         onChange={e => setPassword(e.target.value)}
                         className="w-full bg-[#F8F9FA] border-b-2 border-gray-200 p-3 outline-none focus:border-accent transition-colors"
                         required
-                        placeholder="AMPub!Berlin2026#Control"
+                        placeholder="••••••••••••"
                     />
                 </div>
 

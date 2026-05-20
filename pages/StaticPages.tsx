@@ -3,7 +3,7 @@ import React from 'react';
 import { Mail, Download, PenTool, BookOpen, Send, User, Clock } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { Link } from 'react-router-dom';
-import { getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
+import { getAuthorShowcaseContent } from '../services/authorShowcase';
 
 // --- Components ---
 const SectionHeader: React.FC<{ title: string; subtitle?: string; bgClass?: string }> = ({ title, subtitle, bgClass = 'bg-primary' }) => (
@@ -276,7 +276,6 @@ export const AuthorsPage: React.FC = () => {
 export const OurAuthorsPage: React.FC = () => {
   const { t, language } = useApp();
   const authorShowcase = getAuthorShowcaseContent(language, t('static.our_authors.showcase_items'));
-  const featuredAuthor = getFeaturedAuthorContent(language, t('static.our_authors.featured_author'));
 
   return (
     <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
@@ -286,74 +285,7 @@ export const OurAuthorsPage: React.FC = () => {
         bgClass="bg-[#0b1623]"
       />
 
-      <section className="px-4 md:px-8 pt-10 md:pt-16">
-        <article className="border border-primary bg-[#F7F1E6] overflow-hidden">
-          <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr]">
-            <div className="bg-primary min-h-[220px] xl:min-h-full flex items-center justify-center relative overflow-hidden border-b xl:border-b-0 xl:border-r border-white/10">
-              <span className="text-[7rem] md:text-[10rem] font-serif text-white/10 leading-none">S</span>
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_45%)]" />
-            </div>
-
-            <div className="p-8 md:p-12 lg:p-16 xl:p-20">
-              <div className="flex items-center gap-4 mb-8">
-                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent whitespace-nowrap">
-                  {featuredAuthor.label}
-                </p>
-                <div className="h-px flex-1 bg-primary/15" />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-10 lg:gap-14 items-start">
-                <div>
-                  <h2 className="text-5xl sm:text-6xl md:text-8xl xl:text-[6.5rem] font-serif leading-[0.86] text-primary break-words">
-                    {featuredAuthor.nameMain}
-                  </h2>
-                  <p className="text-4xl sm:text-5xl md:text-7xl xl:text-[5.5rem] font-serif italic text-primary/55 leading-[0.9] mt-2 break-words">
-                    {featuredAuthor.nameAccent}
-                  </p>
-
-                  <p className="mt-8 max-w-4xl text-xl md:text-3xl font-serif leading-[1.1] text-primary/85">
-                    {featuredAuthor.intro}
-                  </p>
-                </div>
-
-                <div className="bg-white/60 border border-primary/10 p-6 md:p-8">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400 mb-4">
-                    Editorial note
-                  </p>
-                  <div className="space-y-3 text-sm md:text-base leading-relaxed text-primary/70">
-                    <p>{featuredAuthor.body[0]}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-px border border-primary bg-primary">
-                {featuredAuthor.tags.slice(0, 3).map((tag) => (
-                  <div key={tag} className="bg-[#F7F1E6] px-5 py-4 text-[10px] uppercase tracking-[0.18em] text-primary/75">
-                    {tag}
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-10 space-y-6 max-w-5xl text-lg md:text-xl leading-relaxed text-primary/70">
-                {featuredAuthor.body.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
-              </div>
-            </div>
-          </div>
-        </article>
-      </section>
-
       <section className="px-4 md:px-8 py-10 md:py-16">
-        <div className="mb-8 md:mb-12">
-          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
-            {t('static.our_authors.gallery_label')}
-          </p>
-          <h2 className="text-4xl md:text-6xl font-serif leading-[0.92] text-primary">
-            {t('static.our_authors.gallery_title')}
-          </h2>
-        </div>
-
         <div className="space-y-8">
         {authorShowcase.map((item, index) => (
           <article key={item.id} className="border border-primary bg-white overflow-hidden">
@@ -363,6 +295,7 @@ export const OurAuthorsPage: React.FC = () => {
                   src={item.imageUrl}
                   alt={`${item.nameMain} ${item.nameAccent}`}
                   className="absolute inset-0 w-full h-full object-cover grayscale"
+                  style={{ objectPosition: '50% 18%' }}
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,15,30,0.12),rgba(4,15,30,0.72))]" />
                 <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 md:px-8 py-5">

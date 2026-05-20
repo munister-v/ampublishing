@@ -5,7 +5,7 @@ import { useApp } from '../AppContext';
 import { Send } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const { t } = useApp();
+  const { t, isAdmin } = useApp();
 
   return (
     <footer className="bg-primary text-white border-t border-white/20">
@@ -67,6 +67,7 @@ export const Footer: React.FC = () => {
             <Link to="/impressum" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.impressum')}</Link>
             <Link to="/privacy" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.privacy')}</Link>
             <Link to="/terms" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.terms')}</Link>
+            <Link to={isAdmin ? '/admin' : '/login'} className="hover:text-accent hover:opacity-100 transition-opacity">{isAdmin ? 'Admin Panel' : 'Admin'}</Link>
          </div>
       </div>
     </footer>

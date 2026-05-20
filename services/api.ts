@@ -6,8 +6,8 @@ import { notifyOrderChannels } from './orderNotifications';
 
 // --- CONFIGURATION ---
 
-const ADMIN_EMAIL = 'admin@ampublishing.de';
-const ADMIN_PASSWORD = 'AMPub!Berlin2026#Control';
+const ADMIN_EMAIL = 'admin@ampublishing.org';
+const ADMIN_PASSWORD = 'AmPub-Berlin!2026#Catal0g$Authors';
 
 const getBaseUrl = () => localStorage.getItem('api_url') || 'http://localhost:3000/api/v1';
 const isMockMode = () => localStorage.getItem('use_mock_api') !== 'false'; // Default to true
