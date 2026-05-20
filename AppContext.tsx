@@ -5,6 +5,7 @@ import { Book, BookVariant, CartItem, Region, Language, NewsItem, Order, OrderSt
 import { REGIONS } from './constants';
 import { translations } from './translations';
 import { api } from './services/api';
+import { contentStore } from './services/contentStore';
 import { ToastMessage } from './components/Toast';
 
 // --- Context Definition ---
@@ -134,12 +135,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       let overrides: TranslationOverrides = { ru: {}, en: {}, de: {} };
 
       setIsLoadingData(true);
-      
-      if (localStorage.getItem('use_mock_api') === 'false') {
-         const alive = await api.healthCheck();
-         setIsBackendLive(alive);
-         if (!alive) showToast("Backend connection failed", 'error');
-      }
+      setIsBackendLive(true);
 
       try {
         [booksData, newsData, metaData, overrides] = await Promise.all([
@@ -169,9 +165,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
     guardedReload();
 
-    // Check Auth Token
-    const token = localStorage.getItem('auth_token');
-    if (token) {
+    // Check Auth Token (GitHub PAT)
+    if (contentStore.isAuthenticated()) {
         setIsAdmin(true);
         // Load orders quietly if admin
         api.getOrders().then(data => mounted && setOrders(data)).catch(() => {});
@@ -212,8 +207,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // --- ACTIONS ---
 
-  const login = (token: string) => {
-      localStorage.setItem('auth_token', token);
+  const login = (_token: string) => {
+      // PAT has already been stored by api.login() / contentStore.setPAT().
       setIsAdmin(true);
       refreshOrders(); // Load admin data
       showToast("Welcome back, Administrator");
@@ -221,7 +216,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const logout = () => {
-      localStorage.removeItem('auth_token');
+      api.logout();
       setIsAdmin(false);
       setOrders([]);
       showToast("Logged out successfully");

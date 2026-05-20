@@ -1,17 +1,23 @@
-
-import { Book, NewsItem, Language, OrderPayload, ApiResponse, OrderResponse, Order, OrderStatus, LocalizedCatalogData, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
-import { DATABASE } from '../constants';
-import { contentStore } from './contentStore';
+import {
+  Book,
+  NewsItem,
+  Language,
+  OrderPayload,
+  ApiResponse,
+  OrderResponse,
+  Order,
+  OrderStatus,
+  LocalizedCatalogData,
+  PaymentSettings,
+  PaymentStatus,
+  TranslationOverrides,
+} from '../types';
+import { contentStore, verifyPAT } from './contentStore';
 import { notifyOrderChannels } from './orderNotifications';
 
-// --- CONFIGURATION ---
-
+// Admin auth is now GitHub PAT-based. The "email" field is informational only;
+// the PAT (entered in the password field) is what authenticates writes to the repo.
 const ADMIN_EMAIL = 'admin@ampublishing.org';
-// Password is stored as a PBKDF2-SHA256 hash, not plaintext.
-// Recompute hash + salt with `node scripts/hash-admin-password.mjs` if rotated.
-const ADMIN_PASSWORD_SALT_B64 = 'jpXJaD7EJTjlaOM4U+xgLA==';
-const ADMIN_PASSWORD_HASH_B64 = 'tyVzJeool9jsyba+heUE+7C7+g6Zxxw9zDRClYjkywo=';
-const ADMIN_PASSWORD_ITER = 250000;
 
 const LOGIN_ATTEMPTS_KEY = 'am_auth_state';
 const LOGIN_MAX_ATTEMPTS = 5;
@@ -41,353 +47,152 @@ const writeLoginState = (state: LoginState) => {
   }
 };
 
-const b64ToBytes = (b64: string): Uint8Array =>
-  Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-
-const constantTimeEqual = (a: Uint8Array, b: Uint8Array): boolean => {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
-  return diff === 0;
-};
-
-const derivePasswordHash = async (password: string): Promise<Uint8Array> => {
-  const enc = new TextEncoder();
-  const salt = b64ToBytes(ADMIN_PASSWORD_SALT_B64);
-  const baseKey = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(password),
-    'PBKDF2',
-    false,
-    ['deriveBits'],
-  );
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: ADMIN_PASSWORD_ITER, hash: 'SHA-256' },
-    baseKey,
-    256,
-  );
-  return new Uint8Array(bits);
-};
-
-const verifyAdminPassword = async (input: string): Promise<boolean> => {
-  const expected = b64ToBytes(ADMIN_PASSWORD_HASH_B64);
-  const actual = await derivePasswordHash(input);
-  return constantTimeEqual(expected, actual);
-};
-
-const getBaseUrl = () => localStorage.getItem('api_url') || 'http://localhost:3000/api/v1';
-const isMockMode = () => localStorage.getItem('use_mock_api') !== 'false'; // Default to true
-
-// --- SUPABASE PREPARATION ---
-/* 
-   To enable Supabase:
-   1. npm install @supabase/supabase-js
-   2. Uncomment lines below and set keys in .env
-   
-   import { createClient } from '@supabase/supabase-js';
-   const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-   const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-   export const supabase = createClient(supabaseUrl, supabaseKey);
-*/
-
-// --- HTTP CLIENT HELPER ---
-
-class ApiRequestError extends Error {
-  public code?: string;
-  public status?: number;
-
-  constructor(message: string, status?: number, code?: string) {
-    super(message);
-    this.name = 'ApiRequestError';
-    this.status = status;
-    this.code = code;
-  }
-}
-
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${getBaseUrl()}${endpoint}`;
-  const token = localStorage.getItem('auth_token');
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    ...(options.headers || {}),
-  };
-
-  if (options.body instanceof FormData) {
-    // @ts-ignore
-    delete headers['Content-Type'];
-  }
-
-  if (token) {
-    // @ts-ignore
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  console.log(`📡 [API] ${options.method || 'GET'} ${url}`);
-
-  try {
-    const response = await fetch(url, { ...options, headers });
-    
-    if (response.status === 401) {
-      localStorage.removeItem('auth_token');
-      throw new ApiRequestError('Session expired', 401, 'UNAUTHORIZED');
-    }
-
-    const data = await response.json();
-
-    if (!response.ok || data.success === false) {
-      throw new ApiRequestError(
-        data.error?.message || `API Error: ${response.statusText}`, 
-        response.status, 
-        data.error?.code
-      );
-    }
-
-    return data.data as T;
-  } catch (err) {
-    console.error('❌ [API Error]', err);
-    throw err;
-  }
-}
-
-// --- MOCK HELPER ---
-const mockDelay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 export const api = {
-  
-  /**
-   * Check if backend is alive
-   */
-  healthCheck: async (): Promise<boolean> => {
-    if (isMockMode()) return true;
-    try {
-      await fetch(`${getBaseUrl()}/health`, { method: 'HEAD' });
-      return true;
-    } catch (e) {
-      return false;
-    }
-  },
+  healthCheck: async (): Promise<boolean> => true,
 
   // --- PUBLIC ENDPOINTS ---
 
   getBooks: async (lang: Language): Promise<Book[]> => {
-    if (!isMockMode()) return request<Book[]>(`/books?lang=${lang}`);
-    
-    await mockDelay(600);
-    return JSON.parse(JSON.stringify(contentStore.getDatabase()[lang].books));
+    const db = await contentStore.getDatabase();
+    return db[lang].books;
   },
 
   getNews: async (lang: Language): Promise<NewsItem[]> => {
-    if (!isMockMode()) return request<NewsItem[]>(`/news?lang=${lang}`);
-    
-    await mockDelay(400);
-    return JSON.parse(JSON.stringify(contentStore.getDatabase()[lang].news));
+    const db = await contentStore.getDatabase();
+    return db[lang].news;
   },
 
   getMetadata: async (lang: Language) => {
-    if (!isMockMode()) return request<{ genres: string[], authors: string[], series: string[] }>(`/metadata?lang=${lang}`);
-    
-    await mockDelay(300);
-    const database = contentStore.getDatabase();
+    const db = await contentStore.getDatabase();
     return {
-        genres: database[lang].genres,
-        authors: database[lang].authors,
-        series: database[lang].series,
+      genres: db[lang].genres,
+      authors: db[lang].authors,
+      series: db[lang].series,
     };
   },
 
   getContentDatabase: async (): Promise<Record<Language, LocalizedCatalogData>> => {
-    await mockDelay(200);
     return contentStore.getDatabase();
   },
 
-  upsertBook: async (lang: Language, book: Book): Promise<Record<Language, LocalizedCatalogData>> => {
-    await mockDelay(200);
-    return contentStore.upsertBook(lang, book);
-  },
+  upsertBook: async (lang: Language, book: Book) => contentStore.upsertBook(lang, book),
 
-  deleteBook: async (lang: Language, bookId: string): Promise<Record<Language, LocalizedCatalogData>> => {
-    await mockDelay(150);
-    return contentStore.deleteBook(lang, bookId);
-  },
+  deleteBook: async (lang: Language, bookId: string) => contentStore.deleteBook(lang, bookId),
 
-  upsertNewsItem: async (lang: Language, item: NewsItem): Promise<Record<Language, LocalizedCatalogData>> => {
-    await mockDelay(150);
-    return contentStore.upsertNewsItem(lang, item);
-  },
+  upsertNewsItem: async (lang: Language, item: NewsItem) => contentStore.upsertNewsItem(lang, item),
 
-  deleteNewsItem: async (lang: Language, itemId: string): Promise<Record<Language, LocalizedCatalogData>> => {
-    await mockDelay(150);
-    return contentStore.deleteNewsItem(lang, itemId);
-  },
+  deleteNewsItem: async (lang: Language, itemId: string) =>
+    contentStore.deleteNewsItem(lang, itemId),
 
-  getTranslationOverrides: async (): Promise<TranslationOverrides> => {
-    await mockDelay(100);
-    return contentStore.getTranslationOverrides();
-  },
+  getTranslationOverrides: async (): Promise<TranslationOverrides> =>
+    contentStore.getTranslationOverrides(),
 
-  setTranslationValue: async (lang: Language, key: string, value: any): Promise<TranslationOverrides> => {
-    await mockDelay(120);
-    return contentStore.setTranslationValue(lang, key, value);
-  },
+  setTranslationValue: async (lang: Language, key: string, value: any) =>
+    contentStore.setTranslationValue(lang, key, value),
 
-  resetTranslationValue: async (lang: Language, key: string): Promise<TranslationOverrides> => {
-    await mockDelay(120);
-    return contentStore.resetTranslationValue(lang, key);
-  },
+  resetTranslationValue: async (lang: Language, key: string) =>
+    contentStore.resetTranslationValue(lang, key),
 
-  exportContentBundle: async () => {
-    await mockDelay(80);
-    return contentStore.exportContent();
-  },
+  exportContentBundle: async () => contentStore.exportContent(),
 
-  importContentBundle: async (payload: { database?: Record<Language, LocalizedCatalogData>; overrides?: TranslationOverrides }) => {
-    await mockDelay(120);
-    return contentStore.importContent(payload);
-  },
+  importContentBundle: async (payload: {
+    database?: Record<Language, LocalizedCatalogData>;
+    overrides?: TranslationOverrides;
+  }) => contentStore.importContent(payload),
 
-  getPaymentSettings: async (): Promise<PaymentSettings> => {
-    await mockDelay(120);
-    return contentStore.getPaymentSettings();
-  },
+  getPaymentSettings: async (): Promise<PaymentSettings> => contentStore.getPaymentSettings(),
 
-  savePaymentSettings: async (settings: PaymentSettings): Promise<PaymentSettings> => {
-    await mockDelay(150);
-    return contentStore.savePaymentSettings(settings);
-  },
+  savePaymentSettings: async (settings: PaymentSettings): Promise<PaymentSettings> =>
+    contentStore.savePaymentSettings(settings),
 
   submitOrder: async (payload: OrderPayload): Promise<ApiResponse<OrderResponse>> => {
-    if (!isMockMode()) {
-        return request<ApiResponse<OrderResponse>>(`/orders`, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-    }
-
-    console.log('📦 [Mock] Submitting Order:', payload);
-    await mockDelay(1200);
     const createdOrder = contentStore.createOrder(payload);
-    const paymentSettings = contentStore.getPaymentSettings();
+    const paymentSettings = await contentStore.getPaymentSettings();
     await notifyOrderChannels('order_created', createdOrder, paymentSettings);
-    
+
     return {
-        success: true,
-        data: {
-            orderId: createdOrder.id,
-            status: createdOrder.status
-        }
+      success: true,
+      data: {
+        orderId: createdOrder.id,
+        status: createdOrder.status,
+      },
     };
   },
 
   submitServiceApplication: async (formData: FormData): Promise<ApiResponse<null>> => {
-      if (!isMockMode()) {
-          const url = `${getBaseUrl()}/services`;
-          const token = localStorage.getItem('auth_token');
-          const headers: HeadersInit = token ? { 'Authorization': `Bearer ${token}` } : {};
-          const response = await fetch(url, { method: 'POST', body: formData, headers });
-          return response.json();
-      }
-
-      console.log('📄 [Mock] Service Application:', formData.get('email'));
-      await mockDelay(1500);
-      return { success: true };
+    console.log('📄 Service Application:', formData.get('email'));
+    return { success: true };
   },
 
-  // --- ADMIN ENDPOINTS (SECURE) ---
+  // --- ADMIN ENDPOINTS (GitHub PAT auth) ---
 
-  login: async (email: string, password: string): Promise<{ token: string, user: { name: string, role: string } }> => {
-      if (!isMockMode()) {
-          return request('/auth/login', {
-              method: 'POST',
-              body: JSON.stringify({ email, password })
-          });
-      }
+  login: async (
+    email: string,
+    pat: string,
+  ): Promise<{ token: string; user: { name: string; role: string } }> => {
+    const state = readLoginState();
+    const now = Date.now();
+    if (state.lockedUntil > now) {
+      const minutes = Math.ceil((state.lockedUntil - now) / 60000);
+      throw new Error(`Too many failed attempts. Try again in ~${minutes} min.`);
+    }
 
-      const state = readLoginState();
-      const now = Date.now();
-      if (state.lockedUntil > now) {
-          const minutes = Math.ceil((state.lockedUntil - now) / 60000);
-          throw new Error(`Too many failed attempts. Try again in ~${minutes} min.`);
-      }
+    const trimmed = (pat || '').trim();
+    if (!trimmed) throw new Error('GitHub Personal Access Token is required.');
 
-      // Throttle with exponential delay based on prior failures (capped at 4s)
-      const delay = Math.min(800 + state.failures * 600, 4000);
-      await mockDelay(delay);
+    // Light client-side delay to discourage rapid guessing.
+    await new Promise(resolve => setTimeout(resolve, Math.min(400 + state.failures * 400, 3000)));
 
-      const emailOk = email.trim().toLowerCase() === ADMIN_EMAIL;
-      const passOk = await verifyAdminPassword(password);
+    const account = await verifyPAT(trimmed);
+    const emailOk = (email || '').trim().toLowerCase() === ADMIN_EMAIL;
 
-      if (emailOk && passOk) {
-          writeLoginState({ failures: 0, lockedUntil: 0 });
-          return {
-              token: 'mock-jwt-token-' + Date.now(),
-              user: { name: 'Admin User', role: 'superadmin' }
-          };
-      }
+    if (account && emailOk) {
+      contentStore.setPAT(trimmed, false);
+      writeLoginState({ failures: 0, lockedUntil: 0 });
+      return {
+        token: trimmed,
+        user: { name: account.login, role: 'superadmin' },
+      };
+    }
 
-      const failures = state.failures + 1;
-      const lockedUntil = failures >= LOGIN_MAX_ATTEMPTS ? now + LOGIN_LOCKOUT_MS : 0;
-      writeLoginState({ failures, lockedUntil });
-      if (lockedUntil) {
-          throw new Error(`Too many failed attempts. Locked for 15 minutes.`);
-      }
-      throw new Error('Invalid credentials');
+    const failures = state.failures + 1;
+    const lockedUntil = failures >= LOGIN_MAX_ATTEMPTS ? now + LOGIN_LOCKOUT_MS : 0;
+    writeLoginState({ failures, lockedUntil });
+    if (lockedUntil) {
+      throw new Error(`Too many failed attempts. Locked for 15 minutes.`);
+    }
+    if (!emailOk) throw new Error('Invalid admin email.');
+    throw new Error('GitHub token rejected (check token scope: needs `contents: write` on this repo).');
   },
 
-  getOrders: async (): Promise<Order[]> => {
-      if (!isMockMode()) return request<Order[]>('/admin/orders');
-      
-      await mockDelay(300);
-      return contentStore.getOrders();
+  logout: () => {
+    contentStore.clearPAT();
   },
+
+  getOrders: async (): Promise<Order[]> => contentStore.getOrders(),
 
   updateOrderStatus: async (orderId: string, status: OrderStatus): Promise<boolean> => {
-      if (!isMockMode()) {
-          await request(`/admin/orders/${orderId}`, {
-              method: 'PATCH',
-              body: JSON.stringify({ status })
-          });
-          return true;
-      }
-
-      await mockDelay(500);
-      contentStore.updateOrderStatus(orderId, status);
-      return true;
+    contentStore.updateOrderStatus(orderId, status);
+    return true;
   },
 
   updatePaymentStatus: async (orderId: string, paymentStatus: PaymentStatus): Promise<boolean> => {
-      if (!isMockMode()) {
-          await request(`/admin/orders/${orderId}/payment`, {
-              method: 'PATCH',
-              body: JSON.stringify({ paymentStatus })
-          });
-          return true;
+    contentStore.updatePaymentStatus(orderId, paymentStatus);
+    if (paymentStatus === 'paid') {
+      const paymentSettings = await contentStore.getPaymentSettings();
+      const order = contentStore.getOrders().find(entry => entry.id === orderId);
+      if (order) {
+        await notifyOrderChannels('payment_confirmed', order, paymentSettings);
       }
-
-      await mockDelay(300);
-      contentStore.updatePaymentStatus(orderId, paymentStatus);
-      if (paymentStatus === 'paid') {
-          const paymentSettings = contentStore.getPaymentSettings();
-          const order = contentStore.getOrders().find(entry => entry.id === orderId);
-          if (order) {
-            await notifyOrderChannels('payment_confirmed', order, paymentSettings);
-          }
-      }
-      return true;
+    }
+    return true;
   },
 
   updateInventory: async (bookId: string, stock: number): Promise<boolean> => {
-      if (!isMockMode()) {
-          await request(`/admin/inventory/${bookId}`, {
-              method: 'PATCH',
-              body: JSON.stringify({ stock })
-          });
-          return true;
-      }
-
-      await mockDelay(600);
-      console.log(`📦 [Mock] Stock for ${bookId} set to ${stock}`);
-      return true;
-  }
+    // Inventory is now per-book per-language in the JSON files.
+    // Admin should update via upsertBook from the books tab. Kept as no-op stub
+    // so the dashboard inventory shortcut doesn't crash.
+    console.log(`Inventory update requested for ${bookId} → ${stock}. Use Books tab to persist.`);
+    return true;
+  },
 };

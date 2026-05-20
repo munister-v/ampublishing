@@ -1,0 +1,21 @@
+{
+  "recipientName": "AM Publishing",
+  "visaPaymentUrl": "",
+  "mastercardPaymentUrl": "",
+  "cardholder": "AM PUBLISHING",
+  "cardNumber": "",
+  "bankName": "Revolut Bank UAB · BIC REVOLT21",
+  "iban": "LT47 3250 0072 6895 2728",
+  "mirCardholder": "",
+  "mirCardNumber": "",
+  "mirBankName": "",
+  "whatsappNumber": "",
+  "telegramUsername": "",
+  "contactEmail": "am.hybridpublishing@gmail.com",
+  "paymentNote": "После оплаты отправьте подтверждение перевода, чтобы мы могли вручную подтвердить заказ.",
+  "invoicePrefix": "AM",
+  "webhookUrl": "",
+  "webhookLabel": "Make / n8n / Telegram bridge",
+  "notifyOnOrderCreated": true,
+  "notifyOnPaymentConfirmed": true
+}

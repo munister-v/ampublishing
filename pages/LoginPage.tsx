@@ -50,32 +50,36 @@ export const LoginPage: React.FC = () => {
                     />
                 </div>
                 <div>
-                    <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Password</label>
-                    <input 
-                        type="password" 
+                    <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">GitHub Personal Access Token</label>
+                    <input
+                        type="password"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        className="w-full bg-[#F8F9FA] border-b-2 border-gray-200 p-3 outline-none focus:border-accent transition-colors"
+                        className="w-full bg-[#F8F9FA] border-b-2 border-gray-200 p-3 outline-none focus:border-accent transition-colors font-mono text-sm"
                         required
-                        placeholder="••••••••••••"
+                        placeholder="ghp_..."
+                        autoComplete="off"
                     />
+                    <p className="mt-2 text-[10px] text-gray-500 leading-relaxed">
+                        Fine-grained PAT с правами <span className="font-mono">contents: read &amp; write</span> на репозитории <span className="font-mono">munister-v/ampublishing</span>. Создать: github.com/settings/personal-access-tokens/new
+                    </p>
                 </div>
 
-                <button 
-                    type="submit" 
+                <button
+                    type="submit"
                     disabled={loading}
                     className={`w-full bg-primary text-white py-4 uppercase font-bold text-xs tracking-[0.2em] hover:bg-accent transition-colors flex items-center justify-center gap-3 ${loading ? 'opacity-80 cursor-wait' : ''}`}
                 >
                     {loading ? (
                         <>Authenticating <Loader2 size={14} className="animate-spin"/></>
                     ) : (
-                        <>'Access System' <Lock size={14} /></>
+                        <>Access System <Lock size={14} /></>
                     )}
                 </button>
             </form>
-            
+
             <div className="mt-8 pt-8 border-t border-gray-100 text-center">
-                <p className="text-[10px] text-gray-400 font-mono">Restricted area. Static demo auth only, use backend auth for real security.</p>
+                <p className="text-[10px] text-gray-400 font-mono">Restricted area. Token is held only in this browser session.</p>
             </div>
         </div>
       </div>

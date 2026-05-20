@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../AppContext';
 import { api } from '../services/api';
-import { autoTranslateBookFromRu, autoTranslateNewsFromRu, autoTranslateValue } from '../services/autoTranslate';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
 import { Book, Language, LocalizedCatalogData, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
@@ -755,15 +754,15 @@ export const AdminPage: React.FC = () => {
     try {
       const parsedValue = field.type === 'json' ? parseJsonField(rawValue) : rawValue;
       setSavingKey(field.key);
-      let nextOverrides = await api.setTranslationValue(selectedLanguage, field.key, parsedValue);
-      if (selectedLanguage === 'ru') {
-        nextOverrides = await api.setTranslationValue('en', field.key, autoTranslateValue(parsedValue, 'en'));
-        nextOverrides = await api.setTranslationValue('de', field.key, autoTranslateValue(parsedValue, 'de'));
-      }
+      const nextOverrides = await api.setTranslationValue(selectedLanguage, field.key, parsedValue);
       setOverrides(nextOverrides);
       await reloadContent();
       setLastPublishedAt(new Date().toLocaleTimeString());
-      showToast(selectedLanguage === 'ru' ? `${field.label} saved and synced to EN/DE` : `${field.label} saved`);
+      showToast(
+        selectedLanguage === 'ru'
+          ? `${field.label} (RU) сохранено. EN/DE автоматически переведёт CI в течение пары минут.`
+          : `${field.label} saved`,
+      );
     } catch {
       showToast(`Could not save ${field.label}`, 'error');
     } finally {
@@ -804,14 +803,14 @@ export const AdminPage: React.FC = () => {
       };
       setSavingKey(`book:${bookDraft.id}`);
       await api.upsertBook(selectedLanguage, nextBook);
-      if (selectedLanguage === 'ru') {
-        await api.upsertBook('en', autoTranslateBookFromRu(nextBook, 'en'));
-        await api.upsertBook('de', autoTranslateBookFromRu(nextBook, 'de'));
-      }
       await reloadContent();
       await loadAdminData();
       setLastPublishedAt(new Date().toLocaleTimeString());
-      showToast(selectedLanguage === 'ru' ? `Book ${bookDraft.title || bookDraft.id} saved and synced to EN/DE` : `Book ${bookDraft.title || bookDraft.id} saved`);
+      showToast(
+        selectedLanguage === 'ru'
+          ? `Книга «${bookDraft.title || bookDraft.id}» (RU) сохранена. EN/DE автоматически переведёт CI.`
+          : `Book ${bookDraft.title || bookDraft.id} saved`,
+      );
     } catch {
       showToast('Could not save book', 'error');
     } finally {
@@ -845,14 +844,14 @@ export const AdminPage: React.FC = () => {
     try {
       setSavingKey(`news:${newsDraft.id}`);
       await api.upsertNewsItem(selectedLanguage, newsDraft);
-      if (selectedLanguage === 'ru') {
-        await api.upsertNewsItem('en', autoTranslateNewsFromRu(newsDraft, 'en'));
-        await api.upsertNewsItem('de', autoTranslateNewsFromRu(newsDraft, 'de'));
-      }
       await reloadContent();
       await loadAdminData();
       setLastPublishedAt(new Date().toLocaleTimeString());
-      showToast(selectedLanguage === 'ru' ? `News ${newsDraft.title || newsDraft.id} saved and synced to EN/DE` : `News ${newsDraft.title || newsDraft.id} saved`);
+      showToast(
+        selectedLanguage === 'ru'
+          ? `Новость «${newsDraft.title || newsDraft.id}» (RU) сохранена. EN/DE автоматически переведёт CI.`
+          : `News ${newsDraft.title || newsDraft.id} saved`,
+      );
     } catch {
       showToast('Could not save news', 'error');
     } finally {
@@ -885,20 +884,17 @@ export const AdminPage: React.FC = () => {
     if (!featuredAuthorDraft) return;
     try {
       setSavingKey('authors');
-      let nextOverrides = await api.setTranslationValue(selectedLanguage, 'static.our_authors.featured_author', featuredAuthorDraft);
-      nextOverrides = await api.setTranslationValue(selectedLanguage, 'static.our_authors.showcase_items', showcaseDraft);
-
-      if (selectedLanguage === 'ru') {
-        nextOverrides = await api.setTranslationValue('en', 'static.our_authors.featured_author', autoTranslateValue(featuredAuthorDraft, 'en'));
-        nextOverrides = await api.setTranslationValue('en', 'static.our_authors.showcase_items', autoTranslateValue(showcaseDraft, 'en'));
-        nextOverrides = await api.setTranslationValue('de', 'static.our_authors.featured_author', autoTranslateValue(featuredAuthorDraft, 'de'));
-        nextOverrides = await api.setTranslationValue('de', 'static.our_authors.showcase_items', autoTranslateValue(showcaseDraft, 'de'));
-      }
+      await api.setTranslationValue(selectedLanguage, 'static.our_authors.featured_author', featuredAuthorDraft);
+      const nextOverrides = await api.setTranslationValue(selectedLanguage, 'static.our_authors.showcase_items', showcaseDraft);
 
       setOverrides(nextOverrides);
       await reloadContent();
       setLastPublishedAt(new Date().toLocaleTimeString());
-      showToast(selectedLanguage === 'ru' ? 'Our authors saved and synced to EN/DE' : 'Our authors saved');
+      showToast(
+        selectedLanguage === 'ru'
+          ? 'Раздел «Наши авторы» (RU) сохранён. EN/DE автоматически переведёт CI.'
+          : 'Our authors saved',
+      );
     } catch {
       showToast('Could not save authors section', 'error');
     } finally {
