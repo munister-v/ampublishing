@@ -14,7 +14,9 @@ export const BrandLogo: React.FC<{ className?: string }> = ({ className = "w-10 
 );
 
 export const Header: React.FC = () => {
-  const { cart, setCartOpen, language, setLanguage, t, searchHistory, addSearchHistory, clearSearchHistory } = useApp();
+  const { cart, setCartOpen, language, setLanguage, t, searchHistory, addSearchHistory, clearSearchHistory, siteSettings } = useApp();
+  const headerNav = (siteSettings?.headerNav || []).filter(item => item.enabled !== false);
+  const brandShort = siteSettings?.brand?.short || 'AM Pub.';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
   const navigate = useNavigate();
@@ -53,16 +55,16 @@ export const Header: React.FC = () => {
              <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-out-quart"></div>
              <div className="flex items-center gap-3 relative z-10 group-hover:text-white transition-colors duration-500">
                 <BrandLogo className="w-6 h-6 transition-transform duration-700 ease-out-quart group-hover:rotate-90" />
-                <span className="hidden md:block font-bold text-xs uppercase tracking-[0.2em] transition-transform duration-700 ease-out-quart group-hover:translate-x-1">AM Pub.</span>
+                <span className="hidden md:block font-bold text-xs uppercase tracking-[0.2em] transition-transform duration-700 ease-out-quart group-hover:translate-x-1">{brandShort}</span>
              </div>
           </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex flex-1 items-stretch">
-            {['catalog', 'our_authors', 'authors', 'about', 'media'].map((path) => (
+            {headerNav.map((item) => (
               <NavLink
-                key={path}
-                to={path === 'our_authors' ? '/our-authors' : `/${path}`}
+                key={item.id}
+                to={item.path}
                 className={({ isActive }) =>
                   `flex-1 flex items-center justify-center text-[10px] uppercase tracking-[0.25em] font-bold border-r border-primary relative group overflow-hidden ${
                     isActive ? 'text-white' : 'text-primary'
@@ -74,7 +76,7 @@ export const Header: React.FC = () => {
                     <div className={`absolute inset-0 bg-primary ${isActive ? 'translate-y-0' : 'translate-y-full'} transition-transform duration-300`} />
                     <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out-quart" />
                     <span className="relative z-10 group-hover:text-white transition-colors duration-500">
-                      {t(`nav.${path}`)}
+                      {t(item.labelKey)}
                     </span>
                   </>
                 )}
@@ -209,15 +211,15 @@ export const Header: React.FC = () => {
              </button>
            </div>
            <nav className="flex-1 flex flex-col p-6 overflow-y-auto">
-              {['catalog', 'our_authors', 'authors', 'about', 'media'].map((path, i) => (
-                <Link 
-                  key={path}
-                  to={path === 'our_authors' ? '/our-authors' : `/${path}`}
+              {headerNav.map((item, i) => (
+                <Link
+                  key={item.id}
+                  to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
                   className="text-5xl font-serif py-6 border-b border-white/10 hover:pl-6 transition-all duration-700 ease-out-quart flex justify-between items-center group animate-fade-up gpu-accelerated"
                   style={{ animationDelay: `${i * 100}ms` }}
                 >
-                  {t(`nav.${path}`)}
+                  {t(item.labelKey)}
                   <span className="text-xs font-mono opacity-0 group-hover:opacity-100 text-accent transition-opacity duration-700">0{i+1}</span>
                 </Link>
               ))}

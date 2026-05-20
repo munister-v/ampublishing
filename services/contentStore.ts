@@ -1,4 +1,4 @@
-import { Book, Language, LocalizedCatalogData, NewsItem, Order, OrderPayload, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
+import { Book, Language, LocalizedCatalogData, NewsItem, Order, OrderPayload, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import { DATABASE, MOCK_ORDERS } from '../constants';
 
 const GH_OWNER = 'munister-v';
@@ -105,6 +105,7 @@ type CacheState = {
   database: Record<Language, LocalizedCatalogData> | null;
   overrides: TranslationOverrides | null;
   paymentSettings: PaymentSettings | null;
+  siteSettings: SiteSettings | null;
   loaded: boolean;
   loadingPromise: Promise<void> | null;
 };
@@ -113,8 +114,68 @@ const cache: CacheState = {
   database: null,
   overrides: null,
   paymentSettings: null,
+  siteSettings: null,
   loaded: false,
   loadingPromise: null,
+};
+
+const DEFAULT_SITE_SETTINGS: SiteSettings = {
+  social: {
+    telegramUrl: 'https://t.me/ampublishingberlin',
+    instagramUrl: 'https://www.instagram.com/am.publishing?igsh=b2JoMDZqdDJzMXdj',
+    facebookUrl: '',
+    youtubeUrl: '',
+    twitterUrl: '',
+  },
+  contacts: {
+    email: 'am.hybridpublishing@gmail.com',
+    phone: '',
+    addressLine1: 'AM Publishing Berlin',
+    addressLine2: '',
+  },
+  headerNav: [
+    { id: 'h-catalog', labelKey: 'nav.catalog', path: '/catalog', enabled: true },
+    { id: 'h-our-authors', labelKey: 'nav.our_authors', path: '/our-authors', enabled: true },
+    { id: 'h-authors', labelKey: 'nav.authors', path: '/authors', enabled: true },
+    { id: 'h-about', labelKey: 'nav.about', path: '/about', enabled: true },
+    { id: 'h-media', labelKey: 'nav.media', path: '/media', enabled: true },
+  ],
+  footerNav: [
+    { id: 'f-catalog', labelKey: 'nav.catalog', path: '/catalog', enabled: true },
+    { id: 'f-our-authors', labelKey: 'nav.our_authors', path: '/our-authors', enabled: true },
+    { id: 'f-authors', labelKey: 'nav.authors', path: '/authors', enabled: true },
+    { id: 'f-about', labelKey: 'nav.about', path: '/about', enabled: true },
+    { id: 'f-media', labelKey: 'nav.media', path: '/media', enabled: true },
+  ],
+  footerLegal: [
+    { id: 'l-impressum', labelKey: 'footer.links.impressum', path: '/impressum', enabled: true },
+    { id: 'l-privacy', labelKey: 'footer.links.privacy', path: '/privacy', enabled: true },
+    { id: 'l-terms', labelKey: 'footer.links.terms', path: '/terms', enabled: true },
+  ],
+  showNewsletter: true,
+  brand: {
+    name: 'AM Publishing',
+    short: 'AM Pub.',
+  },
+};
+
+const mergeSiteSettings = (incoming: Partial<SiteSettings> | null | undefined): SiteSettings => {
+  if (!incoming) return clone(DEFAULT_SITE_SETTINGS);
+  return {
+    social: { ...DEFAULT_SITE_SETTINGS.social, ...(incoming.social || {}) },
+    contacts: { ...DEFAULT_SITE_SETTINGS.contacts, ...(incoming.contacts || {}) },
+    headerNav: Array.isArray(incoming.headerNav) && incoming.headerNav.length
+      ? incoming.headerNav.map(item => ({ enabled: true, ...item }))
+      : clone(DEFAULT_SITE_SETTINGS.headerNav),
+    footerNav: Array.isArray(incoming.footerNav) && incoming.footerNav.length
+      ? incoming.footerNav.map(item => ({ enabled: true, ...item }))
+      : clone(DEFAULT_SITE_SETTINGS.footerNav),
+    footerLegal: Array.isArray(incoming.footerLegal) && incoming.footerLegal.length
+      ? incoming.footerLegal.map(item => ({ enabled: true, ...item }))
+      : clone(DEFAULT_SITE_SETTINGS.footerLegal),
+    showNewsletter: typeof incoming.showNewsletter === 'boolean' ? incoming.showNewsletter : DEFAULT_SITE_SETTINGS.showNewsletter,
+    brand: { ...DEFAULT_SITE_SETTINGS.brand, ...(incoming.brand || {}) },
+  };
 };
 
 const computeMetadata = (books: Book[]) => ({
@@ -161,7 +222,7 @@ const ensureLoaded = async (): Promise<void> => {
     const fallbackBooks = (lang: Language): Book[] => clone(DATABASE[lang].books);
     const fallbackNews = (lang: Language): NewsItem[] => clone(DATABASE[lang].news);
 
-    const [bru, ben, bde, nru, nen, nde, oru, oen, ode, pay] = await Promise.all([
+    const [bru, ben, bde, nru, nen, nde, oru, oen, ode, pay, site] = await Promise.all([
       fetchContent<Book[]>('books.ru.json', fallbackBooks('ru')),
       fetchContent<Book[]>('books.en.json', fallbackBooks('en')),
       fetchContent<Book[]>('books.de.json', fallbackBooks('de')),
@@ -172,6 +233,7 @@ const ensureLoaded = async (): Promise<void> => {
       fetchContent<Record<string, any>>('translation-overrides.en.json', {}),
       fetchContent<Record<string, any>>('translation-overrides.de.json', {}),
       fetchContent<PaymentSettings>('payment-settings.json', DEFAULT_PAYMENT_SETTINGS),
+      fetchContent<Partial<SiteSettings> | null>('site-settings.json', null),
     ]);
 
     cache.database = {
@@ -181,6 +243,7 @@ const ensureLoaded = async (): Promise<void> => {
     };
     cache.overrides = { ru: oru || {}, en: oen || {}, de: ode || {} };
     cache.paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS, ...(pay || {}) };
+    cache.siteSettings = mergeSiteSettings(site);
     cache.loaded = true;
   })();
 
@@ -338,6 +401,22 @@ export const contentStore = {
     return clone(cache.overrides!);
   },
 
+  async getSiteSettings(): Promise<SiteSettings> {
+    await ensureLoaded();
+    return clone(cache.siteSettings!);
+  },
+
+  async saveSiteSettings(settings: SiteSettings): Promise<SiteSettings> {
+    await ensureLoaded();
+    cache.siteSettings = mergeSiteSettings(settings);
+    await ghWriteFile(
+      `public/content/site-settings.json`,
+      cache.siteSettings,
+      `admin: update site settings (header/footer/menu/contacts)`,
+    );
+    return clone(cache.siteSettings);
+  },
+
   async getPaymentSettings(): Promise<PaymentSettings> {
     await ensureLoaded();
     return clone(cache.paymentSettings!);
@@ -361,8 +440,9 @@ export const contentStore = {
       overrides: clone(cache.overrides!),
       orders: getOrdersStorage(),
       paymentSettings: clone(cache.paymentSettings!),
+      siteSettings: clone(cache.siteSettings!),
       exportedAt: new Date().toISOString(),
-      version: 3,
+      version: 4,
     };
   },
 
@@ -371,6 +451,7 @@ export const contentStore = {
     overrides?: TranslationOverrides;
     orders?: Order[];
     paymentSettings?: PaymentSettings;
+    siteSettings?: SiteSettings;
   }) {
     await ensureLoaded();
     const commits: Promise<void>[] = [];
@@ -407,6 +488,16 @@ export const contentStore = {
           `public/content/payment-settings.json`,
           cache.paymentSettings,
           `admin: import payment settings`,
+        ),
+      );
+    }
+    if (payload.siteSettings) {
+      cache.siteSettings = mergeSiteSettings(payload.siteSettings);
+      commits.push(
+        ghWriteFile(
+          `public/content/site-settings.json`,
+          cache.siteSettings,
+          `admin: import site settings`,
         ),
       );
     }

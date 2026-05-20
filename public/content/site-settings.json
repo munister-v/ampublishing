@@ -1,0 +1,39 @@
+{
+  "social": {
+    "telegramUrl": "https://t.me/ampublishingberlin",
+    "instagramUrl": "https://www.instagram.com/am.publishing?igsh=b2JoMDZqdDJzMXdj",
+    "facebookUrl": "",
+    "youtubeUrl": "",
+    "twitterUrl": ""
+  },
+  "contacts": {
+    "email": "am.hybridpublishing@gmail.com",
+    "phone": "",
+    "addressLine1": "AM Publishing Berlin",
+    "addressLine2": ""
+  },
+  "headerNav": [
+    { "id": "h-catalog", "labelKey": "nav.catalog", "path": "/catalog", "enabled": true },
+    { "id": "h-our-authors", "labelKey": "nav.our_authors", "path": "/our-authors", "enabled": true },
+    { "id": "h-authors", "labelKey": "nav.authors", "path": "/authors", "enabled": true },
+    { "id": "h-about", "labelKey": "nav.about", "path": "/about", "enabled": true },
+    { "id": "h-media", "labelKey": "nav.media", "path": "/media", "enabled": true }
+  ],
+  "footerNav": [
+    { "id": "f-catalog", "labelKey": "nav.catalog", "path": "/catalog", "enabled": true },
+    { "id": "f-our-authors", "labelKey": "nav.our_authors", "path": "/our-authors", "enabled": true },
+    { "id": "f-authors", "labelKey": "nav.authors", "path": "/authors", "enabled": true },
+    { "id": "f-about", "labelKey": "nav.about", "path": "/about", "enabled": true },
+    { "id": "f-media", "labelKey": "nav.media", "path": "/media", "enabled": true }
+  ],
+  "footerLegal": [
+    { "id": "l-impressum", "labelKey": "footer.links.impressum", "path": "/impressum", "enabled": true },
+    { "id": "l-privacy", "labelKey": "footer.links.privacy", "path": "/privacy", "enabled": true },
+    { "id": "l-terms", "labelKey": "footer.links.terms", "path": "/terms", "enabled": true }
+  ],
+  "showNewsletter": true,
+  "brand": {
+    "name": "AM Publishing",
+    "short": "AM Pub."
+  }
+}

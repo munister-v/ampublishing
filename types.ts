@@ -147,6 +147,39 @@ export interface CheckoutFormData {
   paymentMethod: 'visa' | 'mastercard' | 'amazon' | 'invoice' | 'mir';
 }
 
+// --- SITE SETTINGS (editable via admin: header/footer/menu/contacts) ---
+
+export interface NavLinkConfig {
+  id: string;
+  labelKey: string; // translation key, e.g. "nav.catalog"
+  path: string;     // route path, e.g. "/catalog" or external URL starting with http
+  enabled?: boolean;
+}
+
+export interface SiteSettings {
+  social: {
+    telegramUrl: string;
+    instagramUrl: string;
+    facebookUrl: string;
+    youtubeUrl: string;
+    twitterUrl: string;
+  };
+  contacts: {
+    email: string;
+    phone: string;
+    addressLine1: string;
+    addressLine2: string;
+  };
+  headerNav: NavLinkConfig[];
+  footerNav: NavLinkConfig[];
+  footerLegal: NavLinkConfig[];
+  showNewsletter: boolean;
+  brand: {
+    name: string;       // long brand name (footer)
+    short: string;      // short brand label (header)
+  };
+}
+
 // --- ADMIN & ORDER TYPES ---
 
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';

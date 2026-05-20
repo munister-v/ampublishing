@@ -4,16 +4,13 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Globe } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useApp } from '../AppContext';
-import { getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 
 export const HomePage: React.FC = () => {
-  const { t, books, news, language, showToast } = useApp();
+  const { t, books, news, showToast } = useApp();
   const newBooks = books.filter(b => b.badges.includes('new')).slice(0, 4);
   const heroLine2 = t('home.hero_title_2');
   const heroImageUrl = t('home.hero_image') as string;
   const featureImageUrl = t('home.feature_image') as string;
-  const authorShowcase = getAuthorShowcaseContent(language, t('static.our_authors.showcase_items'));
-  const featuredAuthor = getFeaturedAuthorContent(language, t('static.our_authors.featured_author'));
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));
@@ -166,94 +163,6 @@ export const HomePage: React.FC = () => {
                </div>
             </div>
          ))}
-      </section>
-
-      {/* 6. OUR AUTHORS */}
-      <section className="border-t border-primary bg-[#F4F4F0]">
-        <div className="border-b border-primary px-6 md:px-10 py-5 flex items-center justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent mb-2">{t('home.authors_kicker')}</p>
-            <h2 className="text-3xl md:text-5xl font-serif leading-none">{t('home.authors_title')}</h2>
-          </div>
-          <Link to="/our-authors" className="text-xs font-mono uppercase underline hover:text-accent transition-colors">
-            {t('home.authors_cta')}
-          </Link>
-        </div>
-
-        <div className="px-4 md:px-8 py-10 md:py-16 border-b border-primary">
-          <article className="grid grid-cols-1 lg:grid-cols-[300px_1fr] border border-primary bg-[#F7F1E6] overflow-hidden mb-8">
-            <div className="bg-primary min-h-[220px] md:min-h-[320px] flex items-center justify-center relative overflow-hidden">
-              <span className="text-[6rem] md:text-[9rem] font-serif text-white/10 leading-none">S</span>
-            </div>
-
-            <div className="p-8 md:p-12">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent mb-4">
-                {featuredAuthor.label}
-              </p>
-              <h3 className="text-4xl md:text-6xl font-serif leading-[0.9] text-primary">
-                {featuredAuthor.nameMain}
-              </h3>
-              <p className="text-3xl md:text-5xl font-serif italic text-primary/60 leading-[0.92] mt-2">
-                {featuredAuthor.nameAccent}
-              </p>
-              <p className="mt-6 text-lg md:text-2xl font-serif leading-[1.2] text-primary/80 max-w-4xl">
-                {featuredAuthor.intro}
-              </p>
-            </div>
-          </article>
-
-          <div className="space-y-8">
-          {authorShowcase.map((item) => (
-            <article key={item.id} className="grid grid-cols-1 lg:grid-cols-[340px_1fr] border border-primary bg-[#F7F1E6] overflow-hidden">
-              <div className="bg-primary min-h-[260px] md:min-h-[360px] relative overflow-hidden">
-                <img
-                  src={item.imageUrl}
-                  alt={`${item.nameMain} ${item.nameAccent}`}
-                  className="w-full h-full object-cover grayscale opacity-90"
-                />
-                <div className="absolute inset-0 bg-primary/35 mix-blend-multiply" />
-                <div className="absolute top-4 left-4 border border-white/20 bg-black/20 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-white/80">
-                  {item.years}
-                </div>
-                <div className="absolute bottom-4 left-4 text-[6rem] md:text-[8rem] font-serif text-white/10 leading-none">
-                  {item.initial}
-                </div>
-              </div>
-
-              <div className="p-8 md:p-12 lg:p-16">
-                <div className="flex items-center gap-4 mb-8">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent whitespace-nowrap">
-                    {t('home.authors_kicker')}
-                  </p>
-                  <div className="h-px flex-1 bg-primary/15" />
-                </div>
-
-                <h3 className="text-5xl md:text-7xl font-serif leading-[0.9] text-primary">
-                  {item.nameMain}
-                </h3>
-                <p className="text-4xl md:text-6xl font-serif italic text-primary/60 leading-[0.95] mt-2">
-                  {item.nameAccent}
-                </p>
-
-                <div className="mt-8 space-y-6 max-w-4xl text-lg md:text-[1.85rem] leading-relaxed text-primary/70">
-                  <p className="text-sm md:text-base font-mono uppercase tracking-[0.16em] text-accent">
-                    {item.knownFor}
-                  </p>
-                  <p>{item.bio}</p>
-                </div>
-
-                <div className="mt-10 flex flex-wrap gap-2">
-                  {item.tags.map((tag) => (
-                    <span key={tag} className="border border-primary/15 bg-white/50 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </article>
-          ))}
-          </div>
-        </div>
       </section>
 
     </div>

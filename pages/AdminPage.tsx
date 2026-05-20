@@ -3,7 +3,7 @@ import { useApp } from '../AppContext';
 import { api } from '../services/api';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
-import { Book, Language, LocalizedCatalogData, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
+import { Book, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
   BookOpen,
@@ -24,9 +24,12 @@ import {
   ImagePlus,
   Menu,
   X,
+  Layout,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 
-type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'payments' | 'orders' | 'status';
+type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'site' | 'payments' | 'orders' | 'status';
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -572,7 +575,7 @@ const StatusPanel: React.FC = () => {
 };
 
 export const AdminPage: React.FC = () => {
-  const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast } = useApp();
+  const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast, setSiteSettings: setGlobalSiteSettings } = useApp();
   const [activeTab, setActiveTab] = useState<AdminTab>('copy');
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('ru');
   const [database, setDatabase] = useState<Record<Language, LocalizedCatalogData> | null>(null);
@@ -586,6 +589,7 @@ export const AdminPage: React.FC = () => {
   const [featuredAuthorDraft, setFeaturedAuthorDraft] = useState<FeaturedAuthor | null>(null);
   const [showcaseDraft, setShowcaseDraft] = useState<ShowcaseAuthor[]>([]);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(createPaymentSettingsTemplate());
+  const [siteDraft, setSiteDraft] = useState<SiteSettings | null>(null);
   const [copyDrafts, setCopyDrafts] = useState<Record<string, string>>({});
   const [bookJsonDrafts, setBookJsonDrafts] = useState({ variants: '[]', themes: '[]', reviews: '[]' });
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -595,14 +599,16 @@ export const AdminPage: React.FC = () => {
   const loadAdminData = async () => {
     setIsRefreshing(true);
     try {
-      const [db, translationState, paymentState] = await Promise.all([
+      const [db, translationState, paymentState, siteState] = await Promise.all([
         api.getContentDatabase(),
         api.getTranslationOverrides(),
         api.getPaymentSettings(),
+        api.getSiteSettings(),
       ]);
       setDatabase(db);
       setOverrides(translationState);
       setPaymentSettings(paymentState);
+      setSiteDraft(siteState);
       if (!selectedBookId && db[selectedLanguage].books[0]) {
         setSelectedBookId(db[selectedLanguage].books[0].id);
       }
@@ -902,6 +908,33 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  const handleSaveSiteSettings = async () => {
+    if (!siteDraft) return;
+    try {
+      setSavingKey('site-settings');
+      const next = await api.saveSiteSettings(siteDraft);
+      setSiteDraft(next);
+      setGlobalSiteSettings(next);
+      await reloadContent();
+      setLastPublishedAt(new Date().toLocaleTimeString());
+      showToast('Site settings saved');
+    } catch {
+      showToast('Could not save site settings', 'error');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const updateSiteNav = (
+    section: 'headerNav' | 'footerNav' | 'footerLegal',
+    updater: (items: NavLinkConfig[]) => NavLinkConfig[],
+  ) => {
+    setSiteDraft(prev => {
+      if (!prev) return prev;
+      return { ...prev, [section]: updater(prev[section] || []) };
+    });
+  };
+
   const handleSavePaymentSettings = async () => {
     try {
       setSavingKey('payment-settings');
@@ -998,6 +1031,7 @@ export const AdminPage: React.FC = () => {
             { id: 'books', label: 'Books', icon: <BookOpen size={16} /> },
             { id: 'news', label: 'News', icon: <Newspaper size={16} /> },
             { id: 'authors', label: 'Our Authors', icon: <Globe size={16} /> },
+            { id: 'site', label: 'Site / Header / Footer', icon: <Layout size={16} /> },
             { id: 'payments', label: 'Payments', icon: <Gavel size={16} /> },
             { id: 'orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
             { id: 'status', label: 'Status', icon: <Activity size={16} /> },
@@ -1423,6 +1457,166 @@ export const AdminPage: React.FC = () => {
               ) : null}
             </section>
           </div>
+        ) : null}
+
+        {activeTab === 'site' && siteDraft ? (
+          <section className="bg-white border border-primary/10 p-6 md:p-8 space-y-10">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+              <div>
+                <h3 className="text-3xl font-serif">Site, Header &amp; Footer</h3>
+                <p className="mt-2 text-sm text-gray-500">Edit menu items, social links, contacts and bottom footer links. Labels reference translation keys from the «Site Copy» tab (e.g. <code>nav.catalog</code>).</p>
+              </div>
+              <button onClick={handleSaveSiteSettings} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                {savingKey === 'site-settings' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                Save site settings
+              </button>
+            </div>
+
+            {/* Brand */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Brand</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Brand name (footer)</label>
+                  <input value={siteDraft.brand.name} onChange={e => setSiteDraft(prev => prev ? { ...prev, brand: { ...prev.brand, name: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Brand short label (header)</label>
+                  <input value={siteDraft.brand.short} onChange={e => setSiteDraft(prev => prev ? { ...prev, brand: { ...prev.brand, short: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Contacts */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Contacts (shown in footer)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Email</label>
+                  <input value={siteDraft.contacts.email} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, email: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="hello@example.com" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Phone</label>
+                  <input value={siteDraft.contacts.phone} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, phone: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="+49 30 1234567" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Address line 1</label>
+                  <input value={siteDraft.contacts.addressLine1} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, addressLine1: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Address line 2</label>
+                  <input value={siteDraft.contacts.addressLine2} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, addressLine2: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Social */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Social links (leave empty to hide)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {(['telegramUrl', 'instagramUrl', 'facebookUrl', 'youtubeUrl', 'twitterUrl'] as const).map(field => (
+                  <div key={field}>
+                    <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">{field.replace('Url', '')}</label>
+                    <input value={siteDraft.social[field]} onChange={e => setSiteDraft(prev => prev ? { ...prev, social: { ...prev.social, [field]: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Nav editors */}
+            {(['headerNav', 'footerNav', 'footerLegal'] as const).map(section => {
+              const titles: Record<typeof section, string> = {
+                headerNav: 'Header menu',
+                footerNav: 'Footer link column',
+                footerLegal: 'Footer bottom strip (legal)',
+              };
+              const items = siteDraft[section] || [];
+              return (
+                <div key={section}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400">{titles[section]}</h4>
+                    <button
+                      onClick={() => updateSiteNav(section, list => ([...list, { id: `${section}-${Date.now()}`, labelKey: '', path: '/', enabled: true }]))}
+                      className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
+                    >
+                      <Plus size={12} /> Add link
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {items.map((item, idx) => (
+                      <div key={item.id} className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-3 items-center bg-[#F8F8F5] border border-gray-200 p-3">
+                        <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest">
+                          <input
+                            type="checkbox"
+                            checked={item.enabled !== false}
+                            onChange={e => updateSiteNav(section, list => list.map(it => it.id === item.id ? { ...it, enabled: e.target.checked } : it))}
+                          />
+                          On
+                        </label>
+                        <input
+                          value={item.labelKey}
+                          onChange={e => updateSiteNav(section, list => list.map(it => it.id === item.id ? { ...it, labelKey: e.target.value } : it))}
+                          className="border border-gray-300 px-3 py-2 font-mono text-xs"
+                          placeholder="translation key (e.g. nav.catalog)"
+                        />
+                        <input
+                          value={item.path}
+                          onChange={e => updateSiteNav(section, list => list.map(it => it.id === item.id ? { ...it, path: e.target.value } : it))}
+                          className="border border-gray-300 px-3 py-2 font-mono text-xs"
+                          placeholder="/path"
+                        />
+                        <button
+                          disabled={idx === 0}
+                          onClick={() => updateSiteNav(section, list => {
+                            const next = [...list];
+                            [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+                            return next;
+                          })}
+                          className="px-2 py-2 border border-gray-300 hover:bg-gray-100 disabled:opacity-30"
+                          title="Move up"
+                        >
+                          <ArrowUp size={12} />
+                        </button>
+                        <button
+                          disabled={idx === items.length - 1}
+                          onClick={() => updateSiteNav(section, list => {
+                            const next = [...list];
+                            [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+                            return next;
+                          })}
+                          className="px-2 py-2 border border-gray-300 hover:bg-gray-100 disabled:opacity-30"
+                          title="Move down"
+                        >
+                          <ArrowDown size={12} />
+                        </button>
+                        <button
+                          onClick={() => updateSiteNav(section, list => list.filter(it => it.id !== item.id))}
+                          className="px-2 py-2 border border-red-300 text-red-600 hover:bg-red-50"
+                          title="Remove"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    {items.length === 0 ? <p className="text-xs text-gray-400 font-mono">No items.</p> : null}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Newsletter toggle */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Footer newsletter block</h4>
+              <label className="flex items-center gap-3 border border-gray-200 px-4 py-4 max-w-md">
+                <input
+                  type="checkbox"
+                  checked={siteDraft.showNewsletter}
+                  onChange={e => setSiteDraft(prev => prev ? { ...prev, showNewsletter: e.target.checked } : prev)}
+                />
+                <span className="text-sm">Show «Subscribe to newsletter» block in footer</span>
+              </label>
+            </div>
+          </section>
         ) : null}
 
         {activeTab === 'payments' ? (
