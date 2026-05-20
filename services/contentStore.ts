@@ -253,57 +253,61 @@ export const contentStore = {
 
   async upsertBook(language: Language, book: Book) {
     await ensureLoaded();
-    const langBooks = cache.database![language].books;
-    const idx = langBooks.findIndex(b => b.id === book.id);
-    if (idx >= 0) langBooks[idx] = book;
-    else langBooks.unshift(book);
-    resetMetadata(language);
+    const currentBooks = cache.database![language].books;
+    const idx = currentBooks.findIndex(b => b.id === book.id);
+    const newBooks = idx >= 0
+      ? currentBooks.map((b, i) => (i === idx ? book : b))
+      : [book, ...currentBooks];
 
     await ghWriteFile(
       `public/content/books.${language}.json`,
-      langBooks,
+      newBooks,
       `admin: upsert book ${book.id} (${language})`,
     );
+    cache.database![language] = normalizeLanguageData(newBooks, cache.database![language].news);
     return clone(cache.database!);
   },
 
   async deleteBook(language: Language, bookId: string) {
     await ensureLoaded();
-    cache.database![language].books = cache.database![language].books.filter(b => b.id !== bookId);
-    resetMetadata(language);
+    const newBooks = cache.database![language].books.filter(b => b.id !== bookId);
 
     await ghWriteFile(
       `public/content/books.${language}.json`,
-      cache.database![language].books,
+      newBooks,
       `admin: delete book ${bookId} (${language})`,
     );
+    cache.database![language] = normalizeLanguageData(newBooks, cache.database![language].news);
     return clone(cache.database!);
   },
 
   async upsertNewsItem(language: Language, item: NewsItem) {
     await ensureLoaded();
-    const langNews = cache.database![language].news;
-    const idx = langNews.findIndex(n => n.id === item.id);
-    if (idx >= 0) langNews[idx] = item;
-    else langNews.unshift(item);
+    const currentNews = cache.database![language].news;
+    const idx = currentNews.findIndex(n => n.id === item.id);
+    const newNews = idx >= 0
+      ? currentNews.map((n, i) => (i === idx ? item : n))
+      : [item, ...currentNews];
 
     await ghWriteFile(
       `public/content/news.${language}.json`,
-      langNews,
+      newNews,
       `admin: upsert news ${item.id} (${language})`,
     );
+    cache.database![language] = normalizeLanguageData(cache.database![language].books, newNews);
     return clone(cache.database!);
   },
 
   async deleteNewsItem(language: Language, itemId: string) {
     await ensureLoaded();
-    cache.database![language].news = cache.database![language].news.filter(n => n.id !== itemId);
+    const newNews = cache.database![language].news.filter(n => n.id !== itemId);
 
     await ghWriteFile(
       `public/content/news.${language}.json`,
-      cache.database![language].news,
+      newNews,
       `admin: delete news ${itemId} (${language})`,
     );
+    cache.database![language] = normalizeLanguageData(cache.database![language].books, newNews);
     return clone(cache.database!);
   },
 
@@ -314,27 +318,27 @@ export const contentStore = {
 
   async setTranslationValue(language: Language, key: string, value: any) {
     await ensureLoaded();
-    cache.overrides![language] = cache.overrides![language] || {};
-    cache.overrides![language][key] = value;
+    const nextLang = { ...(cache.overrides![language] || {}), [key]: value };
 
     await ghWriteFile(
       `public/content/translation-overrides.${language}.json`,
-      cache.overrides![language],
+      nextLang,
       `admin: set ${key} (${language})`,
     );
+    cache.overrides![language] = nextLang;
     return clone(cache.overrides!);
   },
 
   async resetTranslationValue(language: Language, key: string) {
     await ensureLoaded();
-    if (cache.overrides![language]) {
-      delete cache.overrides![language][key];
-    }
+    const nextLang = { ...(cache.overrides![language] || {}) };
+    delete nextLang[key];
     await ghWriteFile(
       `public/content/translation-overrides.${language}.json`,
-      cache.overrides![language] || {},
+      nextLang,
       `admin: reset ${key} (${language})`,
     );
+    cache.overrides![language] = nextLang;
     return clone(cache.overrides!);
   },
 
@@ -345,12 +349,13 @@ export const contentStore = {
 
   async savePaymentSettings(settings: PaymentSettings) {
     await ensureLoaded();
-    cache.paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS, ...settings };
+    const nextSettings = { ...DEFAULT_PAYMENT_SETTINGS, ...settings };
     await ghWriteFile(
       `public/content/payment-settings.json`,
-      cache.paymentSettings,
+      nextSettings,
       `admin: update payment settings`,
     );
+    cache.paymentSettings = nextSettings;
     return clone(cache.paymentSettings);
   },
 

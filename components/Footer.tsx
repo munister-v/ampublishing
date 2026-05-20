@@ -55,7 +55,7 @@ export const Footer: React.FC = () => {
                rel="noopener noreferrer"
                className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6 border-b border-white/40 pb-3 hover:text-accent transition-colors group max-w-lg"
             >
-               <span className="text-lg md:text-xl font-mono uppercase">{t('footer.subscribe_handle')}</span>
+               <span className="text-base md:text-xl font-mono uppercase break-all">{t('footer.subscribe_handle')}</span>
                <span className="uppercase font-bold text-xs tracking-widest whitespace-nowrap inline-flex items-center gap-2 sm:justify-end">
                   {t('footer.submit')} <Send size={12} className="group-hover:translate-x-1 transition-transform" />
                </span>
