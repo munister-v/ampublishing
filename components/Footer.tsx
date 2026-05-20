@@ -44,19 +44,22 @@ export const Footer: React.FC = () => {
             </ul>
          </div>
 
-         {/* 3. NEWSLETTER */}
+         {/* 3. TELEGRAM CTA */}
          <div className="col-span-1 md:col-span-2 p-6 md:p-10 flex flex-col justify-center bg-[#061426]">
             <h3 className="text-3xl md:text-5xl font-serif mb-8 max-w-lg leading-tight">
                {t('footer.subscribe_title')}<br/> <span className="text-accent italic">{t('footer.subscribe_span')}</span>
             </h3>
-            <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 border-b border-white/40 pb-3">
-               <input 
-                 type="email" 
-                 placeholder={t('footer.email_ph')} 
-                 className="bg-transparent w-full outline-none text-lg md:text-xl font-mono uppercase placeholder:text-white/20 min-w-0"
-               />
-               <button className="uppercase font-bold text-xs tracking-widest hover:text-accent text-left sm:text-right whitespace-nowrap">{t('footer.submit')}</button>
-            </div>
+            <a
+               href="https://t.me/ampublishingberlin"
+               target="_blank"
+               rel="noopener noreferrer"
+               className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6 border-b border-white/40 pb-3 hover:text-accent transition-colors group max-w-lg"
+            >
+               <span className="text-lg md:text-xl font-mono uppercase">{t('footer.subscribe_handle')}</span>
+               <span className="uppercase font-bold text-xs tracking-widest whitespace-nowrap inline-flex items-center gap-2 sm:justify-end">
+                  {t('footer.submit')} <Send size={12} className="group-hover:translate-x-1 transition-transform" />
+               </span>
+            </a>
          </div>
       </div>
       

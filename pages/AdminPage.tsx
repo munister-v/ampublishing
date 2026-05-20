@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../AppContext';
 import { api } from '../services/api';
-import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
+import { ShowcaseAuthor, getAuthorShowcaseContent } from '../services/authorShowcase';
 import { translations } from '../translations';
 import { Book, Language, LocalizedCatalogData, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
 import {
@@ -583,7 +583,6 @@ export const AdminPage: React.FC = () => {
   const [bookDraft, setBookDraft] = useState<Book | null>(null);
   const [selectedNewsId, setSelectedNewsId] = useState<string>('');
   const [newsDraft, setNewsDraft] = useState<NewsItem | null>(null);
-  const [featuredAuthorDraft, setFeaturedAuthorDraft] = useState<FeaturedAuthor | null>(null);
   const [showcaseDraft, setShowcaseDraft] = useState<ShowcaseAuthor[]>([]);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(createPaymentSettingsTemplate());
   const [copyDrafts, setCopyDrafts] = useState<Record<string, string>>({});
@@ -644,7 +643,6 @@ export const AdminPage: React.FC = () => {
   }, [database, selectedLanguage, selectedNewsId]);
 
   useEffect(() => {
-    setFeaturedAuthorDraft(getFeaturedAuthorContent(selectedLanguage, overrides[selectedLanguage]?.['static.our_authors.featured_author']));
     setShowcaseDraft(getAuthorShowcaseContent(selectedLanguage, overrides[selectedLanguage]?.['static.our_authors.showcase_items']));
   }, [selectedLanguage, overrides]);
 
@@ -881,10 +879,8 @@ export const AdminPage: React.FC = () => {
   };
 
   const handleSaveAuthors = async () => {
-    if (!featuredAuthorDraft) return;
     try {
       setSavingKey('authors');
-      await api.setTranslationValue(selectedLanguage, 'static.our_authors.featured_author', featuredAuthorDraft);
       const nextOverrides = await api.setTranslationValue(selectedLanguage, 'static.our_authors.showcase_items', showcaseDraft);
 
       setOverrides(nextOverrides);
@@ -1340,7 +1336,7 @@ export const AdminPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
                 <div>
                   <h3 className="text-3xl font-serif">Our Authors</h3>
-                  <p className="mt-2 text-sm text-gray-500">Manage the featured author block and the showcase cards that appear on the homepage and the dedicated authors page.</p>
+                  <p className="mt-2 text-sm text-gray-500">Manage the showcase cards that appear on the homepage and the dedicated authors page.</p>
                 </div>
                 <button onClick={handleSaveAuthors} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                   {savingKey === 'authors' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -1348,20 +1344,7 @@ export const AdminPage: React.FC = () => {
                 </button>
               </div>
 
-              {featuredAuthorDraft ? (
-                <div className="space-y-8">
-                  <div className="border border-primary/10 p-6 bg-[#F8F8F5]">
-                    <h4 className="font-serif text-2xl mb-6">Featured author</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <input value={featuredAuthorDraft.label} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, label: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Label" />
-                      <input value={featuredAuthorDraft.nameMain} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, nameMain: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Main name" />
-                      <input value={featuredAuthorDraft.nameAccent} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, nameAccent: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Accent name" />
-                      <input value={featuredAuthorDraft.tags.join(', ')} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, tags: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Tags, comma separated" />
-                    </div>
-                    <textarea value={featuredAuthorDraft.intro} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, intro: e.target.value } : prev)} rows={3} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Intro" />
-                    <textarea value={featuredAuthorDraft.body.join('\n\n')} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, body: parseParagraphs(e.target.value) } : prev)} rows={6} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Body paragraphs, separated by empty line" />
-                  </div>
-
+              <div className="space-y-8">
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <h4 className="font-serif text-2xl">Showcase cards</h4>
@@ -1420,7 +1403,6 @@ export const AdminPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-              ) : null}
             </section>
           </div>
         ) : null}
