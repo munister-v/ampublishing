@@ -45,21 +45,46 @@ export const Footer: React.FC = () => {
          </div>
 
          {/* 3. TELEGRAM CTA */}
-         <div className="col-span-1 md:col-span-2 p-6 md:p-10 flex flex-col justify-center bg-[#061426]">
-            <h3 className="text-3xl md:text-5xl font-serif mb-8 max-w-lg leading-tight">
-               {t('footer.subscribe_title')}<br/> <span className="text-accent italic">{t('footer.subscribe_span')}</span>
-            </h3>
-            <a
-               href="https://t.me/ampublishingberlin"
-               target="_blank"
-               rel="noopener noreferrer"
-               className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6 border-b border-white/40 pb-3 hover:text-accent transition-colors group max-w-lg"
-            >
-               <span className="text-base md:text-xl font-mono uppercase break-all">{t('footer.subscribe_handle')}</span>
-               <span className="uppercase font-bold text-xs tracking-widest whitespace-nowrap inline-flex items-center gap-2 sm:justify-end">
-                  {t('footer.submit')} <Send size={12} className="group-hover:translate-x-1 transition-transform" />
-               </span>
-            </a>
+         <div className="col-span-1 md:col-span-2 relative overflow-hidden bg-gradient-to-br from-[#061426] via-[#0a1f3a] to-[#061426] p-6 md:p-12 flex flex-col justify-center">
+            {/* Background watermark */}
+            <Send
+               size={520}
+               strokeWidth={0.6}
+               className="pointer-events-none absolute -right-24 -bottom-32 text-accent/[0.05] rotate-12 hidden md:block"
+            />
+
+            <div className="relative z-10 max-w-xl">
+               <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-accent mb-5 flex items-center gap-3">
+                  <span className="inline-block w-8 h-px bg-accent" />
+                  {t('footer.subscribe_label')}
+               </p>
+
+               <h3 className="text-3xl md:text-5xl lg:text-6xl font-serif leading-[0.95]">
+                  {t('footer.subscribe_title')}
+               </h3>
+               <h3 className="text-3xl md:text-5xl lg:text-6xl font-serif italic text-accent leading-[0.95] mt-1">
+                  {t('footer.subscribe_span')}
+               </h3>
+
+               <p className="font-mono text-xs text-white/55 mt-7 max-w-md leading-relaxed">
+                  {t('footer.subscribe_desc')}
+               </p>
+
+               <a
+                  href="https://t.me/ampublishingberlin"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex flex-col sm:flex-row items-stretch mt-8 border border-accent/50 hover:border-accent hover:bg-accent transition-all duration-300 max-w-full"
+               >
+                  <span className="px-5 py-4 font-mono text-sm md:text-base tracking-[0.04em] border-b sm:border-b-0 sm:border-r border-accent/40 group-hover:text-primary group-hover:border-primary/40 transition-colors break-all">
+                     {t('footer.subscribe_handle')}
+                  </span>
+                  <span className="px-6 py-4 font-mono text-xs uppercase tracking-[0.22em] inline-flex items-center justify-center gap-3 group-hover:text-primary transition-colors whitespace-nowrap">
+                     {t('footer.submit')}
+                     <Send size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </span>
+               </a>
+            </div>
          </div>
       </div>
       
