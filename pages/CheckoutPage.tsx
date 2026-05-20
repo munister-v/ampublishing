@@ -198,6 +198,10 @@ const EMPTY_PAYMENT_SETTINGS: PaymentSettings = {
   contactEmail: 'am.hybridpublishing@gmail.com',
   paymentNote: '',
   invoicePrefix: 'AM',
+  webhookUrl: '',
+  webhookLabel: '',
+  notifyOnOrderCreated: false,
+  notifyOnPaymentConfirmed: false,
 };
 
 const digitsOnly = (value: string) => value.replace(/\D/g, '');

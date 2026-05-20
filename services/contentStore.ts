@@ -1,54 +1,134 @@
-import { DATABASE, MOCK_ORDERS } from '../constants';
 import { Book, Language, LocalizedCatalogData, NewsItem, Order, OrderPayload, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
+import { DATABASE, MOCK_ORDERS } from '../constants';
 
-const DB_KEY = 'am-editable-database-v1';
-const OVERRIDES_KEY = 'am-translation-overrides-v1';
+const GH_OWNER = 'munister-v';
+const GH_REPO = 'ampublishing';
+const GH_BRANCH = 'main';
+const GH_API = 'https://api.github.com';
+
+const CONTENT_BASE = `${import.meta.env.BASE_URL}content/`;
+const PAT_KEY = 'gh_pat';
+
 const ORDERS_KEY = 'am-orders-v1';
-const PAYMENT_SETTINGS_KEY = 'am-payment-settings-v1';
+const ORDER_DRAFTS_KEY = 'am-pending-publish-v1';
 
-const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
-const getStorage = () => {
-  if (typeof window === 'undefined') return null;
-  return window.localStorage;
+// ----------------- GitHub Contents API helpers -----------------
+
+const getPAT = (): string | null => {
+  try {
+    return sessionStorage.getItem(PAT_KEY) || localStorage.getItem(PAT_KEY);
+  } catch {
+    return null;
+  }
 };
 
-const computeMetadata = (books: Book[]) => {
-  const genres = Array.from(new Set(books.flatMap(book => book.genre))).filter(Boolean).sort();
-  const authors = Array.from(new Set(books.map(book => book.author))).filter(Boolean).sort();
-  const series = Array.from(new Set(books.map(book => book.series).filter(Boolean) as string[])).sort();
-  return { genres, authors, series };
+const utf8ToBase64 = (text: string): string => {
+  // Browsers' btoa() handles only Latin-1; encode UTF-8 first.
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
 };
 
-const normalizeLanguageData = (data: LocalizedCatalogData): LocalizedCatalogData => {
-  const metadata = computeMetadata(data.books);
-  return {
-    books: data.books,
-    news: data.news,
-    genres: metadata.genres,
-    authors: metadata.authors,
-    series: metadata.series,
-  };
-};
-
-const normalizeDatabase = (database: Record<Language, LocalizedCatalogData>) => ({
-  ru: normalizeLanguageData(database.ru),
-  en: normalizeLanguageData(database.en),
-  de: normalizeLanguageData(database.de),
+const ghHeaders = (token: string) => ({
+  Authorization: `Bearer ${token}`,
+  Accept: 'application/vnd.github+json',
+  'X-GitHub-Api-Version': '2022-11-28',
 });
 
-const sanitizeTranslationOverrides = (overrides: TranslationOverrides): TranslationOverrides => {
-  const next: TranslationOverrides = {
-    ru: { ...(overrides.ru || {}) },
-    en: { ...(overrides.en || {}) },
-    de: { ...(overrides.de || {}) },
-  };
-
-  if (next.ru['home.hero_title_1'] === 'Книги в дорогу') {
-    next.ru['home.hero_title_1'] = 'Книги с собой';
+export const verifyPAT = async (token: string): Promise<{ login: string } | null> => {
+  try {
+    const res = await fetch(`${GH_API}/user`, { headers: ghHeaders(token) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return { login: data.login };
+  } catch {
+    return null;
   }
+};
 
-  return next;
+const ghGetFileSha = async (path: string): Promise<string | null> => {
+  const token = getPAT();
+  if (!token) return null;
+  try {
+    const res = await fetch(
+      `${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`,
+      { headers: ghHeaders(token) },
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.sha as string;
+  } catch {
+    return null;
+  }
+};
+
+const ghWriteFile = async (path: string, jsonContent: any, message: string): Promise<void> => {
+  const token = getPAT();
+  if (!token) throw new Error('Admin not authenticated (no GitHub PAT)');
+  const sha = await ghGetFileSha(path);
+  const body: Record<string, any> = {
+    message,
+    content: utf8ToBase64(JSON.stringify(jsonContent, null, 2) + '\n'),
+    branch: GH_BRANCH,
+  };
+  if (sha) body.sha = sha;
+
+  const res = await fetch(`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { ...ghHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`GitHub write failed (${res.status}): ${errText.slice(0, 300)}`);
+  }
+};
+
+// ----------------- Public JSON fetch (no auth) -----------------
+
+const fetchContent = async <T,>(filename: string, fallback: T): Promise<T> => {
+  try {
+    const res = await fetch(`${CONTENT_BASE}${filename}`, { cache: 'no-cache' });
+    if (!res.ok) return fallback;
+    return (await res.json()) as T;
+  } catch {
+    return fallback;
+  }
+};
+
+// ----------------- In-memory cache -----------------
+
+type CacheState = {
+  database: Record<Language, LocalizedCatalogData> | null;
+  overrides: TranslationOverrides | null;
+  paymentSettings: PaymentSettings | null;
+  loaded: boolean;
+  loadingPromise: Promise<void> | null;
+};
+
+const cache: CacheState = {
+  database: null,
+  overrides: null,
+  paymentSettings: null,
+  loaded: false,
+  loadingPromise: null,
+};
+
+const computeMetadata = (books: Book[]) => ({
+  genres: Array.from(new Set(books.flatMap(book => book.genre))).filter(Boolean).sort(),
+  authors: Array.from(new Set(books.map(book => book.author))).filter(Boolean).sort(),
+  series: Array.from(new Set(books.map(book => book.series).filter(Boolean) as string[])).sort(),
+});
+
+const normalizeLanguageData = (
+  books: Book[],
+  news: NewsItem[],
+): LocalizedCatalogData => {
+  const meta = computeMetadata(books);
+  return { books, news, ...meta };
 };
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
@@ -73,171 +153,287 @@ const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   notifyOnPaymentConfirmed: true,
 };
 
-const sanitizePaymentSettings = (settings?: Partial<PaymentSettings>): PaymentSettings => ({
-  ...DEFAULT_PAYMENT_SETTINGS,
-  ...(settings || {}),
-});
+const ensureLoaded = async (): Promise<void> => {
+  if (cache.loaded) return;
+  if (cache.loadingPromise) return cache.loadingPromise;
+
+  cache.loadingPromise = (async () => {
+    const fallbackBooks = (lang: Language): Book[] => clone(DATABASE[lang].books);
+    const fallbackNews = (lang: Language): NewsItem[] => clone(DATABASE[lang].news);
+
+    const [bru, ben, bde, nru, nen, nde, oru, oen, ode, pay] = await Promise.all([
+      fetchContent<Book[]>('books.ru.json', fallbackBooks('ru')),
+      fetchContent<Book[]>('books.en.json', fallbackBooks('en')),
+      fetchContent<Book[]>('books.de.json', fallbackBooks('de')),
+      fetchContent<NewsItem[]>('news.ru.json', fallbackNews('ru')),
+      fetchContent<NewsItem[]>('news.en.json', fallbackNews('en')),
+      fetchContent<NewsItem[]>('news.de.json', fallbackNews('de')),
+      fetchContent<Record<string, any>>('translation-overrides.ru.json', {}),
+      fetchContent<Record<string, any>>('translation-overrides.en.json', {}),
+      fetchContent<Record<string, any>>('translation-overrides.de.json', {}),
+      fetchContent<PaymentSettings>('payment-settings.json', DEFAULT_PAYMENT_SETTINGS),
+    ]);
+
+    cache.database = {
+      ru: normalizeLanguageData(bru, nru),
+      en: normalizeLanguageData(ben, nen),
+      de: normalizeLanguageData(bde, nde),
+    };
+    cache.overrides = { ru: oru || {}, en: oen || {}, de: ode || {} };
+    cache.paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS, ...(pay || {}) };
+    cache.loaded = true;
+  })();
+
+  return cache.loadingPromise;
+};
+
+const resetMetadata = (lang: Language) => {
+  if (!cache.database) return;
+  const data = cache.database[lang];
+  cache.database[lang] = normalizeLanguageData(data.books, data.news);
+};
+
+// ----------------- Orders (localStorage-only for now; Phase 5 redirects to email) -----------------
+
+const getOrdersStorage = (): Order[] => {
+  try {
+    const raw = localStorage.getItem(ORDERS_KEY);
+    if (!raw) return clone(MOCK_ORDERS);
+    return JSON.parse(raw);
+  } catch {
+    return clone(MOCK_ORDERS);
+  }
+};
+
+const saveOrdersStorage = (orders: Order[]) => {
+  try {
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+  } catch {
+    // ignore quota errors
+  }
+  return orders;
+};
+
+// ----------------- Public store API -----------------
 
 export const contentStore = {
-  getDatabase(): Record<Language, LocalizedCatalogData> {
-    const storage = getStorage();
-    if (!storage) return clone(normalizeDatabase(DATABASE));
+  isAuthenticated(): boolean {
+    return !!getPAT();
+  },
 
+  setPAT(token: string, persist = false) {
     try {
-      const raw = storage.getItem(DB_KEY);
-      if (!raw) return clone(normalizeDatabase(DATABASE));
-      return normalizeDatabase(JSON.parse(raw));
+      sessionStorage.setItem(PAT_KEY, token);
+      if (persist) localStorage.setItem(PAT_KEY, token);
+      else localStorage.removeItem(PAT_KEY);
     } catch {
-      return clone(normalizeDatabase(DATABASE));
+      // ignore
     }
   },
 
-  saveDatabase(database: Record<Language, LocalizedCatalogData>) {
-    const storage = getStorage();
-    const normalized = normalizeDatabase(database);
-    if (storage) {
-      storage.setItem(DB_KEY, JSON.stringify(normalized));
-    }
-    return clone(normalized);
-  },
-
-  upsertBook(language: Language, book: Book) {
-    const database = this.getDatabase();
-    const existingIndex = database[language].books.findIndex(item => item.id === book.id);
-
-    if (existingIndex >= 0) {
-      database[language].books[existingIndex] = book;
-    } else {
-      database[language].books.unshift(book);
-    }
-
-    return this.saveDatabase(database);
-  },
-
-  deleteBook(language: Language, bookId: string) {
-    const database = this.getDatabase();
-    database[language].books = database[language].books.filter(book => book.id !== bookId);
-    return this.saveDatabase(database);
-  },
-
-  upsertNewsItem(language: Language, item: NewsItem) {
-    const database = this.getDatabase();
-    const existingIndex = database[language].news.findIndex(entry => entry.id === item.id);
-
-    if (existingIndex >= 0) {
-      database[language].news[existingIndex] = item;
-    } else {
-      database[language].news.unshift(item);
-    }
-
-    return this.saveDatabase(database);
-  },
-
-  deleteNewsItem(language: Language, itemId: string) {
-    const database = this.getDatabase();
-    database[language].news = database[language].news.filter(item => item.id !== itemId);
-    return this.saveDatabase(database);
-  },
-
-  getTranslationOverrides(): TranslationOverrides {
-    const storage = getStorage();
-    if (!storage) return { ru: {}, en: {}, de: {} };
-
+  clearPAT() {
     try {
-      const raw = storage.getItem(OVERRIDES_KEY);
-      if (!raw) return { ru: {}, en: {}, de: {} };
-      const parsed = JSON.parse(raw);
-      return sanitizeTranslationOverrides({
-        ru: parsed.ru || {},
-        en: parsed.en || {},
-        de: parsed.de || {},
-      });
+      sessionStorage.removeItem(PAT_KEY);
+      localStorage.removeItem(PAT_KEY);
     } catch {
-      return { ru: {}, en: {}, de: {} };
+      // ignore
     }
   },
 
-  saveTranslationOverrides(overrides: TranslationOverrides) {
-    const storage = getStorage();
-    const normalized = sanitizeTranslationOverrides({
-      ru: overrides.ru || {},
-      en: overrides.en || {},
-      de: overrides.de || {},
-    });
-    if (storage) {
-      storage.setItem(OVERRIDES_KEY, JSON.stringify(normalized));
+  async getDatabase(): Promise<Record<Language, LocalizedCatalogData>> {
+    await ensureLoaded();
+    return clone(cache.database!);
+  },
+
+  async refresh() {
+    cache.loaded = false;
+    cache.loadingPromise = null;
+    await ensureLoaded();
+  },
+
+  async upsertBook(language: Language, book: Book) {
+    await ensureLoaded();
+    const langBooks = cache.database![language].books;
+    const idx = langBooks.findIndex(b => b.id === book.id);
+    if (idx >= 0) langBooks[idx] = book;
+    else langBooks.unshift(book);
+    resetMetadata(language);
+
+    await ghWriteFile(
+      `public/content/books.${language}.json`,
+      langBooks,
+      `admin: upsert book ${book.id} (${language})`,
+    );
+    return clone(cache.database!);
+  },
+
+  async deleteBook(language: Language, bookId: string) {
+    await ensureLoaded();
+    cache.database![language].books = cache.database![language].books.filter(b => b.id !== bookId);
+    resetMetadata(language);
+
+    await ghWriteFile(
+      `public/content/books.${language}.json`,
+      cache.database![language].books,
+      `admin: delete book ${bookId} (${language})`,
+    );
+    return clone(cache.database!);
+  },
+
+  async upsertNewsItem(language: Language, item: NewsItem) {
+    await ensureLoaded();
+    const langNews = cache.database![language].news;
+    const idx = langNews.findIndex(n => n.id === item.id);
+    if (idx >= 0) langNews[idx] = item;
+    else langNews.unshift(item);
+
+    await ghWriteFile(
+      `public/content/news.${language}.json`,
+      langNews,
+      `admin: upsert news ${item.id} (${language})`,
+    );
+    return clone(cache.database!);
+  },
+
+  async deleteNewsItem(language: Language, itemId: string) {
+    await ensureLoaded();
+    cache.database![language].news = cache.database![language].news.filter(n => n.id !== itemId);
+
+    await ghWriteFile(
+      `public/content/news.${language}.json`,
+      cache.database![language].news,
+      `admin: delete news ${itemId} (${language})`,
+    );
+    return clone(cache.database!);
+  },
+
+  async getTranslationOverrides(): Promise<TranslationOverrides> {
+    await ensureLoaded();
+    return clone(cache.overrides!);
+  },
+
+  async setTranslationValue(language: Language, key: string, value: any) {
+    await ensureLoaded();
+    cache.overrides![language] = cache.overrides![language] || {};
+    cache.overrides![language][key] = value;
+
+    await ghWriteFile(
+      `public/content/translation-overrides.${language}.json`,
+      cache.overrides![language],
+      `admin: set ${key} (${language})`,
+    );
+    return clone(cache.overrides!);
+  },
+
+  async resetTranslationValue(language: Language, key: string) {
+    await ensureLoaded();
+    if (cache.overrides![language]) {
+      delete cache.overrides![language][key];
     }
-    return normalized;
+    await ghWriteFile(
+      `public/content/translation-overrides.${language}.json`,
+      cache.overrides![language] || {},
+      `admin: reset ${key} (${language})`,
+    );
+    return clone(cache.overrides!);
   },
 
-  setTranslationValue(language: Language, key: string, value: any) {
-    const overrides = this.getTranslationOverrides();
-    overrides[language] = overrides[language] || {};
-    overrides[language][key] = value;
-    return this.saveTranslationOverrides(overrides);
+  async getPaymentSettings(): Promise<PaymentSettings> {
+    await ensureLoaded();
+    return clone(cache.paymentSettings!);
   },
 
-  resetTranslationValue(language: Language, key: string) {
-    const overrides = this.getTranslationOverrides();
-    if (overrides[language]) {
-      delete overrides[language][key];
-    }
-    return this.saveTranslationOverrides(overrides);
+  async savePaymentSettings(settings: PaymentSettings) {
+    await ensureLoaded();
+    cache.paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS, ...settings };
+    await ghWriteFile(
+      `public/content/payment-settings.json`,
+      cache.paymentSettings,
+      `admin: update payment settings`,
+    );
+    return clone(cache.paymentSettings);
   },
 
-  exportContent() {
+  async exportContent() {
+    await ensureLoaded();
     return {
-      database: this.getDatabase(),
-      overrides: this.getTranslationOverrides(),
-      orders: this.getOrders(),
-      paymentSettings: this.getPaymentSettings(),
+      database: clone(cache.database!),
+      overrides: clone(cache.overrides!),
+      orders: getOrdersStorage(),
+      paymentSettings: clone(cache.paymentSettings!),
       exportedAt: new Date().toISOString(),
-      version: 2,
+      version: 3,
     };
   },
 
-  importContent(payload: { database?: Record<Language, LocalizedCatalogData>; overrides?: TranslationOverrides; orders?: Order[]; paymentSettings?: PaymentSettings }) {
+  async importContent(payload: {
+    database?: Record<Language, LocalizedCatalogData>;
+    overrides?: TranslationOverrides;
+    orders?: Order[];
+    paymentSettings?: PaymentSettings;
+  }) {
+    await ensureLoaded();
+    const commits: Promise<void>[] = [];
+
     if (payload.database) {
-      this.saveDatabase(payload.database);
+      for (const lang of ['ru', 'en', 'de'] as Language[]) {
+        const data = payload.database[lang];
+        if (!data) continue;
+        cache.database![lang] = normalizeLanguageData(data.books, data.news);
+        commits.push(
+          ghWriteFile(`public/content/books.${lang}.json`, data.books, `admin: import books (${lang})`),
+        );
+        commits.push(
+          ghWriteFile(`public/content/news.${lang}.json`, data.news, `admin: import news (${lang})`),
+        );
+      }
     }
     if (payload.overrides) {
-      this.saveTranslationOverrides(payload.overrides);
-    }
-    if (payload.orders) {
-      this.saveOrders(payload.orders);
+      for (const lang of ['ru', 'en', 'de'] as Language[]) {
+        cache.overrides![lang] = payload.overrides[lang] || {};
+        commits.push(
+          ghWriteFile(
+            `public/content/translation-overrides.${lang}.json`,
+            cache.overrides![lang],
+            `admin: import overrides (${lang})`,
+          ),
+        );
+      }
     }
     if (payload.paymentSettings) {
-      this.savePaymentSettings(payload.paymentSettings);
+      cache.paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS, ...payload.paymentSettings };
+      commits.push(
+        ghWriteFile(
+          `public/content/payment-settings.json`,
+          cache.paymentSettings,
+          `admin: import payment settings`,
+        ),
+      );
     }
+    if (payload.orders) {
+      saveOrdersStorage(payload.orders);
+    }
+
+    await Promise.all(commits);
     return this.exportContent();
   },
 
-  getOrders(): Order[] {
-    const storage = getStorage();
-    if (!storage) return clone(MOCK_ORDERS);
+  // --- Orders: local-only until Phase 5 ---
 
-    try {
-      const raw = storage.getItem(ORDERS_KEY);
-      if (!raw) return clone(MOCK_ORDERS);
-      return clone(JSON.parse(raw));
-    } catch {
-      return clone(MOCK_ORDERS);
-    }
+  getOrders(): Order[] {
+    return clone(getOrdersStorage());
   },
 
   saveOrders(orders: Order[]) {
-    const storage = getStorage();
-    const normalized = clone(orders);
-    if (storage) {
-      storage.setItem(ORDERS_KEY, JSON.stringify(normalized));
-    }
-    return normalized;
+    return saveOrdersStorage(clone(orders));
   },
 
-  createOrder(payload: OrderPayload) {
-    const database = this.getDatabase();
-    const books = [...database.ru.books, ...database.en.books, ...database.de.books];
-    const status = 'pending';
+  createOrder(payload: OrderPayload): Order {
+    if (!cache.loaded) {
+      // Should be loaded by the time checkout runs; fallback to bundled DB.
+    }
+    const db = cache.database || DATABASE;
+    const books = [...db.ru.books, ...db.en.books, ...db.de.books];
     const paymentPrefix =
       payload.customer.paymentMethod === 'amazon'
         ? 'AMZ'
@@ -260,8 +456,9 @@ export const contentStore = {
       };
     });
 
+    const invoicePrefix = cache.paymentSettings?.invoicePrefix || 'AM';
     const nextOrder: Order = {
-      id: `${this.getPaymentSettings().invoicePrefix || 'AM'}-${Math.floor(Math.random() * 100000)}`,
+      id: `${invoicePrefix}-${Math.floor(Math.random() * 100000)}`,
       date: new Date().toISOString(),
       customer: {
         name: `${payload.customer.firstName} ${payload.customer.lastName}`.trim(),
@@ -275,50 +472,27 @@ export const contentStore = {
       items,
       total: payload.totalAmount,
       currency: payload.currency,
-      status,
+      status: 'pending',
       paymentStatus: 'pending',
       paymentMethod: payload.customer.paymentMethod,
       paymentReference,
-      diagnostics: payload.diagnostics ? { ...payload.diagnostics, regionId: payload.regionId } : { regionId: payload.regionId },
+      diagnostics: payload.diagnostics,
     };
-
-    const orders = this.getOrders();
+    const orders = getOrdersStorage();
     orders.unshift(nextOrder);
-    this.saveOrders(orders);
+    saveOrdersStorage(orders);
     return nextOrder;
   },
 
   updateOrderStatus(orderId: string, status: Order['status']) {
-    const orders = this.getOrders().map(order => (order.id === orderId ? { ...order, status } : order));
-    this.saveOrders(orders);
-    return true;
+    const orders = getOrdersStorage().map(o => (o.id === orderId ? { ...o, status } : o));
+    return saveOrdersStorage(orders);
   },
 
   updatePaymentStatus(orderId: string, paymentStatus: PaymentStatus) {
-    const orders = this.getOrders().map(order => (order.id === orderId ? { ...order, paymentStatus } : order));
-    this.saveOrders(orders);
-    return true;
-  },
-
-  getPaymentSettings(): PaymentSettings {
-    const storage = getStorage();
-    if (!storage) return clone(DEFAULT_PAYMENT_SETTINGS);
-
-    try {
-      const raw = storage.getItem(PAYMENT_SETTINGS_KEY);
-      if (!raw) return clone(DEFAULT_PAYMENT_SETTINGS);
-      return clone(sanitizePaymentSettings(JSON.parse(raw)));
-    } catch {
-      return clone(DEFAULT_PAYMENT_SETTINGS);
-    }
-  },
-
-  savePaymentSettings(settings: PaymentSettings) {
-    const storage = getStorage();
-    const normalized = sanitizePaymentSettings(settings);
-    if (storage) {
-      storage.setItem(PAYMENT_SETTINGS_KEY, JSON.stringify(normalized));
-    }
-    return clone(normalized);
+    const orders = getOrdersStorage().map(o =>
+      o.id === orderId ? { ...o, paymentStatus } : o,
+    );
+    return saveOrdersStorage(orders);
   },
 };
