@@ -14,7 +14,31 @@ const ORDER_DRAFTS_KEY = 'am-pending-publish-v1';
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
+// ----------------- Write log (for admin StatusPanel) -----------------
+
+export type WriteLogEntry = {
+  ts: number;
+  path: string;
+  message: string;
+  status: 'ok' | 'error' | 'retry';
+  error?: string;
+  durationMs?: number;
+  sha?: string;
+};
+
+const writeLog: WriteLogEntry[] = [];
+const WRITE_LOG_MAX = 30;
+
+const pushLog = (entry: WriteLogEntry) => {
+  writeLog.unshift(entry);
+  if (writeLog.length > WRITE_LOG_MAX) writeLog.pop();
+};
+
 // ----------------- GitHub Contents API helpers -----------------
+
+// SHA cache: after a successful write, cache the response SHA so the next
+// write to the same file skips the extra GET (avoids 409 stale-SHA conflict)
+const shaCache = new Map<string, string>();
 
 const getPAT = (): string | null => {
   try {
@@ -49,9 +73,7 @@ export const verifyPAT = async (token: string): Promise<{ login: string } | null
   }
 };
 
-const ghGetFileSha = async (path: string): Promise<string | null> => {
-  const token = getPAT();
-  if (!token) return null;
+const ghGetFileSha = async (path: string, token: string): Promise<string | null> => {
   try {
     const res = await fetch(
       `${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`,
@@ -65,10 +87,30 @@ const ghGetFileSha = async (path: string): Promise<string | null> => {
   }
 };
 
-const ghWriteFile = async (path: string, jsonContent: any, message: string): Promise<void> => {
+/**
+ * Write a JSON file to the repo via the GitHub Contents API.
+ * - Uses a SHA cache populated from previous write responses to avoid a
+ *   redundant GET before each PUT (and to prevent 409 stale-SHA conflicts
+ *   when writes happen in rapid succession).
+ * - On a 409 conflict it clears the cache, re-fetches the live SHA, and
+ *   retries once automatically — so the user never has to click twice.
+ */
+const ghWriteFile = async (path: string, jsonContent: any, message: string, _attempt = 0): Promise<void> => {
   const token = getPAT();
   if (!token) throw new Error('Admin not authenticated (no GitHub PAT)');
-  const sha = await ghGetFileSha(path);
+
+  const t0 = Date.now();
+
+  // Prefer the SHA we got from our last successful write (avoids extra GET
+  // and guarantees we have the up-to-date SHA even for rapid back-to-back writes).
+  let sha: string | null;
+  if (shaCache.has(path)) {
+    sha = shaCache.get(path)!;
+    shaCache.delete(path);
+  } else {
+    sha = await ghGetFileSha(path, token);
+  }
+
   const body: Record<string, any> = {
     message,
     content: utf8ToBase64(JSON.stringify(jsonContent, null, 2) + '\n'),
@@ -81,16 +123,38 @@ const ghWriteFile = async (path: string, jsonContent: any, message: string): Pro
     headers: { ...ghHeaders(token), 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
+
+  // 409 = SHA conflict (stale cache or concurrent write) — retry once with a fresh SHA
+  if (res.status === 409 && _attempt === 0) {
+    pushLog({ ts: Date.now(), path, message, status: 'retry', durationMs: Date.now() - t0, error: '409 conflict — retrying with fresh SHA' });
+    shaCache.delete(path);
+    return ghWriteFile(path, jsonContent, message, 1);
+  }
+
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`GitHub write failed (${res.status}): ${errText.slice(0, 300)}`);
+    const err = `GitHub write failed (${res.status}): ${errText.slice(0, 200)}`;
+    pushLog({ ts: Date.now(), path, message, status: 'error', durationMs: Date.now() - t0, error: err });
+    throw new Error(err);
+  }
+
+  // Cache the new SHA from the response so the next write to this file can
+  // skip the GET entirely (important for delete-EN + delete-DE chains).
+  try {
+    const data = await res.json();
+    const newSha: string | undefined = data.content?.sha;
+    if (newSha) shaCache.set(path, newSha);
+    pushLog({ ts: Date.now(), path, message, status: 'ok', durationMs: Date.now() - t0, sha: newSha?.slice(0, 7) });
+  } catch {
+    pushLog({ ts: Date.now(), path, message, status: 'ok', durationMs: Date.now() - t0 });
   }
 };
 
 const ghWriteBinaryFile = async (path: string, base64Content: string, message: string): Promise<string> => {
   const token = getPAT();
   if (!token) throw new Error('Admin not authenticated (no GitHub PAT)');
-  const sha = await ghGetFileSha(path);
+  const sha = shaCache.get(path) || await ghGetFileSha(path, token);
+  shaCache.delete(path);
   const body: Record<string, any> = { message, content: base64Content, branch: GH_BRANCH };
   if (sha) body.sha = sha;
   const res = await fetch(`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
@@ -338,6 +402,44 @@ export const contentStore = {
     } catch {
       // ignore
     }
+  },
+
+  /** Returns a copy of recent GitHub write operations for the StatusPanel. */
+  getWriteLog(): WriteLogEntry[] {
+    return [...writeLog];
+  },
+
+  /** Fetch GitHub API rate-limit info for the current PAT. */
+  async getRateLimit(): Promise<{ used: number; remaining: number; limit: number; resetsAt: number } | null> {
+    const token = getPAT();
+    if (!token) return null;
+    try {
+      const res = await fetch(`${GH_API}/rate_limit`, { headers: ghHeaders(token) });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const core = data.resources?.core;
+      if (!core) return null;
+      return {
+        used: core.used,
+        remaining: core.remaining,
+        limit: core.limit,
+        resetsAt: core.reset * 1000, // convert Unix seconds to ms
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  /** Quick snapshot of cache contents — books/news counts per language. */
+  getCacheSnapshot(): { loaded: boolean; ru: { books: number; news: number }; en: { books: number; news: number }; de: { books: number; news: number } } {
+    const empty = { books: 0, news: 0 };
+    if (!cache.database) return { loaded: false, ru: empty, en: empty, de: empty };
+    return {
+      loaded: cache.loaded,
+      ru: { books: cache.database.ru.books.length, news: cache.database.ru.news.length },
+      en: { books: cache.database.en.books.length, news: cache.database.en.news.length },
+      de: { books: cache.database.de.books.length, news: cache.database.de.news.length },
+    };
   },
 
   async getDatabase(): Promise<Record<Language, LocalizedCatalogData>> {

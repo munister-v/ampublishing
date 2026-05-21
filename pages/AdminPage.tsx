@@ -1,15 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../AppContext';
 import { api } from '../services/api';
-import { contentStore } from '../services/contentStore';
+import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
 import { Book, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
+  AlertCircle,
   BookOpen,
+  Clock,
+  Database,
   FileText,
   Gavel,
+  GitBranch,
   Globe,
   LogOut,
   Newspaper,
@@ -28,6 +32,8 @@ import {
   Layout,
   ArrowUp,
   ArrowDown,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 
 type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'site' | 'payments' | 'orders' | 'status';
@@ -447,67 +453,55 @@ const formatBytes = (n: number) => {
 
 const StatusPanel: React.FC = () => {
   const [runs, setRuns] = useState<WorkflowRun[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [runsLoading, setRunsLoading] = useState(false);
+  const [runsError, setRunsError] = useState<string | null>(null);
   const [siteCheck, setSiteCheck] = useState<{ status: 'idle' | 'ok' | 'fail'; ms?: number }>({ status: 'idle' });
-  const [storage, setStorage] = useState<{ key: string; bytes: number; preview?: string }[]>([]);
+  const [rateLimit, setRateLimit] = useState<{ used: number; remaining: number; limit: number; resetsAt: number } | null>(null);
+  const [writeLog, setWriteLog] = useState<WriteLogEntry[]>([]);
+  const [cacheSnap, setCacheSnap] = useState(contentStore.getCacheSnapshot());
   const [now, setNow] = useState(Date.now());
 
   const REPO = 'munister-v/ampublishing';
 
-  const fetchRuns = async () => {
-    setLoading(true);
-    setError(null);
+  const refreshAll = async () => {
+    // Write log & cache snapshot are synchronous
+    setWriteLog(contentStore.getWriteLog());
+    setCacheSnap(contentStore.getCacheSnapshot());
+
+    // Site probe
+    setSiteCheck({ status: 'idle' });
+    const t0 = performance.now();
+    fetch('https://ampublishing.org/', { mode: 'no-cors', cache: 'no-store' })
+      .then(() => setSiteCheck({ status: 'ok', ms: Math.round(performance.now() - t0) }))
+      .catch(() => setSiteCheck({ status: 'fail', ms: Math.round(performance.now() - t0) }));
+
+    // Rate limit (uses PAT → authenticated, 5000/h)
+    contentStore.getRateLimit().then(rl => setRateLimit(rl));
+
+    // GitHub Actions runs
+    setRunsLoading(true);
+    setRunsError(null);
     try {
-      const res = await fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=5`, {
+      const res = await fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=8`, {
         headers: { Accept: 'application/vnd.github+json' },
       });
       if (!res.ok) throw new Error(`GitHub API ${res.status}`);
       const data = await res.json();
       setRuns(data.workflow_runs || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'fetch failed');
+      setRunsError(err instanceof Error ? err.message : 'fetch failed');
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const probeSite = async () => {
-    setSiteCheck({ status: 'idle' });
-    const t0 = performance.now();
-    try {
-      // no-cors returns opaque response but resolves on reachable host
-      await fetch('https://ampublishing.org/', { mode: 'no-cors', cache: 'no-store' });
-      setSiteCheck({ status: 'ok', ms: Math.round(performance.now() - t0) });
-    } catch {
-      setSiteCheck({ status: 'fail', ms: Math.round(performance.now() - t0) });
-    }
-  };
-
-  const collectStorage = () => {
-    try {
-      const interesting = Object.keys(localStorage).filter(k =>
-        /^(am-|am_|ampublishing|admin_)/.test(k),
-      );
-      const rows = interesting.map(k => {
-        const v = localStorage.getItem(k) || '';
-        return {
-          key: k,
-          bytes: new Blob([v]).size,
-          preview: v.length > 80 ? v.slice(0, 80) + '…' : v,
-        };
-      });
-      setStorage(rows.sort((a, b) => b.bytes - a.bytes));
-    } catch {
-      setStorage([]);
+      setRunsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRuns();
-    probeSite();
-    collectStorage();
-    const tick = setInterval(() => setNow(Date.now()), 5000);
+    refreshAll();
+    const tick = setInterval(() => {
+      setNow(Date.now());
+      setWriteLog(contentStore.getWriteLog()); // refresh log every 5 s live
+      setCacheSnap(contentStore.getCacheSnapshot());
+    }, 5000);
     return () => clearInterval(tick);
   }, []);
 
@@ -516,130 +510,201 @@ const StatusPanel: React.FC = () => {
   const minutesSinceDeploy = lastDeployTime ? Math.floor((now - lastDeployTime) / 60000) : null;
   const isFresh = minutesSinceDeploy !== null && minutesSinceDeploy < 5;
 
+  const ratePct = rateLimit ? Math.round((rateLimit.remaining / rateLimit.limit) * 100) : null;
+  const rateColor = ratePct === null ? 'text-gray-400' : ratePct > 30 ? 'text-green-600' : ratePct > 10 ? 'text-amber-600' : 'text-red-600';
+
   return (
-    <section className="space-y-8">
-      <div className="grid md:grid-cols-3 gap-4">
-        <div className="bg-white border border-primary/10 p-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">Deploy</p>
-          <p className="font-serif text-3xl mt-2">
+    <section className="space-y-6">
+
+      {/* ── Row 1: Quick cards ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+        {/* Deploy */}
+        <div className="bg-white border border-primary/10 p-5 flex flex-col gap-1">
+          <div className="flex items-center gap-2 text-gray-400 mb-1">
+            <GitBranch size={13} />
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em]">Deploy</span>
+          </div>
+          <p className="font-serif text-2xl leading-none">
             {latest ? (latest.conclusion || latest.status) : '—'}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[11px] text-gray-500">
             {latest ? `${formatRelative(latest.updated_at)} · ${latest.head_sha.slice(0, 7)}` : 'no data'}
           </p>
-          {isFresh ? <p className="text-[10px] uppercase tracking-widest text-accent mt-2">fresh</p> : null}
+          {isFresh && <span className="text-[9px] uppercase tracking-widest text-accent font-bold">fresh</span>}
         </div>
-        <div className="bg-white border border-primary/10 p-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">ampublishing.org</p>
-          <p className="font-serif text-3xl mt-2">
-            {siteCheck.status === 'ok' ? 'reachable' : siteCheck.status === 'fail' ? 'unreachable' : 'checking…'}
+
+        {/* Site */}
+        <div className="bg-white border border-primary/10 p-5 flex flex-col gap-1">
+          <div className="flex items-center gap-2 text-gray-400 mb-1">
+            {siteCheck.status === 'fail' ? <WifiOff size={13} className="text-red-500" /> : <Wifi size={13} />}
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em]">Site</span>
+          </div>
+          <p className={`font-serif text-2xl leading-none ${siteCheck.status === 'fail' ? 'text-red-600' : ''}`}>
+            {siteCheck.status === 'ok' ? 'reachable' : siteCheck.status === 'fail' ? 'down?' : 'checking…'}
           </p>
-          <p className="text-xs text-gray-500 mt-1">{siteCheck.ms ? `${siteCheck.ms} ms round-trip` : ''}</p>
+          <p className="text-[11px] text-gray-500">{siteCheck.ms ? `${siteCheck.ms} ms` : ''}</p>
         </div>
-        <div className="bg-white border border-primary/10 p-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">Local store</p>
-          <p className="font-serif text-3xl mt-2">{storage.length} keys</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {formatBytes(storage.reduce((sum, row) => sum + row.bytes, 0))}
+
+        {/* GitHub rate limit */}
+        <div className="bg-white border border-primary/10 p-5 flex flex-col gap-1">
+          <div className="flex items-center gap-2 text-gray-400 mb-1">
+            <Activity size={13} />
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em]">API quota</span>
+          </div>
+          {rateLimit ? (
+            <>
+              <p className={`font-serif text-2xl leading-none ${rateColor}`}>
+                {rateLimit.remaining.toLocaleString()}
+              </p>
+              <p className="text-[11px] text-gray-500">
+                of {rateLimit.limit.toLocaleString()} · resets {formatRelative(new Date(rateLimit.resetsAt).toISOString())}
+              </p>
+            </>
+          ) : (
+            <p className="font-serif text-2xl leading-none text-gray-400">—</p>
+          )}
+        </div>
+
+        {/* Cache */}
+        <div className="bg-white border border-primary/10 p-5 flex flex-col gap-1">
+          <div className="flex items-center gap-2 text-gray-400 mb-1">
+            <Database size={13} />
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em]">Cache</span>
+          </div>
+          <p className={`font-serif text-2xl leading-none ${cacheSnap.loaded ? 'text-green-600' : 'text-gray-400'}`}>
+            {cacheSnap.loaded ? 'loaded' : 'empty'}
           </p>
+          <div className="text-[11px] text-gray-500 font-mono space-y-0.5 mt-1">
+            {(['ru', 'en', 'de'] as const).map(lang => (
+              <div key={lang}>
+                <span className="uppercase">{lang}</span>
+                {' '}· {cacheSnap[lang].books}b {cacheSnap[lang].news}n
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* ── Row 2: GitHub write log ── */}
       <div className="bg-white border border-primary/10">
-        <div className="p-6 border-b border-primary/10 flex items-center justify-between">
+        <div className="p-5 border-b border-primary/10 flex items-center justify-between">
           <div>
-            <h3 className="text-2xl font-serif">GitHub Pages deploys</h3>
-            <p className="text-xs text-gray-500 mt-1">{REPO}</p>
+            <h3 className="text-xl font-serif flex items-center gap-2">
+              <Clock size={16} className="text-gray-400" />
+              GitHub write log
+            </h3>
+            <p className="text-[11px] text-gray-500 mt-0.5">All PUT operations this session — auto-refreshes every 5 s</p>
           </div>
-          <button onClick={fetchRuns} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
-            {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+          <button onClick={() => setWriteLog(contentStore.getWriteLog())}
+            className="px-3 py-2 text-[10px] uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-1.5">
+            <RefreshCw size={12} /> Refresh
+          </button>
+        </div>
+        {writeLog.length === 0 ? (
+          <p className="p-6 text-sm text-gray-400 font-mono">No writes yet this session.</p>
+        ) : (
+          <table className="w-full text-left">
+            <thead className="bg-[#F4F4F0]">
+              <tr className="font-mono text-[9px] uppercase tracking-widest text-gray-500">
+                <th className="px-4 py-3">Time</th>
+                <th className="px-4 py-3">File</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">ms</th>
+                <th className="px-4 py-3">SHA / error</th>
+              </tr>
+            </thead>
+            <tbody>
+              {writeLog.map((entry, i) => (
+                <tr key={i} className="border-t border-gray-100 font-mono text-xs">
+                  <td className="px-4 py-2 whitespace-nowrap text-gray-500">
+                    {new Date(entry.ts).toLocaleTimeString()}
+                  </td>
+                  <td className="px-4 py-2 text-[11px] max-w-[22ch] truncate" title={entry.path}>
+                    {entry.path.replace('public/content/', '')}
+                  </td>
+                  <td className="px-4 py-2">
+                    {entry.status === 'ok' && <span className="inline-flex items-center gap-1 text-green-700"><CheckCircle size={11} /> ok</span>}
+                    {entry.status === 'error' && <span className="inline-flex items-center gap-1 text-red-600"><AlertCircle size={11} /> error</span>}
+                    {entry.status === 'retry' && <span className="inline-flex items-center gap-1 text-amber-600"><RefreshCw size={11} /> retry</span>}
+                  </td>
+                  <td className="px-4 py-2 text-gray-500">{entry.durationMs ?? '—'}</td>
+                  <td className="px-4 py-2 text-gray-500 max-w-[26ch] truncate" title={entry.error || entry.sha || ''}>
+                    {entry.error ? <span className="text-red-500">{entry.error.slice(0, 60)}</span> : (entry.sha || '—')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* ── Row 3: GitHub Actions runs ── */}
+      <div className="bg-white border border-primary/10">
+        <div className="p-5 border-b border-primary/10 flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-serif flex items-center gap-2">
+              <Activity size={16} className="text-gray-400" />
+              GitHub Actions runs
+            </h3>
+            <p className="text-[11px] text-gray-500 mt-0.5">{REPO}</p>
+          </div>
+          <button onClick={refreshAll}
+            className="px-3 py-2 text-[10px] uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-1.5">
+            {runsLoading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
             Refresh
           </button>
         </div>
-        {error ? <p className="px-6 py-4 text-sm text-red-600">{error}</p> : null}
+        {runsError && <p className="px-6 py-3 text-sm text-red-600">{runsError}</p>}
         <table className="w-full text-left">
           <thead className="bg-[#F4F4F0]">
-            <tr className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
-              <th className="p-4">When</th>
-              <th className="p-4">Workflow</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Commit</th>
-              <th className="p-4">Link</th>
+            <tr className="font-mono text-[9px] uppercase tracking-widest text-gray-500">
+              <th className="px-4 py-3">When</th>
+              <th className="px-4 py-3">Workflow</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Commit</th>
+              <th className="px-4 py-3">↗</th>
             </tr>
           </thead>
           <tbody>
             {runs.map(run => (
               <tr key={run.id} className="border-t border-gray-100">
-                <td className="p-4 text-sm">
+                <td className="px-4 py-2.5 text-xs">
                   <div>{formatRelative(run.updated_at)}</div>
-                  <div className="text-xs text-gray-400">{new Date(run.updated_at).toLocaleString()}</div>
+                  <div className="text-[10px] text-gray-400">{new Date(run.updated_at).toLocaleTimeString()}</div>
                 </td>
-                <td className="p-4 text-sm">{run.name}</td>
-                <td className="p-4 text-sm">
-                  <span className={`px-2 py-1 text-[10px] uppercase tracking-[0.18em] border ${
+                <td className="px-4 py-2.5 text-xs">{run.name}</td>
+                <td className="px-4 py-2.5">
+                  <span className={`px-2 py-0.5 text-[9px] uppercase tracking-[0.18em] border ${
                     run.conclusion === 'success' ? 'border-green-600 text-green-700' :
                     run.conclusion === 'failure' ? 'border-red-600 text-red-700' :
                     run.status === 'in_progress' || run.status === 'queued' ? 'border-amber-500 text-amber-700' :
                     'border-gray-400 text-gray-500'
                   }`}>{run.conclusion || run.status}</span>
                 </td>
-                <td className="p-4 text-xs font-mono">
+                <td className="px-4 py-2.5 text-[11px] font-mono">
                   <div>{run.head_sha.slice(0, 7)}</div>
-                  <div className="text-gray-500 max-w-[28ch] truncate" title={run.head_commit?.message || ''}>
+                  <div className="text-gray-400 max-w-[22ch] truncate" title={run.head_commit?.message || ''}>
                     {run.head_commit?.message?.split('\n')[0] || ''}
                   </div>
                 </td>
-                <td className="p-4 text-xs">
-                  <a href={run.html_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-accent">open ↗</a>
+                <td className="px-4 py-2.5 text-xs">
+                  <a href={run.html_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-accent">open</a>
                 </td>
               </tr>
             ))}
-            {!runs.length && !loading ? (
+            {!runs.length && !runsLoading &&
               <tr><td colSpan={5} className="p-6 text-sm text-gray-500">No runs found.</td></tr>
-            ) : null}
+            }
           </tbody>
         </table>
       </div>
 
-      <div className="bg-white border border-primary/10">
-        <div className="p-6 border-b border-primary/10 flex items-center justify-between">
-          <div>
-            <h3 className="text-2xl font-serif">Local autosave & cache</h3>
-            <p className="text-xs text-gray-500 mt-1">localStorage keys persisted by the admin/site</p>
-          </div>
-          <button onClick={collectStorage} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
-            <RefreshCw size={14} /> Refresh
-          </button>
-        </div>
-        <table className="w-full text-left">
-          <thead className="bg-[#F4F4F0]">
-            <tr className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
-              <th className="p-4">Key</th>
-              <th className="p-4">Size</th>
-              <th className="p-4">Preview</th>
-            </tr>
-          </thead>
-          <tbody>
-            {storage.map(row => (
-              <tr key={row.key} className="border-t border-gray-100 align-top">
-                <td className="p-4 text-xs font-mono">{row.key}</td>
-                <td className="p-4 text-xs font-mono whitespace-nowrap">{formatBytes(row.bytes)}</td>
-                <td className="p-4 text-xs font-mono text-gray-500 break-all">{row.preview}</td>
-              </tr>
-            ))}
-            {!storage.length ? (
-              <tr><td colSpan={3} className="p-6 text-sm text-gray-500">No local-cache entries.</td></tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="bg-white border border-primary/10 p-6 text-xs text-gray-500 space-y-2">
-        <p><span className="font-mono uppercase tracking-[0.18em] text-gray-400">Probe:</span> ampublishing.org is checked via opaque <code>fetch</code> (no-cors). 200/0 both register as «reachable»; an actual network error is the only fail signal.</p>
-        <p><span className="font-mono uppercase tracking-[0.18em] text-gray-400">Deploys:</span> unauthenticated GitHub API allows 60 req/h per source IP. If you hit «GitHub API 403», the rate-limit reset takes ~1 h.</p>
-        <button onClick={() => { probeSite(); fetchRuns(); collectStorage(); }} className="mt-2 px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 inline-flex items-center gap-2">
-          <RefreshCw size={14} /> Refresh all
-        </button>
+      {/* ── Notes ── */}
+      <div className="text-[11px] text-gray-400 font-mono space-y-1 p-4 bg-white border border-primary/10">
+        <p>Write log: live view of all GitHub Contents API PUTs this browser session. «retry» = 409 conflict auto-resolved.</p>
+        <p>API quota: authenticated (PAT) limit is 5 000 req/h. Each save uses ~2 req (GET sha + PUT). Rate resets every hour.</p>
+        <p>Site probe via opaque no-cors fetch — «reachable» if no network error.</p>
       </div>
     </section>
   );
