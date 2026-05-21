@@ -68,78 +68,78 @@ const ADMIN_DRAFTS_KEY = 'am-admin-drafts-v2';
 const contentGroups: ContentGroup[] = [
   {
     id: 'home',
-    label: 'Homepage',
+    label: 'Главная страница',
     icon: <Globe size={16} />,
     fields: [
-      { key: 'home.hero_title_1', label: 'Hero title', type: 'text' },
-      { key: 'home.hero_title_2', label: 'Hero title line 2', type: 'text' },
-      { key: 'home.hero_subtitle', label: 'Hero subtitle', type: 'textarea' },
-      { key: 'home.hero_cta', label: 'Hero CTA', type: 'text' },
-      { key: 'home.hero_image', label: 'Hero image URL', type: 'text' },
-      { key: 'home.feature_image', label: 'Feature image URL', type: 'text' },
-      { key: 'home.feature_kicker', label: 'Feature kicker', type: 'text' },
-      { key: 'home.feature_title', label: 'Feature title', type: 'text' },
-      { key: 'home.global_reach', label: 'Global reach title', type: 'text' },
-      { key: 'home.global_desc', label: 'Global reach description', type: 'textarea' },
-      { key: 'home.stats_countries', label: 'Countries label', type: 'text' },
-      { key: 'home.stats_countries_value', label: 'Countries value', type: 'text' },
-      { key: 'home.stats_delivery', label: 'Delivery label', type: 'text' },
-      { key: 'home.stats_delivery_value', label: 'Delivery value', type: 'text' },
-      { key: 'product.payment_info_title', label: 'Product payment title', type: 'text' },
-      { key: 'product.payment_info_text', label: 'Product payment text', type: 'textarea' },
-      { key: 'checkout.payment_note', label: 'Checkout payment note', type: 'textarea' },
-      { key: 'checkout.payment_timeline', label: 'Checkout payment timeline', type: 'text' },
-      { key: 'checkout.invoice_steps_title', label: 'Invoice steps title', type: 'text' },
-      { key: 'checkout.invoice_step_1', label: 'Invoice step 1', type: 'text' },
-      { key: 'checkout.invoice_step_2', label: 'Invoice step 2', type: 'text' },
-      { key: 'checkout.invoice_step_3', label: 'Invoice step 3', type: 'text' },
+      { key: 'home.hero_title_1', label: 'Заголовок hero', type: 'text' },
+      { key: 'home.hero_title_2', label: 'Заголовок hero (строка 2)', type: 'text' },
+      { key: 'home.hero_subtitle', label: 'Подзаголовок hero', type: 'textarea' },
+      { key: 'home.hero_cta', label: 'Кнопка hero', type: 'text' },
+      { key: 'home.hero_image', label: 'Фото hero', type: 'text' },
+      { key: 'home.feature_image', label: 'Фото featured секции', type: 'text' },
+      { key: 'home.feature_kicker', label: 'Кикер featured', type: 'text' },
+      { key: 'home.feature_title', label: 'Заголовок featured', type: 'text' },
+      { key: 'home.global_reach', label: 'Заголовок охвата', type: 'text' },
+      { key: 'home.global_desc', label: 'Описание охвата', type: 'textarea' },
+      { key: 'home.stats_countries', label: 'Подпись «Страны»', type: 'text' },
+      { key: 'home.stats_countries_value', label: 'Значение «Страны»', type: 'text' },
+      { key: 'home.stats_delivery', label: 'Подпись «Доставка»', type: 'text' },
+      { key: 'home.stats_delivery_value', label: 'Значение «Доставка»', type: 'text' },
+      { key: 'product.payment_info_title', label: 'Заголовок оплаты на странице товара', type: 'text' },
+      { key: 'product.payment_info_text', label: 'Текст оплаты на странице товара', type: 'textarea' },
+      { key: 'checkout.payment_note', label: 'Примечание об оплате (корзина)', type: 'textarea' },
+      { key: 'checkout.payment_timeline', label: 'Срок подтверждения оплаты', type: 'text' },
+      { key: 'checkout.invoice_steps_title', label: 'Заголовок шагов счёта', type: 'text' },
+      { key: 'checkout.invoice_step_1', label: 'Шаг счёта 1', type: 'text' },
+      { key: 'checkout.invoice_step_2', label: 'Шаг счёта 2', type: 'text' },
+      { key: 'checkout.invoice_step_3', label: 'Шаг счёта 3', type: 'text' },
     ],
   },
   {
     id: 'authors-about-media',
-    label: 'Static Pages',
+    label: 'Статические страницы',
     icon: <FileText size={16} />,
     fields: [
-      { key: 'static.authors.title', label: 'Authors title', type: 'text' },
-      { key: 'static.authors.subtitle', label: 'Authors subtitle', type: 'textarea' },
-      { key: 'static.authors.p1', label: 'Authors text 1', type: 'textarea' },
-      { key: 'static.authors.p2', label: 'Authors text 2', type: 'textarea' },
-      { key: 'static.about.title', label: 'About — title', type: 'text' },
-      { key: 'static.about.subtitle', label: 'About — subtitle', type: 'textarea' },
-      { key: 'static.about.mission', label: 'About — mission section heading', type: 'text' },
-      { key: 'static.about.p1', label: 'About — text paragraph 1', type: 'textarea' },
-      { key: 'static.about.p2', label: 'About — text paragraph 2', type: 'textarea' },
-      { key: 'static.about.stat1', label: 'About — stat 1 label', type: 'text' },
-      { key: 'static.about.stat2', label: 'About — stat 2 label', type: 'text' },
-      { key: 'static.about.mission_image', label: 'About — mission photo', type: 'text' },
-      { key: 'static.about.team', label: 'About — team section heading', type: 'text' },
-      { key: 'static.about.role1', label: 'About — team role 1', type: 'text' },
-      { key: 'static.about.role2', label: 'About — team role 2', type: 'text' },
-      { key: 'static.about.role3', label: 'About — team role 3', type: 'text' },
-      { key: 'nav.our_authors', label: 'Our authors menu label', type: 'text' },
-      { key: 'static.our_authors.title', label: 'Our authors title', type: 'text' },
-      { key: 'static.our_authors.subtitle', label: 'Our authors subtitle', type: 'textarea' },
-      { key: 'static.our_authors.gallery_label', label: 'Our authors gallery label', type: 'text' },
-      { key: 'static.our_authors.gallery_title', label: 'Our authors gallery title', type: 'text' },
-      { key: 'static.media.title', label: 'Media title', type: 'text' },
-      { key: 'static.media.subtitle', label: 'Media subtitle', type: 'textarea' },
-      { key: 'static.media.kit_desc', label: 'Press kit text', type: 'textarea' },
-      { key: 'static.media.review_desc', label: 'Review text', type: 'textarea' },
-      { key: 'static.media.interview_desc', label: 'Interview text', type: 'textarea' },
-      { key: 'footer.desc', label: 'Footer description', type: 'textarea' },
+      { key: 'static.authors.title', label: 'Заголовок «Авторам»', type: 'text' },
+      { key: 'static.authors.subtitle', label: 'Подзаголовок «Авторам»', type: 'textarea' },
+      { key: 'static.authors.p1', label: 'Текст «Авторам» 1', type: 'textarea' },
+      { key: 'static.authors.p2', label: 'Текст «Авторам» 2', type: 'textarea' },
+      { key: 'static.about.title', label: 'О нас — заголовок', type: 'text' },
+      { key: 'static.about.subtitle', label: 'О нас — подзаголовок', type: 'textarea' },
+      { key: 'static.about.mission', label: 'О нас — заголовок миссии', type: 'text' },
+      { key: 'static.about.p1', label: 'О нас — текст 1', type: 'textarea' },
+      { key: 'static.about.p2', label: 'О нас — текст 2', type: 'textarea' },
+      { key: 'static.about.stat1', label: 'О нас — подпись стат. 1', type: 'text' },
+      { key: 'static.about.stat2', label: 'О нас — подпись стат. 2', type: 'text' },
+      { key: 'static.about.mission_image', label: 'О нас — фото', type: 'text' },
+      { key: 'static.about.team', label: 'О нас — заголовок команды', type: 'text' },
+      { key: 'static.about.role1', label: 'О нас — роль 1', type: 'text' },
+      { key: 'static.about.role2', label: 'О нас — роль 2', type: 'text' },
+      { key: 'static.about.role3', label: 'О нас — роль 3', type: 'text' },
+      { key: 'nav.our_authors', label: 'Пункт меню «Наши авторы»', type: 'text' },
+      { key: 'static.our_authors.title', label: 'Заголовок «Наши авторы»', type: 'text' },
+      { key: 'static.our_authors.subtitle', label: 'Подзаголовок «Наши авторы»', type: 'textarea' },
+      { key: 'static.our_authors.gallery_label', label: 'Подпись галереи', type: 'text' },
+      { key: 'static.our_authors.gallery_title', label: 'Заголовок галереи', type: 'text' },
+      { key: 'static.media.title', label: 'Заголовок СМИ', type: 'text' },
+      { key: 'static.media.subtitle', label: 'Подзаголовок СМИ', type: 'textarea' },
+      { key: 'static.media.kit_desc', label: 'Текст пресс-кита', type: 'textarea' },
+      { key: 'static.media.review_desc', label: 'Текст рецензий', type: 'textarea' },
+      { key: 'static.media.interview_desc', label: 'Текст интервью', type: 'textarea' },
+      { key: 'footer.desc', label: 'Описание в футере', type: 'textarea' },
     ],
   },
   {
     id: 'legal',
-    label: 'Legal',
+    label: 'Правовые документы',
     icon: <Gavel size={16} />,
     fields: [
-      { key: 'static.impressum.text', label: 'Impressum text', type: 'textarea' },
-      { key: 'static.privacy.intro', label: 'Privacy intro', type: 'textarea' },
-      { key: 'static.privacy.sections', label: 'Privacy sections JSON', type: 'json' },
-      { key: 'static.terms.intro', label: 'Terms intro', type: 'textarea' },
-      { key: 'static.terms.text', label: 'Terms text', type: 'textarea' },
-      { key: 'static.terms.sections', label: 'Terms sections JSON', type: 'json' },
+      { key: 'static.impressum.text', label: 'Текст Impressum', type: 'textarea' },
+      { key: 'static.privacy.intro', label: 'Вводная часть Политики', type: 'textarea' },
+      { key: 'static.privacy.sections', label: 'Разделы Политики (JSON)', type: 'json' },
+      { key: 'static.terms.intro', label: 'Вводная часть Условий', type: 'textarea' },
+      { key: 'static.terms.text', label: 'Текст Условий', type: 'textarea' },
+      { key: 'static.terms.sections', label: 'Разделы Условий (JSON)', type: 'json' },
     ],
   },
 ];
@@ -365,11 +365,11 @@ const ImageField: React.FC<{
   };
 
   const statusLabel = {
-    idle: 'Upload image',
-    optimizing: 'Optimizing…',
-    uploading: 'Uploading to GitHub…',
-    done: 'Uploaded ✓',
-    error: 'Saved locally (no PAT)',
+    idle: 'Загрузить фото',
+    optimizing: 'Оптимизация…',
+    uploading: 'Загрузка на GitHub…',
+    done: 'Загружено ✓',
+    error: 'Сохранено локально',
   }[uploadStatus];
 
   const isBase64 = value.startsWith('data:');
@@ -381,11 +381,11 @@ const ImageField: React.FC<{
         value={value}
         onChange={e => { onChange(e.target.value); setUploadStatus('idle'); }}
         className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary text-xs font-mono"
-        placeholder="https://... or upload a file →"
+        placeholder="https://... или загрузите файл →"
       />
       {isBase64 && (
         <p className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 px-3 py-2">
-          ⚠ Image stored as base64 — save the book to upload it to GitHub and replace with a proper URL.
+          ⚠ Изображение в base64 — сохраните книгу для загрузки на GitHub.
         </p>
       )}
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -394,8 +394,8 @@ const ImageField: React.FC<{
           {statusLabel}
           <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isUploading} />
         </label>
-        {uploadStatus === 'done' && <span className="text-xs text-green-600">Saved to /images/uploads/ in repo</span>}
-        {uploadStatus === 'error' && <span className="text-xs text-amber-600">Stored locally — log in with PAT to upload</span>}
+        {uploadStatus === 'done' && <span className="text-xs text-green-600">Сохранено в /images/uploads/</span>}
+        {uploadStatus === 'error' && <span className="text-xs text-amber-600">Сохранено локально — войдите с PAT</span>}
       </div>
       {value ? (
         <div className="border border-gray-200 bg-[#F8F8F5] p-3">
@@ -1002,7 +1002,7 @@ export const AdminPage: React.FC = () => {
           : `Book ${bookDraft.title || bookDraft.id} saved`,
       );
     } catch {
-      showToast('Could not save book', 'error');
+      showToast('Не удалось сохранить книгу', 'error');
     } finally {
       setSavingKey(null);
     }
@@ -1026,7 +1026,7 @@ export const AdminPage: React.FC = () => {
       setLastPublishedAt(new Date().toLocaleTimeString());
       showToast('Book removed');
     } catch {
-      showToast('Could not remove book', 'error');
+      showToast('Не удалось удалить книгу', 'error');
     } finally {
       setSavingKey(null);
       deletingRef.current = false;
@@ -1048,7 +1048,7 @@ export const AdminPage: React.FC = () => {
           : `News ${newsDraft.title || newsDraft.id} saved`,
       );
     } catch {
-      showToast('Could not save news', 'error');
+      showToast('Не удалось сохранить новость', 'error');
     } finally {
       setSavingKey(null);
     }
@@ -1072,7 +1072,7 @@ export const AdminPage: React.FC = () => {
       setLastPublishedAt(new Date().toLocaleTimeString());
       showToast('News removed');
     } catch {
-      showToast('Could not remove news', 'error');
+      showToast('Не удалось удалить новость', 'error');
     } finally {
       setSavingKey(null);
       deletingRef.current = false;
@@ -1080,10 +1080,8 @@ export const AdminPage: React.FC = () => {
   };
 
   const handleSaveAuthors = async () => {
-    if (!featuredAuthorDraft) return;
     try {
       setSavingKey('authors');
-      await api.setTranslationValue(selectedLanguage, 'static.our_authors.featured_author', featuredAuthorDraft);
       const nextOverrides = await api.setTranslationValue(selectedLanguage, 'static.our_authors.showcase_items', showcaseDraft);
 
       setOverrides(nextOverrides);
@@ -1095,7 +1093,7 @@ export const AdminPage: React.FC = () => {
           : 'Our authors saved',
       );
     } catch {
-      showToast('Could not save authors section', 'error');
+      showToast('Не удалось сохранить авторов', 'error');
     } finally {
       setSavingKey(null);
     }
@@ -1110,9 +1108,9 @@ export const AdminPage: React.FC = () => {
       setGlobalSiteSettings(next);
       await reloadContent();
       setLastPublishedAt(new Date().toLocaleTimeString());
-      showToast('Site settings saved');
+      showToast('Настройки сайта сохранены');
     } catch {
-      showToast('Could not save site settings', 'error');
+      showToast('Не удалось сохранить настройки', 'error');
     } finally {
       setSavingKey(null);
     }
@@ -1120,17 +1118,17 @@ export const AdminPage: React.FC = () => {
 
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== newPassword2) { showToast('Passwords do not match', 'error'); return; }
-    if (newPassword.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+    if (newPassword !== newPassword2) { showToast('Пароли не совпадают', 'error'); return; }
+    if (newPassword.length < 8) { showToast('Пароль минимум 8 символов', 'error'); return; }
     setSavingPassword(true);
     try {
       const pat = sessionStorage.getItem('gh_pat') || localStorage.getItem('gh_pat') || '';
       await api.setupAdminPassword('admin@ampublishing.org', newPassword, pat);
-      showToast('Password saved — you can now log in with your password');
+      showToast('Пароль сохранён');
       setNewPassword('');
       setNewPassword2('');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Could not save password', 'error');
+      showToast(err instanceof Error ? err.message : 'Не удалось сохранить пароль', 'error');
     } finally {
       setSavingPassword(false);
     }
@@ -1152,9 +1150,9 @@ export const AdminPage: React.FC = () => {
       const next = await api.savePaymentSettings(paymentSettings);
       setPaymentSettings(next);
       setLastPublishedAt(new Date().toLocaleTimeString());
-      showToast('Payment and invoice settings saved');
+      showToast('Настройки оплаты сохранены');
     } catch {
-      showToast('Could not save payment settings', 'error');
+      showToast('Не удалось сохранить настройки оплаты', 'error');
     } finally {
       setSavingKey(null);
     }
@@ -1222,7 +1220,7 @@ export const AdminPage: React.FC = () => {
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <h2 className="font-serif text-2xl">AM Admin</h2>
-            <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-white/60">Content Management</p>
+            <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-white/60">Управление контентом</p>
           </div>
           <button onClick={() => setSidebarOpen(prev => !prev)} className="p-2 border border-white/20">
             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
@@ -1233,20 +1231,20 @@ export const AdminPage: React.FC = () => {
       <aside className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-full md:w-72 bg-primary text-white flex-shrink-0 md:sticky md:top-[80px] md:h-[calc(100vh-80px)] md:overflow-y-auto`}>
         <div className="p-8 border-b border-white/10">
           <h2 className="font-serif text-3xl">AM Admin</h2>
-          <p className="text-[10px] font-mono opacity-60 uppercase tracking-[0.24em] mt-2">Content Management</p>
+          <p className="text-[10px] font-mono opacity-60 uppercase tracking-[0.24em] mt-2">Управление контентом</p>
         </div>
 
         <nav className="p-6 space-y-3">
           {[
-            { id: 'copy', label: 'Site Copy', icon: <FileText size={16} /> },
-            { id: 'books', label: 'Books', icon: <BookOpen size={16} /> },
-            { id: 'news', label: 'News', icon: <Newspaper size={16} /> },
-            { id: 'authors', label: 'Our Authors', icon: <Globe size={16} /> },
-            { id: 'about', label: 'About Page', icon: <Info size={16} /> },
-            { id: 'site', label: 'Site / Header / Footer', icon: <Layout size={16} /> },
-            { id: 'payments', label: 'Payments', icon: <Gavel size={16} /> },
-            { id: 'orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
-            { id: 'status', label: 'Status', icon: <Activity size={16} /> },
+            { id: 'copy', label: 'Текст сайта', icon: <FileText size={16} /> },
+            { id: 'books', label: 'Книги', icon: <BookOpen size={16} /> },
+            { id: 'news', label: 'Новости', icon: <Newspaper size={16} /> },
+            { id: 'authors', label: 'Наши авторы', icon: <Globe size={16} /> },
+            { id: 'about', label: 'О нас', icon: <Info size={16} /> },
+            { id: 'site', label: 'Сайт / Меню / Футер', icon: <Layout size={16} /> },
+            { id: 'payments', label: 'Оплата', icon: <Gavel size={16} /> },
+            { id: 'orders', label: 'Заказы', icon: <ShoppingBag size={16} /> },
+            { id: 'status', label: 'Статус', icon: <Activity size={16} /> },
           ].map(item => (
             <button
               key={item.id}
@@ -1289,11 +1287,11 @@ export const AdminPage: React.FC = () => {
             <div className="grid grid-cols-1 gap-3">
               <button onClick={handleExport} className="flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-white/15 hover:bg-white/10">
                 <Download size={14} />
-                Export content
+                Экспорт
               </button>
               <label className="flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-white/15 hover:bg-white/10 cursor-pointer">
                 <Upload size={14} />
-                Import backup
+                Импорт
                 <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
               </label>
             </div>
@@ -1306,14 +1304,14 @@ export const AdminPage: React.FC = () => {
             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-white/15 hover:bg-white/10"
           >
             {isRefreshing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-            Reload
+            Обновить
           </button>
           <button
             onClick={logout}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-red-500/40 text-red-200 hover:bg-red-900/20"
           >
             <LogOut size={14} />
-            Logout
+            Выйти
           </button>
         </div>
       </aside>
@@ -1336,31 +1334,31 @@ export const AdminPage: React.FC = () => {
           return (
             <div className="flex flex-wrap gap-3 mb-6">
               <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Books</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Книг</p>
                 <p className="mt-1 font-serif text-3xl">{totalBooks}</p>
               </div>
               <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">News</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Новостей</p>
                 <p className="mt-1 font-serif text-3xl">{totalNews}</p>
               </div>
               <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Orders</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Заказов</p>
                 <p className="mt-1 font-serif text-3xl">{orders.length}</p>
               </div>
               <div className={`border p-4 flex-1 min-w-[130px] ${pendingOrders > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-primary/10'}`}>
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Awaiting payment</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Ожидают оплаты</p>
                 <p className={`mt-1 font-serif text-3xl ${pendingOrders > 0 ? 'text-amber-700' : ''}`}>{pendingOrders}</p>
               </div>
               <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[120px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Revenue (paid)</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Выручка (оплачено)</p>
                 <p className="mt-1 font-serif text-3xl">{totalRevenue > 0 ? `€${totalRevenue.toFixed(0)}` : '—'}</p>
               </div>
               <div className={`border p-4 flex-1 min-w-[110px] ${hasErrors ? 'bg-red-50 border-red-200' : 'bg-white border-primary/10'}`}>
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Validation</p>
-                <p className={`mt-1 font-serif text-2xl ${hasErrors ? 'text-red-600' : 'text-green-700'}`}>{hasErrors ? 'Issues' : 'OK'}</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Валидация</p>
+                <p className={`mt-1 font-serif text-2xl ${hasErrors ? 'text-red-600' : 'text-green-700'}`}>{hasErrors ? 'Ошибки' : 'OK'}</p>
               </div>
               <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[150px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Published</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Опубликовано</p>
                 <p className="mt-1 font-serif text-xl truncate">{lastPublishedAt || '—'}</p>
               </div>
             </div>
@@ -1388,14 +1386,14 @@ export const AdminPage: React.FC = () => {
                             onClick={() => handleResetTranslationField(field)}
                             className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-gray-300 hover:bg-gray-100"
                           >
-                            Reset
+                            Сбросить
                           </button>
                           <button
                             onClick={() => handleSaveTranslationField(field)}
                             disabled={!!copyJsonErrors[field.key]}
                             className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary"
                           >
-                            {savingKey === field.key ? <Loader2 size={12} className="animate-spin" /> : 'Save'}
+                            {savingKey === field.key ? <Loader2 size={12} className="animate-spin" /> : 'Сохранить'}
                           </button>
                         </div>
                       </div>
@@ -1432,7 +1430,7 @@ export const AdminPage: React.FC = () => {
           <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-8">
             <section className="bg-white border border-primary/10">
               <div className="p-6 border-b border-primary/10 flex items-center justify-between">
-                <h3 className="text-2xl font-serif">Books</h3>
+                <h3 className="text-2xl font-serif">Книги</h3>
                 <button
                   onClick={() => {
                     const next = createBookTemplate(selectedLanguage);
@@ -1444,7 +1442,7 @@ export const AdminPage: React.FC = () => {
                   className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                 >
                   <Plus size={12} />
-                  Add
+                  Добавить
                 </button>
               </div>
               <div className="divide-y divide-gray-100">
@@ -1474,27 +1472,27 @@ export const AdminPage: React.FC = () => {
                 <div className="space-y-8">
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div>
-                      <h3 className="text-3xl font-serif">Book Editor</h3>
-                      {bookDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● Unsaved changes · Ctrl+S to save</span>}
+                      <h3 className="text-3xl font-serif">Редактор книги</h3>
+                      {bookDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● НЕСОХРАНЁННЫЕ ИЗМЕНЕНИЯ · CTRL+S</span>}
                     </div>
                     <div className="flex gap-2 items-center">
                       {deleteConfirm === `book:${bookDraft.id}` ? (
                         <>
-                          <span className="text-xs text-red-600 font-bold">Confirm delete?</span>
+                          <span className="text-xs text-red-600 font-bold">Подтвердить удаление?</span>
                           <button onClick={handleDeleteBook} disabled={!!savingKey} className="px-4 py-3 bg-red-600 text-white flex items-center gap-2 text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
-                            {savingKey?.startsWith('book:delete:') ? <Loader2 size={14} className="animate-spin" /> : null}Yes, delete
+                            {savingKey?.startsWith('book:delete:') ? <Loader2 size={14} className="animate-spin" /> : null}Да, удалить
                           </button>
-                          <button onClick={() => setDeleteConfirm(null)} disabled={!!savingKey} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest disabled:opacity-50">Cancel</button>
+                          <button onClick={() => setDeleteConfirm(null)} disabled={!!savingKey} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest disabled:opacity-50">Отмена</button>
                         </>
                       ) : (
                         <>
                           <button onClick={() => setDeleteConfirm(`book:${bookDraft.id}`)} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
                             <Trash2 size={14} />
-                            Delete
+                            Удалить
                           </button>
                           <button onClick={handleSaveBook} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                             {savingKey === `book:${bookDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                            Save
+                            Сохранить
                           </button>
                         </>
                       )}
@@ -1509,51 +1507,51 @@ export const AdminPage: React.FC = () => {
                   ) : null}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <LF label="ID (slug)" hint="Auto-generated, change only if needed">
+                    <LF label="ID (slug)" hint="Авто-генерируется, меняйте только при необходимости">
                       <input value={bookDraft.id} onChange={e => setBookDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
                     </LF>
-                    <LF label="Release date">
+                    <LF label="Дата релиза">
                       <input type="date" value={bookDraft.releaseDate} onChange={e => setBookDraft(prev => prev ? { ...prev, releaseDate: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Title">
+                    <LF label="Название">
                       <input value={bookDraft.title} onChange={e => setBookDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Author">
+                    <LF label="Автор">
                       <input value={bookDraft.author} onChange={e => setBookDraft(prev => prev ? { ...prev, author: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Price (€)">
+                    <LF label="Цена (€)">
                       <input type="number" min={0} step={0.01} value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Stock (0 = out of stock)">
+                    <LF label="Остаток (0 = нет в наличии)">
                       <input type="number" min={0} value={bookDraft.stock} onChange={e => setBookDraft(prev => prev ? { ...prev, stock: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Type">
+                    <LF label="Тип">
                       <select value={bookDraft.type || 'publisher'} onChange={e => setBookDraft(prev => prev ? { ...prev, type: e.target.value as Book['type'] } : prev)} className="w-full border border-gray-300 px-4 py-3 bg-white">
-                        <option value="publisher">Publisher edition</option>
-                        <option value="self">Self-published</option>
+                        <option value="publisher">Издательское издание</option>
+                        <option value="self">Авторский проект</option>
                       </select>
                     </LF>
-                    <LF label="Age rating">
+                    <LF label="Возрастной рейтинг">
                       <select value={bookDraft.ageRating || '16+'} onChange={e => setBookDraft(prev => prev ? { ...prev, ageRating: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 bg-white">
                         {['0+','6+','12+','16+','18+'].map(r => <option key={r} value={r}>{r}</option>)}
                       </select>
                     </LF>
-                    <LF label="Series">
+                    <LF label="Серия">
                       <input value={bookDraft.series || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, series: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Publisher">
+                    <LF label="Издатель">
                       <input value={bookDraft.details.publisher || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, publisher: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Genres (comma-separated)" className="md:col-span-2">
+                    <LF label="Жанры (через запятую)" className="md:col-span-2">
                       <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="fiction, literary, historical" />
                     </LF>
-                    <LF label="Amazon URL" className="md:col-span-2">
+                    <LF label="Ссылка Amazon" className="md:col-span-2">
                       <input value={bookDraft.purchaseLinks?.amazon || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, purchaseLinks: { ...(prev.purchaseLinks || {}), amazon: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://amazon.de/dp/..." />
                     </LF>
                   </div>
 
                   <div>
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">Badges & flags</p>
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">Значки</p>
                     <div className="flex flex-wrap gap-3">
                       {(['new','bestseller','preorder','exclusive'] as const).map(badge => (
                         <label key={badge} className="flex items-center gap-2 border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm">
@@ -1567,33 +1565,33 @@ export const AdminPage: React.FC = () => {
                       ))}
                       <label className="flex items-center gap-2 border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm">
                         <input type="checkbox" checked={!!bookDraft.isPreorder} onChange={e => setBookDraft(prev => prev ? { ...prev, isPreorder: e.target.checked } : prev)} />
-                        Pre-order mode
+                        Режим предзаказа
                       </label>
                     </div>
                   </div>
 
                   <ImageField
-                    label="Cover image"
+                    label="Обложка"
                     value={bookDraft.coverUrl}
                     onChange={value => setBookDraft(prev => prev ? { ...prev, coverUrl: value } : prev)}
                     filenamePrefix={`cover-${bookDraft.id || 'book'}`}
                   />
 
-                  <LF label="Short description (catalog card)">
+                  <LF label="Краткое описание">
                     <textarea value={bookDraft.description} onChange={e => setBookDraft(prev => prev ? { ...prev, description: e.target.value } : prev)} rows={4} className="w-full border border-gray-300 px-4 py-3" />
                   </LF>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-                    <LF label="Pages">
+                    <LF label="Страниц">
                       <input type="number" min={0} value={bookDraft.details.pages} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, pages: Number(e.target.value) } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Year">
+                    <LF label="Год">
                       <input type="number" min={1900} max={2100} value={bookDraft.details.year} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, year: Number(e.target.value) } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Weight">
+                    <LF label="Вес">
                       <input value={bookDraft.details.weight || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, weight: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="320 g" />
                     </LF>
-                    <LF label="Dimensions">
+                    <LF label="Формат">
                       <input value={bookDraft.details.dimensions || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, dimensions: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="21×14 cm" />
                     </LF>
                   </div>
@@ -1601,41 +1599,41 @@ export const AdminPage: React.FC = () => {
                   <div className="space-y-5">
                     <h4 className="font-serif text-2xl border-t border-gray-100 pt-6">Story Page</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <LF label="Opening quote">
+                      <LF label="Эпиграф">
                         <input value={bookDraft.story?.quote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quote: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="«...»" />
                       </LF>
-                      <LF label="Quote source">
+                      <LF label="Источник цитаты">
                         <input value={bookDraft.story?.quoteSource || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quoteSource: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="— Name, Title" />
                       </LF>
                     </div>
-                    <LF label="External detail page URL (leave empty to use internal /catalog/id)">
+                    <LF label="Ссылка на детальную страницу">
                       <input value={bookDraft.story?.detailPageUrl || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, detailPageUrl: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
                     </LF>
                     <ImageField
-                      label="Story feature image (large banner on book page)"
+                      label="URL фото для детальной страницы"
                       value={bookDraft.story?.featureImageUrl || ''}
                       onChange={value => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, featureImageUrl: value } } : prev)}
                       filenamePrefix={`story-${bookDraft.id || 'book'}`}
                     />
-                    <LF label="About (paragraphs separated by blank line)">
+                    <LF label="О книге (абзацы)">
                       <textarea value={(bookDraft.story?.about || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, about: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Excerpt (paragraphs separated by blank line)">
+                    <LF label="Отрывок">
                       <textarea value={(bookDraft.story?.excerpt || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, excerpt: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Author bio (paragraphs separated by blank line)">
+                    <LF label="Биография автора">
                       <textarea value={(bookDraft.story?.authorBio || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, authorBio: parseParagraphs(e.target.value) } } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Order note (shown on book page near the buy button)">
+                    <LF label="Примечание к заказу">
                       <textarea value={bookDraft.story?.orderNote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, orderNote: e.target.value } } : prev)} rows={3} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Variants JSON (price/format options)" hint={bookJsonErrors.variants}>
+                    <LF label="Варианты (JSON)" hint={bookJsonErrors.variants}>
                       <textarea value={bookJsonDrafts.variants} onChange={e => setBookJsonDrafts(prev => ({ ...prev, variants: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.variants ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} />
                     </LF>
-                    <LF label="Themes JSON" hint={bookJsonErrors.themes}>
+                    <LF label="Темы (JSON)" hint={bookJsonErrors.themes}>
                       <textarea value={bookJsonDrafts.themes} onChange={e => setBookJsonDrafts(prev => ({ ...prev, themes: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.themes ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} />
                     </LF>
-                    <LF label="Reviews JSON" hint={bookJsonErrors.reviews}>
+                    <LF label="Рецензии (JSON)" hint={bookJsonErrors.reviews}>
                       <textarea value={bookJsonDrafts.reviews} onChange={e => setBookJsonDrafts(prev => ({ ...prev, reviews: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.reviews ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} />
                     </LF>
                   </div>
@@ -1651,7 +1649,7 @@ export const AdminPage: React.FC = () => {
           <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-8">
             <section className="bg-white border border-primary/10">
               <div className="p-6 border-b border-primary/10 flex items-center justify-between">
-                <h3 className="text-2xl font-serif">News</h3>
+                <h3 className="text-2xl font-serif">Новости</h3>
                 <button
                   onClick={() => {
                     const next = createNewsTemplate();
@@ -1663,7 +1661,7 @@ export const AdminPage: React.FC = () => {
                   className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                 >
                   <Plus size={12} />
-                  Add
+                  Добавить
                 </button>
               </div>
               <div className="divide-y divide-gray-100">
@@ -1685,27 +1683,27 @@ export const AdminPage: React.FC = () => {
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div>
-                      <h3 className="text-3xl font-serif">News Editor</h3>
-                      {newsDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● Unsaved changes · Ctrl+S to save</span>}
+                      <h3 className="text-3xl font-serif">Редактор новости</h3>
+                      {newsDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● НЕСОХРАНЁННЫЕ ИЗМЕНЕНИЯ · CTRL+S</span>}
                     </div>
                     <div className="flex gap-2 items-center">
                       {deleteConfirm === `news:${newsDraft.id}` ? (
                         <>
-                          <span className="text-xs text-red-600 font-bold">Confirm delete?</span>
+                          <span className="text-xs text-red-600 font-bold">Подтвердить удаление?</span>
                           <button onClick={handleDeleteNews} disabled={!!savingKey} className="px-4 py-3 bg-red-600 text-white flex items-center gap-2 text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
-                            {savingKey?.startsWith('news:delete:') ? <Loader2 size={14} className="animate-spin" /> : null}Yes, delete
+                            {savingKey?.startsWith('news:delete:') ? <Loader2 size={14} className="animate-spin" /> : null}Да, удалить
                           </button>
-                          <button onClick={() => setDeleteConfirm(null)} disabled={!!savingKey} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest disabled:opacity-50">Cancel</button>
+                          <button onClick={() => setDeleteConfirm(null)} disabled={!!savingKey} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest disabled:opacity-50">Отмена</button>
                         </>
                       ) : (
                         <>
                           <button onClick={() => setDeleteConfirm(`news:${newsDraft.id}`)} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
                             <Trash2 size={14} />
-                            Delete
+                            Удалить
                           </button>
                           <button onClick={handleSaveNews} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                             {savingKey === `news:${newsDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                            Save
+                            Сохранить
                           </button>
                         </>
                       )}
@@ -1720,14 +1718,14 @@ export const AdminPage: React.FC = () => {
                     <LF label="ID (slug)">
                       <input value={newsDraft.id} onChange={e => setNewsDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
                     </LF>
-                    <LF label="Date">
+                    <LF label="Дата">
                       <input type="date" value={newsDraft.date} onChange={e => setNewsDraft(prev => prev ? { ...prev, date: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
                   </div>
-                  <LF label="Title">
+                  <LF label="Заголовок">
                     <input value={newsDraft.title} onChange={e => setNewsDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                   </LF>
-                  <LF label="Preview text">
+                  <LF label="Краткий анонс">
                     <textarea value={newsDraft.preview} onChange={e => setNewsDraft(prev => prev ? { ...prev, preview: e.target.value } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" />
                   </LF>
                 </div>
@@ -1743,32 +1741,18 @@ export const AdminPage: React.FC = () => {
             <section className="bg-white border border-primary/10 p-6 md:p-8">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
                 <div>
-                  <h3 className="text-3xl font-serif">Our Authors</h3>
-                  <p className="mt-2 text-sm text-gray-500">Manage the featured author block and the showcase cards that appear on the homepage and the dedicated authors page.</p>
+                  <h3 className="text-3xl font-serif">Наши авторы</h3>
+                  <p className="mt-2 text-sm text-gray-500">Карточки авторов на странице /our-authors и на главной.</p>
                 </div>
                 <button onClick={handleSaveAuthors} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                   {savingKey === 'authors' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                  Save authors section
+                  Сохранить авторов
                 </button>
               </div>
 
-              {featuredAuthorDraft ? (
-                <div className="space-y-8">
-                  <div className="border border-primary/10 p-6 bg-[#F8F8F5]">
-                    <h4 className="font-serif text-2xl mb-6">Featured author</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <input value={featuredAuthorDraft.label} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, label: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Label" />
-                      <input value={featuredAuthorDraft.nameMain} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, nameMain: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Main name" />
-                      <input value={featuredAuthorDraft.nameAccent} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, nameAccent: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Accent name" />
-                      <input value={featuredAuthorDraft.tags.join(', ')} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, tags: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Tags, comma separated" />
-                    </div>
-                    <textarea value={featuredAuthorDraft.intro} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, intro: e.target.value } : prev)} rows={3} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Intro" />
-                    <textarea value={featuredAuthorDraft.body.join('\n\n')} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, body: parseParagraphs(e.target.value) } : prev)} rows={6} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Body paragraphs, separated by empty line" />
-                  </div>
-
-                  <div className="space-y-6">
+              <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-serif text-2xl">Showcase cards</h4>
+                      <h4 className="font-serif text-2xl">Карточки авторов</h4>
                       <button
                         onClick={() => setShowcaseDraft(prev => [
                           ...prev,
@@ -1787,44 +1771,42 @@ export const AdminPage: React.FC = () => {
                         className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                       >
                         <Plus size={12} />
-                        Add author
+                        Добавить автора
                       </button>
                     </div>
 
                     {showcaseDraft.map((item, index) => (
                       <div key={item.id} className="border border-primary/10 p-6 bg-white">
                         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-5">
-                          <h5 className="font-serif text-xl">Card {index + 1}</h5>
+                          <h5 className="font-serif text-xl">Автор {index + 1}</h5>
                           <button
                             onClick={() => setShowcaseDraft(prev => prev.filter(entry => entry.id !== item.id))}
                             className="px-3 py-2 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest"
                           >
                             <Trash2 size={12} />
-                            Remove
+                            Удалить
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <input value={item.id} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, id: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="ID" />
-                          <input value={item.initial} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, initial: e.target.value.slice(0, 1).toUpperCase() } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Initial" />
-                          <input value={item.nameMain} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameMain: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Main name" />
-                          <input value={item.nameAccent} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameAccent: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Accent name" />
-                          <input value={item.years} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, years: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Years" />
-                          <input value={item.knownFor} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, knownFor: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Known for" />
+                          <input value={item.initial} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, initial: e.target.value.slice(0, 1).toUpperCase() } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Инициал" />
+                          <input value={item.nameMain} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameMain: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Имя (основное)" />
+                          <input value={item.nameAccent} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameAccent: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Фамилия (акцент)" />
+                          <input value={item.years} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, years: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Годы" />
+                          <input value={item.knownFor} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, knownFor: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Известен как" />
                         </div>
                         <div className="mt-5">
                           <ImageField
-                            label="Author image"
+                            label="Фото автора"
                             value={item.imageUrl}
                             onChange={value => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, imageUrl: value } : entry))}
                           />
                         </div>
-                        <textarea value={item.bio} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, bio: e.target.value } : entry))} rows={4} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Bio" />
-                        <input value={item.tags.join(', ')} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean) } : entry))} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Tags, comma separated" />
+                        <textarea value={item.bio} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, bio: e.target.value } : entry))} rows={4} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Биография" />
+                        <input value={item.tags.join(', ')} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean) } : entry))} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Теги через запятую" />
                       </div>
                     ))}
                   </div>
-                </div>
-              ) : null}
             </section>
           </div>
         ) : null}
@@ -1832,35 +1814,35 @@ export const AdminPage: React.FC = () => {
         {database && activeTab === 'about' ? (() => {
           const aboutSections: { label: string; fields: ContentField[] }[] = [
             {
-              label: 'Hero',
+              label: 'Шапка страницы',
               fields: [
-                { key: 'static.about.title', label: 'Page title', type: 'text' },
-                { key: 'static.about.subtitle', label: 'Page subtitle', type: 'textarea' },
+                { key: 'static.about.title', label: 'Заголовок страницы', type: 'text' },
+                { key: 'static.about.subtitle', label: 'Подзаголовок страницы', type: 'textarea' },
               ],
             },
             {
-              label: 'Mission & Photo',
+              label: 'Миссия и фото',
               fields: [
-                { key: 'static.about.mission', label: 'Mission heading', type: 'text' },
-                { key: 'static.about.p1', label: 'Text paragraph 1', type: 'textarea' },
-                { key: 'static.about.p2', label: 'Text paragraph 2', type: 'textarea' },
-                { key: 'static.about.mission_image', label: 'Mission photo', type: 'text' },
+                { key: 'static.about.mission', label: 'Заголовок миссии', type: 'text' },
+                { key: 'static.about.p1', label: 'Текст абзац 1', type: 'textarea' },
+                { key: 'static.about.p2', label: 'Текст абзац 2', type: 'textarea' },
+                { key: 'static.about.mission_image', label: 'Фото миссии', type: 'text' },
               ],
             },
             {
-              label: 'Stats',
+              label: 'Статистика',
               fields: [
-                { key: 'static.about.stat1', label: 'Stat 1 label (e.g. 300–1000+ copies)', type: 'text' },
-                { key: 'static.about.stat2', label: 'Stat 2 label (e.g. Editorial review)', type: 'text' },
+                { key: 'static.about.stat1', label: 'Подпись стат. 1', type: 'text' },
+                { key: 'static.about.stat2', label: 'Подпись стат. 2', type: 'text' },
               ],
             },
             {
-              label: 'Team',
+              label: 'Команда',
               fields: [
-                { key: 'static.about.team', label: 'Team section heading', type: 'text' },
-                { key: 'static.about.role1', label: 'Team role 1', type: 'text' },
-                { key: 'static.about.role2', label: 'Team role 2', type: 'text' },
-                { key: 'static.about.role3', label: 'Team role 3', type: 'text' },
+                { key: 'static.about.team', label: 'Заголовок «Команда»', type: 'text' },
+                { key: 'static.about.role1', label: 'Роль 1', type: 'text' },
+                { key: 'static.about.role2', label: 'Роль 2', type: 'text' },
+                { key: 'static.about.role3', label: 'Роль 3', type: 'text' },
               ],
             },
           ];
@@ -1874,7 +1856,7 @@ export const AdminPage: React.FC = () => {
             <div className="space-y-8">
               <div className="bg-white border border-primary/10 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-3xl font-serif">About Page</h2>
+                  <h2 className="text-3xl font-serif">О нас</h2>
                   <p className="text-xs text-gray-400 font-mono mt-1 uppercase tracking-widest">ampublishing.org/about · язык: {selectedLanguage.toUpperCase()}</p>
                 </div>
                 <div className="flex gap-3 items-center">
@@ -1886,7 +1868,7 @@ export const AdminPage: React.FC = () => {
                     className="px-5 py-3 text-xs uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                   >
                     {savingKey ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-                    Save All
+                    Сохранить всё
                   </button>
                 </div>
               </div>
@@ -1909,14 +1891,14 @@ export const AdminPage: React.FC = () => {
                               onClick={() => handleResetTranslationField(field)}
                               className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-gray-300 hover:bg-gray-100"
                             >
-                              Reset
+                              Сбросить
                             </button>
                             <button
                               onClick={() => handleSaveTranslationField(field)}
                               className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-1.5"
                             >
                               {savingKey === field.key ? <Loader2 size={11} className="animate-spin" /> : null}
-                              Save
+                              Сохранить
                             </button>
                           </div>
                         </div>
@@ -1954,25 +1936,25 @@ export const AdminPage: React.FC = () => {
           <section className="bg-white border border-primary/10 p-6 md:p-8 space-y-10">
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <div>
-                <h3 className="text-3xl font-serif">Site, Header &amp; Footer</h3>
-                <p className="mt-2 text-sm text-gray-500">Edit menu items, social links, contacts and bottom footer links. Labels reference translation keys from the «Site Copy» tab (e.g. <code>nav.catalog</code>).</p>
+                <h3 className="text-3xl font-serif">Сайт, Шапка и Футер</h3>
+                <p className="mt-2 text-sm text-gray-500">Меню, соцсети, контакты и правовые ссылки в футере.</p>
               </div>
               <button onClick={handleSaveSiteSettings} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                 {savingKey === 'site-settings' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                Save site settings
+                Сохранить настройки
               </button>
             </div>
 
             {/* Brand */}
             <div>
-              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Brand</h4>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Бренд</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Brand name (footer)</label>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Название (футер)</label>
                   <input value={siteDraft.brand.name} onChange={e => setSiteDraft(prev => prev ? { ...prev, brand: { ...prev.brand, name: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Brand short label (header)</label>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Краткое название (шапка)</label>
                   <input value={siteDraft.brand.short} onChange={e => setSiteDraft(prev => prev ? { ...prev, brand: { ...prev.brand, short: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                 </div>
               </div>
@@ -1980,7 +1962,7 @@ export const AdminPage: React.FC = () => {
 
             {/* Contacts */}
             <div>
-              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Contacts (shown in footer)</h4>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Контакты (в футере)</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Email</label>
@@ -1991,11 +1973,11 @@ export const AdminPage: React.FC = () => {
                   <input value={siteDraft.contacts.phone} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, phone: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="+49 30 1234567" />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Address line 1</label>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Адрес строка 1</label>
                   <input value={siteDraft.contacts.addressLine1} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, addressLine1: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Address line 2</label>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Адрес строка 2</label>
                   <input value={siteDraft.contacts.addressLine2} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, addressLine2: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                 </div>
               </div>
@@ -2003,7 +1985,7 @@ export const AdminPage: React.FC = () => {
 
             {/* Social */}
             <div>
-              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Social links (leave empty to hide)</h4>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Соцсети (оставьте пустым, чтобы скрыть)</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {(['telegramUrl', 'instagramUrl', 'facebookUrl', 'youtubeUrl', 'twitterUrl'] as const).map(field => (
                   <div key={field}>
@@ -2017,9 +1999,9 @@ export const AdminPage: React.FC = () => {
             {/* Nav editors */}
             {(['headerNav', 'footerNav', 'footerLegal'] as const).map(section => {
               const titles: Record<typeof section, string> = {
-                headerNav: 'Header menu',
-                footerNav: 'Footer link column',
-                footerLegal: 'Footer bottom strip (legal)',
+                headerNav: 'Меню шапки',
+                footerNav: 'Ссылки в футере',
+                footerLegal: 'Нижняя строка футера (правовые)',
               };
               const items = siteDraft[section] || [];
               return (
@@ -2030,7 +2012,7 @@ export const AdminPage: React.FC = () => {
                       onClick={() => updateSiteNav(section, list => ([...list, { id: `${section}-${Date.now()}`, labelKey: '', path: '/', enabled: true }]))}
                       className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                     >
-                      <Plus size={12} /> Add link
+                      <Plus size={12} /> Добавить ссылку
                     </button>
                   </div>
                   <div className="space-y-3">
@@ -2042,13 +2024,13 @@ export const AdminPage: React.FC = () => {
                             checked={item.enabled !== false}
                             onChange={e => updateSiteNav(section, list => list.map(it => it.id === item.id ? { ...it, enabled: e.target.checked } : it))}
                           />
-                          On
+                          Вкл
                         </label>
                         <input
                           value={item.labelKey}
                           onChange={e => updateSiteNav(section, list => list.map(it => it.id === item.id ? { ...it, labelKey: e.target.value } : it))}
                           className="border border-gray-300 px-3 py-2 font-mono text-xs"
-                          placeholder="translation key (e.g. nav.catalog)"
+                          placeholder="ключ перевода (напр. nav.catalog)"
                         />
                         <input
                           value={item.path}
@@ -2064,7 +2046,7 @@ export const AdminPage: React.FC = () => {
                             return next;
                           })}
                           className="px-2 py-2 border border-gray-300 hover:bg-gray-100 disabled:opacity-30"
-                          title="Move up"
+                          title="Вверх"
                         >
                           <ArrowUp size={12} />
                         </button>
@@ -2076,20 +2058,20 @@ export const AdminPage: React.FC = () => {
                             return next;
                           })}
                           className="px-2 py-2 border border-gray-300 hover:bg-gray-100 disabled:opacity-30"
-                          title="Move down"
+                          title="Вниз"
                         >
                           <ArrowDown size={12} />
                         </button>
                         <button
                           onClick={() => updateSiteNav(section, list => list.filter(it => it.id !== item.id))}
                           className="px-2 py-2 border border-red-300 text-red-600 hover:bg-red-50"
-                          title="Remove"
+                          title="Удалить"
                         >
                           <Trash2 size={12} />
                         </button>
                       </div>
                     ))}
-                    {items.length === 0 ? <p className="text-xs text-gray-400 font-mono">No items.</p> : null}
+                    {items.length === 0 ? <p className="text-xs text-gray-400 font-mono">Нет элементов.</p> : null}
                   </div>
                 </div>
               );
@@ -2097,33 +2079,33 @@ export const AdminPage: React.FC = () => {
 
             {/* Newsletter toggle */}
             <div>
-              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Footer newsletter block</h4>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Блок подписки в футере</h4>
               <label className="flex items-center gap-3 border border-gray-200 px-4 py-4 max-w-md">
                 <input
                   type="checkbox"
                   checked={siteDraft.showNewsletter}
                   onChange={e => setSiteDraft(prev => prev ? { ...prev, showNewsletter: e.target.checked } : prev)}
                 />
-                <span className="text-sm">Show «Subscribe to newsletter» block in footer</span>
+                <span className="text-sm">Показывать блок «Подпишитесь на новости» в футере</span>
               </label>
             </div>
 
             {/* Admin password setup */}
             <div>
-              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-1">Admin Password</h4>
-              <p className="text-xs text-gray-500 mb-4">Set or change the password used to log in at /admin. Your current session token (GitHub PAT) is encrypted with this password and stored in the repo.</p>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-1">Пароль администратора</h4>
+              <p className="text-xs text-gray-500 mb-4">Установите или смените пароль для входа в /admin.</p>
               <form onSubmit={handleSetPassword} className="max-w-md space-y-4">
                 <div>
-                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-1">New password</label>
-                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} minLength={8} required className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="min 8 chars" autoComplete="new-password" />
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-1">Новый пароль</label>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} minLength={8} required className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="мин. 8 символов" autoComplete="new-password" />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-1">Confirm password</label>
-                  <input type="password" value={newPassword2} onChange={e => setNewPassword2(e.target.value)} minLength={8} required className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="repeat password" autoComplete="new-password" />
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-1">Подтвердите пароль</label>
+                  <input type="password" value={newPassword2} onChange={e => setNewPassword2(e.target.value)} minLength={8} required className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="повторите пароль" autoComplete="new-password" />
                 </div>
                 <button type="submit" disabled={savingPassword} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                   {savingPassword ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                  Save password
+                  Сохранить пароль
                 </button>
               </form>
             </div>
@@ -2134,89 +2116,89 @@ export const AdminPage: React.FC = () => {
           <section className="bg-white border border-primary/10 p-6 md:p-8 space-y-8">
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <div>
-                <h3 className="text-3xl font-serif">Payments and Invoice Flow</h3>
-                <p className="mt-2 text-sm text-gray-500">Set the card / transfer details customers will see during checkout and configure where they can send payment proof.</p>
+                <h3 className="text-3xl font-serif">Оплата и счета</h3>
+                <p className="mt-2 text-sm text-gray-500">Реквизиты для оплаты, которые видят покупатели.</p>
               </div>
               <button onClick={handleSavePaymentSettings} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                 {savingKey === 'payment-settings' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                Save payment setup
+                Сохранить настройки оплаты
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <LF label="Recipient / brand name">
+              <LF label="Получатель / название">
                 <input value={paymentSettings.recipientName} onChange={e => setPaymentSettings(prev => ({ ...prev, recipientName: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
               </LF>
-              <LF label="Invoice prefix (e.g. AM → AM-0001)">
+              <LF label="Префикс счёта (напр. AM → AM-0001)">
                 <input value={paymentSettings.invoicePrefix} onChange={e => setPaymentSettings(prev => ({ ...prev, invoicePrefix: e.target.value.toUpperCase() }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
               </LF>
-              <LF label="Visa payment URL">
+              <LF label="Ссылка для оплаты Visa">
                 <input value={paymentSettings.visaPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, visaPaymentUrl: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
               </LF>
-              <LF label="Mastercard payment URL">
+              <LF label="Ссылка для оплаты Mastercard">
                 <input value={paymentSettings.mastercardPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, mastercardPaymentUrl: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
               </LF>
-              <LF label="Card cardholder (Visa/MC)">
+              <LF label="Владелец карты (Visa/MC)">
                 <input value={paymentSettings.cardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, cardholder: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
               </LF>
-              <LF label="Card number (Visa/MC)">
+              <LF label="Номер карты (Visa/MC)">
                 <input value={paymentSettings.cardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, cardNumber: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
               </LF>
-              <LF label="Bank name">
+              <LF label="Название банка">
                 <input value={paymentSettings.bankName} onChange={e => setPaymentSettings(prev => ({ ...prev, bankName: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
               </LF>
-              <LF label="IBAN / account number">
+              <LF label="IBAN / номер счёта">
                 <input value={paymentSettings.iban} onChange={e => setPaymentSettings(prev => ({ ...prev, iban: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
               </LF>
-              <LF label="MIR cardholder">
+              <LF label="Владелец карты МИР">
                 <input value={paymentSettings.mirCardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardholder: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
               </LF>
-              <LF label="MIR card number">
+              <LF label="Номер карты МИР">
                 <input value={paymentSettings.mirCardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardNumber: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
               </LF>
-              <LF label="MIR bank / issuer" className="md:col-span-2">
+              <LF label="Банк МИР" className="md:col-span-2">
                 <input value={paymentSettings.mirBankName} onChange={e => setPaymentSettings(prev => ({ ...prev, mirBankName: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
               </LF>
-              <LF label="WhatsApp (international format, e.g. +49…)">
+              <LF label="WhatsApp (международный формат, напр. +49…)">
                 <input value={paymentSettings.whatsappNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
               </LF>
-              <LF label="Telegram username (without @)">
+              <LF label="Telegram username (без @)">
                 <input value={paymentSettings.telegramUsername} onChange={e => setPaymentSettings(prev => ({ ...prev, telegramUsername: e.target.value.replace(/^@/, '') }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
               </LF>
-              <LF label="Contact email" className="md:col-span-2">
+              <LF label="Контактный email" className="md:col-span-2">
                 <input type="email" value={paymentSettings.contactEmail} onChange={e => setPaymentSettings(prev => ({ ...prev, contactEmail: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
               </LF>
-              <LF label="Webhook label">
+              <LF label="Название вебхука">
                 <input value={paymentSettings.webhookLabel} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookLabel: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
               </LF>
-              <LF label="Webhook URL (Make / n8n / Telegram bridge)" className="md:col-span-2">
+              <LF label="URL вебхука (Make / n8n / Telegram)" className="md:col-span-2">
                 <input value={paymentSettings.webhookUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookUrl: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
               </LF>
             </div>
 
-            <LF label="Payment note shown to the customer during checkout">
+            <LF label="Примечание об оплате для покупателя">
               <textarea value={paymentSettings.paymentNote} onChange={e => setPaymentSettings(prev => ({ ...prev, paymentNote: e.target.value }))} rows={4} className="w-full border border-gray-300 px-4 py-3" />
             </LF>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="flex items-center gap-3 border border-gray-200 px-4 py-4">
                 <input type="checkbox" checked={paymentSettings.notifyOnOrderCreated} onChange={e => setPaymentSettings(prev => ({ ...prev, notifyOnOrderCreated: e.target.checked }))} />
-                <span className="text-sm">Send webhook on new order</span>
+                <span className="text-sm">Отправлять вебхук при новом заказе</span>
               </label>
               <label className="flex items-center gap-3 border border-gray-200 px-4 py-4">
                 <input type="checkbox" checked={paymentSettings.notifyOnPaymentConfirmed} onChange={e => setPaymentSettings(prev => ({ ...prev, notifyOnPaymentConfirmed: e.target.checked }))} />
-                <span className="text-sm">Send webhook when payment is marked paid</span>
+                <span className="text-sm">Отправлять вебхук при подтверждении оплаты</span>
               </label>
             </div>
 
             <div className="border border-primary/10 bg-[#F8F8F5] p-6">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400 mb-4">Recommended flow</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400 mb-4">Рекомендуемый процесс</p>
               <div className="space-y-3 text-sm text-gray-700">
-                <p>1. Customer places the order with `Visa`, `Mastercard`, `Invoice`, or `MIR`.</p>
-                <p>2. The order is created first and forwarded to your webhook immediately.</p>
-                <p>3. For Visa / Mastercard the customer continues to your external payment link.</p>
-                <p>4. For Invoice / MIR the customer pays manually and sends proof to WhatsApp, Telegram, or email.</p>
-                <p>5. You confirm the payment in the `Orders` tab by changing `payment status` to `paid`.</p>
+                <p>1. Покупатель оформляет заказ, выбрав «Visa», «Mastercard», «Счёт» или «МИР».</p>
+                <p>2. Заказ создаётся немедленно и отправляется на вебхук.</p>
+                <p>3. Для Visa / Mastercard покупатель переходит по внешней ссылке для оплаты.</p>
+                <p>4. Для Счёта / МИР покупатель платит вручную и присылает подтверждение в WhatsApp, Telegram или email.</p>
+                <p>5. Вы подтверждаете оплату на вкладке «Заказы», меняя «статус оплаты» на «оплачен».</p>
               </div>
             </div>
           </section>
@@ -2237,40 +2219,40 @@ export const AdminPage: React.FC = () => {
           <section className="bg-white border border-primary/10 overflow-hidden">
             <div className="p-6 border-b border-primary/10">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
-                <h3 className="text-3xl font-serif">Orders</h3>
+                <h3 className="text-3xl font-serif">Заказы</h3>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={refreshOrders} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
                     <RefreshCw size={14} />
-                    Refresh
+                    Обновить
                   </button>
                   <button
                     onClick={async () => {
                       try {
                         await contentStore.loadOrdersFromGitHub();
                         refreshOrders();
-                        showToast('Orders loaded from GitHub', 'success');
+                        showToast('Заказы загружены с GitHub', 'success');
                       } catch (e) {
-                        showToast('Failed to load from GitHub', 'error');
+                        showToast('Ошибка загрузки с GitHub', 'error');
                       }
                     }}
                     className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2"
                   >
                     <Download size={14} />
-                    Load from GitHub
+                    Загрузить с GitHub
                   </button>
                   <button
                     onClick={async () => {
                       try {
                         await contentStore.syncOrdersToGitHub();
-                        showToast('Orders synced to GitHub', 'success');
+                        showToast('Заказы синхронизированы с GitHub', 'success');
                       } catch (e) {
-                        showToast('Sync failed — check PAT', 'error');
+                        showToast('Ошибка синхронизации — проверьте PAT', 'error');
                       }
                     }}
                     className="px-4 py-3 text-xs uppercase tracking-widest border border-primary bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                   >
                     <RefreshCw size={14} />
-                    Sync to GitHub
+                    Синхронизировать с GitHub
                   </button>
                   <button onClick={() => exportOrdersCSV(filteredOrders)} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
                     <Download size={14} />
@@ -2279,7 +2261,7 @@ export const AdminPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
-                <input value={orderSearch} onChange={e => setOrderSearch(e.target.value)} placeholder="Search by ID, name or email…" className="flex-1 border border-gray-300 px-4 py-2 text-sm" />
+                <input value={orderSearch} onChange={e => setOrderSearch(e.target.value)} placeholder="Поиск по ID, имени или email…" className="flex-1 border border-gray-300 px-4 py-2 text-sm" />
                 <div className="flex gap-1 flex-wrap">
                   {['all','pending','processing','shipped','delivered','cancelled'].map(s => (
                     <button key={s} onClick={() => setOrderStatusFilter(s)} className={`px-3 py-2 text-[10px] uppercase tracking-widest border ${orderStatusFilter === s ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:bg-gray-50'}`}>{s}</button>
@@ -2292,20 +2274,20 @@ export const AdminPage: React.FC = () => {
                 </div>
               </div>
               <div className="mt-3 flex gap-6 text-sm text-gray-500">
-                <span><span className="font-bold text-primary">{filteredOrders.length}</span> orders</span>
-                {paidRevenue > 0 && <span>Paid revenue: <span className="font-bold text-green-700">€{paidRevenue.toFixed(2)}</span></span>}
+                <span><span className="font-bold text-primary">{filteredOrders.length}</span> заказов</span>
+                {paidRevenue > 0 && <span>Оплачено: <span className="font-bold text-green-700">€{paidRevenue.toFixed(2)}</span></span>}
               </div>
             </div>
             <div className="overflow-auto">
               <table className="w-full text-left">
                 <thead className="bg-[#F4F4F0]">
                   <tr className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
-                    <th className="p-4">Order</th>
-                    <th className="p-4">Customer</th>
-                    <th className="p-4">Items</th>
-                    <th className="p-4">Total</th>
-                    <th className="p-4">Flow</th>
-                    <th className="p-4">Update</th>
+                    <th className="p-4">Заказ</th>
+                    <th className="p-4">Покупатель</th>
+                    <th className="p-4">Товары</th>
+                    <th className="p-4">Сумма</th>
+                    <th className="p-4">Статус</th>
+                    <th className="p-4">Изменить</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2335,7 +2317,7 @@ export const AdminPage: React.FC = () => {
                             {order.paymentMethod || 'card'}
                           </span>
                           <div className="text-[10px] uppercase tracking-[0.16em] text-gray-500">
-                            Payment: <span className="text-primary">{order.paymentStatus}</span>
+                            Оплата: <span className="text-primary">{order.paymentStatus}</span>
                           </div>
                           {order.paymentReference ? <div className="text-[10px] font-mono text-gray-400">{order.paymentReference}</div> : null}
                         </div>
@@ -2347,21 +2329,21 @@ export const AdminPage: React.FC = () => {
                             onChange={e => handleStatusChange(order.id, e.target.value as OrderStatus)}
                             className="border border-gray-300 px-3 py-2 text-sm"
                           >
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
+                            <option value="pending">Новый</option>
+                            <option value="processing">В работе</option>
+                            <option value="shipped">Отправлен</option>
+                            <option value="delivered">Доставлен</option>
+                            <option value="cancelled">Отменён</option>
                           </select>
                           <select
                             value={order.paymentStatus}
                             onChange={e => handlePaymentStatusChange(order.id, e.target.value as PaymentStatus)}
                             className="border border-gray-300 px-3 py-2 text-sm"
                           >
-                            <option value="pending">Payment pending</option>
-                            <option value="paid">Paid</option>
-                            <option value="failed">Failed</option>
-                            <option value="refunded">Refunded</option>
+                            <option value="pending">Ожидает оплаты</option>
+                            <option value="paid">Оплачен</option>
+                            <option value="failed">Отклонён</option>
+                            <option value="refunded">Возврат</option>
                           </select>
                           {(savingKey === `order:${order.id}` || savingKey === `payment:${order.id}`) ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} className="text-green-600" />}
                         </div>
@@ -2372,7 +2354,7 @@ export const AdminPage: React.FC = () => {
                         <td colSpan={6} className="p-4">
                           <details className="text-xs">
                             <summary className="cursor-pointer font-mono uppercase tracking-[0.2em] text-gray-500 hover:text-primary">
-                              Diagnostics · {order.diagnostics.ip || 'IP n/a'}
+                              Диагностика · {order.diagnostics.ip || 'IP n/a'}
                               {order.diagnostics.ipCountry ? ` · ${order.diagnostics.ipCountry}` : ''}
                               {order.diagnostics.timezone ? ` · ${order.diagnostics.timezone}` : ''}
                             </summary>
