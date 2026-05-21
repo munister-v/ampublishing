@@ -65,5 +65,6 @@
       "imageUrl": "/images/authors/nadia-hedvig.jpg"
     }
   ],
-  "static.about.mission_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-photo-1779372002276.webp"
+  "static.about.mission_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-photo-1779372002276.webp",
+  "static.about.p1": "AM Publishing родилось в Берлине — городе, где языки, судьбы и культуры постоянно пересекаются. Мы издаём современную русскоязычную литературу и выбираем тексты, которые не просто рассказывают истории, а оставляют след: меняют оптику, тревожат, вдохновляют и остаются с читателем после последней страницы.\n"
 }
