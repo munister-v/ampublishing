@@ -595,6 +595,9 @@ export const AdminPage: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState<string>('');
   const [lastPublishedAt, setLastPublishedAt] = useState<string>('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPassword2, setNewPassword2] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
 
   const loadAdminData = async () => {
     setIsRefreshing(true);
@@ -922,6 +925,24 @@ export const AdminPage: React.FC = () => {
       showToast('Could not save site settings', 'error');
     } finally {
       setSavingKey(null);
+    }
+  };
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== newPassword2) { showToast('Passwords do not match', 'error'); return; }
+    if (newPassword.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+    setSavingPassword(true);
+    try {
+      const pat = sessionStorage.getItem('gh_pat') || localStorage.getItem('gh_pat') || '';
+      await api.setupAdminPassword('admin@ampublishing.org', newPassword, pat);
+      showToast('Password saved — you can now log in with your password');
+      setNewPassword('');
+      setNewPassword2('');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not save password', 'error');
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -1615,6 +1636,26 @@ export const AdminPage: React.FC = () => {
                 />
                 <span className="text-sm">Show «Subscribe to newsletter» block in footer</span>
               </label>
+            </div>
+
+            {/* Admin password setup */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-1">Admin Password</h4>
+              <p className="text-xs text-gray-500 mb-4">Set or change the password used to log in at /admin. Your current session token (GitHub PAT) is encrypted with this password and stored in the repo.</p>
+              <form onSubmit={handleSetPassword} className="max-w-md space-y-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-1">New password</label>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} minLength={8} required className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="min 8 chars" autoComplete="new-password" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-1">Confirm password</label>
+                  <input type="password" value={newPassword2} onChange={e => setNewPassword2(e.target.value)} minLength={8} required className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="repeat password" autoComplete="new-password" />
+                </div>
+                <button type="submit" disabled={savingPassword} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                  {savingPassword ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                  Save password
+                </button>
+              </form>
             </div>
           </section>
         ) : null}
