@@ -17,7 +17,7 @@
     ],
     "total": 29,
     "currency": "€",
-    "status": "processing",
-    "paymentStatus": "paid"
+    "status": "cancelled",
+    "paymentStatus": "failed"
   }
 ]
