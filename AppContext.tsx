@@ -89,7 +89,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isBackendLive, setIsBackendLive] = useState(true);
 
   // --- ADMIN STATE ---
-  const [isAdmin, setIsAdmin] = useState(false);
+  // Initialise synchronously from storage so ProtectedRoute never false-redirects on refresh
+  const [isAdmin, setIsAdmin] = useState(() => contentStore.isAuthenticated());
   const [orders, setOrders] = useState<Order[]>([]);
   const [translationOverrides, setTranslationOverrides] = useState<TranslationOverrides>({ ru: {}, en: {}, de: {} });
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
