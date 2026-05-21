@@ -35,6 +35,7 @@ import {
   ArrowDown,
   Wifi,
   WifiOff,
+  Copy,
 } from 'lucide-react';
 
 type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'site' | 'payments' | 'orders' | 'status';
@@ -937,6 +938,8 @@ export const AdminPage: React.FC = () => {
   const [orderSearch, setOrderSearch] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all');
   const [orderPaymentFilter, setOrderPaymentFilter] = useState<string>('all');
+  const [bookSearch, setBookSearch] = useState('');
+  const [newsSearch, setNewsSearch] = useState('');
   const [saveOpPhase, setSaveOpPhase] = useState('');
   const [savedFlash, setSavedFlash] = useState('');
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -1698,8 +1701,16 @@ export const AdminPage: React.FC = () => {
                   Добавить
                 </button>
               </div>
+              <div className="p-3 border-b border-gray-100">
+                <input
+                  value={bookSearch}
+                  onChange={e => setBookSearch(e.target.value)}
+                  placeholder="Поиск по названию…"
+                  className="w-full border border-gray-200 px-3 py-2 text-xs bg-[#F8F8F5] outline-none focus:border-primary"
+                />
+              </div>
               <div className="divide-y divide-gray-100">
-                {books.map(book => (
+                {books.filter(b => !bookSearch || b.title.toLowerCase().includes(bookSearch.toLowerCase()) || b.author.toLowerCase().includes(bookSearch.toLowerCase())).map(book => (
                   <button
                     key={book.id}
                     onClick={() => { setSelectedBookId(book.id); setBookDirty(false); }}
@@ -1743,6 +1754,17 @@ export const AdminPage: React.FC = () => {
                             <Trash2 size={14} />
                             Удалить
                           </button>
+                          <button onClick={() => {
+                            const dup = cloneBook(bookDraft);
+                            dup.id = `${bookDraft.id}-copy`;
+                            skipBookDirtyRef.current = true;
+                            setSelectedBookId(dup.id);
+                            setBookDraft(dup);
+                            setBookDirty(true);
+                          }} className="px-4 py-3 border border-gray-300 hover:bg-gray-50 flex items-center gap-2 text-xs uppercase tracking-widest" title="Создать копию книги">
+                            <Copy size={14} />
+                            Копия
+                          </button>
                           <button onClick={handleSaveBook} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                             {savingKey === `book:${bookDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                             Сохранить
@@ -1774,6 +1796,9 @@ export const AdminPage: React.FC = () => {
                     </LF>
                     <LF label="Цена (€)">
                       <input type="number" min={0} step={0.01} value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Старая цена €  (зачёркнутая)">
+                      <input type="number" min={0} step={0.01} value={bookDraft.oldPrice ?? ''} onChange={e => setBookDraft(prev => prev ? { ...prev, oldPrice: e.target.value ? Number(e.target.value) : undefined } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Оставьте пустым, если нет скидки" />
                     </LF>
                     <LF label="Остаток (0 = нет в наличии)">
                       <input type="number" min={0} value={bookDraft.stock} onChange={e => setBookDraft(prev => prev ? { ...prev, stock: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
@@ -1944,8 +1969,16 @@ export const AdminPage: React.FC = () => {
                   Добавить
                 </button>
               </div>
+              <div className="p-3 border-b border-gray-100">
+                <input
+                  value={newsSearch}
+                  onChange={e => setNewsSearch(e.target.value)}
+                  placeholder="Поиск по заголовку…"
+                  className="w-full border border-gray-200 px-3 py-2 text-xs bg-[#F8F8F5] outline-none focus:border-primary"
+                />
+              </div>
               <div className="divide-y divide-gray-100">
-                {news.map(item => (
+                {news.filter(n => !newsSearch || n.title.toLowerCase().includes(newsSearch.toLowerCase())).map(item => (
                   <button
                     key={item.id}
                     onClick={() => setSelectedNewsId(item.id)}
@@ -2062,21 +2095,25 @@ export const AdminPage: React.FC = () => {
                       <div key={item.id} className="border border-primary/10 p-6 bg-white">
                         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-5">
                           <h5 className="font-serif text-xl">Автор {index + 1}</h5>
-                          <button
-                            onClick={() => setShowcaseDraft(prev => prev.filter(entry => entry.id !== item.id))}
-                            className="px-3 py-2 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest"
-                          >
-                            <Trash2 size={12} />
-                            Удалить
-                          </button>
+                          <div className="flex gap-2 flex-wrap">
+                            <button disabled={index === 0} onClick={() => setShowcaseDraft(prev => { const next = [...prev]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; })} className="px-2 py-2 border border-gray-300 hover:bg-gray-50 disabled:opacity-30" title="Вверх"><ArrowUp size={13} /></button>
+                            <button disabled={index === showcaseDraft.length - 1} onClick={() => setShowcaseDraft(prev => { const next = [...prev]; [next[index + 1], next[index]] = [next[index], next[index + 1]]; return next; })} className="px-2 py-2 border border-gray-300 hover:bg-gray-50 disabled:opacity-30" title="Вниз"><ArrowDown size={13} /></button>
+                            <button
+                              onClick={() => setShowcaseDraft(prev => prev.filter(entry => entry.id !== item.id))}
+                              className="px-3 py-2 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest"
+                            >
+                              <Trash2 size={12} />
+                              Удалить
+                            </button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <input value={item.id} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, id: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="ID" />
-                          <input value={item.initial} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, initial: e.target.value.slice(0, 1).toUpperCase() } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Инициал" />
-                          <input value={item.nameMain} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameMain: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Имя (основное)" />
-                          <input value={item.nameAccent} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameAccent: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Фамилия (акцент)" />
-                          <input value={item.years} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, years: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Годы" />
-                          <input value={item.knownFor} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, knownFor: e.target.value } : entry))} className="border border-gray-300 px-4 py-3" placeholder="Известен как" />
+                          <LF label="ID (slug)"><input value={item.id} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, id: e.target.value } : entry))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" /></LF>
+                          <LF label="Инициал"><input value={item.initial} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, initial: e.target.value.slice(0, 1).toUpperCase() } : entry))} className="w-full border border-gray-300 px-4 py-3" placeholder="А" /></LF>
+                          <LF label="Имя (основное)"><input value={item.nameMain} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameMain: e.target.value } : entry))} className="w-full border border-gray-300 px-4 py-3" /></LF>
+                          <LF label="Фамилия (акцент)"><input value={item.nameAccent} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, nameAccent: e.target.value } : entry))} className="w-full border border-gray-300 px-4 py-3" /></LF>
+                          <LF label="Годы / период"><input value={item.years} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, years: e.target.value } : entry))} className="w-full border border-gray-300 px-4 py-3" placeholder="1982–" /></LF>
+                          <LF label="Известен как"><input value={item.knownFor} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, knownFor: e.target.value } : entry))} className="w-full border border-gray-300 px-4 py-3" /></LF>
                         </div>
                         <div className="mt-5">
                           <ImageField
@@ -2085,8 +2122,15 @@ export const AdminPage: React.FC = () => {
                             onChange={value => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, imageUrl: value } : entry))}
                           />
                         </div>
-                        <textarea value={item.bio} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, bio: e.target.value } : entry))} rows={4} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Биография" />
-                        <input value={item.tags.join(', ')} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean) } : entry))} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Теги через запятую" />
+                        <LF label="Биография" className="mt-5">
+                          <AutoTextarea value={item.bio}
+                            onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, bio: (e.target as HTMLTextAreaElement).value } : entry))}
+                            rows={4} countType="words"
+                            className="border border-gray-300 px-4 py-3" placeholder="Биография" />
+                        </LF>
+                        <LF label="Теги (через запятую)" className="mt-5">
+                          <input value={item.tags.join(', ')} onChange={e => setShowcaseDraft(prev => prev.map(entry => entry.id === item.id ? { ...entry, tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean) } : entry))} className="w-full border border-gray-300 px-4 py-3" placeholder="fiction, berlin, contemporary" />
+                        </LF>
                       </div>
                     ))}
                   </div>
@@ -2215,11 +2259,12 @@ export const AdminPage: React.FC = () => {
                             filenamePrefix="about-photo"
                           />
                         ) : field.type === 'textarea' ? (
-                          <textarea
+                          <AutoTextarea
                             value={copyDrafts[field.key] || ''}
-                            onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: e.target.value }))}
+                            onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: (e.target as HTMLTextAreaElement).value }))}
                             rows={4}
-                            className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary resize-y text-sm"
+                            countType="words"
+                            className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary text-sm"
                           />
                         ) : (
                           <input
@@ -2482,7 +2527,10 @@ export const AdminPage: React.FC = () => {
             </div>
 
             <LF label="Примечание об оплате для покупателя">
-              <textarea value={paymentSettings.paymentNote} onChange={e => setPaymentSettings(prev => ({ ...prev, paymentNote: e.target.value }))} rows={4} className="w-full border border-gray-300 px-4 py-3" />
+              <AutoTextarea value={paymentSettings.paymentNote}
+                onChange={e => setPaymentSettings(prev => ({ ...prev, paymentNote: (e.target as HTMLTextAreaElement).value }))}
+                rows={4} countType="chars"
+                className="border border-gray-300 px-4 py-3" />
             </LF>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
