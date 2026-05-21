@@ -241,6 +241,15 @@ const parseParagraphs = (value: string) =>
 
 const cloneBook = (book: Book) => JSON.parse(JSON.stringify(book)) as Book;
 
+const TRANSLIT: Record<string, string> = {
+  а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'yo',ж:'zh',з:'z',и:'i',й:'y',
+  к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',
+  х:'kh',ц:'ts',ч:'ch',ш:'sh',щ:'shch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya',
+};
+const slugify = (str: string) =>
+  str.toLowerCase().split('').map(c => TRANSLIT[c] ?? c).join('')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || `book-${Date.now()}`;
+
 const getAdminDraftState = (): AdminDraftState => {
   if (typeof window === 'undefined') return {};
   try {
@@ -956,6 +965,7 @@ export const AdminPage: React.FC = () => {
   const [savingPassword, setSavingPassword] = useState(false);
   const [bookDirty, setBookDirty] = useState(false);
   const [newsDirty, setNewsDirty] = useState(false);
+  const [storyCollapsed, setStoryCollapsed] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [orderSearch, setOrderSearch] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all');
@@ -1493,7 +1503,7 @@ export const AdminPage: React.FC = () => {
   md:flex-shrink-0 md:sticky md:h-[calc(100vh-80px)]
   bg-primary text-white
 `}>
-        <div className="p-8 border-b border-white/10">
+        <div className="hidden md:block p-8 border-b border-white/10">
           <h2 className="font-serif text-3xl">AM Admin</h2>
           <p className="text-[10px] font-mono opacity-60 uppercase tracking-[0.24em] mt-2">Управление контентом</p>
         </div>
@@ -1507,8 +1517,8 @@ export const AdminPage: React.FC = () => {
             { id: 'about', label: 'О нас', icon: <Info size={16} /> },
             { id: 'site', label: 'Сайт / Меню / Футер', icon: <Layout size={16} /> },
             { id: 'payments', label: 'Оплата', icon: <Gavel size={16} /> },
-            { id: 'orders', label: 'Заказы', icon: <ShoppingBag size={16} /> },
-            { id: 'status', label: 'Статус', icon: <Activity size={16} /> },
+            { id: 'orders', label: 'Заказы', icon: <ShoppingBag size={16} />, badge: orders.filter(o => o.paymentStatus === 'pending').length },
+            { id: 'status', label: 'Статус', icon: <Activity size={16} />, badge: 0 },
           ].map(item => (
             <button
               key={item.id}
@@ -1519,6 +1529,7 @@ export const AdminPage: React.FC = () => {
             >
               {item.icon}
               {item.label}
+              {item.badge > 0 && <span className="ml-auto bg-accent text-primary text-[9px] font-bold px-1.5 py-0.5 min-w-[18px] text-center flex-shrink-0">{item.badge}</span>}
             </button>
           ))}
         </nav>
@@ -1618,32 +1629,32 @@ export const AdminPage: React.FC = () => {
             (!isNewBook && bookRequiredErrors.length) ||
             (!isNewNews && newsRequiredErrors.length);
           return (
-            <div className="flex flex-wrap gap-3 mb-6">
-              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 mb-6">
+              <div className="bg-white border border-primary/10 p-4">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Книг</p>
                 <p className="mt-1 font-serif text-3xl">{totalBooks}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
+              <div className="bg-white border border-primary/10 p-4">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Новостей</p>
                 <p className="mt-1 font-serif text-3xl">{totalNews}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
+              <div className="bg-white border border-primary/10 p-4">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Заказов</p>
                 <p className="mt-1 font-serif text-3xl">{orders.length}</p>
               </div>
-              <div className={`border p-4 flex-1 min-w-[130px] ${pendingOrders > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-primary/10'}`}>
+              <div className={`border p-4 ${pendingOrders > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-primary/10'}`}>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Ожидают оплаты</p>
                 <p className={`mt-1 font-serif text-3xl ${pendingOrders > 0 ? 'text-amber-700' : ''}`}>{pendingOrders}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[120px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Выручка (оплачено)</p>
-                <p className="mt-1 font-serif text-3xl">{totalRevenue > 0 ? `€${totalRevenue.toFixed(0)}` : '—'}</p>
+              <div className="bg-white border border-primary/10 p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Выручка</p>
+                <p className="mt-1 font-serif text-2xl">{totalRevenue > 0 ? `€${totalRevenue.toFixed(0)}` : '—'}</p>
               </div>
-              <div className={`border p-4 flex-1 min-w-[110px] ${hasErrors ? 'bg-red-50 border-red-200' : 'bg-white border-primary/10'}`}>
+              <div className={`border p-4 ${hasErrors ? 'bg-red-50 border-red-200' : 'bg-white border-primary/10'}`}>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Валидация</p>
                 <p className={`mt-1 font-serif text-2xl ${hasErrors ? 'text-red-600' : 'text-green-700'}`}>{hasErrors ? 'Ошибки' : 'OK'}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[150px]">
+              <div className="bg-white border border-primary/10 p-4">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Опубликовано</p>
                 <p className="mt-1 font-serif text-xl truncate">{lastPublishedAt || '—'}</p>
               </div>
@@ -1842,7 +1853,13 @@ export const AdminPage: React.FC = () => {
                       <input type="date" value={bookDraft.releaseDate} onChange={e => setBookDraft(prev => prev ? { ...prev, releaseDate: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
                     <LF label="Название">
-                      <input value={bookDraft.title} onChange={e => setBookDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                      <input value={bookDraft.title} onChange={e => {
+                        const title = e.target.value;
+                        setBookDraft(prev => {
+                          if (!prev) return prev;
+                          return { ...prev, title, ...(isNewBook ? { id: slugify(title) } : {}) };
+                        });
+                      }} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
                     <LF label="Автор">
                       <input value={bookDraft.author} onChange={e => setBookDraft(prev => prev ? { ...prev, author: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
@@ -1931,7 +1948,14 @@ export const AdminPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-5">
-                    <h4 className="font-serif text-2xl border-t border-gray-100 pt-6">Story Page</h4>
+                    <div className="flex items-center justify-between border-t border-gray-100 pt-6">
+                      <h4 className="font-serif text-2xl">Story Page</h4>
+                      <button type="button" onClick={() => setStoryCollapsed(v => !v)}
+                        className="text-[10px] font-mono uppercase tracking-widest border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flex-shrink-0">
+                        {storyCollapsed ? '▾ Развернуть' : '▴ Свернуть'}
+                      </button>
+                    </div>
+                    <div className={storyCollapsed ? 'hidden' : 'space-y-5'}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <LF label="Эпиграф">
                         <input value={bookDraft.story?.quote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quote: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="«...»" />
@@ -1994,6 +2018,7 @@ export const AdminPage: React.FC = () => {
                         error={bookJsonErrors.reviews}
                       />
                     </LF>
+                    </div>{/* end storyCollapsed wrapper */}
                   </div>
                 </div>
               ) : (
@@ -2066,6 +2091,16 @@ export const AdminPage: React.FC = () => {
                           <button onClick={() => setDeleteConfirm(`news:${newsDraft.id}`)} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
                             <Trash2 size={14} />
                             Удалить
+                          </button>
+                          <button onClick={() => {
+                            const dup: NewsItem = { ...newsDraft, id: `${newsDraft.id}-copy` };
+                            skipNewsDirtyRef.current = true;
+                            setSelectedNewsId(dup.id);
+                            setNewsDraft(dup);
+                            setNewsDirty(true);
+                          }} className="px-4 py-3 border border-gray-300 hover:bg-gray-50 flex items-center gap-2 text-xs uppercase tracking-widest" title="Дублировать новость">
+                            <Copy size={14} />
+                            Копия
                           </button>
                           <button onClick={handleSaveNews} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                             {savingKey === `news:${newsDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -2775,7 +2810,10 @@ export const AdminPage: React.FC = () => {
                     <React.Fragment key={order.id}>
                     <tr className="border-t border-gray-100 align-top">
                       <td className="p-4">
-                        <div className="font-bold">{order.id}</div>
+                        <div className="font-bold flex items-center gap-1">
+                          {order.id}
+                          <button onClick={() => navigator.clipboard.writeText(order.id)} className="text-gray-300 hover:text-gray-600 flex-shrink-0" title="Копировать ID"><Copy size={10} /></button>
+                        </div>
                         <div className="text-xs text-gray-400">{new Date(order.date).toLocaleString()}</div>
                       </td>
                       <td className="p-4">
