@@ -943,6 +943,16 @@ export const AdminPage: React.FC = () => {
     return issues;
   }, [newsDraft]);
 
+  // True when the selected item exists in local state but hasn't been saved to DB yet
+  const isNewBook = useMemo(() =>
+    !!selectedBookId && !!database && !database[selectedLanguage].books.find(b => b.id === selectedBookId),
+    [selectedBookId, database, selectedLanguage],
+  );
+  const isNewNews = useMemo(() =>
+    !!selectedNewsId && !!database && !database[selectedLanguage].news.find(n => n.id === selectedNewsId),
+    [selectedNewsId, database, selectedLanguage],
+  );
+
   const handleSaveTranslationField = async (field: ContentField) => {
     const rawValue = copyDrafts[field.key] ?? '';
     try {
@@ -1222,7 +1232,7 @@ export const AdminPage: React.FC = () => {
   const news = database?.[selectedLanguage].news || [];
 
   return (
-    <div className="min-h-screen bg-[#F4F4F0] pt-[80px] flex flex-col md:flex-row text-primary">
+    <div className="min-h-screen bg-[#F4F4F0] pt-[80px] flex flex-col md:flex-row text-primary md:h-screen md:overflow-hidden">
       <div className="md:hidden sticky top-[80px] z-30 bg-primary text-white border-b border-white/10">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
@@ -1235,7 +1245,7 @@ export const AdminPage: React.FC = () => {
         </div>
       </div>
 
-      <aside className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-full md:w-72 bg-primary text-white flex-shrink-0 md:min-h-[calc(100vh-80px)]`}>
+      <aside className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-full md:w-72 bg-primary text-white flex-shrink-0 md:sticky md:top-[80px] md:h-[calc(100vh-80px)] md:overflow-y-auto`}>
         <div className="p-8 border-b border-white/10">
           <h2 className="font-serif text-3xl">AM Admin</h2>
           <p className="text-[10px] font-mono opacity-60 uppercase tracking-[0.24em] mt-2">Content Management</p>
@@ -1334,38 +1344,36 @@ export const AdminPage: React.FC = () => {
           const totalNews = database[selectedLanguage].news.length;
           const pendingOrders = orders.filter(o => o.paymentStatus === 'pending').length;
           const totalRevenue = orders.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + o.total, 0);
-          const isNewBook = !!selectedBookId && !database[selectedLanguage].books.find(b => b.id === selectedBookId);
-          const isNewNews = !!selectedNewsId && !database[selectedLanguage].news.find(n => n.id === selectedNewsId);
           const hasErrors = Object.keys(copyJsonErrors).length || Object.keys(bookJsonErrors).length ||
             (!isNewBook && bookRequiredErrors.length) ||
             (!isNewNews && newsRequiredErrors.length);
           return (
-            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-6">
-              <div className="bg-white border border-primary/10 p-4 col-span-1">
+            <div className="flex flex-wrap gap-3 mb-6">
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Books</p>
                 <p className="mt-1 font-serif text-3xl">{totalBooks}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4">
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">News</p>
                 <p className="mt-1 font-serif text-3xl">{totalNews}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4">
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Orders</p>
                 <p className="mt-1 font-serif text-3xl">{orders.length}</p>
               </div>
-              <div className={`border p-4 ${pendingOrders > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-primary/10'}`}>
+              <div className={`border p-4 flex-1 min-w-[130px] ${pendingOrders > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-primary/10'}`}>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Awaiting payment</p>
                 <p className={`mt-1 font-serif text-3xl ${pendingOrders > 0 ? 'text-amber-700' : ''}`}>{pendingOrders}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4">
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[120px]">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Revenue (paid)</p>
                 <p className="mt-1 font-serif text-3xl">{totalRevenue > 0 ? `€${totalRevenue.toFixed(0)}` : '—'}</p>
               </div>
-              <div className={`border p-4 ${hasErrors ? 'bg-red-50 border-red-200' : 'bg-white border-primary/10'}`}>
+              <div className={`border p-4 flex-1 min-w-[110px] ${hasErrors ? 'bg-red-50 border-red-200' : 'bg-white border-primary/10'}`}>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Validation</p>
                 <p className={`mt-1 font-serif text-2xl ${hasErrors ? 'text-red-600' : 'text-green-700'}`}>{hasErrors ? 'Issues' : 'OK'}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4">
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[150px]">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Published</p>
                 <p className="mt-1 font-serif text-xl truncate">{lastPublishedAt || '—'}</p>
               </div>
@@ -1506,9 +1514,9 @@ export const AdminPage: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  {bookRequiredErrors.length || Object.keys(bookJsonErrors).length ? (
+                  {(!isNewBook && bookRequiredErrors.length) || Object.keys(bookJsonErrors).length ? (
                     <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                      {[...bookRequiredErrors, ...Object.values(bookJsonErrors)].map(item => (
+                      {[...(!isNewBook ? bookRequiredErrors : []), ...Object.values(bookJsonErrors)].map(item => (
                         <div key={item}>{item}</div>
                       ))}
                     </div>
@@ -1717,7 +1725,7 @@ export const AdminPage: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  {newsRequiredErrors.length ? (
+                  {!isNewNews && newsRequiredErrors.length ? (
                     <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                       {newsRequiredErrors.map(item => <div key={item}>{item}</div>)}
                     </div>
