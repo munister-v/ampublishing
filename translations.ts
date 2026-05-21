@@ -377,6 +377,7 @@ export const translations: Record<Language, TranslationTree> = {
           role1: "Главный редактор",
           role2: "Арт-директор",
           role3: "Права и лицензии",
+          mission_image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80&w=1000",
         },
         media: {
           title: "СМИ и блогерам",
@@ -927,6 +928,7 @@ export const translations: Record<Language, TranslationTree> = {
           role1: "Editor-in-Chief",
           role2: "Art Director",
           role3: "Rights & Licenses",
+          mission_image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80&w=1000",
         },
         media: {
           title: "Press & Bloggers",
@@ -1416,6 +1418,7 @@ export const translations: Record<Language, TranslationTree> = {
           role1: "Chefredakteur",
           role2: "Art Director",
           role3: "Rechte & Lizenzen",
+          mission_image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80&w=1000",
         },
         media: {
           title: "Presse & Blogger",

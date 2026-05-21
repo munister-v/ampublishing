@@ -105,13 +105,12 @@ const contentGroups: ContentGroup[] = [
       { key: 'static.authors.p2', label: 'Authors text 2', type: 'textarea' },
       { key: 'static.about.title', label: 'About — title', type: 'text' },
       { key: 'static.about.subtitle', label: 'About — subtitle', type: 'textarea' },
-      { key: 'static.about.image', label: 'About — hero image URL', type: 'text' },
-      { key: 'static.about.image_alt', label: 'About — image alt text', type: 'text' },
       { key: 'static.about.mission', label: 'About — mission section heading', type: 'text' },
       { key: 'static.about.p1', label: 'About — text paragraph 1', type: 'textarea' },
       { key: 'static.about.p2', label: 'About — text paragraph 2', type: 'textarea' },
       { key: 'static.about.stat1', label: 'About — stat 1 label', type: 'text' },
       { key: 'static.about.stat2', label: 'About — stat 2 label', type: 'text' },
+      { key: 'static.about.mission_image', label: 'About — mission photo', type: 'text' },
       { key: 'static.about.team', label: 'About — team section heading', type: 'text' },
       { key: 'static.about.role1', label: 'About — team role 1', type: 'text' },
       { key: 'static.about.role2', label: 'About — team role 2', type: 'text' },
@@ -1398,7 +1397,7 @@ export const AdminPage: React.FC = () => {
                           </button>
                         </div>
                       </div>
-                      {field.key === 'home.hero_image' || field.key === 'home.feature_image' ? (
+                      {field.key === 'home.hero_image' || field.key === 'home.feature_image' || field.key === 'static.about.mission_image' ? (
                         <ImageField
                           label={field.label}
                           value={copyDrafts[field.key] || ''}

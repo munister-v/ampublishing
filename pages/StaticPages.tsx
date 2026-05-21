@@ -387,11 +387,11 @@ export const AboutPage: React.FC = () => {
                </div>
             </div>
           </div>
-          <div className="order-1 md:order-2 aspect-square md:aspect-[4/3] relative overflow-hidden group">
+          <div className="order-1 md:order-2 bg-gray-100 aspect-square md:aspect-[4/3] relative overflow-hidden group">
              <img
-              src={t('static.about.image') as string || '/images/about-hero.jpg'}
-              alt={t('static.about.image_alt') as string || 'AM Publishing'}
-              className="w-full h-full object-cover transition-all duration-[1.5s] group-hover:scale-105"
+              src={t('static.about.mission_image') as string || "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80&w=1000"}
+              alt={t('static.about.mission') as string || 'AM Publishing'}
+              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
             />
             <div className="absolute inset-0 bg-primary/5 mix-blend-multiply pointer-events-none"></div>
           </div>
