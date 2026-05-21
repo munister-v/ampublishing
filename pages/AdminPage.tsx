@@ -213,7 +213,11 @@ const serializeFieldValue = (value: any, type: FieldType) => {
   return String(value);
 };
 
-const parseJsonField = (value: string) => JSON.parse(value);
+const parseJsonField = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return null; // empty = no value, not an error
+  return JSON.parse(trimmed);
+};
 
 const parseParagraphs = (value: string) =>
   value
@@ -875,6 +879,7 @@ export const AdminPage: React.FC = () => {
 
   const handleSaveBookRef = useRef<(() => void) | null>(null);
   const handleSaveNewsRef = useRef<(() => void) | null>(null);
+  const deletingRef = useRef(false);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -905,6 +910,7 @@ export const AdminPage: React.FC = () => {
 
   const bookJsonErrors = useMemo(() => {
     const errors: Record<string, string> = {};
+    if (!bookDraft) return errors;
     try { parseJsonField(bookJsonDrafts.variants); } catch { errors.variants = 'Invalid variants JSON'; }
     try { parseJsonField(bookJsonDrafts.themes); } catch { errors.themes = 'Invalid themes JSON'; }
     try { parseJsonField(bookJsonDrafts.reviews); } catch { errors.reviews = 'Invalid reviews JSON'; }
@@ -1001,7 +1007,8 @@ export const AdminPage: React.FC = () => {
   useEffect(() => { handleSaveBookRef.current = handleSaveBook; }, [handleSaveBook]);
 
   const handleDeleteBook = async () => {
-    if (!bookDraft) return;
+    if (!bookDraft || deletingRef.current) return;
+    deletingRef.current = true;
     try {
       setSavingKey(`book:delete:${bookDraft.id}`);
       await api.deleteBook(selectedLanguage, bookDraft.id);
@@ -1018,6 +1025,7 @@ export const AdminPage: React.FC = () => {
       showToast('Could not remove book', 'error');
     } finally {
       setSavingKey(null);
+      deletingRef.current = false;
     }
   };
 
@@ -1045,7 +1053,8 @@ export const AdminPage: React.FC = () => {
   useEffect(() => { handleSaveNewsRef.current = handleSaveNews; }, [handleSaveNews]);
 
   const handleDeleteNews = async () => {
-    if (!newsDraft) return;
+    if (!newsDraft || deletingRef.current) return;
+    deletingRef.current = true;
     try {
       setSavingKey(`news:delete:${newsDraft.id}`);
       await api.deleteNewsItem(selectedLanguage, newsDraft.id);
@@ -1062,6 +1071,7 @@ export const AdminPage: React.FC = () => {
       showToast('Could not remove news', 'error');
     } finally {
       setSavingKey(null);
+      deletingRef.current = false;
     }
   };
 
@@ -1459,8 +1469,10 @@ export const AdminPage: React.FC = () => {
                       {deleteConfirm === `book:${bookDraft.id}` ? (
                         <>
                           <span className="text-xs text-red-600 font-bold">Confirm delete?</span>
-                          <button onClick={handleDeleteBook} className="px-4 py-3 bg-red-600 text-white flex items-center gap-2 text-xs uppercase tracking-widest">Yes, delete</button>
-                          <button onClick={() => setDeleteConfirm(null)} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest">Cancel</button>
+                          <button onClick={handleDeleteBook} disabled={!!savingKey} className="px-4 py-3 bg-red-600 text-white flex items-center gap-2 text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
+                            {savingKey?.startsWith('book:delete:') ? <Loader2 size={14} className="animate-spin" /> : null}Yes, delete
+                          </button>
+                          <button onClick={() => setDeleteConfirm(null)} disabled={!!savingKey} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest disabled:opacity-50">Cancel</button>
                         </>
                       ) : (
                         <>
@@ -1666,8 +1678,10 @@ export const AdminPage: React.FC = () => {
                       {deleteConfirm === `news:${newsDraft.id}` ? (
                         <>
                           <span className="text-xs text-red-600 font-bold">Confirm delete?</span>
-                          <button onClick={handleDeleteNews} className="px-4 py-3 bg-red-600 text-white flex items-center gap-2 text-xs uppercase tracking-widest">Yes, delete</button>
-                          <button onClick={() => setDeleteConfirm(null)} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest">Cancel</button>
+                          <button onClick={handleDeleteNews} disabled={!!savingKey} className="px-4 py-3 bg-red-600 text-white flex items-center gap-2 text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
+                            {savingKey?.startsWith('news:delete:') ? <Loader2 size={14} className="animate-spin" /> : null}Yes, delete
+                          </button>
+                          <button onClick={() => setDeleteConfirm(null)} disabled={!!savingKey} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest disabled:opacity-50">Cancel</button>
                         </>
                       ) : (
                         <>
