@@ -182,6 +182,35 @@ const fetchContent = async <T,>(filename: string, fallback: T): Promise<T> => {
   }
 };
 
+// ----------------- Override warm-cache (survives page refresh, bridges CDN lag) -----------------
+// After each write, the latest overrides are persisted to localStorage so that on the next
+// page load they take precedence over a potentially stale CDN response.
+
+const OVERRIDE_WARM_KEY = 'am-override-warm-v1';
+const OVERRIDE_WARM_TTL = 60 * 60 * 1000; // 1 hour
+
+type OverrideWarmEntry = { ts: number; data: TranslationOverrides };
+
+const saveOverrideWarmCache = (overrides: TranslationOverrides) => {
+  try {
+    const entry: OverrideWarmEntry = { ts: Date.now(), data: overrides };
+    localStorage.setItem(OVERRIDE_WARM_KEY, JSON.stringify(entry));
+  } catch { /* storage full or SSR */ }
+};
+
+const loadOverrideWarmCache = (): TranslationOverrides | null => {
+  try {
+    const raw = localStorage.getItem(OVERRIDE_WARM_KEY);
+    if (!raw) return null;
+    const entry: OverrideWarmEntry = JSON.parse(raw);
+    if (Date.now() - entry.ts > OVERRIDE_WARM_TTL) {
+      localStorage.removeItem(OVERRIDE_WARM_KEY);
+      return null;
+    }
+    return entry.data;
+  } catch { return null; }
+};
+
 // ----------------- In-memory cache -----------------
 
 type CacheState = {
@@ -324,7 +353,13 @@ const ensureLoaded = async (): Promise<void> => {
       en: normalizeLanguageData(ben, nen),
       de: normalizeLanguageData(bde, nde),
     };
-    cache.overrides = { ru: oru || {}, en: oen || {}, de: ode || {} };
+    // Merge warm-cache over CDN response so a stale CDN doesn't wipe recently-saved values
+    const warm = loadOverrideWarmCache();
+    cache.overrides = {
+      ru: { ...(oru || {}), ...(warm?.ru || {}) },
+      en: { ...(oen || {}), ...(warm?.en || {}) },
+      de: { ...(ode || {}), ...(warm?.de || {}) },
+    };
     cache.paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS, ...(pay || {}) };
     cache.siteSettings = mergeSiteSettings(site);
     cache.loaded = true;
@@ -524,6 +559,7 @@ export const contentStore = {
       cache.overrides![language],
       `admin: set ${key} (${language})`,
     );
+    saveOverrideWarmCache(cache.overrides!); // persist so page refresh survives CDN lag
     return clone(cache.overrides!);
   },
 
@@ -537,6 +573,7 @@ export const contentStore = {
       cache.overrides![language] || {},
       `admin: reset ${key} (${language})`,
     );
+    saveOverrideWarmCache(cache.overrides!); // persist so reset also survives CDN lag
     return clone(cache.overrides!);
   },
 
@@ -645,6 +682,7 @@ export const contentStore = {
     }
 
     await Promise.all(commits);
+    if (payload.overrides) saveOverrideWarmCache(cache.overrides!); // warm-cache after bulk import
     return this.exportContent();
   },
 
