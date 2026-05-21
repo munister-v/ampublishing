@@ -1549,7 +1549,7 @@ export const AdminPage: React.FC = () => {
         </div>
       </aside>
 
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto min-h-[calc(100vh-80px)] md:h-[calc(100vh-80px)]">
+      <main className="flex-1 p-4 md:p-10 overflow-y-auto overflow-x-hidden min-h-[calc(100vh-80px)] md:h-[calc(100vh-80px)]">
         {/* ── Live save progress ── */}
         {(savingKey || savingPassword) && (
           <div className="sticky top-0 z-20 bg-primary text-white border-b border-white/10">
@@ -1631,12 +1631,12 @@ export const AdminPage: React.FC = () => {
                 <div className="p-6 grid grid-cols-1 gap-6">
                   {group.fields.map(field => (
                     <div key={field.key} className="border border-gray-100 p-5 bg-[#F8F8F5]">
-                      <div className="flex justify-between items-center mb-3 gap-4">
-                        <div>
+                      <div className="flex flex-wrap justify-between items-start mb-3 gap-y-2 gap-x-3">
+                        <div className="min-w-0 flex-1">
                           <p className="font-bold text-sm">{field.label}</p>
-                          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">{field.key}</p>
+                          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400 break-all">{field.key}</p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-shrink-0">
                           <button
                             onClick={() => handleResetTranslationField(field)}
                             className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-gray-300 hover:bg-gray-100"
@@ -2230,10 +2230,10 @@ export const AdminPage: React.FC = () => {
                   <div className="p-6 grid grid-cols-1 gap-5">
                     {section.fields.map(field => (
                       <div key={field.key} className="border border-gray-100 p-5 bg-[#FAFAF8]">
-                        <div className="flex justify-between items-start mb-3 gap-4">
-                          <div>
+                        <div className="flex flex-wrap justify-between items-start mb-3 gap-y-2 gap-x-3">
+                          <div className="min-w-0 flex-1">
                             <p className="font-bold text-sm">{field.label}</p>
-                            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400 mt-0.5">{field.key}</p>
+                            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400 mt-0.5 break-all">{field.key}</p>
                           </div>
                           <div className="flex gap-2 flex-shrink-0">
                             <button
@@ -2620,7 +2620,7 @@ export const AdminPage: React.FC = () => {
                     <button key={s} onClick={() => setOrderStatusFilter(s)} className={`px-3 py-2 text-[10px] uppercase tracking-widest border ${orderStatusFilter === s ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:bg-gray-50'}`}>{s}</button>
                   ))}
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1 flex-wrap">
                   {['all','pending','paid','failed','refunded'].map(s => (
                     <button key={s} onClick={() => setOrderPaymentFilter(s)} className={`px-3 py-2 text-[10px] uppercase tracking-widest border ${orderPaymentFilter === s ? 'bg-accent text-primary border-accent' : 'border-gray-200 hover:bg-gray-50'}`}>{s === 'all' ? '€ all' : s}</button>
                   ))}
