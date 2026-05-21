@@ -135,7 +135,7 @@ const contentGroups: ContentGroup[] = [
   },
   {
     id: 'legal',
-    label: 'Правовые документы',
+    label: 'Юридические тексты',
     icon: <Gavel size={16} />,
     fields: [
       { key: 'static.impressum.text', label: 'Текст Impressum', type: 'textarea' },
@@ -1510,15 +1510,15 @@ export const AdminPage: React.FC = () => {
 
         <nav className="p-6 space-y-3">
           {[
-            { id: 'copy', label: 'Текст сайта', icon: <FileText size={16} /> },
+            { id: 'copy', label: 'Тексты сайта', icon: <FileText size={16} /> },
             { id: 'books', label: 'Книги', icon: <BookOpen size={16} /> },
             { id: 'news', label: 'Новости', icon: <Newspaper size={16} /> },
             { id: 'authors', label: 'Наши авторы', icon: <Globe size={16} /> },
             { id: 'about', label: 'О нас', icon: <Info size={16} /> },
-            { id: 'site', label: 'Сайт / Меню / Футер', icon: <Layout size={16} /> },
+            { id: 'site', label: 'Сайт / Шапка / Подвал', icon: <Layout size={16} /> },
             { id: 'payments', label: 'Оплата', icon: <Gavel size={16} /> },
             { id: 'orders', label: 'Заказы', icon: <ShoppingBag size={16} />, badge: orders.filter(o => o.paymentStatus === 'pending').length },
-            { id: 'status', label: 'Статус', icon: <Activity size={16} />, badge: 0 },
+            { id: 'status', label: 'Статус системы', icon: <Activity size={16} />, badge: 0 },
           ].map(item => (
             <button
               key={item.id}
@@ -1558,15 +1558,15 @@ export const AdminPage: React.FC = () => {
             </p>
           </div>
           <div className="bg-white/5 border border-white/10 p-4">
-            <p className="text-[10px] uppercase font-mono tracking-[0.22em] text-white/50 mb-3">Backup</p>
+            <p className="text-[10px] uppercase font-mono tracking-[0.22em] text-white/50 mb-3">Резервная копия</p>
             <div className="grid grid-cols-1 gap-3">
               <button onClick={handleExport} className="flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-white/15 hover:bg-white/10">
                 <Download size={14} />
-                Экспорт
+                Экспорт данных
               </button>
               <label className="flex items-center justify-center gap-2 px-4 py-3 text-xs uppercase tracking-widest border border-white/15 hover:bg-white/10 cursor-pointer">
                 <Upload size={14} />
-                Импорт
+                Импорт резервной копии
                 <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
               </label>
             </div>
@@ -1629,33 +1629,33 @@ export const AdminPage: React.FC = () => {
             (!isNewBook && bookRequiredErrors.length) ||
             (!isNewNews && newsRequiredErrors.length);
           return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 mb-6">
-              <div className="bg-white border border-primary/10 p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Книг</p>
+            <div className="flex flex-wrap gap-3 mb-6">
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Книги</p>
                 <p className="mt-1 font-serif text-3xl">{totalBooks}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Новостей</p>
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Новости</p>
                 <p className="mt-1 font-serif text-3xl">{totalNews}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Заказов</p>
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Заказы</p>
                 <p className="mt-1 font-serif text-3xl">{orders.length}</p>
               </div>
-              <div className={`border p-4 ${pendingOrders > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-primary/10'}`}>
+              <div className={`border p-4 flex-1 min-w-[130px] ${pendingOrders > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-primary/10'}`}>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Ожидают оплаты</p>
                 <p className={`mt-1 font-serif text-3xl ${pendingOrders > 0 ? 'text-amber-700' : ''}`}>{pendingOrders}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Выручка</p>
-                <p className="mt-1 font-serif text-2xl">{totalRevenue > 0 ? `€${totalRevenue.toFixed(0)}` : '—'}</p>
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[120px]">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Выручка (оплачено)</p>
+                <p className="mt-1 font-serif text-3xl">{totalRevenue > 0 ? `€${totalRevenue.toFixed(0)}` : '—'}</p>
               </div>
-              <div className={`border p-4 ${hasErrors ? 'bg-red-50 border-red-200' : 'bg-white border-primary/10'}`}>
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Валидация</p>
-                <p className={`mt-1 font-serif text-2xl ${hasErrors ? 'text-red-600' : 'text-green-700'}`}>{hasErrors ? 'Ошибки' : 'OK'}</p>
+              <div className={`border p-4 flex-1 min-w-[110px] ${hasErrors ? 'bg-red-50 border-red-200' : 'bg-white border-primary/10'}`}>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Контент</p>
+                <p className={`mt-1 font-serif text-2xl ${hasErrors ? 'text-red-600' : 'text-green-700'}`}>{hasErrors ? 'Ошибки' : 'ОК'}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Опубликовано</p>
+              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[150px]">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Последнее сохранение</p>
                 <p className="mt-1 font-serif text-xl truncate">{lastPublishedAt || '—'}</p>
               </div>
             </div>
@@ -1682,6 +1682,7 @@ export const AdminPage: React.FC = () => {
                           <button
                             onClick={() => handleResetTranslationField(field)}
                             className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-gray-300 hover:bg-gray-100"
+                            title="Сбросить к базовому значению из translations.ts"
                           >
                             Сбросить
                           </button>
@@ -1779,7 +1780,7 @@ export const AdminPage: React.FC = () => {
                       <p className="font-serif text-base leading-tight truncate">{book.title || book.id}</p>
                       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-gray-400 truncate">{book.author}</p>
                       <div className="flex gap-1 flex-wrap mt-0.5">
-                        {book.isPreorder && <span className="text-[9px] bg-accent/20 text-accent-dark px-1 uppercase tracking-widest">pre-order</span>}
+                        {book.isPreorder && <span className="text-[9px] bg-accent/20 text-accent-dark px-1 uppercase tracking-widest">предзаказ</span>}
                         {book.stock === 0 ? <span className="text-[9px] bg-red-100 text-red-600 px-1 font-mono">нет</span> : book.stock <= 3 ? <span className="text-[9px] bg-amber-100 text-amber-700 px-1 font-mono">{book.stock} ост.</span> : null}
                       </div>
                     </div>
@@ -1794,12 +1795,12 @@ export const AdminPage: React.FC = () => {
                   <div className="sticky top-0 z-10 bg-white -mx-6 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                     <div>
                       <h3 className="text-3xl font-serif">Редактор книги</h3>
-                      {bookDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● НЕСОХРАНЁННЫЕ ИЗМЕНЕНИЯ · CTRL+S</span>}
+                      {bookDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● Есть несохранённые изменения · Ctrl+S</span>}
                     </div>
                     <div className="flex gap-2 items-center">
                       {deleteConfirm === `book:${bookDraft.id}` ? (
                         <>
-                          <span className="text-xs text-red-600 font-bold">Подтвердить удаление?</span>
+                          <span className="text-xs text-red-600 font-bold">Удалить книгу?</span>
                           <button onClick={handleDeleteBook} disabled={!!savingKey} className="px-4 py-3 bg-red-600 text-white flex items-center gap-2 text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
                             {savingKey?.startsWith('book:delete:') ? <Loader2 size={14} className="animate-spin" /> : null}Да, удалить
                           </button>
@@ -1846,13 +1847,13 @@ export const AdminPage: React.FC = () => {
                   ) : null}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <LF label="ID (slug)" hint="Авто-генерируется, меняйте только при необходимости">
+                    <LF label="ID (slug)" hint="Создаётся автоматически — менять не нужно">
                       <input value={bookDraft.id} onChange={e => setBookDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
                     </LF>
-                    <LF label="Дата релиза">
+                    <LF label="Дата выхода">
                       <input type="date" value={bookDraft.releaseDate} onChange={e => setBookDraft(prev => prev ? { ...prev, releaseDate: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Название">
+                    <LF label="Название книги">
                       <input value={bookDraft.title} onChange={e => {
                         const title = e.target.value;
                         setBookDraft(prev => {
@@ -1867,13 +1868,13 @@ export const AdminPage: React.FC = () => {
                     <LF label="Цена (€)">
                       <input type="number" min={0} step={0.01} value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Старая цена €  (зачёркнутая)">
+                    <LF label="Старая цена € (зачёркнутая)">
                       <input type="number" min={0} step={0.01} value={bookDraft.oldPrice ?? ''} onChange={e => setBookDraft(prev => prev ? { ...prev, oldPrice: e.target.value ? Number(e.target.value) : undefined } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Оставьте пустым, если нет скидки" />
                     </LF>
-                    <LF label="Остаток (0 = нет в наличии)">
+                    <LF label="Остаток на складе (0 = нет в наличии)">
                       <input type="number" min={0} value={bookDraft.stock} onChange={e => setBookDraft(prev => prev ? { ...prev, stock: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Тип">
+                    <LF label="Тип издания">
                       <select value={bookDraft.type || 'publisher'} onChange={e => setBookDraft(prev => prev ? { ...prev, type: e.target.value as Book['type'] } : prev)} className="w-full border border-gray-300 px-4 py-3 bg-white">
                         <option value="publisher">Издательское издание</option>
                         <option value="author_project">Авторский проект</option>
@@ -1887,28 +1888,35 @@ export const AdminPage: React.FC = () => {
                     <LF label="Серия">
                       <input value={bookDraft.series || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, series: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Издатель">
+                    <LF label="Издательство">
                       <input value={bookDraft.details.publisher || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, publisher: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
                     <LF label="Жанры (через запятую)" className="md:col-span-2">
-                      <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="fiction, literary, historical" />
+                      <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="проза, лирика, историческая" />
                     </LF>
-                    <LF label="Ссылка Amazon" className="md:col-span-2">
+                    <LF label="Ссылка на Amazon" className="md:col-span-2">
                       <input value={bookDraft.purchaseLinks?.amazon || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, purchaseLinks: { ...(prev.purchaseLinks || {}), amazon: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://amazon.de/dp/..." />
                     </LF>
                   </div>
 
                   <div>
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">Значки</p>
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">Метки и статусы</p>
                     <div className="flex flex-wrap gap-3">
-                      {(['new','bestseller','18+','preorder','last_copy'] as const).map(badge => (
-                        <label key={badge} className="flex items-center gap-2 border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm">
-                          <input type="checkbox" checked={(bookDraft.badges || []).includes(badge)} onChange={e => setBookDraft(prev => {
+                      {([
+                        { id: 'new', label: 'Новинка' },
+                        { id: 'bestseller', label: 'Бестселлер' },
+                        { id: 'preorder', label: 'Предзаказ' },
+                        { id: 'exclusive', label: 'Эксклюзив' },
+                        { id: '18+', label: '18+' },
+                        { id: 'last_copy', label: 'Последний экземпляр' },
+                      ] as const).map(badge => (
+                        <label key={badge.id} className="flex items-center gap-2 border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm">
+                          <input type="checkbox" checked={(bookDraft.badges || []).includes(badge.id)} onChange={e => setBookDraft(prev => {
                             if (!prev) return prev;
-                            const next = e.target.checked ? [...(prev.badges || []), badge] : (prev.badges || []).filter(b => b !== badge);
+                            const next = e.target.checked ? [...(prev.badges || []), badge.id] : (prev.badges || []).filter(b => b !== badge.id);
                             return { ...prev, badges: next as Book['badges'] };
                           })} />
-                          {badge}
+                          {badge.label}
                         </label>
                       ))}
                       <label className="flex items-center gap-2 border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm">
