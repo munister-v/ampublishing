@@ -12,6 +12,25 @@ export type ShowcaseAuthor = {
   imageUrl: string;
 };
 
+export type FeaturedAuthor = {
+  nameMain: string;
+  nameAccent: string;
+  label: string;
+  intro: string;
+  body: string[];
+  tags: string[];
+};
+
+const isFeaturedAuthor = (value: any): value is FeaturedAuthor =>
+  value &&
+  typeof value === 'object' &&
+  typeof value.nameMain === 'string' &&
+  typeof value.nameAccent === 'string' &&
+  typeof value.label === 'string' &&
+  typeof value.intro === 'string' &&
+  Array.isArray(value.body) &&
+  Array.isArray(value.tags);
+
 const isShowcaseAuthor = (value: any): value is ShowcaseAuthor =>
   value &&
   typeof value === 'object' &&
@@ -24,6 +43,42 @@ const isShowcaseAuthor = (value: any): value is ShowcaseAuthor =>
   typeof value.bio === 'string' &&
   Array.isArray(value.tags) &&
   typeof value.imageUrl === 'string';
+
+export const FEATURED_PUBLISHER_AUTHOR: Record<Language, FeaturedAuthor> = {
+  ru: {
+    nameMain: 'Сергей',
+    nameAccent: 'Калинин',
+    label: 'Главный автор каталога',
+    intro: 'Прозаик, в чьих текстах психологическая точность соединяется с атмосферной плотностью и медленной внутренней драматургией.',
+    body: [
+      'Сергей Калинин пишет о людях в переломные моменты: когда привычное рушится, а новое ещё не обрело форму. Его проза внимательна к паузам, к скрытому напряжению, к тому, что остаётся за кадром, но определяет всё остальное.',
+      'Именно этот авторский регистр задаёт тон первой книге каталога AM Publishing. В нём есть и внутренняя тишина, и культурная память, и редкое ощущение литературного достоинства без лишней декларативности.',
+    ],
+    tags: ['психологическая проза', 'современная литература', 'русскоязычный автор', 'AM Publishing'],
+  },
+  en: {
+    nameMain: 'Sergey',
+    nameAccent: 'Kalinin',
+    label: 'Featured catalog author',
+    intro: 'A prose writer whose work combines psychological precision, atmospheric density, and a slow-burning inner dramaturgy.',
+    body: [
+      'Sergey Kalinin writes about people at turning points, when the familiar collapses and the new has not yet taken shape. His prose is attentive to pauses, hidden tension, and everything that remains just outside the frame while determining what matters most.',
+      'This is the register that sets the tone for the first book in the AM Publishing catalog: interior quiet, cultural memory, and a rare sense of literary dignity without excess declaration.',
+    ],
+    tags: ['psychological prose', 'contemporary literature', 'russian-language author', 'AM Publishing'],
+  },
+  de: {
+    nameMain: 'Sergey',
+    nameAccent: 'Kalinin',
+    label: 'Prägender Autor des Katalogs',
+    intro: 'Ein Prosaautor, dessen Texte psychologische Genauigkeit, atmosphärische Dichte und eine langsame innere Dramaturgie verbinden.',
+    body: [
+      'Sergey Kalinin schreibt über Menschen in Momenten des Umbruchs, wenn das Gewohnte zerbricht und das Neue noch keine Form gefunden hat. Seine Prosa achtet auf Pausen, auf verborgene Spannung und auf alles, was außerhalb des Bildes bleibt und doch das Wesentliche bestimmt.',
+      'Genau dieser Ton prägt das erste Buch im Katalog von AM Publishing: innere Ruhe, kulturelle Erinnerung und ein seltenes Gefühl literarischer Würde ohne überflüssige Deklamation.',
+    ],
+    tags: ['psychologische prose', 'zeitgenössische literatur', 'russischsprachiger autor', 'AM Publishing'],
+  },
+};
 
 export const AUTHOR_SHOWCASE: Record<Language, ShowcaseAuthor[]> = {
   ru: [
@@ -132,6 +187,9 @@ export const AUTHOR_SHOWCASE: Record<Language, ShowcaseAuthor[]> = {
     },
   ],
 };
+
+export const getFeaturedAuthorContent = (language: Language, override?: unknown): FeaturedAuthor =>
+  isFeaturedAuthor(override) ? override : FEATURED_PUBLISHER_AUTHOR[language];
 
 export const getAuthorShowcaseContent = (language: Language, override?: unknown): ShowcaseAuthor[] =>
   Array.isArray(override) && override.every(isShowcaseAuthor) ? override : AUTHOR_SHOWCASE[language];

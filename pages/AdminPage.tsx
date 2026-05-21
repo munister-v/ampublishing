@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../AppContext';
 import { api } from '../services/api';
-import { ShowcaseAuthor, getAuthorShowcaseContent } from '../services/authorShowcase';
+import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
-import { Book, Language, LocalizedCatalogData, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, TranslationOverrides } from '../types';
+import { Book, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
   BookOpen,
@@ -24,9 +24,12 @@ import {
   ImagePlus,
   Menu,
   X,
+  Layout,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 
-type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'payments' | 'orders' | 'status';
+type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'site' | 'payments' | 'orders' | 'status';
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -291,6 +294,44 @@ const optimizeImageFile = async (file: File) => {
   ctx.drawImage(img, 0, 0, width, height);
 
   return canvas.toDataURL('image/webp', 0.84);
+};
+
+const LF: React.FC<{ label: string; hint?: string; children: React.ReactNode; className?: string }> = ({ label, hint, children, className }) => (
+  <div className={className}>
+    <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">{label}</label>
+    {children}
+    {hint ? <p className="mt-1 text-[10px] text-gray-400">{hint}</p> : null}
+  </div>
+);
+
+const exportOrdersCSV = (orders: any[]) => {
+  const rows = [
+    ['ID', 'Date', 'Customer', 'Email', 'Phone', 'Location', 'Address', 'Items', 'Total', 'Currency', 'Payment Method', 'Payment Status', 'Order Status', 'Reference'],
+    ...orders.map(o => [
+      o.id,
+      new Date(o.date).toLocaleString(),
+      o.customer.name,
+      o.customer.email,
+      o.customer.phone || '',
+      o.customer.location || '',
+      [o.customer.addressLine, o.customer.zip].filter(Boolean).join(' '),
+      o.items.map((i: any) => `${i.quantity}x ${i.bookTitle}`).join('; '),
+      o.total.toFixed(2),
+      o.currency,
+      o.paymentMethod || '',
+      o.paymentStatus,
+      o.status,
+      o.paymentReference || '',
+    ]),
+  ];
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 };
 
 const ImageField: React.FC<{
@@ -572,7 +613,7 @@ const StatusPanel: React.FC = () => {
 };
 
 export const AdminPage: React.FC = () => {
-  const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast } = useApp();
+  const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast, setSiteSettings: setGlobalSiteSettings } = useApp();
   const [activeTab, setActiveTab] = useState<AdminTab>('copy');
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('ru');
   const [database, setDatabase] = useState<Record<Language, LocalizedCatalogData> | null>(null);
@@ -583,25 +624,38 @@ export const AdminPage: React.FC = () => {
   const [bookDraft, setBookDraft] = useState<Book | null>(null);
   const [selectedNewsId, setSelectedNewsId] = useState<string>('');
   const [newsDraft, setNewsDraft] = useState<NewsItem | null>(null);
+  const [featuredAuthorDraft, setFeaturedAuthorDraft] = useState<FeaturedAuthor | null>(null);
   const [showcaseDraft, setShowcaseDraft] = useState<ShowcaseAuthor[]>([]);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(createPaymentSettingsTemplate());
+  const [siteDraft, setSiteDraft] = useState<SiteSettings | null>(null);
   const [copyDrafts, setCopyDrafts] = useState<Record<string, string>>({});
   const [bookJsonDrafts, setBookJsonDrafts] = useState({ variants: '[]', themes: '[]', reviews: '[]' });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState<string>('');
   const [lastPublishedAt, setLastPublishedAt] = useState<string>('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPassword2, setNewPassword2] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [bookDirty, setBookDirty] = useState(false);
+  const [newsDirty, setNewsDirty] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all');
+  const [orderPaymentFilter, setOrderPaymentFilter] = useState<string>('all');
 
   const loadAdminData = async () => {
     setIsRefreshing(true);
     try {
-      const [db, translationState, paymentState] = await Promise.all([
+      const [db, translationState, paymentState, siteState] = await Promise.all([
         api.getContentDatabase(),
         api.getTranslationOverrides(),
         api.getPaymentSettings(),
+        api.getSiteSettings(),
       ]);
       setDatabase(db);
       setOverrides(translationState);
       setPaymentSettings(paymentState);
+      setSiteDraft(siteState);
       if (!selectedBookId && db[selectedLanguage].books[0]) {
         setSelectedBookId(db[selectedLanguage].books[0].id);
       }
@@ -643,6 +697,7 @@ export const AdminPage: React.FC = () => {
   }, [database, selectedLanguage, selectedNewsId]);
 
   useEffect(() => {
+    setFeaturedAuthorDraft(getFeaturedAuthorContent(selectedLanguage, overrides[selectedLanguage]?.['static.our_authors.featured_author']));
     setShowcaseDraft(getAuthorShowcaseContent(selectedLanguage, overrides[selectedLanguage]?.['static.our_authors.showcase_items']));
   }, [selectedLanguage, overrides]);
 
@@ -706,6 +761,34 @@ export const AdminPage: React.FC = () => {
 
     return () => window.clearTimeout(timeout);
   }, [selectedLanguage, copyDrafts, selectedBookId, selectedNewsId, bookDraft, newsDraft, bookJsonDrafts]);
+
+  // Mark dirty whenever the drafts change from user edits (not initial load)
+  const bookDraftRef = useRef(bookDraft);
+  useEffect(() => {
+    if (bookDraftRef.current !== null && bookDraft !== null) setBookDirty(true);
+    bookDraftRef.current = bookDraft;
+  }, [bookDraft, bookJsonDrafts]);
+
+  const newsDraftRef = useRef(newsDraft);
+  useEffect(() => {
+    if (newsDraftRef.current !== null && newsDraft !== null) setNewsDirty(true);
+    newsDraftRef.current = newsDraft;
+  }, [newsDraft]);
+
+  const handleSaveBookRef = useRef<(() => void) | null>(null);
+  const handleSaveNewsRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (activeTab === 'books' && handleSaveBookRef.current) handleSaveBookRef.current();
+        if (activeTab === 'news' && handleSaveNewsRef.current) handleSaveNewsRef.current();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [activeTab]);
 
   const copyJsonErrors = useMemo(() => {
     const errors: Record<string, string> = {};
@@ -783,7 +866,7 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleSaveBook = async () => {
+  const handleSaveBook = useCallback(async () => {
     if (!bookDraft) return;
     try {
       const parsedVariants = parseJsonField(bookJsonDrafts.variants);
@@ -803,6 +886,7 @@ export const AdminPage: React.FC = () => {
       await api.upsertBook(selectedLanguage, nextBook);
       await reloadContent();
       await loadAdminData();
+      setBookDirty(false);
       setLastPublishedAt(new Date().toLocaleTimeString());
       showToast(
         selectedLanguage === 'ru'
@@ -814,7 +898,9 @@ export const AdminPage: React.FC = () => {
     } finally {
       setSavingKey(null);
     }
-  };
+  }, [bookDraft, bookJsonDrafts, selectedLanguage]);
+
+  useEffect(() => { handleSaveBookRef.current = handleSaveBook; }, [handleSaveBook]);
 
   const handleDeleteBook = async () => {
     if (!bookDraft) return;
@@ -837,13 +923,14 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleSaveNews = async () => {
+  const handleSaveNews = useCallback(async () => {
     if (!newsDraft) return;
     try {
       setSavingKey(`news:${newsDraft.id}`);
       await api.upsertNewsItem(selectedLanguage, newsDraft);
       await reloadContent();
       await loadAdminData();
+      setNewsDirty(false);
       setLastPublishedAt(new Date().toLocaleTimeString());
       showToast(
         selectedLanguage === 'ru'
@@ -855,7 +942,9 @@ export const AdminPage: React.FC = () => {
     } finally {
       setSavingKey(null);
     }
-  };
+  }, [newsDraft, selectedLanguage]);
+
+  useEffect(() => { handleSaveNewsRef.current = handleSaveNews; }, [handleSaveNews]);
 
   const handleDeleteNews = async () => {
     if (!newsDraft) return;
@@ -879,8 +968,10 @@ export const AdminPage: React.FC = () => {
   };
 
   const handleSaveAuthors = async () => {
+    if (!featuredAuthorDraft) return;
     try {
       setSavingKey('authors');
+      await api.setTranslationValue(selectedLanguage, 'static.our_authors.featured_author', featuredAuthorDraft);
       const nextOverrides = await api.setTranslationValue(selectedLanguage, 'static.our_authors.showcase_items', showcaseDraft);
 
       setOverrides(nextOverrides);
@@ -896,6 +987,51 @@ export const AdminPage: React.FC = () => {
     } finally {
       setSavingKey(null);
     }
+  };
+
+  const handleSaveSiteSettings = async () => {
+    if (!siteDraft) return;
+    try {
+      setSavingKey('site-settings');
+      const next = await api.saveSiteSettings(siteDraft);
+      setSiteDraft(next);
+      setGlobalSiteSettings(next);
+      await reloadContent();
+      setLastPublishedAt(new Date().toLocaleTimeString());
+      showToast('Site settings saved');
+    } catch {
+      showToast('Could not save site settings', 'error');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== newPassword2) { showToast('Passwords do not match', 'error'); return; }
+    if (newPassword.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+    setSavingPassword(true);
+    try {
+      const pat = sessionStorage.getItem('gh_pat') || localStorage.getItem('gh_pat') || '';
+      await api.setupAdminPassword('admin@ampublishing.org', newPassword, pat);
+      showToast('Password saved — you can now log in with your password');
+      setNewPassword('');
+      setNewPassword2('');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not save password', 'error');
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const updateSiteNav = (
+    section: 'headerNav' | 'footerNav' | 'footerLegal',
+    updater: (items: NavLinkConfig[]) => NavLinkConfig[],
+  ) => {
+    setSiteDraft(prev => {
+      if (!prev) return prev;
+      return { ...prev, [section]: updater(prev[section] || []) };
+    });
   };
 
   const handleSavePaymentSettings = async () => {
@@ -994,6 +1130,7 @@ export const AdminPage: React.FC = () => {
             { id: 'books', label: 'Books', icon: <BookOpen size={16} /> },
             { id: 'news', label: 'News', icon: <Newspaper size={16} /> },
             { id: 'authors', label: 'Our Authors', icon: <Globe size={16} /> },
+            { id: 'site', label: 'Site / Header / Footer', icon: <Layout size={16} /> },
             { id: 'payments', label: 'Payments', icon: <Gavel size={16} /> },
             { id: 'orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
             { id: 'status', label: 'Status', icon: <Activity size={16} /> },
@@ -1072,26 +1209,45 @@ export const AdminPage: React.FC = () => {
           </div>
         ) : null}
 
-        {database ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white border border-primary/10 p-4">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Content status</p>
-              <p className="mt-2 font-serif text-2xl">{database ? 'Loaded' : 'Loading'}</p>
+        {database ? (() => {
+          const totalBooks = database[selectedLanguage].books.length;
+          const totalNews = database[selectedLanguage].news.length;
+          const pendingOrders = orders.filter(o => o.paymentStatus === 'pending').length;
+          const totalRevenue = orders.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + o.total, 0);
+          const hasErrors = Object.keys(copyJsonErrors).length || Object.keys(bookJsonErrors).length || bookRequiredErrors.length || newsRequiredErrors.length;
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-6">
+              <div className="bg-white border border-primary/10 p-4 col-span-1">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Books</p>
+                <p className="mt-1 font-serif text-3xl">{totalBooks}</p>
+              </div>
+              <div className="bg-white border border-primary/10 p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">News</p>
+                <p className="mt-1 font-serif text-3xl">{totalNews}</p>
+              </div>
+              <div className="bg-white border border-primary/10 p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Orders</p>
+                <p className="mt-1 font-serif text-3xl">{orders.length}</p>
+              </div>
+              <div className={`border p-4 ${pendingOrders > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-primary/10'}`}>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Awaiting payment</p>
+                <p className={`mt-1 font-serif text-3xl ${pendingOrders > 0 ? 'text-amber-700' : ''}`}>{pendingOrders}</p>
+              </div>
+              <div className="bg-white border border-primary/10 p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Revenue (paid)</p>
+                <p className="mt-1 font-serif text-3xl">{totalRevenue > 0 ? `€${totalRevenue.toFixed(0)}` : '—'}</p>
+              </div>
+              <div className={`border p-4 ${hasErrors ? 'bg-red-50 border-red-200' : 'bg-white border-primary/10'}`}>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Validation</p>
+                <p className={`mt-1 font-serif text-2xl ${hasErrors ? 'text-red-600' : 'text-green-700'}`}>{hasErrors ? 'Issues' : 'OK'}</p>
+              </div>
+              <div className="bg-white border border-primary/10 p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Published</p>
+                <p className="mt-1 font-serif text-xl truncate">{lastPublishedAt || '—'}</p>
+              </div>
             </div>
-            <div className="bg-white border border-primary/10 p-4">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Validation</p>
-              <p className="mt-2 font-serif text-2xl">{Object.keys(copyJsonErrors).length || Object.keys(bookJsonErrors).length || bookRequiredErrors.length || newsRequiredErrors.length ? 'Needs attention' : 'OK'}</p>
-            </div>
-            <div className="bg-white border border-primary/10 p-4">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Draft autosave</p>
-              <p className="mt-2 font-serif text-2xl">{lastDraftSavedAt || 'Waiting'}</p>
-            </div>
-            <div className="bg-white border border-primary/10 p-4">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Last publish</p>
-              <p className="mt-2 font-serif text-2xl">{lastPublishedAt || 'Not yet'}</p>
-            </div>
-          </div>
-        ) : null}
+          );
+        })() : null}
 
         {database && activeTab === 'copy' ? (
           <div className="space-y-8">
@@ -1175,11 +1331,19 @@ export const AdminPage: React.FC = () => {
                 {books.map(book => (
                   <button
                     key={book.id}
-                    onClick={() => setSelectedBookId(book.id)}
-                    className={`w-full text-left p-4 hover:bg-gray-50 ${selectedBookId === book.id ? 'bg-[#F4F4F0]' : ''}`}
+                    onClick={() => { setSelectedBookId(book.id); setBookDirty(false); }}
+                    className={`w-full text-left p-3 hover:bg-gray-50 flex gap-3 items-center ${selectedBookId === book.id ? 'bg-[#F4F4F0]' : ''}`}
                   >
-                    <p className="font-serif text-xl leading-none mb-2">{book.title || book.id}</p>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-gray-400">{book.author}</p>
+                    {book.coverUrl ? (
+                      <img src={book.coverUrl} alt="" className="w-10 h-14 object-cover flex-shrink-0 border border-gray-100" />
+                    ) : (
+                      <div className="w-10 h-14 bg-gray-100 flex-shrink-0 flex items-center justify-center text-gray-300 text-[10px]">?</div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-serif text-base leading-tight truncate">{book.title || book.id}</p>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-gray-400 truncate">{book.author}</p>
+                      {book.isPreorder && <span className="text-[9px] bg-accent/20 text-accent-dark px-1 uppercase tracking-widest">pre-order</span>}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -1189,16 +1353,29 @@ export const AdminPage: React.FC = () => {
               {bookDraft ? (
                 <div className="space-y-8">
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h3 className="text-3xl font-serif">Book Editor</h3>
-                    <div className="flex gap-2">
-                      <button onClick={handleDeleteBook} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
-                        <Trash2 size={14} />
-                        Delete
-                      </button>
-                      <button onClick={handleSaveBook} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
-                        {savingKey === `book:${bookDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                        Save
-                      </button>
+                    <div>
+                      <h3 className="text-3xl font-serif">Book Editor</h3>
+                      {bookDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● Unsaved changes · Ctrl+S to save</span>}
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      {deleteConfirm === `book:${bookDraft.id}` ? (
+                        <>
+                          <span className="text-xs text-red-600 font-bold">Confirm delete?</span>
+                          <button onClick={handleDeleteBook} className="px-4 py-3 bg-red-600 text-white flex items-center gap-2 text-xs uppercase tracking-widest">Yes, delete</button>
+                          <button onClick={() => setDeleteConfirm(null)} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest">Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => setDeleteConfirm(`book:${bookDraft.id}`)} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                          <button onClick={handleSaveBook} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                            {savingKey === `book:${bookDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                            Save
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                   {bookRequiredErrors.length || Object.keys(bookJsonErrors).length ? (
@@ -1210,17 +1387,67 @@ export const AdminPage: React.FC = () => {
                   ) : null}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <input value={bookDraft.id} onChange={e => setBookDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="ID" />
-                    <input value={bookDraft.releaseDate} onChange={e => setBookDraft(prev => prev ? { ...prev, releaseDate: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Release date" />
-                    <input value={bookDraft.title} onChange={e => setBookDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Title" />
-                    <input value={bookDraft.author} onChange={e => setBookDraft(prev => prev ? { ...prev, author: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Author" />
-                    <input type="number" value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Price" />
-                    <input type="number" value={bookDraft.stock} onChange={e => setBookDraft(prev => prev ? { ...prev, stock: Number(e.target.value) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Stock" />
-                    <input value={bookDraft.series || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, series: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Series" />
-                    <input value={bookDraft.details.publisher || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, publisher: e.target.value } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Publisher" />
-                    <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Genres, comma separated" />
-                    <input value={bookDraft.badges.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, badges: e.target.value.split(',').map(item => item.trim()).filter(Boolean) as Book['badges'] } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Badges, comma separated" />
-                    <input value={bookDraft.purchaseLinks?.amazon || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, purchaseLinks: { ...(prev.purchaseLinks || {}), amazon: e.target.value } } : prev)} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Amazon product URL" />
+                    <LF label="ID (slug)" hint="Auto-generated, change only if needed">
+                      <input value={bookDraft.id} onChange={e => setBookDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
+                    </LF>
+                    <LF label="Release date">
+                      <input type="date" value={bookDraft.releaseDate} onChange={e => setBookDraft(prev => prev ? { ...prev, releaseDate: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Title">
+                      <input value={bookDraft.title} onChange={e => setBookDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Author">
+                      <input value={bookDraft.author} onChange={e => setBookDraft(prev => prev ? { ...prev, author: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Price (€)">
+                      <input type="number" min={0} step={0.01} value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Stock (0 = out of stock)">
+                      <input type="number" min={0} value={bookDraft.stock} onChange={e => setBookDraft(prev => prev ? { ...prev, stock: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Type">
+                      <select value={bookDraft.type || 'publisher'} onChange={e => setBookDraft(prev => prev ? { ...prev, type: e.target.value as Book['type'] } : prev)} className="w-full border border-gray-300 px-4 py-3 bg-white">
+                        <option value="publisher">Publisher edition</option>
+                        <option value="self">Self-published</option>
+                      </select>
+                    </LF>
+                    <LF label="Age rating">
+                      <select value={bookDraft.ageRating || '16+'} onChange={e => setBookDraft(prev => prev ? { ...prev, ageRating: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 bg-white">
+                        {['0+','6+','12+','16+','18+'].map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </LF>
+                    <LF label="Series">
+                      <input value={bookDraft.series || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, series: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Publisher">
+                      <input value={bookDraft.details.publisher || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, publisher: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Genres (comma-separated)" className="md:col-span-2">
+                      <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="fiction, literary, historical" />
+                    </LF>
+                    <LF label="Amazon URL" className="md:col-span-2">
+                      <input value={bookDraft.purchaseLinks?.amazon || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, purchaseLinks: { ...(prev.purchaseLinks || {}), amazon: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://amazon.de/dp/..." />
+                    </LF>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">Badges & flags</p>
+                    <div className="flex flex-wrap gap-3">
+                      {(['new','bestseller','preorder','exclusive'] as const).map(badge => (
+                        <label key={badge} className="flex items-center gap-2 border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm">
+                          <input type="checkbox" checked={(bookDraft.badges || []).includes(badge)} onChange={e => setBookDraft(prev => {
+                            if (!prev) return prev;
+                            const next = e.target.checked ? [...(prev.badges || []), badge] : (prev.badges || []).filter(b => b !== badge);
+                            return { ...prev, badges: next as Book['badges'] };
+                          })} />
+                          {badge}
+                        </label>
+                      ))}
+                      <label className="flex items-center gap-2 border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm">
+                        <input type="checkbox" checked={!!bookDraft.isPreorder} onChange={e => setBookDraft(prev => prev ? { ...prev, isPreorder: e.target.checked } : prev)} />
+                        Pre-order mode
+                      </label>
+                    </div>
                   </div>
 
                   <ImageField
@@ -1229,32 +1456,64 @@ export const AdminPage: React.FC = () => {
                     onChange={value => setBookDraft(prev => prev ? { ...prev, coverUrl: value } : prev)}
                   />
 
-                  <textarea value={bookDraft.description} onChange={e => setBookDraft(prev => prev ? { ...prev, description: e.target.value } : prev)} rows={4} className="w-full border border-gray-300 px-4 py-3" placeholder="Description" />
+                  <LF label="Short description (catalog card)">
+                    <textarea value={bookDraft.description} onChange={e => setBookDraft(prev => prev ? { ...prev, description: e.target.value } : prev)} rows={4} className="w-full border border-gray-300 px-4 py-3" />
+                  </LF>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <input type="number" value={bookDraft.details.pages} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, pages: Number(e.target.value) } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Pages" />
-                    <input type="number" value={bookDraft.details.year} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, year: Number(e.target.value) } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Year" />
-                    <input value={bookDraft.details.weight || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, weight: e.target.value } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Weight" />
-                    <input value={bookDraft.details.dimensions || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, dimensions: e.target.value } } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Dimensions" />
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                    <LF label="Pages">
+                      <input type="number" min={0} value={bookDraft.details.pages} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, pages: Number(e.target.value) } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Year">
+                      <input type="number" min={1900} max={2100} value={bookDraft.details.year} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, year: Number(e.target.value) } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Weight">
+                      <input value={bookDraft.details.weight || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, weight: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="320 g" />
+                    </LF>
+                    <LF label="Dimensions">
+                      <input value={bookDraft.details.dimensions || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, dimensions: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="21×14 cm" />
+                    </LF>
                   </div>
 
-                  <div className="space-y-4">
-                    <h4 className="font-serif text-2xl">Story Page</h4>
-                    <input value={bookDraft.story?.quote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quote: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Quote" />
-                    <input value={bookDraft.story?.quoteSource || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quoteSource: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Quote source" />
-                    <input value={bookDraft.story?.detailPageUrl || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, detailPageUrl: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="External detail page URL" />
+                  <div className="space-y-5">
+                    <h4 className="font-serif text-2xl border-t border-gray-100 pt-6">Story Page</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <LF label="Opening quote">
+                        <input value={bookDraft.story?.quote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quote: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="«...»" />
+                      </LF>
+                      <LF label="Quote source">
+                        <input value={bookDraft.story?.quoteSource || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, quoteSource: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="— Name, Title" />
+                      </LF>
+                    </div>
+                    <LF label="External detail page URL (leave empty to use internal /catalog/id)">
+                      <input value={bookDraft.story?.detailPageUrl || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, detailPageUrl: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
+                    </LF>
                     <ImageField
-                      label="Story feature image"
+                      label="Story feature image (large banner on book page)"
                       value={bookDraft.story?.featureImageUrl || ''}
                       onChange={value => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, featureImageUrl: value } } : prev)}
                     />
-                    <textarea value={(bookDraft.story?.about || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, about: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" placeholder="About paragraphs, separated by empty line" />
-                    <textarea value={(bookDraft.story?.excerpt || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, excerpt: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" placeholder="Excerpt paragraphs, separated by empty line" />
-                    <textarea value={(bookDraft.story?.authorBio || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, authorBio: parseParagraphs(e.target.value) } } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" placeholder="Author bio paragraphs, separated by empty line" />
-                    <textarea value={bookDraft.story?.orderNote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, orderNote: e.target.value } } : prev)} rows={3} className="w-full border border-gray-300 px-4 py-3" placeholder="Order note" />
-                    <textarea value={bookJsonDrafts.variants} onChange={e => setBookJsonDrafts(prev => ({ ...prev, variants: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.variants ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} placeholder="Variants JSON" />
-                    <textarea value={bookJsonDrafts.themes} onChange={e => setBookJsonDrafts(prev => ({ ...prev, themes: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.themes ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} placeholder="Themes JSON" />
-                    <textarea value={bookJsonDrafts.reviews} onChange={e => setBookJsonDrafts(prev => ({ ...prev, reviews: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.reviews ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} placeholder="Reviews JSON" />
+                    <LF label="About (paragraphs separated by blank line)">
+                      <textarea value={(bookDraft.story?.about || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, about: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Excerpt (paragraphs separated by blank line)">
+                      <textarea value={(bookDraft.story?.excerpt || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, excerpt: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Author bio (paragraphs separated by blank line)">
+                      <textarea value={(bookDraft.story?.authorBio || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, authorBio: parseParagraphs(e.target.value) } } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Order note (shown on book page near the buy button)">
+                      <textarea value={bookDraft.story?.orderNote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, orderNote: e.target.value } } : prev)} rows={3} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Variants JSON (price/format options)" hint={bookJsonErrors.variants}>
+                      <textarea value={bookJsonDrafts.variants} onChange={e => setBookJsonDrafts(prev => ({ ...prev, variants: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.variants ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} />
+                    </LF>
+                    <LF label="Themes JSON" hint={bookJsonErrors.themes}>
+                      <textarea value={bookJsonDrafts.themes} onChange={e => setBookJsonDrafts(prev => ({ ...prev, themes: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.themes ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} />
+                    </LF>
+                    <LF label="Reviews JSON" hint={bookJsonErrors.reviews}>
+                      <textarea value={bookJsonDrafts.reviews} onChange={e => setBookJsonDrafts(prev => ({ ...prev, reviews: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.reviews ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} />
+                    </LF>
                   </div>
                 </div>
               ) : (
@@ -1299,29 +1558,50 @@ export const AdminPage: React.FC = () => {
               {newsDraft ? (
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h3 className="text-3xl font-serif">News Editor</h3>
-                    <div className="flex gap-2">
-                      <button onClick={handleDeleteNews} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
-                        <Trash2 size={14} />
-                        Delete
-                      </button>
-                      <button onClick={handleSaveNews} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
-                        {savingKey === `news:${newsDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                        Save
-                      </button>
+                    <div>
+                      <h3 className="text-3xl font-serif">News Editor</h3>
+                      {newsDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● Unsaved changes · Ctrl+S to save</span>}
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      {deleteConfirm === `news:${newsDraft.id}` ? (
+                        <>
+                          <span className="text-xs text-red-600 font-bold">Confirm delete?</span>
+                          <button onClick={handleDeleteNews} className="px-4 py-3 bg-red-600 text-white flex items-center gap-2 text-xs uppercase tracking-widest">Yes, delete</button>
+                          <button onClick={() => setDeleteConfirm(null)} className="px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest">Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => setDeleteConfirm(`news:${newsDraft.id}`)} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                          <button onClick={handleSaveNews} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                            {savingKey === `news:${newsDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                            Save
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                   {newsRequiredErrors.length ? (
                     <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                      {newsRequiredErrors.map(item => (
-                        <div key={item}>{item}</div>
-                      ))}
+                      {newsRequiredErrors.map(item => <div key={item}>{item}</div>)}
                     </div>
                   ) : null}
-                  <input value={newsDraft.id} onChange={e => setNewsDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="ID" />
-                  <input value={newsDraft.date} onChange={e => setNewsDraft(prev => prev ? { ...prev, date: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Date" />
-                  <input value={newsDraft.title} onChange={e => setNewsDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Title" />
-                  <textarea value={newsDraft.preview} onChange={e => setNewsDraft(prev => prev ? { ...prev, preview: e.target.value } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" placeholder="Preview" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <LF label="ID (slug)">
+                      <input value={newsDraft.id} onChange={e => setNewsDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
+                    </LF>
+                    <LF label="Date">
+                      <input type="date" value={newsDraft.date} onChange={e => setNewsDraft(prev => prev ? { ...prev, date: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                  </div>
+                  <LF label="Title">
+                    <input value={newsDraft.title} onChange={e => setNewsDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                  </LF>
+                  <LF label="Preview text">
+                    <textarea value={newsDraft.preview} onChange={e => setNewsDraft(prev => prev ? { ...prev, preview: e.target.value } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" />
+                  </LF>
                 </div>
               ) : (
                 <div className="text-gray-400">Select a news item or create a new one.</div>
@@ -1336,7 +1616,7 @@ export const AdminPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
                 <div>
                   <h3 className="text-3xl font-serif">Our Authors</h3>
-                  <p className="mt-2 text-sm text-gray-500">Manage the showcase cards that appear on the homepage and the dedicated authors page.</p>
+                  <p className="mt-2 text-sm text-gray-500">Manage the featured author block and the showcase cards that appear on the homepage and the dedicated authors page.</p>
                 </div>
                 <button onClick={handleSaveAuthors} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
                   {savingKey === 'authors' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -1344,7 +1624,20 @@ export const AdminPage: React.FC = () => {
                 </button>
               </div>
 
-              <div className="space-y-8">
+              {featuredAuthorDraft ? (
+                <div className="space-y-8">
+                  <div className="border border-primary/10 p-6 bg-[#F8F8F5]">
+                    <h4 className="font-serif text-2xl mb-6">Featured author</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <input value={featuredAuthorDraft.label} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, label: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Label" />
+                      <input value={featuredAuthorDraft.nameMain} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, nameMain: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Main name" />
+                      <input value={featuredAuthorDraft.nameAccent} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, nameAccent: e.target.value } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Accent name" />
+                      <input value={featuredAuthorDraft.tags.join(', ')} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, tags: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="border border-gray-300 px-4 py-3" placeholder="Tags, comma separated" />
+                    </div>
+                    <textarea value={featuredAuthorDraft.intro} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, intro: e.target.value } : prev)} rows={3} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Intro" />
+                    <textarea value={featuredAuthorDraft.body.join('\n\n')} onChange={e => setFeaturedAuthorDraft(prev => prev ? { ...prev, body: parseParagraphs(e.target.value) } : prev)} rows={6} className="w-full mt-5 border border-gray-300 px-4 py-3" placeholder="Body paragraphs, separated by empty line" />
+                  </div>
+
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <h4 className="font-serif text-2xl">Showcase cards</h4>
@@ -1403,8 +1696,189 @@ export const AdminPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
+              ) : null}
             </section>
           </div>
+        ) : null}
+
+        {activeTab === 'site' && siteDraft ? (
+          <section className="bg-white border border-primary/10 p-6 md:p-8 space-y-10">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+              <div>
+                <h3 className="text-3xl font-serif">Site, Header &amp; Footer</h3>
+                <p className="mt-2 text-sm text-gray-500">Edit menu items, social links, contacts and bottom footer links. Labels reference translation keys from the «Site Copy» tab (e.g. <code>nav.catalog</code>).</p>
+              </div>
+              <button onClick={handleSaveSiteSettings} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                {savingKey === 'site-settings' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                Save site settings
+              </button>
+            </div>
+
+            {/* Brand */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Brand</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Brand name (footer)</label>
+                  <input value={siteDraft.brand.name} onChange={e => setSiteDraft(prev => prev ? { ...prev, brand: { ...prev.brand, name: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Brand short label (header)</label>
+                  <input value={siteDraft.brand.short} onChange={e => setSiteDraft(prev => prev ? { ...prev, brand: { ...prev.brand, short: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Contacts */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Contacts (shown in footer)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Email</label>
+                  <input value={siteDraft.contacts.email} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, email: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="hello@example.com" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Phone</label>
+                  <input value={siteDraft.contacts.phone} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, phone: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="+49 30 1234567" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Address line 1</label>
+                  <input value={siteDraft.contacts.addressLine1} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, addressLine1: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Address line 2</label>
+                  <input value={siteDraft.contacts.addressLine2} onChange={e => setSiteDraft(prev => prev ? { ...prev, contacts: { ...prev.contacts, addressLine2: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Social */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Social links (leave empty to hide)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {(['telegramUrl', 'instagramUrl', 'facebookUrl', 'youtubeUrl', 'twitterUrl'] as const).map(field => (
+                  <div key={field}>
+                    <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">{field.replace('Url', '')}</label>
+                    <input value={siteDraft.social[field]} onChange={e => setSiteDraft(prev => prev ? { ...prev, social: { ...prev.social, [field]: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Nav editors */}
+            {(['headerNav', 'footerNav', 'footerLegal'] as const).map(section => {
+              const titles: Record<typeof section, string> = {
+                headerNav: 'Header menu',
+                footerNav: 'Footer link column',
+                footerLegal: 'Footer bottom strip (legal)',
+              };
+              const items = siteDraft[section] || [];
+              return (
+                <div key={section}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400">{titles[section]}</h4>
+                    <button
+                      onClick={() => updateSiteNav(section, list => ([...list, { id: `${section}-${Date.now()}`, labelKey: '', path: '/', enabled: true }]))}
+                      className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
+                    >
+                      <Plus size={12} /> Add link
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {items.map((item, idx) => (
+                      <div key={item.id} className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-3 items-center bg-[#F8F8F5] border border-gray-200 p-3">
+                        <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest">
+                          <input
+                            type="checkbox"
+                            checked={item.enabled !== false}
+                            onChange={e => updateSiteNav(section, list => list.map(it => it.id === item.id ? { ...it, enabled: e.target.checked } : it))}
+                          />
+                          On
+                        </label>
+                        <input
+                          value={item.labelKey}
+                          onChange={e => updateSiteNav(section, list => list.map(it => it.id === item.id ? { ...it, labelKey: e.target.value } : it))}
+                          className="border border-gray-300 px-3 py-2 font-mono text-xs"
+                          placeholder="translation key (e.g. nav.catalog)"
+                        />
+                        <input
+                          value={item.path}
+                          onChange={e => updateSiteNav(section, list => list.map(it => it.id === item.id ? { ...it, path: e.target.value } : it))}
+                          className="border border-gray-300 px-3 py-2 font-mono text-xs"
+                          placeholder="/path"
+                        />
+                        <button
+                          disabled={idx === 0}
+                          onClick={() => updateSiteNav(section, list => {
+                            const next = [...list];
+                            [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+                            return next;
+                          })}
+                          className="px-2 py-2 border border-gray-300 hover:bg-gray-100 disabled:opacity-30"
+                          title="Move up"
+                        >
+                          <ArrowUp size={12} />
+                        </button>
+                        <button
+                          disabled={idx === items.length - 1}
+                          onClick={() => updateSiteNav(section, list => {
+                            const next = [...list];
+                            [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+                            return next;
+                          })}
+                          className="px-2 py-2 border border-gray-300 hover:bg-gray-100 disabled:opacity-30"
+                          title="Move down"
+                        >
+                          <ArrowDown size={12} />
+                        </button>
+                        <button
+                          onClick={() => updateSiteNav(section, list => list.filter(it => it.id !== item.id))}
+                          className="px-2 py-2 border border-red-300 text-red-600 hover:bg-red-50"
+                          title="Remove"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    {items.length === 0 ? <p className="text-xs text-gray-400 font-mono">No items.</p> : null}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Newsletter toggle */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-4">Footer newsletter block</h4>
+              <label className="flex items-center gap-3 border border-gray-200 px-4 py-4 max-w-md">
+                <input
+                  type="checkbox"
+                  checked={siteDraft.showNewsletter}
+                  onChange={e => setSiteDraft(prev => prev ? { ...prev, showNewsletter: e.target.checked } : prev)}
+                />
+                <span className="text-sm">Show «Subscribe to newsletter» block in footer</span>
+              </label>
+            </div>
+
+            {/* Admin password setup */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-[0.22em] text-gray-400 mb-1">Admin Password</h4>
+              <p className="text-xs text-gray-500 mb-4">Set or change the password used to log in at /admin. Your current session token (GitHub PAT) is encrypted with this password and stored in the repo.</p>
+              <form onSubmit={handleSetPassword} className="max-w-md space-y-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-1">New password</label>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} minLength={8} required className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="min 8 chars" autoComplete="new-password" />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-widest mb-1">Confirm password</label>
+                  <input type="password" value={newPassword2} onChange={e => setNewPassword2(e.target.value)} minLength={8} required className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="repeat password" autoComplete="new-password" />
+                </div>
+                <button type="submit" disabled={savingPassword} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                  {savingPassword ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                  Save password
+                </button>
+              </form>
+            </div>
+          </section>
         ) : null}
 
         {activeTab === 'payments' ? (
@@ -1421,25 +1895,59 @@ export const AdminPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input value={paymentSettings.recipientName} onChange={e => setPaymentSettings(prev => ({ ...prev, recipientName: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Recipient / brand name" />
-              <input value={paymentSettings.invoicePrefix} onChange={e => setPaymentSettings(prev => ({ ...prev, invoicePrefix: e.target.value.toUpperCase() }))} className="border border-gray-300 px-4 py-3" placeholder="Invoice prefix" />
-              <input value={paymentSettings.visaPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, visaPaymentUrl: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Visa payment URL" />
-              <input value={paymentSettings.mastercardPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, mastercardPaymentUrl: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Mastercard payment URL" />
-              <input value={paymentSettings.cardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, cardholder: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Cardholder" />
-              <input value={paymentSettings.cardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, cardNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Card number" />
-              <input value={paymentSettings.bankName} onChange={e => setPaymentSettings(prev => ({ ...prev, bankName: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Bank name" />
-              <input value={paymentSettings.iban} onChange={e => setPaymentSettings(prev => ({ ...prev, iban: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="IBAN / account" />
-              <input value={paymentSettings.mirCardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardholder: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="MIR cardholder" />
-              <input value={paymentSettings.mirCardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="MIR card number" />
-              <input value={paymentSettings.mirBankName} onChange={e => setPaymentSettings(prev => ({ ...prev, mirBankName: e.target.value }))} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="MIR bank / issuer" />
-              <input value={paymentSettings.whatsappNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="WhatsApp number, international format" />
-              <input value={paymentSettings.telegramUsername} onChange={e => setPaymentSettings(prev => ({ ...prev, telegramUsername: e.target.value.replace(/^@/, '') }))} className="border border-gray-300 px-4 py-3" placeholder="Telegram username" />
-              <input value={paymentSettings.contactEmail} onChange={e => setPaymentSettings(prev => ({ ...prev, contactEmail: e.target.value }))} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Contact email" />
-              <input value={paymentSettings.webhookLabel} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookLabel: e.target.value }))} className="border border-gray-300 px-4 py-3" placeholder="Webhook label" />
-              <input value={paymentSettings.webhookUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookUrl: e.target.value }))} className="border border-gray-300 px-4 py-3 md:col-span-2" placeholder="Webhook URL (Make / n8n / Telegram bridge)" />
+              <LF label="Recipient / brand name">
+                <input value={paymentSettings.recipientName} onChange={e => setPaymentSettings(prev => ({ ...prev, recipientName: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
+              </LF>
+              <LF label="Invoice prefix (e.g. AM → AM-0001)">
+                <input value={paymentSettings.invoicePrefix} onChange={e => setPaymentSettings(prev => ({ ...prev, invoicePrefix: e.target.value.toUpperCase() }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
+              </LF>
+              <LF label="Visa payment URL">
+                <input value={paymentSettings.visaPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, visaPaymentUrl: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
+              </LF>
+              <LF label="Mastercard payment URL">
+                <input value={paymentSettings.mastercardPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, mastercardPaymentUrl: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
+              </LF>
+              <LF label="Card cardholder (Visa/MC)">
+                <input value={paymentSettings.cardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, cardholder: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
+              </LF>
+              <LF label="Card number (Visa/MC)">
+                <input value={paymentSettings.cardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, cardNumber: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
+              </LF>
+              <LF label="Bank name">
+                <input value={paymentSettings.bankName} onChange={e => setPaymentSettings(prev => ({ ...prev, bankName: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
+              </LF>
+              <LF label="IBAN / account number">
+                <input value={paymentSettings.iban} onChange={e => setPaymentSettings(prev => ({ ...prev, iban: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
+              </LF>
+              <LF label="MIR cardholder">
+                <input value={paymentSettings.mirCardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardholder: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
+              </LF>
+              <LF label="MIR card number">
+                <input value={paymentSettings.mirCardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardNumber: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
+              </LF>
+              <LF label="MIR bank / issuer" className="md:col-span-2">
+                <input value={paymentSettings.mirBankName} onChange={e => setPaymentSettings(prev => ({ ...prev, mirBankName: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
+              </LF>
+              <LF label="WhatsApp (international format, e.g. +49…)">
+                <input value={paymentSettings.whatsappNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
+              </LF>
+              <LF label="Telegram username (without @)">
+                <input value={paymentSettings.telegramUsername} onChange={e => setPaymentSettings(prev => ({ ...prev, telegramUsername: e.target.value.replace(/^@/, '') }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
+              </LF>
+              <LF label="Contact email" className="md:col-span-2">
+                <input type="email" value={paymentSettings.contactEmail} onChange={e => setPaymentSettings(prev => ({ ...prev, contactEmail: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
+              </LF>
+              <LF label="Webhook label">
+                <input value={paymentSettings.webhookLabel} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookLabel: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
+              </LF>
+              <LF label="Webhook URL (Make / n8n / Telegram bridge)" className="md:col-span-2">
+                <input value={paymentSettings.webhookUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookUrl: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
+              </LF>
             </div>
 
-            <textarea value={paymentSettings.paymentNote} onChange={e => setPaymentSettings(prev => ({ ...prev, paymentNote: e.target.value }))} rows={4} className="w-full border border-gray-300 px-4 py-3" placeholder="Payment note shown to the customer" />
+            <LF label="Payment note shown to the customer during checkout">
+              <textarea value={paymentSettings.paymentNote} onChange={e => setPaymentSettings(prev => ({ ...prev, paymentNote: e.target.value }))} rows={4} className="w-full border border-gray-300 px-4 py-3" />
+            </LF>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="flex items-center gap-3 border border-gray-200 px-4 py-4">
@@ -1467,14 +1975,48 @@ export const AdminPage: React.FC = () => {
 
         {activeTab === 'status' ? <StatusPanel /> : null}
 
-        {activeTab === 'orders' ? (
+        {activeTab === 'orders' ? (() => {
+          const filteredOrders = orders.filter(o => {
+            const q = orderSearch.toLowerCase();
+            const matchQ = !q || o.id.toLowerCase().includes(q) || o.customer.name.toLowerCase().includes(q) || o.customer.email.toLowerCase().includes(q);
+            const matchStatus = orderStatusFilter === 'all' || o.status === orderStatusFilter;
+            const matchPayment = orderPaymentFilter === 'all' || o.paymentStatus === orderPaymentFilter;
+            return matchQ && matchStatus && matchPayment;
+          });
+          const paidRevenue = filteredOrders.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + o.total, 0);
+          return (
           <section className="bg-white border border-primary/10 overflow-hidden">
-            <div className="p-6 border-b border-primary/10 flex items-center justify-between">
-              <h3 className="text-3xl font-serif">Orders</h3>
-              <button onClick={refreshOrders} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
-                <RefreshCw size={14} />
-                Refresh
-              </button>
+            <div className="p-6 border-b border-primary/10">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
+                <h3 className="text-3xl font-serif">Orders</h3>
+                <div className="flex gap-2">
+                  <button onClick={refreshOrders} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
+                    <RefreshCw size={14} />
+                    Refresh
+                  </button>
+                  <button onClick={() => exportOrdersCSV(filteredOrders)} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
+                    <Download size={14} />
+                    CSV
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input value={orderSearch} onChange={e => setOrderSearch(e.target.value)} placeholder="Search by ID, name or email…" className="flex-1 border border-gray-300 px-4 py-2 text-sm" />
+                <div className="flex gap-1 flex-wrap">
+                  {['all','pending','processing','shipped','delivered','cancelled'].map(s => (
+                    <button key={s} onClick={() => setOrderStatusFilter(s)} className={`px-3 py-2 text-[10px] uppercase tracking-widest border ${orderStatusFilter === s ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:bg-gray-50'}`}>{s}</button>
+                  ))}
+                </div>
+                <div className="flex gap-1">
+                  {['all','pending','paid','failed','refunded'].map(s => (
+                    <button key={s} onClick={() => setOrderPaymentFilter(s)} className={`px-3 py-2 text-[10px] uppercase tracking-widest border ${orderPaymentFilter === s ? 'bg-accent text-primary border-accent' : 'border-gray-200 hover:bg-gray-50'}`}>{s === 'all' ? '€ all' : s}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3 flex gap-6 text-sm text-gray-500">
+                <span><span className="font-bold text-primary">{filteredOrders.length}</span> orders</span>
+                {paidRevenue > 0 && <span>Paid revenue: <span className="font-bold text-green-700">€{paidRevenue.toFixed(2)}</span></span>}
+              </div>
             </div>
             <div className="overflow-auto">
               <table className="w-full text-left">
@@ -1489,7 +2031,7 @@ export const AdminPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map(order => (
+                  {filteredOrders.map(order => (
                     <React.Fragment key={order.id}>
                     <tr className="border-t border-gray-100 align-top">
                       <td className="p-4">
@@ -1582,7 +2124,8 @@ export const AdminPage: React.FC = () => {
               </table>
             </div>
           </section>
-        ) : null}
+          );
+        })() : null}
       </main>
     </div>
   );

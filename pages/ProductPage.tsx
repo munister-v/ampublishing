@@ -229,6 +229,117 @@ export const ProductPage: React.FC = () => {
          </div>
       </div>
 
+      {/* STORY SECTION */}
+      {book.story && (book.story.quote || (book.story.about?.length ?? 0) > 0 || book.story.featureImageUrl) ? (
+        <div className="border-t border-primary bg-white">
+
+          {/* Opening quote */}
+          {book.story.quote ? (
+            <div className="border-b border-primary px-6 md:px-24 py-16 md:py-24 max-w-4xl">
+              <blockquote className="text-3xl md:text-5xl font-serif italic leading-snug text-primary">
+                «{book.story.quote}»
+              </blockquote>
+              {book.story.quoteSource ? (
+                <p className="mt-6 font-mono text-xs uppercase tracking-widest text-gray-400">{book.story.quoteSource}</p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* Feature image */}
+          {book.story.featureImageUrl ? (
+            <div className="border-b border-primary">
+              <img src={book.story.featureImageUrl} alt={book.title} className="w-full max-h-[70vh] object-cover" />
+            </div>
+          ) : null}
+
+          {/* About */}
+          {(book.story.about?.length ?? 0) > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] border-b border-primary">
+              <div className="p-8 border-b md:border-b-0 md:border-r border-primary bg-[#F4F4F0] flex items-start">
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400 writing-vertical md:writing-vertical">{t('product.about_book')}</span>
+              </div>
+              <div className="p-8 md:p-16 space-y-6">
+                {book.story.about.map((para, i) => (
+                  <p key={i} className="text-lg leading-relaxed text-gray-700">{para}</p>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Themes */}
+          {(book.story.themes?.length ?? 0) > 0 ? (
+            <div className="border-b border-primary">
+              <div className="p-8 border-b border-primary bg-primary text-white">
+                <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/60">{t('product.themes')}</h2>
+              </div>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${book.story.themes!.length >= 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
+                {book.story.themes!.map((theme, i) => (
+                  <div key={i} className="border-b sm:border-r border-primary p-8 last:border-r-0 bg-primary text-white">
+                    <span className="block font-mono text-[10px] uppercase tracking-widest text-accent mb-4">0{i + 1}</span>
+                    <h3 className="font-serif text-2xl mb-3">{theme.title}</h3>
+                    <p className="text-sm text-white/70 leading-relaxed">{theme.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Excerpt */}
+          {(book.story.excerpt?.length ?? 0) > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] border-b border-primary">
+              <div className="p-8 border-b md:border-b-0 md:border-r border-primary bg-[#F4F4F0] flex items-start">
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.excerpt')}</span>
+              </div>
+              <div className="p-8 md:p-16 bg-[#F4F4F0] space-y-6 border-l-4 border-primary/20">
+                {book.story.excerpt.map((para, i) => (
+                  <p key={i} className="text-lg font-serif leading-relaxed text-primary/80 italic">{para}</p>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Author bio */}
+          {(book.story.authorBio?.length ?? 0) > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] border-b border-primary">
+              <div className="p-8 border-b md:border-b-0 md:border-r border-primary bg-[#F4F4F0] flex items-start">
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.author_section')}</span>
+              </div>
+              <div className="p-8 md:p-16 space-y-5">
+                <h3 className="font-serif text-3xl">{book.author}</h3>
+                {book.story.authorBio.map((para, i) => (
+                  <p key={i} className="text-base leading-relaxed text-gray-600">{para}</p>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Reviews */}
+          {(book.story.reviews?.length ?? 0) > 0 ? (
+            <div className="border-b border-primary">
+              <div className="p-8 border-b border-primary">
+                <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.reviews')}</h2>
+              </div>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${book.story.reviews!.length >= 3 ? 'xl:grid-cols-3' : ''}`}>
+                {book.story.reviews!.map((review, i) => (
+                  <div key={i} className="p-8 md:p-10 border-b sm:border-r border-primary last:border-r-0">
+                    <p className="text-xl font-serif italic leading-relaxed mb-6">«{review.quote}»</p>
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-gray-400">— {review.author}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Order note */}
+          {book.story.orderNote ? (
+            <div className="p-8 md:p-16 border-b border-primary bg-[#F4F4F0]">
+              <p className="text-sm text-gray-600 leading-relaxed max-w-2xl">{book.story.orderNote}</p>
+            </div>
+          ) : null}
+
+        </div>
+      ) : null}
+
       {relatedBooks.length > 0 ? (
         <div className="border-t border-primary">
            <div className="p-4 border-b border-primary bg-accent text-primary">
