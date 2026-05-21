@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../AppContext';
 import { api } from '../services/api';
+import { contentStore } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
 import { Book, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
@@ -940,8 +941,8 @@ export const AdminPage: React.FC = () => {
       setSavingKey(`book:delete:${bookDraft.id}`);
       await api.deleteBook(selectedLanguage, bookDraft.id);
       if (selectedLanguage === 'ru') {
-        await api.deleteBook('en', bookDraft.id);
-        await api.deleteBook('de', bookDraft.id);
+        await api.deleteBook('en', bookDraft.id).catch(() => {});
+        await api.deleteBook('de', bookDraft.id).catch(() => {});
       }
       setSelectedBookId('');
       await reloadContent();
