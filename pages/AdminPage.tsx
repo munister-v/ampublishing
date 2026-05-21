@@ -646,7 +646,7 @@ const StatusPanel: React.FC = () => {
 };
 
 export const AdminPage: React.FC = () => {
-  const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast, setSiteSettings: setGlobalSiteSettings } = useApp();
+  const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast, setSiteSettings: setGlobalSiteSettings, setLanguage } = useApp();
   const [activeTab, setActiveTab] = useState<AdminTab>('copy');
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('ru');
   const [database, setDatabase] = useState<Record<Language, LocalizedCatalogData> | null>(null);
@@ -1188,7 +1188,7 @@ export const AdminPage: React.FC = () => {
               {(['ru', 'en', 'de'] as Language[]).map(lang => (
                 <button
                   key={lang}
-                  onClick={() => setSelectedLanguage(lang)}
+                  onClick={() => { setSelectedLanguage(lang); setLanguage(lang); }}
                   className={`py-2 text-[10px] uppercase tracking-[0.2em] border ${
                     selectedLanguage === lang ? 'bg-accent text-primary border-accent' : 'border-white/20 text-white/70 hover:bg-white/10'
                   }`}

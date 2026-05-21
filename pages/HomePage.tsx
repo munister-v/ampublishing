@@ -147,7 +147,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 5. JOURNAL LIST */}
-      <section className="bg-white">
+      {news.length > 0 && <section className="bg-white">
          {news.map((n, idx) => (
             <div 
                key={n.id} 
@@ -163,7 +163,7 @@ export const HomePage: React.FC = () => {
                </div>
             </div>
          ))}
-      </section>
+      </section>}
 
 
     </div>

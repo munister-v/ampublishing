@@ -197,7 +197,7 @@ export const api = {
         recordFailure();
         throw new Error('Stored credentials are invalid — please re-run setup.');
       }
-      contentStore.setPAT(pat, false);
+      contentStore.setPAT(pat, true); // persist so admin session survives reload
       writeLoginState({ failures: 0, lockedUntil: 0 });
       return { token: pat, user: { name: account.login, role: 'superadmin' } };
     }
@@ -214,7 +214,7 @@ export const api = {
       recordFailure();
       throw new Error('GitHub PAT is invalid or lacks `contents: write` access.');
     }
-    contentStore.setPAT(trimmed, false);
+    contentStore.setPAT(trimmed, true); // persist so admin session survives reload
     writeLoginState({ failures: 0, lockedUntil: 0 });
     return { token: trimmed, user: { name: account.login, role: 'superadmin' } };
   },
