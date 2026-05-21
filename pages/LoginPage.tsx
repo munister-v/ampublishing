@@ -14,7 +14,15 @@ export const LoginPage: React.FC = () => {
 
   useEffect(() => {
     fetch(`/content/admin-auth.json?_=${Date.now()}`)
-      .then(r => { if (!r.ok) setIsSetupMode(true); })
+      .then(async r => {
+        if (!r.ok) { setIsSetupMode(true); return; }
+        try {
+          const data = await r.json();
+          if (!data || !data.encryptedPAT) setIsSetupMode(true);
+        } catch {
+          setIsSetupMode(true);
+        }
+      })
       .catch(() => setIsSetupMode(true));
   }, []);
 
