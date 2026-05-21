@@ -731,6 +731,25 @@ export const AdminPage: React.FC = () => {
   const [orderSearch, setOrderSearch] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all');
   const [orderPaymentFilter, setOrderPaymentFilter] = useState<string>('all');
+  const [saveOpPhase, setSaveOpPhase] = useState('');
+  const [savedFlash, setSavedFlash] = useState('');
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const startSave = (key: string, phase = '') => {
+    setSavingKey(key);
+    setSaveOpPhase(phase);
+    setSavedFlash('');
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+  };
+  const advancePhase = (phase: string) => setSaveOpPhase(phase);
+  const finishSave = (flash: string) => {
+    setSavingKey(null);
+    setSaveOpPhase('');
+    setLastPublishedAt(new Date().toLocaleTimeString());
+    setSavedFlash(flash);
+    flashTimerRef.current = setTimeout(() => setSavedFlash(''), 5000);
+  };
+  const failSave = () => { setSavingKey(null); setSaveOpPhase(''); };
 
   const loadAdminData = async () => {
     setIsRefreshing(true);
@@ -877,6 +896,8 @@ export const AdminPage: React.FC = () => {
   const handleSaveNewsRef = useRef<(() => void) | null>(null);
   const deletingRef = useRef(false);
 
+  useEffect(() => () => { if (flashTimerRef.current) clearTimeout(flashTimerRef.current); }, []);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -946,35 +967,35 @@ export const AdminPage: React.FC = () => {
     const rawValue = copyDrafts[field.key] ?? '';
     try {
       const parsedValue = field.type === 'json' ? parseJsonField(rawValue) : rawValue;
-      setSavingKey(field.key);
+      startSave(field.key, 'Отправка…');
       const nextOverrides = await api.setTranslationValue(selectedLanguage, field.key, parsedValue);
       setOverrides(nextOverrides);
+      advancePhase('Обновление…');
       await reloadContent();
-      setLastPublishedAt(new Date().toLocaleTimeString());
+      finishSave(field.label);
       showToast(
         selectedLanguage === 'ru'
           ? `${field.label} (RU) сохранено. EN/DE автоматически переведёт CI в течение пары минут.`
           : `${field.label} saved`,
       );
     } catch {
+      failSave();
       showToast(`Could not save ${field.label}`, 'error');
-    } finally {
-      setSavingKey(null);
     }
   };
 
   const handleResetTranslationField = async (field: ContentField) => {
     try {
-      setSavingKey(`${field.key}:reset`);
+      startSave(`${field.key}:reset`, 'Сброс…');
       const nextOverrides = await api.resetTranslationValue(selectedLanguage, field.key);
       setOverrides(nextOverrides);
+      advancePhase('Обновление…');
       await reloadContent();
-      setLastPublishedAt(new Date().toLocaleTimeString());
+      finishSave(field.label + ' сброшено');
       showToast(`${field.label} reset`);
     } catch {
+      failSave();
       showToast(`Could not reset ${field.label}`, 'error');
-    } finally {
-      setSavingKey(null);
     }
   };
 
@@ -994,21 +1015,22 @@ export const AdminPage: React.FC = () => {
           reviews: parsedReviews || [],
         },
       };
-      setSavingKey(`book:${bookDraft.id}`);
+      startSave(`book:${bookDraft.id}`, 'Подготовка…');
+      advancePhase('Отправка на GitHub…');
       await api.upsertBook(selectedLanguage, nextBook);
+      advancePhase('Обновление контента…');
       await reloadContent();
       await loadAdminData();
       setBookDirty(false);
-      setLastPublishedAt(new Date().toLocaleTimeString());
+      finishSave('Книга «' + (bookDraft.title || bookDraft.id) + '» сохранена');
       showToast(
         selectedLanguage === 'ru'
           ? `Книга «${bookDraft.title || bookDraft.id}» (RU) сохранена. EN/DE автоматически переведёт CI.`
           : `Book ${bookDraft.title || bookDraft.id} saved`,
       );
     } catch {
+      failSave();
       showToast('Не удалось сохранить книгу', 'error');
-    } finally {
-      setSavingKey(null);
     }
   }, [bookDraft, bookJsonDrafts, selectedLanguage]);
 
@@ -1018,7 +1040,8 @@ export const AdminPage: React.FC = () => {
     if (!bookDraft || deletingRef.current) return;
     deletingRef.current = true;
     try {
-      setSavingKey(`book:delete:${bookDraft.id}`);
+      startSave(`book:delete:${bookDraft.id}`, 'Удаление…');
+      advancePhase('Удаление на GitHub…');
       await api.deleteBook(selectedLanguage, bookDraft.id);
       if (selectedLanguage === 'ru') {
         await api.deleteBook('en', bookDraft.id).catch(() => {});
@@ -1027,12 +1050,12 @@ export const AdminPage: React.FC = () => {
       setSelectedBookId('');
       await reloadContent();
       await loadAdminData();
-      setLastPublishedAt(new Date().toLocaleTimeString());
+      finishSave('Книга удалена');
       showToast('Book removed');
     } catch {
+      failSave();
       showToast('Не удалось удалить книгу', 'error');
     } finally {
-      setSavingKey(null);
       deletingRef.current = false;
     }
   };
@@ -1040,21 +1063,21 @@ export const AdminPage: React.FC = () => {
   const handleSaveNews = useCallback(async () => {
     if (!newsDraft) return;
     try {
-      setSavingKey(`news:${newsDraft.id}`);
+      startSave(`news:${newsDraft.id}`, 'Отправка…');
       await api.upsertNewsItem(selectedLanguage, newsDraft);
+      advancePhase('Обновление…');
       await reloadContent();
       await loadAdminData();
       setNewsDirty(false);
-      setLastPublishedAt(new Date().toLocaleTimeString());
+      finishSave('Новость «' + (newsDraft.title || newsDraft.id) + '» сохранена');
       showToast(
         selectedLanguage === 'ru'
           ? `Новость «${newsDraft.title || newsDraft.id}» (RU) сохранена. EN/DE автоматически переведёт CI.`
           : `News ${newsDraft.title || newsDraft.id} saved`,
       );
     } catch {
+      failSave();
       showToast('Не удалось сохранить новость', 'error');
-    } finally {
-      setSavingKey(null);
     }
   }, [newsDraft, selectedLanguage]);
 
@@ -1064,7 +1087,8 @@ export const AdminPage: React.FC = () => {
     if (!newsDraft || deletingRef.current) return;
     deletingRef.current = true;
     try {
-      setSavingKey(`news:delete:${newsDraft.id}`);
+      startSave(`news:delete:${newsDraft.id}`, 'Удаление…');
+      advancePhase('Удаление на GitHub…');
       await api.deleteNewsItem(selectedLanguage, newsDraft.id);
       if (selectedLanguage === 'ru') {
         await api.deleteNewsItem('en', newsDraft.id);
@@ -1073,50 +1097,49 @@ export const AdminPage: React.FC = () => {
       setSelectedNewsId('');
       await reloadContent();
       await loadAdminData();
-      setLastPublishedAt(new Date().toLocaleTimeString());
+      finishSave('Новость удалена');
       showToast('News removed');
     } catch {
+      failSave();
       showToast('Не удалось удалить новость', 'error');
     } finally {
-      setSavingKey(null);
       deletingRef.current = false;
     }
   };
 
   const handleSaveAuthors = async () => {
     try {
-      setSavingKey('authors');
+      startSave('authors', 'Сохранение авторов…');
       const nextOverrides = await api.setTranslationValue(selectedLanguage, 'static.our_authors.showcase_items', showcaseDraft);
-
       setOverrides(nextOverrides);
+      advancePhase('Обновление…');
       await reloadContent();
-      setLastPublishedAt(new Date().toLocaleTimeString());
+      finishSave('Авторы сохранены');
       showToast(
         selectedLanguage === 'ru'
           ? 'Раздел «Наши авторы» (RU) сохранён. EN/DE автоматически переведёт CI.'
           : 'Our authors saved',
       );
     } catch {
+      failSave();
       showToast('Не удалось сохранить авторов', 'error');
-    } finally {
-      setSavingKey(null);
     }
   };
 
   const handleSaveSiteSettings = async () => {
     if (!siteDraft) return;
     try {
-      setSavingKey('site-settings');
+      startSave('site-settings', 'Настройки сайта…');
       const next = await api.saveSiteSettings(siteDraft);
       setSiteDraft(next);
       setGlobalSiteSettings(next);
+      advancePhase('Применение…');
       await reloadContent();
-      setLastPublishedAt(new Date().toLocaleTimeString());
+      finishSave('Настройки сохранены');
       showToast('Настройки сайта сохранены');
     } catch {
+      failSave();
       showToast('Не удалось сохранить настройки', 'error');
-    } finally {
-      setSavingKey(null);
     }
   };
 
@@ -1125,13 +1148,20 @@ export const AdminPage: React.FC = () => {
     if (newPassword !== newPassword2) { showToast('Пароли не совпадают', 'error'); return; }
     if (newPassword.length < 8) { showToast('Пароль минимум 8 символов', 'error'); return; }
     setSavingPassword(true);
+    setSaveOpPhase('Смена пароля…');
     try {
       const pat = sessionStorage.getItem('gh_pat') || localStorage.getItem('gh_pat') || '';
+      advancePhase('Сохранение…');
       await api.setupAdminPassword('admin@ampublishing.org', newPassword, pat);
+      setSaveOpPhase('');
+      setSavedFlash('Пароль обновлён');
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+      flashTimerRef.current = setTimeout(() => setSavedFlash(''), 5000);
       showToast('Пароль сохранён');
       setNewPassword('');
       setNewPassword2('');
     } catch (err) {
+      setSaveOpPhase('');
       showToast(err instanceof Error ? err.message : 'Не удалось сохранить пароль', 'error');
     } finally {
       setSavingPassword(false);
@@ -1150,27 +1180,29 @@ export const AdminPage: React.FC = () => {
 
   const handleSavePaymentSettings = async () => {
     try {
-      setSavingKey('payment-settings');
+      startSave('payment-settings', 'Настройки оплаты…');
       const next = await api.savePaymentSettings(paymentSettings);
       setPaymentSettings(next);
-      setLastPublishedAt(new Date().toLocaleTimeString());
+      finishSave('Настройки оплаты сохранены');
       showToast('Настройки оплаты сохранены');
     } catch {
+      failSave();
       showToast('Не удалось сохранить настройки оплаты', 'error');
-    } finally {
-      setSavingKey(null);
     }
   };
 
   const handleStatusChange = async (orderId: string, status: OrderStatus) => {
     setSavingKey(`order:${orderId}`);
+    setSaveOpPhase('Статус заказа…');
     await updateOrderStatus(orderId, status);
     setSavingKey(null);
+    setSaveOpPhase('');
   };
 
   const handlePaymentStatusChange = async (orderId: string, paymentStatus: PaymentStatus) => {
     try {
       setSavingKey(`payment:${orderId}`);
+      setSaveOpPhase('Статус оплаты…');
       await api.updatePaymentStatus(orderId, paymentStatus);
       await refreshOrders();
       showToast(`Payment status for ${orderId} updated`);
@@ -1178,6 +1210,7 @@ export const AdminPage: React.FC = () => {
       showToast('Could not update payment status', 'error');
     } finally {
       setSavingKey(null);
+      setSaveOpPhase('');
     }
   };
 
@@ -1220,6 +1253,12 @@ export const AdminPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F4F4F0] pt-[80px] flex flex-col md:flex-row text-primary md:h-screen md:overflow-hidden">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 top-[80px] bg-black/50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       <div className="md:hidden sticky top-[80px] z-30 bg-primary text-white border-b border-white/10">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
@@ -1232,7 +1271,14 @@ export const AdminPage: React.FC = () => {
         </div>
       </div>
 
-      <aside className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-full md:w-72 bg-primary text-white flex-shrink-0 md:sticky md:top-[80px] md:h-[calc(100vh-80px)] md:overflow-y-auto`}>
+      <aside className={`
+  fixed top-[80px] left-0 bottom-0 z-40 w-72 max-w-[85vw] overflow-y-auto
+  transition-transform duration-200 ease-in-out
+  ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+  md:relative md:translate-x-0 md:top-[80px] md:w-72 md:max-w-none
+  md:flex-shrink-0 md:sticky md:h-[calc(100vh-80px)]
+  bg-primary text-white
+`}>
         <div className="p-8 border-b border-white/10">
           <h2 className="font-serif text-3xl">AM Admin</h2>
           <p className="text-[10px] font-mono opacity-60 uppercase tracking-[0.24em] mt-2">Управление контентом</p>
@@ -1321,6 +1367,28 @@ export const AdminPage: React.FC = () => {
       </aside>
 
       <main className="flex-1 p-4 md:p-10 overflow-y-auto min-h-[calc(100vh-80px)] md:h-[calc(100vh-80px)]">
+        {/* ── Live save progress ── */}
+        {(savingKey || savingPassword) && (
+          <div className="sticky top-0 z-20 bg-primary text-white border-b border-white/10">
+            <div className="px-4 py-2.5 flex items-center gap-3">
+              <Loader2 size={13} className="animate-spin text-accent flex-shrink-0" />
+              <span className="font-mono text-xs text-white/90 font-medium truncate flex-1 min-w-0">
+                {saveOpPhase || 'Сохранение…'}
+              </span>
+              <span className="font-mono text-[10px] text-white/40 tracking-widest uppercase flex-shrink-0">GitHub API</span>
+            </div>
+            <div className="h-0.5 overflow-hidden bg-white/5">
+              <div className="h-full bg-accent/70 animate-pulse" style={{ width: '60%' }} />
+            </div>
+          </div>
+        )}
+        {savedFlash && !savingKey && !savingPassword && (
+          <div className="sticky top-0 z-20 bg-green-900 text-white border-b border-green-700/40 px-4 py-2 flex items-center gap-2">
+            <CheckCircle size={13} className="text-green-400 flex-shrink-0" />
+            <span className="font-mono text-xs text-green-100 truncate">{savedFlash}</span>
+            <span className="font-mono text-[10px] text-green-400/60 flex-shrink-0 ml-auto">{lastPublishedAt}</span>
+          </div>
+        )}
         {!database ? (
           <div className="h-full flex items-center justify-center">
             <Loader2 className="animate-spin text-primary" />
@@ -1474,7 +1542,7 @@ export const AdminPage: React.FC = () => {
             <section className="bg-white border border-primary/10 p-6">
               {bookDraft ? (
                 <div className="space-y-8">
-                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                  <div className="sticky top-0 z-10 bg-white -mx-6 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                     <div>
                       <h3 className="text-3xl font-serif">Редактор книги</h3>
                       {bookDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● НЕСОХРАНЁННЫЕ ИЗМЕНЕНИЯ · CTRL+S</span>}
@@ -1685,7 +1753,7 @@ export const AdminPage: React.FC = () => {
             <section className="bg-white border border-primary/10 p-6">
               {newsDraft ? (
                 <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                  <div className="sticky top-0 z-10 bg-white -mx-6 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                     <div>
                       <h3 className="text-3xl font-serif">Редактор новости</h3>
                       {newsDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● НЕСОХРАНЁННЫЕ ИЗМЕНЕНИЯ · CTRL+S</span>}
@@ -2282,7 +2350,81 @@ export const AdminPage: React.FC = () => {
                 {paidRevenue > 0 && <span>Оплачено: <span className="font-bold text-green-700">€{paidRevenue.toFixed(2)}</span></span>}
               </div>
             </div>
-            <div className="overflow-auto">
+            {/* Mobile card view */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {filteredOrders.map(order => (
+                <div key={order.id + '-card'} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-bold text-sm">{order.id}</div>
+                      <div className="text-[10px] text-gray-400 font-mono">{new Date(order.date).toLocaleString()}</div>
+                      <div className="text-sm font-medium mt-1">{order.customer.name}</div>
+                      <div className="text-xs text-gray-400">{order.customer.email}</div>
+                      {order.customer.phone && <div className="text-xs text-gray-400">{order.customer.phone}</div>}
+                      {order.customer.location && <div className="text-xs text-gray-400">{order.customer.location}</div>}
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="font-bold">{order.total.toFixed(2)} {order.currency}</div>
+                      <div className="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">{order.paymentMethod || 'card'}</div>
+                      <span className={`inline-block mt-1 px-2 py-0.5 text-[9px] uppercase tracking-widest border ${
+                        order.paymentStatus === 'paid' ? 'border-green-500 text-green-700' :
+                        order.paymentStatus === 'failed' ? 'border-red-400 text-red-600' :
+                        'border-amber-400 text-amber-700'
+                      }`}>{order.paymentStatus}</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-600 space-y-0.5">
+                    {order.items.map(item => (
+                      <div key={item.variantId}>{item.quantity}× {item.bookTitle}</div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 flex-wrap items-center">
+                    <select
+                      value={order.status}
+                      onChange={e => handleStatusChange(order.id, e.target.value as OrderStatus)}
+                      className="flex-1 min-w-[120px] border border-gray-300 px-2 py-1.5 text-xs bg-white"
+                    >
+                      <option value="pending">Новый</option>
+                      <option value="processing">В работе</option>
+                      <option value="shipped">Отправлен</option>
+                      <option value="delivered">Доставлен</option>
+                      <option value="cancelled">Отменён</option>
+                    </select>
+                    <select
+                      value={order.paymentStatus}
+                      onChange={e => handlePaymentStatusChange(order.id, e.target.value as PaymentStatus)}
+                      className="flex-1 min-w-[120px] border border-gray-300 px-2 py-1.5 text-xs bg-white"
+                    >
+                      <option value="pending">Ожидает оплаты</option>
+                      <option value="paid">Оплачен</option>
+                      <option value="failed">Отклонён</option>
+                      <option value="refunded">Возврат</option>
+                    </select>
+                    {(savingKey === `order:${order.id}` || savingKey === `payment:${order.id}`) && (
+                      <Loader2 size={14} className="animate-spin text-primary flex-shrink-0" />
+                    )}
+                  </div>
+                  {order.diagnostics && (
+                    <details className="text-xs border-t border-gray-100 pt-2">
+                      <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-widest text-gray-400">
+                        Диагностика
+                      </summary>
+                      <div className="mt-2 font-mono text-[10px] text-gray-500 space-y-0.5">
+                        {order.diagnostics.ip && <div>ip: {order.diagnostics.ip}</div>}
+                        {order.diagnostics.ipCountry && <div>country: {order.diagnostics.ipCountry}</div>}
+                        {order.diagnostics.userAgent && <div className="break-all">ua: {order.diagnostics.userAgent}</div>}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              ))}
+              {filteredOrders.length === 0 && (
+                <p className="p-6 text-sm text-gray-400">Нет заказов.</p>
+              )}
+            </div>
+
+            {/* Desktop table view */}
+            <div className="hidden md:block overflow-auto">
               <table className="w-full text-left">
                 <thead className="bg-[#F4F4F0]">
                   <tr className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
