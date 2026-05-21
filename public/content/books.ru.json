@@ -13,14 +13,14 @@
     "stock": 10,
     "description": "",
     "details": {
-      "pages": 0,
+      "pages": 4,
       "year": 2026,
       "publisher": "",
-      "weight": "",
+      "weight": "329",
       "dimensions": ""
     },
     "genre": [],
-    "series": "",
+    "series": "1",
     "ageRating": "16+",
     "variants": [],
     "releaseDate": "2026-05-21",
