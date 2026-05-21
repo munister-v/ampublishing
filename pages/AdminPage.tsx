@@ -238,39 +238,12 @@ const parseParagraphs = (value: string) =>
 const cloneBook = (book: Book) => JSON.parse(JSON.stringify(book)) as Book;
 
 const getAdminDraftState = (): AdminDraftState => {
-  if (typeof window === 'undefined') {
-    return {
-      copyDraftsByLanguage: {},
-      selectedBookIdByLanguage: {},
-      selectedNewsIdByLanguage: {},
-      bookDraftByLanguage: {},
-      newsDraftByLanguage: {},
-      bookJsonDraftsByLanguage: {},
-    };
-  }
-
+  if (typeof window === 'undefined') return {};
   try {
     const raw = localStorage.getItem(ADMIN_DRAFTS_KEY);
-    if (!raw) {
-      return {
-        copyDraftsByLanguage: {},
-        selectedBookIdByLanguage: {},
-        selectedNewsIdByLanguage: {},
-        bookDraftByLanguage: {},
-        newsDraftByLanguage: {},
-        bookJsonDraftsByLanguage: {},
-      };
-    }
-    return JSON.parse(raw);
+    return raw ? JSON.parse(raw) : {};
   } catch {
-    return {
-      copyDraftsByLanguage: {},
-      selectedBookIdByLanguage: {},
-      selectedNewsIdByLanguage: {},
-      bookDraftByLanguage: {},
-      newsDraftByLanguage: {},
-      bookJsonDraftsByLanguage: {},
-    };
+    return {};
   }
 };
 
@@ -832,13 +805,14 @@ export const AdminPage: React.FC = () => {
   }, [selectedLanguage, overrides]);
 
   // When language changes: reset selections so the sync effects auto-pick the first item
-  // in the new language's DB. No complex per-language draft restoration — it caused races.
+  // in the new language's DB. Also reset copyDrafts so they repopulate from new language defaults.
   useEffect(() => {
     setSelectedBookId('');
     setSelectedNewsId('');
     setBookDirty(false);
     setNewsDirty(false);
     setDeleteConfirm(null);
+    setCopyDrafts({});
   }, [selectedLanguage]);
 
   const copyValues = useMemo(() => {
@@ -916,8 +890,10 @@ export const AdminPage: React.FC = () => {
     contentGroups.forEach(group => {
       group.fields.forEach(field => {
         if (field.type !== 'json') return;
+        const value = copyDrafts[field.key];
+        if (value === undefined || value === null) return; // not yet loaded
         try {
-          parseJsonField(copyDrafts[field.key] || '');
+          parseJsonField(value);
         } catch {
           errors[field.key] = 'Invalid JSON';
         }
@@ -1291,7 +1267,7 @@ export const AdminPage: React.FC = () => {
               {(['ru', 'en', 'de'] as Language[]).map(lang => (
                 <button
                   key={lang}
-                  onClick={() => setSelectedLanguage(lang)}
+                  onClick={() => { setSelectedLanguage(lang); setSidebarOpen(false); }}
                   className={`py-2 text-[10px] uppercase tracking-[0.2em] border relative ${
                     selectedLanguage === lang ? 'bg-accent text-primary border-accent font-bold' : 'border-white/20 text-white/70 hover:bg-white/10'
                   }`}
