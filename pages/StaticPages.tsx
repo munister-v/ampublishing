@@ -389,7 +389,7 @@ export const AboutPage: React.FC = () => {
           </div>
           <div className="order-1 md:order-2 bg-gray-100 aspect-square md:aspect-[4/3] relative overflow-hidden group">
              <img
-              src={t('static.about.mission_image') as string || "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80&w=1000"}
+              src={t('static.about.mission_image') as string || '/images/about-hero.jpg'}
               alt={t('static.about.mission') as string || 'AM Publishing'}
               className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
             />
