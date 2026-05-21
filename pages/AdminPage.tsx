@@ -1476,14 +1476,14 @@ export const AdminPage: React.FC = () => {
   const news = database?.[selectedLanguage].news || [];
 
   return (
-    <div className="min-h-screen bg-[#F4F4F0] pt-[80px] flex flex-col md:flex-row text-primary md:h-screen md:overflow-hidden">
+    <div className="min-h-screen bg-[#F4F4F0] flex flex-col md:flex-row text-primary md:h-screen md:overflow-hidden">
       {sidebarOpen && (
         <div
-          className="fixed inset-0 top-[80px] bg-black/50 z-30 md:hidden"
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      <div className="md:hidden sticky top-[80px] z-30 bg-primary text-white border-b border-white/10">
+      <div className="md:hidden sticky top-0 z-30 bg-primary text-white border-b border-white/10">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <h2 className="font-serif text-2xl">AM Admin</h2>
@@ -1496,11 +1496,11 @@ export const AdminPage: React.FC = () => {
       </div>
 
       <aside className={`
-  fixed top-[80px] left-0 bottom-0 z-40 w-72 max-w-[85vw] overflow-y-auto
+  fixed top-0 left-0 bottom-0 z-40 w-72 max-w-[85vw] overflow-y-auto
   transition-transform duration-200 ease-in-out
   ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-  md:relative md:translate-x-0 md:top-[80px] md:w-72 md:max-w-none
-  md:flex-shrink-0 md:sticky md:h-[calc(100vh-80px)]
+  md:relative md:translate-x-0 md:top-0 md:w-72 md:max-w-none
+  md:flex-shrink-0 md:sticky md:h-screen
   bg-primary text-white
 `}>
         <div className="hidden md:block p-8 border-b border-white/10">
@@ -1591,7 +1591,7 @@ export const AdminPage: React.FC = () => {
         </div>
       </aside>
 
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto overflow-x-hidden min-h-[calc(100vh-80px)] md:h-[calc(100vh-80px)]">
+      <main className="flex-1 p-4 md:p-10 overflow-y-auto overflow-x-hidden min-h-screen md:h-screen">
         {/* ── Live save progress ── */}
         {(savingKey || savingPassword) && (
           <div className="sticky top-0 z-20 bg-primary text-white border-b border-white/10">
