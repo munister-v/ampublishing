@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../AppContext';
-import { Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Lock, ArrowRight, Loader2, KeyRound } from 'lucide-react';
 import { BrandLogo } from '../components/Header';
 import { api } from '../services/api';
 
@@ -10,77 +10,88 @@ export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSetupMode, setIsSetupMode] = useState(false);
+
+  useEffect(() => {
+    fetch(`/content/admin-auth.json?_=${Date.now()}`)
+      .then(r => { if (!r.ok) setIsSetupMode(true); })
+      .catch(() => setIsSetupMode(true));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
     try {
-        const response = await api.login(email, password);
-        login(response.token);
+      const response = await api.login(email, password);
+      login(response.token);
     } catch (err) {
-        const msg = err instanceof Error && err.message ? err.message : 'Invalid credentials';
-        showToast(msg, 'error');
-        setLoading(false);
+      const msg = err instanceof Error && err.message ? err.message : 'Invalid credentials';
+      showToast(msg, 'error');
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#F4F4F0] flex items-center justify-center p-6">
       <div className="bg-white border border-primary p-12 max-w-md w-full shadow-2xl relative overflow-hidden">
-        
+
         <div className="absolute top-0 right-0 p-4 opacity-10">
-            <BrandLogo className="w-32 h-32 text-primary" />
+          <BrandLogo className="w-32 h-32 text-primary" />
         </div>
 
         <div className="relative z-10">
-            <h1 className="text-3xl font-serif mb-2">Admin Panel</h1>
-            <p className="font-mono text-xs uppercase tracking-widest text-gray-500 mb-8">Internal System Access</p>
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Email</label>
-                    <input 
-                        type="email" 
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        className="w-full bg-[#F8F9FA] border-b-2 border-gray-200 p-3 outline-none focus:border-accent transition-colors"
-                        required
-                        placeholder="admin@ampublishing.org"
-                    />
-                </div>
-                <div>
-                    <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">GitHub Personal Access Token</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        className="w-full bg-[#F8F9FA] border-b-2 border-gray-200 p-3 outline-none focus:border-accent transition-colors font-mono text-sm"
-                        required
-                        placeholder="ghp_..."
-                        autoComplete="off"
-                    />
-                    <p className="mt-2 text-[10px] text-gray-500 leading-relaxed">
-                        Fine-grained PAT с правами <span className="font-mono">contents: read &amp; write</span> на репозитории <span className="font-mono">munister-v/ampublishing</span>. Создать: github.com/settings/personal-access-tokens/new
-                    </p>
-                </div>
+          <h1 className="text-3xl font-serif mb-2">Admin Panel</h1>
+          <p className="font-mono text-xs uppercase tracking-widest text-gray-500 mb-8">Internal System Access</p>
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className={`w-full bg-primary text-white py-4 uppercase font-bold text-xs tracking-[0.2em] hover:bg-accent transition-colors flex items-center justify-center gap-3 ${loading ? 'opacity-80 cursor-wait' : ''}`}
-                >
-                    {loading ? (
-                        <>Authenticating <Loader2 size={14} className="animate-spin"/></>
-                    ) : (
-                        <>Access System <Lock size={14} /></>
-                    )}
-                </button>
-            </form>
-
-            <div className="mt-8 pt-8 border-t border-gray-100 text-center">
-                <p className="text-[10px] text-gray-400 font-mono">Restricted area. Token is held only in this browser session.</p>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full bg-[#F8F9FA] border-b-2 border-gray-200 p-3 outline-none focus:border-accent transition-colors"
+                required
+                placeholder="admin@ampublishing.org"
+              />
             </div>
+            <div>
+              <label className="block text-[10px] uppercase font-bold tracking-widest mb-2">
+                {isSetupMode ? 'GitHub PAT (first-time setup)' : 'Password'}
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full bg-[#F8F9FA] border-b-2 border-gray-200 p-3 outline-none focus:border-accent transition-colors font-mono text-sm"
+                required
+                placeholder={isSetupMode ? 'ghp_...' : '••••••••'}
+                autoComplete="current-password"
+              />
+              {isSetupMode && (
+                <p className="mt-2 text-[10px] text-gray-500 leading-relaxed flex gap-1 items-start">
+                  <KeyRound size={11} className="mt-0.5 flex-shrink-0" />
+                  First login — enter your GitHub PAT. Set a permanent password in Admin → Settings afterwards.
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full bg-primary text-white py-4 uppercase font-bold text-xs tracking-[0.2em] hover:bg-accent transition-colors flex items-center justify-center gap-3 ${loading ? 'opacity-80 cursor-wait' : ''}`}
+            >
+              {loading ? (
+                <>Authenticating <Loader2 size={14} className="animate-spin" /></>
+              ) : (
+                <>Access System <Lock size={14} /></>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 pt-8 border-t border-gray-100 text-center">
+            <p className="text-[10px] text-gray-400 font-mono">Restricted area. Credentials are held only in this browser session.</p>
+          </div>
         </div>
       </div>
     </div>

@@ -284,6 +284,11 @@ export const contentStore = {
     return !!getPAT();
   },
 
+  /** Write any JSON file to the repo. Used by api.ts to save admin-auth.json. */
+  async ghWritePublicFile(path: string, content: any, message: string): Promise<void> {
+    return ghWriteFile(path, content, message);
+  },
+
   setPAT(token: string, persist = false) {
     try {
       sessionStorage.setItem(PAT_KEY, token);

@@ -15,10 +15,30 @@ import {
 } from '../types';
 import { contentStore, verifyPAT } from './contentStore';
 import { notifyOrderChannels } from './orderNotifications';
+import { decryptPAT, encryptPAT, type AdminAuthConfig } from './adminAuth';
 
-// Admin auth is now GitHub PAT-based. The "email" field is informational only;
-// the PAT (entered in the password field) is what authenticates writes to the repo.
 const ADMIN_EMAIL = 'admin@ampublishing.org';
+const ADMIN_AUTH_FILE = 'public/content/admin-auth.json';
+
+/** Fetch and return the stored AdminAuthConfig, or null if not yet set up. */
+async function fetchAuthConfig(): Promise<AdminAuthConfig | null> {
+  try {
+    const res = await fetch(`/content/admin-auth.json?_=${Date.now()}`);
+    if (!res.ok) return null;
+    return await res.json() as AdminAuthConfig;
+  } catch {
+    return null;
+  }
+}
+
+/** Write the AdminAuthConfig to the repo via the GitHub API. Requires a valid PAT already stored. */
+async function saveAuthConfig(config: AdminAuthConfig): Promise<void> {
+  await contentStore.ghWritePublicFile(
+    ADMIN_AUTH_FILE,
+    config,
+    'admin: store encrypted credentials',
+  );
+}
 
 const LOGIN_ATTEMPTS_KEY = 'am_auth_state';
 const LOGIN_MAX_ATTEMPTS = 5;
@@ -134,7 +154,7 @@ export const api = {
 
   login: async (
     email: string,
-    pat: string,
+    password: string,
   ): Promise<{ token: string; user: { name: string; role: string } }> => {
     const state = readLoginState();
     const now = Date.now();
@@ -143,32 +163,67 @@ export const api = {
       throw new Error(`Too many failed attempts. Try again in ~${minutes} min.`);
     }
 
-    const trimmed = (pat || '').trim();
-    if (!trimmed) throw new Error('GitHub Personal Access Token is required.');
+    if (!password.trim()) throw new Error('Password is required.');
 
-    // Light client-side delay to discourage rapid guessing.
+    // Artificial delay to slow brute-force.
     await new Promise(resolve => setTimeout(resolve, Math.min(400 + state.failures * 400, 3000)));
 
-    const account = await verifyPAT(trimmed);
-    const emailOk = (email || '').trim().toLowerCase() === ADMIN_EMAIL;
+    const recordFailure = () => {
+      const failures = state.failures + 1;
+      const lockedUntil = failures >= LOGIN_MAX_ATTEMPTS ? now + LOGIN_LOCKOUT_MS : 0;
+      writeLoginState({ failures, lockedUntil });
+      if (lockedUntil) throw new Error('Too many failed attempts. Locked for 15 minutes.');
+    };
 
-    if (account && emailOk) {
-      contentStore.setPAT(trimmed, false);
+    const emailNorm = (email || '').trim().toLowerCase();
+    if (emailNorm !== ADMIN_EMAIL) {
+      recordFailure();
+      throw new Error('Invalid admin email.');
+    }
+
+    const authConfig = await fetchAuthConfig();
+
+    if (authConfig) {
+      // --- Password mode: decrypt stored PAT with the supplied password ---
+      let pat: string;
+      try {
+        pat = await decryptPAT(authConfig, password, emailNorm);
+      } catch (err) {
+        recordFailure();
+        throw new Error(err instanceof Error ? err.message : 'Invalid credentials.');
+      }
+      const account = await verifyPAT(pat);
+      if (!account) {
+        recordFailure();
+        throw new Error('Stored credentials are invalid — please re-run setup.');
+      }
+      contentStore.setPAT(pat, false);
       writeLoginState({ failures: 0, lockedUntil: 0 });
-      return {
-        token: trimmed,
-        user: { name: account.login, role: 'superadmin' },
-      };
+      return { token: pat, user: { name: account.login, role: 'superadmin' } };
     }
 
-    const failures = state.failures + 1;
-    const lockedUntil = failures >= LOGIN_MAX_ATTEMPTS ? now + LOGIN_LOCKOUT_MS : 0;
-    writeLoginState({ failures, lockedUntil });
-    if (lockedUntil) {
-      throw new Error(`Too many failed attempts. Locked for 15 minutes.`);
+    // --- Fallback / Setup mode: treat the password field as a raw PAT ---
+    // This is used once to log in and then set a proper password via the admin.
+    const trimmed = password.trim();
+    if (!trimmed.startsWith('ghp_') && !trimmed.startsWith('github_pat_')) {
+      recordFailure();
+      throw new Error('No password has been configured yet. Enter your GitHub PAT to log in for the first time, then set a password in Admin → Settings.');
     }
-    if (!emailOk) throw new Error('Invalid admin email.');
-    throw new Error('GitHub token rejected (check token scope: needs `contents: write` on this repo).');
+    const account = await verifyPAT(trimmed);
+    if (!account) {
+      recordFailure();
+      throw new Error('GitHub PAT is invalid or lacks `contents: write` access.');
+    }
+    contentStore.setPAT(trimmed, false);
+    writeLoginState({ failures: 0, lockedUntil: 0 });
+    return { token: trimmed, user: { name: account.login, role: 'superadmin' } };
+  },
+
+  /** Save a new password for the admin. Encrypts the current session PAT and stores it. */
+  setupAdminPassword: async (email: string, newPassword: string, pat: string): Promise<void> => {
+    if (!newPassword || newPassword.length < 8) throw new Error('Password must be at least 8 characters.');
+    const config = await encryptPAT(pat, newPassword, email.trim().toLowerCase());
+    await saveAuthConfig(config);
   },
 
   logout: () => {
