@@ -60,27 +60,31 @@ export const Header: React.FC = () => {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex flex-1 items-stretch">
-            {headerNav.map((item) => (
-              <NavLink
-                key={item.id}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex-1 flex items-center justify-center text-[10px] uppercase tracking-[0.25em] font-bold border-r border-primary relative group overflow-hidden ${
-                    isActive ? 'text-white' : 'text-primary'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <div className={`absolute inset-0 bg-primary ${isActive ? 'translate-y-0' : 'translate-y-full'} transition-transform duration-300`} />
-                    <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out-quart" />
-                    <span className="relative z-10 group-hover:text-white transition-colors duration-500">
-                      {t(item.labelKey)}
-                    </span>
-                  </>
+          <nav className="hidden lg:flex flex-1 items-stretch border-r border-primary">
+            {headerNav.map((item, i) => (
+              <React.Fragment key={item.id}>
+                {i > 0 && (
+                  <span className="flex items-center justify-center w-6 shrink-0 text-primary/40 font-mono text-sm select-none pointer-events-none">/</span>
                 )}
-              </NavLink>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex-1 flex items-center justify-center text-[10px] uppercase tracking-[0.25em] font-bold relative group overflow-hidden ${
+                      isActive ? 'text-white' : 'text-primary'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className={`absolute inset-0 bg-primary ${isActive ? 'translate-y-0' : 'translate-y-full'} transition-transform duration-300`} />
+                      <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out-quart" />
+                      <span className="relative z-10 group-hover:text-white transition-colors duration-500">
+                        {t(item.labelKey)}
+                      </span>
+                    </>
+                  )}
+                </NavLink>
+              </React.Fragment>
             ))}
           </nav>
 

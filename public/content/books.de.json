@@ -1,1 +1,63 @@
-[]
+[
+  {
+    "id": "ambook-001",
+    "title": "Alles, was bleibt",
+    "author": "Sergey Kalinin",
+    "price": 24,
+    "coverUrl": "images/ambook-cover.jpg",
+    "badges": ["new"],
+    "type": "publisher",
+    "isPreorder": false,
+    "stock": 24,
+    "description": "Ein Roman über Rückkehr, Erinnerung und darüber, wie lange die Vergangenheit auf uns warten kann.",
+    "details": {
+      "pages": 368,
+      "year": 2026,
+      "publisher": "AM Publishing Berlin",
+      "weight": "Hardcover",
+      "dimensions": "Small print run"
+    },
+    "genre": ["Zeitgenössische Prosa", "Psychologische Literatur"],
+    "series": "AM Publishing",
+    "ageRating": "16+",
+    "releaseDate": "2026-05-01",
+    "variants": [
+      { "id": "ambook-001-hc", "format": "hardcover", "language": "Russisch", "price": 24, "stock": 24, "isbn": "AM-BOOK-HC-001" },
+      { "id": "ambook-001-se", "format": "special_edition", "language": "Russisch", "price": 39, "stock": 8, "isbn": "AM-BOOK-GIFT-001" },
+      { "id": "ambook-001-dg", "format": "digital", "language": "Russisch", "price": 0, "stock": 999, "isbn": "AM-BOOK-EXCERPT-001" }
+    ],
+    "story": {
+      "quote": "Er wusste nicht, warum er zurückgekehrt war. Nur, dass es keine andere Möglichkeit gab.",
+      "quoteSource": "Aus dem Roman, Kapitel III",
+      "about": [
+        "Dies ist die Geschichte eines Mannes, der nach vielen Jahren in die Stadt seiner Kindheit zurückkehrt und entdeckt, dass die Vergangenheit nie verschwunden ist. Sie hat nur gewartet.",
+        "Kalinin bewegt sich mit seltener Sicherheit durch drei Zeitebenen: die Nachkriegsprovinz, den Zerfall der Sowjetunion und die Gegenwart. Erinnerung ist hier keine Nostalgie, sondern Beweismaterial. Jedes Detail legt Zeugnis ab.",
+        "Alles, was bleibt, ist ein Roman über das, was wir mit uns tragen und was wir nicht zurücklassen können, selbst wenn wir es wollen."
+      ],
+      "excerpt": [
+        "Die Stadt empfing ihn mit demselben Geruch - nassem Asphalt und etwas Verbranntem -, der morgens immer über dem Industrieviertel hing.",
+        "Die Häuser standen noch. Die Bäume waren gewachsen. Der Laden an der Ecke war jetzt eine Apotheke. Doch etwas Wesentliches war verschwunden.",
+        "Sadovy-Gasse 14. Das Haus, in dem er seit dreiundzwanzig Jahren nicht mehr gewesen war."
+      ],
+      "authorBio": [
+        "Sergey Kalinin ist ein Prosaautor, dessen Texte psychologische Genauigkeit mit dichter Atmosphäre verbinden. Er schreibt über Menschen in Übergangsmomenten, wenn das Gewohnte zerbricht und das Neue noch keine Form hat.",
+        "Seine Prosa eilt nicht. Sie lebt in Details, in Pausen und in dem, was außerhalb des Bildes bleibt. Alles, was bleibt ist sein erster Roman bei AM Publishing. Berlin, 2026."
+      ],
+      "themes": [
+        { "title": "Erinnerung als Last", "text": "Die Vergangenheit lässt nicht los. Sie verändert nur ihre Gestalt." },
+        { "title": "Drei Generationen", "text": "Nachkriegszeit, die Neunziger und die Gegenwart treffen in einer Familiengeschichte aufeinander." },
+        { "title": "Heimkehr", "text": "Was bedeutet es, an einen Ort zurückzukehren, an dem niemand mehr auf dich wartet?" },
+        { "title": "Schweigen als Sprache", "text": "Das Ungesagte spricht oft lauter als jedes Geständnis." }
+      ],
+      "reviews": [
+        { "quote": "„Kalinin macht das Alltägliche schmerzhaft präzise.“", "author": "Leserin aus Moskau" },
+        { "quote": "„Der Roman hält dich mit Atmosphäre fest, nicht mit Plot.“", "author": "Leser aus Berlin" },
+        { "quote": "„Es tut weh zurückzukehren. Noch mehr tut es weh, es nicht zu tun.“", "author": "Leser aus Tel Aviv" }
+      ],
+      "orderNote": "Kleine Auflage. Hardcover. Offsetdruck. Versand in 59 Länder.",
+      "featureImageUrl": "images/ambook-object.jpg",
+      "detailPageUrl": "https://munister.com.ua/ambook.html"
+    },
+    "purchaseLinks": { "amazon": "" }
+  }
+]
