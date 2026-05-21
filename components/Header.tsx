@@ -61,11 +61,8 @@ export const Header: React.FC = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex flex-1 items-stretch border-r border-primary">
-            {headerNav.map((item, i) => (
+            {headerNav.map((item) => (
               <React.Fragment key={item.id}>
-                {i > 0 && (
-                  <span className="flex items-center justify-center w-6 shrink-0 text-primary/40 font-mono text-sm select-none pointer-events-none">/</span>
-                )}
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>

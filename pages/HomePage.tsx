@@ -84,7 +84,7 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* 3. CATALOG GRID */}
-      <section>
+      {newBooks.length > 0 && <section>
          <div className="grid grid-cols-1 md:grid-cols-12">
             {/* Sidebar Title */}
             <div className="md:col-span-1 border-r border-primary flex items-center justify-center py-12 md:py-0 bg-white">
@@ -107,7 +107,7 @@ export const HomePage: React.FC = () => {
                </div>
             </div>
          </div>
-      </section>
+      </section>}
 
       {/* 4. EDITORIAL / CONCEPT */}
       <section className="grid grid-cols-1 md:grid-cols-2 border-b border-primary min-h-[600px]">
