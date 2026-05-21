@@ -120,7 +120,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
            </div>
            <div className="flex gap-2">
              <span className={`${book.variants.length > 1 ? 'text-accent' : ''}`}>
-                {mainVariant ? formatLabel(mainVariant.format, language) : 'Standard'}
+                {mainVariant ? formatLabel(mainVariant.format, language) : '—'}
              </span>
            </div>
         </div>
@@ -136,12 +136,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
               )}
               {book.badges.includes('new') && (
                 <span className="bg-primary text-white px-2 py-1 text-[9px] font-bold uppercase tracking-widest shadow-sm">
-                  NEW
+                  {t('common.badge_new')}
                 </span>
               )}
               {book.badges.includes('bestseller') && (
                 <span className="bg-white text-primary border border-primary px-2 py-1 text-[9px] font-bold uppercase tracking-widest shadow-sm">
-                  HIT
+                  {t('common.badge_hit')}
                 </span>
               )}
            </div>
@@ -216,7 +216,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
               <div className="flex flex-col items-end">
                  {isLowStock ? (
                     <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-red-500 tracking-wider animate-pulse mb-1">
-                       <AlertCircle size={10} /> <span>Last {book.stock}</span>
+                       <AlertCircle size={10} /> <span>{t('common.last_stock', { count: book.stock })}</span>
                     </div>
                  ) : (
                     <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-300">

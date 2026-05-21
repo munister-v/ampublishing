@@ -158,7 +158,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setTranslationOverrides(overrides);
         setSiteSettings(site);
       } catch (e) {
-        showToast("Could not load content", "error");
+        showToast(t('common.toast_load_error'), "error");
         setBooks([]);
       } finally {
         setIsLoadingData(false);
@@ -219,7 +219,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       // PAT has already been stored by api.login() / contentStore.setPAT().
       setIsAdmin(true);
       refreshOrders(); // Load admin data
-      showToast("Welcome back, Administrator");
+      showToast(t('common.toast_welcome'));
       navigate('/admin');
   };
 
@@ -227,7 +227,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       api.logout();
       setIsAdmin(false);
       setOrders([]);
-      showToast("Logged out successfully");
+      showToast(t('common.toast_logged_out'));
       navigate('/login');
   };
 
@@ -299,7 +299,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const currentQty = currentItem ? currentItem.quantity : 0;
     
     if (currentQty + qty > variant.stock) {
-        showToast(`Sorry, only ${variant.stock} left in stock.`, 'error');
+        showToast(t('common.toast_stock_limit', { count: variant.stock }), 'error');
         return;
     }
 
@@ -321,7 +321,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           quantity: qty 
         }];
       });
-      showToast(`${book.title} added to cart`);
+      showToast(t('common.toast_added', { title: book.title }));
     });
   };
 
@@ -339,7 +339,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (item.variantId === variantId) {
         const limit = item.variant.stock;
         const newQ = Math.max(1, Math.min(limit, item.quantity + delta));
-        if (item.quantity + delta > limit) showToast(`Max stock reached`, 'error');
+        if (item.quantity + delta > limit) showToast(t('common.toast_max_stock'), 'error');
         return { ...item, quantity: newQ };
       }
       return item;
