@@ -1,0 +1,23 @@
+[
+  {
+    "id": "ORD-2026-9001",
+    "date": "2026-05-08T09:00:00Z",
+    "customer": {
+      "name": "Alex Meyer",
+      "email": "alex@example.com",
+      "location": "Berlin, DE"
+    },
+    "items": [
+      {
+        "variantId": "ambook-001-hc",
+        "bookTitle": "Всё, что останется",
+        "quantity": 1,
+        "priceAtPurchase": 24
+      }
+    ],
+    "total": 29,
+    "currency": "€",
+    "status": "processing",
+    "paymentStatus": "paid"
+  }
+]
