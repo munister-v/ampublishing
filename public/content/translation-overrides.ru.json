@@ -64,5 +64,6 @@
       ],
       "imageUrl": "/images/authors/nadia-hedvig.jpg"
     }
-  ]
+  ],
+  "static.about.mission_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-photo-1779362394549.webp"
 }
