@@ -383,7 +383,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           // Optimistic update
           setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
           await api.updateOrderStatus(id, status);
-          showToast(`Order ${id} updated`);
       } catch (e) {
           // Revert on fail
           refreshOrders();

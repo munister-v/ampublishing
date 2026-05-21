@@ -972,12 +972,7 @@ export const AdminPage: React.FC = () => {
       setOverrides(nextOverrides);
       advancePhase('Обновление…');
       await reloadContent();
-      finishSave(field.label);
-      showToast(
-        selectedLanguage === 'ru'
-          ? `${field.label} (RU) сохранено. EN/DE автоматически переведёт CI в течение пары минут.`
-          : `${field.label} saved`,
-      );
+      finishSave(field.label + (selectedLanguage === 'ru' ? ' · EN/DE перевод запустится автоматически' : ''));
     } catch {
       failSave();
       showToast(`Could not save ${field.label}`, 'error');
@@ -992,7 +987,6 @@ export const AdminPage: React.FC = () => {
       advancePhase('Обновление…');
       await reloadContent();
       finishSave(field.label + ' сброшено');
-      showToast(`${field.label} reset`);
     } catch {
       failSave();
       showToast(`Could not reset ${field.label}`, 'error');
@@ -1022,12 +1016,7 @@ export const AdminPage: React.FC = () => {
       await reloadContent();
       await loadAdminData();
       setBookDirty(false);
-      finishSave('Книга «' + (bookDraft.title || bookDraft.id) + '» сохранена');
-      showToast(
-        selectedLanguage === 'ru'
-          ? `Книга «${bookDraft.title || bookDraft.id}» (RU) сохранена. EN/DE автоматически переведёт CI.`
-          : `Book ${bookDraft.title || bookDraft.id} saved`,
-      );
+      finishSave('Книга «' + (bookDraft.title || bookDraft.id) + '» сохранена' + (selectedLanguage === 'ru' ? ' · EN/DE запустится автоматически' : ''));
     } catch {
       failSave();
       showToast('Не удалось сохранить книгу', 'error');
@@ -1051,7 +1040,6 @@ export const AdminPage: React.FC = () => {
       await reloadContent();
       await loadAdminData();
       finishSave('Книга удалена');
-      showToast('Book removed');
     } catch {
       failSave();
       showToast('Не удалось удалить книгу', 'error');
@@ -1069,12 +1057,7 @@ export const AdminPage: React.FC = () => {
       await reloadContent();
       await loadAdminData();
       setNewsDirty(false);
-      finishSave('Новость «' + (newsDraft.title || newsDraft.id) + '» сохранена');
-      showToast(
-        selectedLanguage === 'ru'
-          ? `Новость «${newsDraft.title || newsDraft.id}» (RU) сохранена. EN/DE автоматически переведёт CI.`
-          : `News ${newsDraft.title || newsDraft.id} saved`,
-      );
+      finishSave('Новость «' + (newsDraft.title || newsDraft.id) + '» сохранена' + (selectedLanguage === 'ru' ? ' · EN/DE запустится автоматически' : ''));
     } catch {
       failSave();
       showToast('Не удалось сохранить новость', 'error');
@@ -1098,7 +1081,6 @@ export const AdminPage: React.FC = () => {
       await reloadContent();
       await loadAdminData();
       finishSave('Новость удалена');
-      showToast('News removed');
     } catch {
       failSave();
       showToast('Не удалось удалить новость', 'error');
@@ -1114,12 +1096,7 @@ export const AdminPage: React.FC = () => {
       setOverrides(nextOverrides);
       advancePhase('Обновление…');
       await reloadContent();
-      finishSave('Авторы сохранены');
-      showToast(
-        selectedLanguage === 'ru'
-          ? 'Раздел «Наши авторы» (RU) сохранён. EN/DE автоматически переведёт CI.'
-          : 'Our authors saved',
-      );
+      finishSave('Авторы сохранены' + (selectedLanguage === 'ru' ? ' · EN/DE запустится автоматически' : ''));
     } catch {
       failSave();
       showToast('Не удалось сохранить авторов', 'error');
@@ -1136,7 +1113,6 @@ export const AdminPage: React.FC = () => {
       advancePhase('Применение…');
       await reloadContent();
       finishSave('Настройки сохранены');
-      showToast('Настройки сайта сохранены');
     } catch {
       failSave();
       showToast('Не удалось сохранить настройки', 'error');
@@ -1157,7 +1133,6 @@ export const AdminPage: React.FC = () => {
       setSavedFlash('Пароль обновлён');
       if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
       flashTimerRef.current = setTimeout(() => setSavedFlash(''), 5000);
-      showToast('Пароль сохранён');
       setNewPassword('');
       setNewPassword2('');
     } catch (err) {
@@ -1184,7 +1159,6 @@ export const AdminPage: React.FC = () => {
       const next = await api.savePaymentSettings(paymentSettings);
       setPaymentSettings(next);
       finishSave('Настройки оплаты сохранены');
-      showToast('Настройки оплаты сохранены');
     } catch {
       failSave();
       showToast('Не удалось сохранить настройки оплаты', 'error');
@@ -1920,8 +1894,30 @@ export const AdminPage: React.FC = () => {
           ];
           const allAboutFields = aboutSections.flatMap(s => s.fields);
           const handleSaveAll = async () => {
-            for (const field of allAboutFields) {
-              await handleSaveTranslationField(field);
+            startSave('about:all', `Сохранение (1 / ${allAboutFields.length})…`);
+            const errors: string[] = [];
+            let lastOverrides: TranslationOverrides | null = null;
+            for (let i = 0; i < allAboutFields.length; i++) {
+              const field = allAboutFields[i];
+              advancePhase(`${field.label} (${i + 1} / ${allAboutFields.length})`);
+              try {
+                const raw = copyDrafts[field.key] ?? '';
+                const parsed = field.type === 'json' ? parseJsonField(raw) : raw;
+                lastOverrides = await api.setTranslationValue(selectedLanguage, field.key, parsed);
+              } catch {
+                errors.push(field.label);
+              }
+            }
+            if (lastOverrides) {
+              advancePhase('Обновление контента…');
+              setOverrides(lastOverrides);
+              await reloadContent();
+            }
+            if (errors.length === 0) {
+              finishSave(`«О нас» сохранено — ${allAboutFields.length} полей` + (selectedLanguage === 'ru' ? ' · EN/DE запустится автоматически' : ''));
+            } else {
+              failSave();
+              showToast(`Ошибки при сохранении: ${errors.join(', ')}`, 'error');
             }
           };
           return (
