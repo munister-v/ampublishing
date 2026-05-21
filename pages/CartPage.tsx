@@ -34,10 +34,10 @@ export const CartPage: React.FC = () => {
            <div className="flex-1 border-b lg:border-b-0 lg:border-r border-primary bg-white">
               {/* Header */}
               <div className="hidden md:grid grid-cols-12 gap-4 p-4 border-b border-primary font-mono text-xs uppercase tracking-widest text-gray-500">
-                 <div className="col-span-6">Item Description</div>
-                 <div className="col-span-2 text-center">Unit Price</div>
-                 <div className="col-span-2 text-center">Qty</div>
-                 <div className="col-span-2 text-right">Total</div>
+                 <div className="col-span-6">{t('cart.col_description')}</div>
+                 <div className="col-span-2 text-center">{t('cart.col_unit_price')}</div>
+                 <div className="col-span-2 text-center">{t('cart.col_qty')}</div>
+                 <div className="col-span-2 text-right">{t('cart.col_total')}</div>
               </div>
 
               {cart.map(item => (
@@ -87,7 +87,7 @@ export const CartPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between border-b border-primary/20 pb-2">
                        <span>{t('cart.delivery')}</span>
-                       <span>Calc. next step</span>
+                       <span>{t('cart.delivery_next_step')}</span>
                     </div>
                     <div className="flex justify-between text-xl font-bold pt-4">
                        <span>{t('cart.total')}</span>

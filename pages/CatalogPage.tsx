@@ -173,13 +173,13 @@ export const CatalogPage: React.FC = () => {
       {/* 1. CATALOG HEADER */}
       <div className="border-b border-primary p-6 md:p-12 bg-white flex flex-col md:flex-row justify-between items-end gap-6 relative z-20">
         <div>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400 block mb-2">Archive / Inventory</span>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400 block mb-2">{t('catalog.archive_label')}</span>
             <h1 className="text-5xl md:text-8xl font-serif uppercase leading-[0.9] text-primary break-words">
                 {searchQuery ? t('catalog.title_search') : t('catalog.title_all')}
             </h1>
             <div className="flex items-center gap-4 mt-6">
                <span className="font-mono text-xs bg-primary text-white px-2 py-1">
-                  {filteredBooks.length} ITEMS
+                  {t('catalog.items_count', { count: filteredBooks.length })}
                </span>
                {(activeGenres.length > 0 || activeAuthors.length > 0 || minPrice || maxPrice) && (
                    <button onClick={clearAllFilters} className="text-xs uppercase underline text-red-500 hover:no-underline">
@@ -267,7 +267,7 @@ export const CatalogPage: React.FC = () => {
                        className="w-full bg-white border border-primary p-2 text-sm font-mono focus:bg-accent/10 outline-none"
                     />
                  </div>
-                 <button onClick={applyPriceFilter} className="w-full bg-primary text-white py-2 text-[10px] uppercase font-bold tracking-widest hover:bg-accent transition-colors">Apply</button>
+                 <button onClick={applyPriceFilter} className="w-full bg-primary text-white py-2 text-[10px] uppercase font-bold tracking-widest hover:bg-accent transition-colors">{t('catalog.filters.apply')}</button>
               </FilterAccordion>
 
               {/* Availability */}
@@ -296,7 +296,7 @@ export const CatalogPage: React.FC = () => {
                           <div className={`w-4 h-4 border border-primary flex items-center justify-center transition-colors ${activeFormats.includes(f) ? 'bg-primary' : 'bg-transparent'}`}>
                              {activeFormats.includes(f) && <div className="w-2 h-2 bg-white rounded-none" />}
                           </div>
-                          <span className={`text-sm font-mono uppercase ${activeFormats.includes(f) ? 'text-primary font-bold' : 'text-gray-500 group-hover:text-primary'}`}>{f.replace('_', ' ')}</span>
+                          <span className={`text-sm font-mono uppercase ${activeFormats.includes(f) ? 'text-primary font-bold' : 'text-gray-500 group-hover:text-primary'}`}>{t(`catalog.formats.${f}`)}</span>
                           <input type="checkbox" className="hidden" checked={activeFormats.includes(f)} onChange={() => updateParams('format', f)} />
                        </label>
                     ))}
@@ -325,7 +325,7 @@ export const CatalogPage: React.FC = () => {
 
         {/* Mobile Filter Button */}
         <div className="md:hidden border-b border-primary p-4 sticky top-[60px] bg-white z-30 flex justify-between items-center shadow-md">
-            <span className="font-mono text-xs font-bold">{filteredBooks.length} RESULTS</span>
+            <span className="font-mono text-xs font-bold">{t('catalog.results_count', { count: filteredBooks.length })}</span>
             <button onClick={() => setMobileFiltersOpen(true)} className="flex items-center gap-2 text-xs uppercase font-bold border border-primary px-4 py-3 bg-primary text-white">
                 {t('catalog.filters.title')} <Filter size={14}/>
             </button>

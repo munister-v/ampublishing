@@ -128,6 +128,11 @@ export const translations: Record<Language, TranslationTree> = {
       delete: "Удалить",
       viewed_recently: "Вы смотрели ранее",
       item_no: "Позиция №",
+      col_description: "Описание товара",
+      col_unit_price: "Цена за ед.",
+      col_qty: "Кол-во",
+      col_total: "Сумма",
+      delivery_next_step: "На следующем шаге",
     },
     checkout: {
       title: "Оформление",
@@ -426,8 +431,18 @@ export const translations: Record<Language, TranslationTree> = {
             price_desc: "Цена: по убыванию",
             alpha_asc: "А-Я"
           },
+          archive_label: "Архив · Каталог",
+          items_count: "{count} позиций",
+          results_count: "{count} результатов",
+          formats: {
+            hardcover: "Твёрдая обложка",
+            paperback: "Мягкая обложка",
+            digital: "Электронная книга",
+            special_edition: "Спецвыпуск",
+          },
           filters: {
             title: "Фильтры",
+            apply: "Применить",
             in_stock: "В наличии",
             editions: "Издания",
             publisher: "Издательство",
@@ -686,6 +701,15 @@ export const translations: Record<Language, TranslationTree> = {
         price_desc: "Price: High to Low",
         alpha_asc: "A-Z"
       },
+      archive_label: "Archive · Catalog",
+      items_count: "{count} items",
+      results_count: "{count} results",
+      formats: {
+        hardcover: "Hardcover",
+        paperback: "Paperback",
+        digital: "Digital",
+        special_edition: "Special Edition",
+      },
       filters: {
         title: "Filters",
         in_stock: "In Stock Only",
@@ -702,6 +726,7 @@ export const translations: Record<Language, TranslationTree> = {
         no_results: "No Results Found",
         try_adjusting: "Try adjusting your filters",
         clear_all: "Clear All Filters",
+        apply: "Apply",
       },
     },
     cart: {
@@ -725,6 +750,11 @@ export const translations: Record<Language, TranslationTree> = {
       delete: "Remove",
       viewed_recently: "Recently Viewed",
       item_no: "Item No.",
+      col_description: "Item Description",
+      col_unit_price: "Unit Price",
+      col_qty: "Qty",
+      col_total: "Total",
+      delivery_next_step: "Calc. next step",
     },
     services: {
       title: "Publishing Application",
@@ -1138,6 +1168,15 @@ export const translations: Record<Language, TranslationTree> = {
         price_desc: "Preis: Hoch bis Niedrig",
         alpha_asc: "A-Z"
       },
+      archive_label: "Archiv · Katalog",
+      items_count: "{count} Titel",
+      results_count: "{count} Ergebnisse",
+      formats: {
+        hardcover: "Hardcover",
+        paperback: "Taschenbuch",
+        digital: "E-Book",
+        special_edition: "Sonderausgabe",
+      },
       filters: {
         title: "Filter",
         in_stock: "Nur auf Lager",
@@ -1154,6 +1193,7 @@ export const translations: Record<Language, TranslationTree> = {
         no_results: "Keine Ergebnisse gefunden",
         try_adjusting: "Versuchen Sie, Ihre Filter anzupassen",
         clear_all: "Alle Filter löschen",
+        apply: "Anwenden",
       },
     },
     cart: {
@@ -1177,6 +1217,11 @@ export const translations: Record<Language, TranslationTree> = {
       delete: "Entfernen",
       viewed_recently: "Zuletzt angesehen",
       item_no: "Pos. Nr.",
+      col_description: "Artikelbeschreibung",
+      col_unit_price: "Einzelpreis",
+      col_qty: "Menge",
+      col_total: "Gesamt",
+      delivery_next_step: "Im nächsten Schritt",
     },
     services: {
       title: "Publikationsantrag",

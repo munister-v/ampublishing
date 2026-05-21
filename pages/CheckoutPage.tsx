@@ -778,7 +778,7 @@ export const CheckoutPage: React.FC = () => {
           <div className="hidden lg:block lg:col-span-5 bg-[#F4F4F0] p-6 md:p-12 border-t lg:border-t-0 border-primary sticky top-[80px] h-fit">
              <div className="mb-8 pb-4 border-b border-primary/20 flex justify-between items-end">
                 <h3 className="font-serif text-3xl">{t('cart.summary')}</h3>
-                <span className="font-mono text-xs text-gray-400">{cart.length} ITEMS</span>
+                <span className="font-mono text-xs text-gray-400">{t('catalog.items_count', { count: cart.length })}</span>
              </div>
              
              <div className="space-y-6 mb-8 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
