@@ -1334,7 +1334,11 @@ export const AdminPage: React.FC = () => {
           const totalNews = database[selectedLanguage].news.length;
           const pendingOrders = orders.filter(o => o.paymentStatus === 'pending').length;
           const totalRevenue = orders.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + o.total, 0);
-          const hasErrors = Object.keys(copyJsonErrors).length || Object.keys(bookJsonErrors).length || bookRequiredErrors.length || newsRequiredErrors.length;
+          const isNewBook = !!selectedBookId && !database[selectedLanguage].books.find(b => b.id === selectedBookId);
+          const isNewNews = !!selectedNewsId && !database[selectedLanguage].news.find(n => n.id === selectedNewsId);
+          const hasErrors = Object.keys(copyJsonErrors).length || Object.keys(bookJsonErrors).length ||
+            (!isNewBook && bookRequiredErrors.length) ||
+            (!isNewNews && newsRequiredErrors.length);
           return (
             <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-6">
               <div className="bg-white border border-primary/10 p-4 col-span-1">
@@ -1439,7 +1443,9 @@ export const AdminPage: React.FC = () => {
                   onClick={() => {
                     const next = createBookTemplate(selectedLanguage);
                     setSelectedBookId(next.id);
+                    skipBookDirtyRef.current = true;
                     setBookDraft(next);
+                    setBookDirty(false);
                   }}
                   className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                 >
@@ -1656,7 +1662,9 @@ export const AdminPage: React.FC = () => {
                   onClick={() => {
                     const next = createNewsTemplate();
                     setSelectedNewsId(next.id);
+                    skipNewsDirtyRef.current = true;
                     setNewsDraft(next);
+                    setNewsDirty(false);
                   }}
                   className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                 >
