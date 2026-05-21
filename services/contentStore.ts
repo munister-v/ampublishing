@@ -87,6 +87,25 @@ const ghWriteFile = async (path: string, jsonContent: any, message: string): Pro
   }
 };
 
+const ghWriteBinaryFile = async (path: string, base64Content: string, message: string): Promise<string> => {
+  const token = getPAT();
+  if (!token) throw new Error('Admin not authenticated (no GitHub PAT)');
+  const sha = await ghGetFileSha(path);
+  const body: Record<string, any> = { message, content: base64Content, branch: GH_BRANCH };
+  if (sha) body.sha = sha;
+  const res = await fetch(`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { ...ghHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`GitHub write failed (${res.status}): ${errText.slice(0, 300)}`);
+  }
+  const data = await res.json();
+  return data.content?.download_url || `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
+};
+
 // ----------------- Public JSON fetch (no auth) -----------------
 
 const fetchContent = async <T,>(filename: string, fallback: T): Promise<T> => {
@@ -287,6 +306,19 @@ export const contentStore = {
   /** Write any JSON file to the repo. Used by api.ts to save admin-auth.json. */
   async ghWritePublicFile(path: string, content: any, message: string): Promise<void> {
     return ghWriteFile(path, content, message);
+  },
+
+  /**
+   * Upload an image (as base64 data URL) to the repo's public/images/uploads/ folder.
+   * Returns the public path (/images/uploads/<filename>) suitable for use in content JSON.
+   */
+  async uploadImage(filename: string, dataUrl: string): Promise<string> {
+    const base64 = dataUrl.split(',')[1];
+    if (!base64) throw new Error('Invalid image data URL');
+    const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '-');
+    const path = `public/images/uploads/${safeName}`;
+    await ghWriteBinaryFile(path, base64, `admin: upload image ${safeName}`);
+    return `/images/uploads/${safeName}`;
   },
 
   setPAT(token: string, persist = false) {
@@ -514,7 +546,7 @@ export const contentStore = {
     return this.exportContent();
   },
 
-  // --- Orders: local-only until Phase 5 ---
+  // --- Orders ---
 
   getOrders(): Order[] {
     return clone(getOrdersStorage());
@@ -522,6 +554,41 @@ export const contentStore = {
 
   saveOrders(orders: Order[]) {
     return saveOrdersStorage(clone(orders));
+  },
+
+  /**
+   * Sync orders from localStorage to GitHub (admin-only, requires PAT).
+   * Stored at public/content/orders.json — NOT served to the public site,
+   * but readable by the admin panel for cross-device order management.
+   */
+  async syncOrdersToGitHub(): Promise<void> {
+    const orders = getOrdersStorage();
+    await ghWriteFile(
+      'public/content/orders.json',
+      orders,
+      `admin: sync ${orders.length} order(s)`,
+    );
+  },
+
+  /**
+   * Load orders from GitHub and merge with localStorage (admin use).
+   * Takes the union, deduped by id, preferring the more recent status.
+   */
+  async loadOrdersFromGitHub(): Promise<Order[]> {
+    try {
+      const remote = await fetchContent<Order[]>('orders.json', []);
+      if (!remote.length) return getOrdersStorage();
+      const local = getOrdersStorage();
+      const merged = [...remote];
+      for (const lo of local) {
+        if (!merged.find(r => r.id === lo.id)) merged.push(lo);
+      }
+      merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      saveOrdersStorage(merged);
+      return clone(merged);
+    } catch {
+      return getOrdersStorage();
+    }
   },
 
   createOrder(payload: OrderPayload): Order {

@@ -338,38 +338,70 @@ const ImageField: React.FC<{
   label: string;
   value: string;
   onChange: (value: string) => void;
-}> = ({ label, value, onChange }) => {
+  filenamePrefix?: string;
+}> = ({ label, value, onChange, filenamePrefix = 'upload' }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'optimizing' | 'uploading' | 'done' | 'error'>('idle');
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
       setIsUploading(true);
+      setUploadStatus('optimizing');
       const dataUrl = await optimizeImageFile(file);
-      onChange(dataUrl);
+
+      // Try uploading to GitHub; fall back to data URL if not authenticated
+      const ext = 'webp';
+      const filename = `${filenamePrefix}-${Date.now()}.${ext}`;
+      try {
+        setUploadStatus('uploading');
+        const publicPath = await contentStore.uploadImage(filename, dataUrl);
+        onChange(publicPath);
+        setUploadStatus('done');
+      } catch {
+        // Not authenticated or quota issue — keep data URL locally
+        onChange(dataUrl);
+        setUploadStatus('error');
+      }
     } finally {
       setIsUploading(false);
       event.target.value = '';
     }
   };
 
+  const statusLabel = {
+    idle: 'Upload image',
+    optimizing: 'Optimizing…',
+    uploading: 'Uploading to GitHub…',
+    done: 'Uploaded ✓',
+    error: 'Saved locally (no PAT)',
+  }[uploadStatus];
+
+  const isBase64 = value.startsWith('data:');
+
   return (
     <div className="space-y-3">
       <label className="block text-sm font-bold">{label}</label>
       <input
         value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary"
-        placeholder="Image URL or uploaded image data"
+        onChange={e => { onChange(e.target.value); setUploadStatus('idle'); }}
+        className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary text-xs font-mono"
+        placeholder="https://... or upload a file →"
       />
+      {isBase64 && (
+        <p className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 px-3 py-2">
+          ⚠ Image stored as base64 — save the book to upload it to GitHub and replace with a proper URL.
+        </p>
+      )}
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-        <label className="inline-flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-xs uppercase tracking-[0.18em] cursor-pointer hover:bg-gray-50">
+        <label className={`inline-flex items-center justify-center gap-2 px-4 py-3 border text-xs uppercase tracking-[0.18em] cursor-pointer transition-colors ${isUploading ? 'border-gray-200 text-gray-400 cursor-wait' : 'border-gray-300 hover:bg-gray-50'}`}>
           {isUploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
-          {isUploading ? 'Optimizing...' : 'Upload image'}
-          <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+          {statusLabel}
+          <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isUploading} />
         </label>
-        {value ? <span className="text-xs text-gray-400 break-all">Uploaded from PC, optimized automatically and stored in admin content state</span> : null}
+        {uploadStatus === 'done' && <span className="text-xs text-green-600">Saved to /images/uploads/ in repo</span>}
+        {uploadStatus === 'error' && <span className="text-xs text-amber-600">Stored locally — log in with PAT to upload</span>}
       </div>
       {value ? (
         <div className="border border-gray-200 bg-[#F8F8F5] p-3">
@@ -1454,6 +1486,7 @@ export const AdminPage: React.FC = () => {
                     label="Cover image"
                     value={bookDraft.coverUrl}
                     onChange={value => setBookDraft(prev => prev ? { ...prev, coverUrl: value } : prev)}
+                    filenamePrefix={`cover-${bookDraft.id || 'book'}`}
                   />
 
                   <LF label="Short description (catalog card)">
@@ -1492,6 +1525,7 @@ export const AdminPage: React.FC = () => {
                       label="Story feature image (large banner on book page)"
                       value={bookDraft.story?.featureImageUrl || ''}
                       onChange={value => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, featureImageUrl: value } } : prev)}
+                      filenamePrefix={`story-${bookDraft.id || 'book'}`}
                     />
                     <LF label="About (paragraphs separated by blank line)">
                       <textarea value={(bookDraft.story?.about || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, about: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" />
@@ -1989,10 +2023,39 @@ export const AdminPage: React.FC = () => {
             <div className="p-6 border-b border-primary/10">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
                 <h3 className="text-3xl font-serif">Orders</h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button onClick={refreshOrders} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
                     <RefreshCw size={14} />
                     Refresh
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await contentStore.loadOrdersFromGitHub();
+                        refreshOrders();
+                        showToast('Orders loaded from GitHub', 'success');
+                      } catch (e) {
+                        showToast('Failed to load from GitHub', 'error');
+                      }
+                    }}
+                    className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <Download size={14} />
+                    Load from GitHub
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await contentStore.syncOrdersToGitHub();
+                        showToast('Orders synced to GitHub', 'success');
+                      } catch (e) {
+                        showToast('Sync failed — check PAT', 'error');
+                      }
+                    }}
+                    className="px-4 py-3 text-xs uppercase tracking-widest border border-primary bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
+                  >
+                    <RefreshCw size={14} />
+                    Sync to GitHub
                   </button>
                   <button onClick={() => exportOrdersCSV(filteredOrders)} className="px-4 py-3 text-xs uppercase tracking-widest border border-gray-300 hover:bg-gray-50 flex items-center gap-2">
                     <Download size={14} />
