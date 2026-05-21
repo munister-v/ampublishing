@@ -381,8 +381,8 @@ export const contentStore = {
     if (!base64) throw new Error('Invalid image data URL');
     const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '-');
     const path = `public/images/uploads/${safeName}`;
-    await ghWriteBinaryFile(path, base64, `admin: upload image ${safeName}`);
-    return `/images/uploads/${safeName}`;
+    const rawUrl = await ghWriteBinaryFile(path, base64, `admin: upload image ${safeName}`);
+    return rawUrl;
   },
 
   setPAT(token: string, persist = false) {
