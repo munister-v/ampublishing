@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
-import { Book, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
+import { Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
   AlertCircle,
@@ -333,75 +333,281 @@ const ImageField: React.FC<{
   value: string;
   onChange: (value: string) => void;
   filenamePrefix?: string;
-}> = ({ label, value, onChange, filenamePrefix = 'upload' }) => {
+  hint?: string;
+}> = ({ label, value, onChange, filenamePrefix = 'upload', hint }) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'optimizing' | 'uploading' | 'done' | 'error'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<'idle'|'optimizing'|'uploading'|'done'|'error'>('idle');
+  const [imgMeta, setImgMeta] = useState<{ w: number; h: number } | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  useEffect(() => {
+    if (!value || value.startsWith('data:')) { setImgMeta(null); return; }
+    const img = new Image();
+    img.onload = () => setImgMeta({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => setImgMeta(null);
+    img.src = value;
+  }, [value]);
+
+  const processFile = async (file: File) => {
     try {
       setIsUploading(true);
       setUploadStatus('optimizing');
       const dataUrl = await optimizeImageFile(file);
-
-      // Try uploading to GitHub; fall back to data URL if not authenticated
-      const ext = 'webp';
-      const filename = `${filenamePrefix}-${Date.now()}.${ext}`;
+      const filename = `${filenamePrefix}-${Date.now()}.webp`;
       try {
         setUploadStatus('uploading');
         const publicPath = await contentStore.uploadImage(filename, dataUrl);
         onChange(publicPath);
         setUploadStatus('done');
       } catch {
-        // Not authenticated or quota issue — keep data URL locally
         onChange(dataUrl);
         setUploadStatus('error');
       }
     } finally {
       setIsUploading(false);
-      event.target.value = '';
     }
   };
 
-  const statusLabel = {
-    idle: 'Загрузить фото',
-    optimizing: 'Оптимизация…',
-    uploading: 'Загрузка на GitHub…',
-    done: 'Загружено ✓',
-    error: 'Сохранено локально',
-  }[uploadStatus];
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processFile(file);
+    e.target.value = '';
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file?.type.startsWith('image/')) await processFile(file);
+  };
 
   const isBase64 = value.startsWith('data:');
 
+  const statusLabel: Record<string, string> = {
+    idle: 'Загрузить фото',
+    optimizing: 'Оптимизация…',
+    uploading: 'Загрузка на GitHub…',
+    done: '✓ Загружено',
+    error: 'Сохранено локально',
+  };
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <label className="block text-sm font-bold">{label}</label>
-      <input
-        value={value}
-        onChange={e => { onChange(e.target.value); setUploadStatus('idle'); }}
-        className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary text-xs font-mono"
-        placeholder="https://... или загрузите файл →"
-      />
-      {isBase64 && (
-        <p className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 px-3 py-2">
-          ⚠ Изображение в base64 — сохраните книгу для загрузки на GitHub.
-        </p>
-      )}
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-        <label className={`inline-flex items-center justify-center gap-2 px-4 py-3 border text-xs uppercase tracking-[0.18em] cursor-pointer transition-colors ${isUploading ? 'border-gray-200 text-gray-400 cursor-wait' : 'border-gray-300 hover:bg-gray-50'}`}>
-          {isUploading ? <Loader2 size={14} className="animate-spin" /> : <ImagePlus size={14} />}
-          {statusLabel}
+      {hint && <p className="text-[10px] text-gray-400">{hint}</p>}
+      <div className="flex gap-2">
+        <input
+          value={value}
+          onChange={e => { onChange(e.target.value); setUploadStatus('idle'); setImgMeta(null); }}
+          className="flex-1 border border-gray-300 px-3 py-2 bg-white outline-none focus:border-primary text-xs font-mono"
+          placeholder="https://... или перетащите файл ниже"
+        />
+        {value && (
+          <button type="button" onClick={() => { onChange(''); setImgMeta(null); setUploadStatus('idle'); }}
+            className="px-3 py-2 border border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors" title="Убрать изображение">
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      <div
+        onDrop={handleDrop}
+        onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
+        onDragLeave={() => setIsDragOver(false)}
+        className={`border-2 border-dashed transition-colors ${isDragOver ? 'border-accent bg-accent/5' : 'border-gray-200 bg-[#F8F8F5]'}`}
+      >
+        {value ? (
+          <div className="relative group cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
+            <img src={value} alt={label} className="w-full max-h-56 object-contain p-2" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+              <span className="bg-black/60 text-white text-[10px] font-mono uppercase tracking-widest px-3 py-1.5">Развернуть</span>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] font-mono px-2 py-1 flex items-center gap-3">
+              {imgMeta && <span>{imgMeta.w} × {imgMeta.h} px</span>}
+              {isBase64 && <span className="text-amber-300">⚠ base64 — сохраните для загрузки на GitHub</span>}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-gray-400 gap-2 select-none">
+            <ImagePlus size={28} strokeWidth={1.5} />
+            <span className="text-xs font-mono">Перетащите изображение сюда</span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <label className={`inline-flex items-center gap-2 px-4 py-2 border text-[10px] uppercase tracking-[0.18em] cursor-pointer transition-colors flex-shrink-0 ${isUploading ? 'border-gray-200 text-gray-400 cursor-wait' : 'border-gray-300 hover:bg-gray-50'}`}>
+          {isUploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+          {statusLabel[uploadStatus] ?? 'Загрузить фото'}
           <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isUploading} />
         </label>
-        {uploadStatus === 'done' && <span className="text-xs text-green-600">Сохранено в /images/uploads/</span>}
-        {uploadStatus === 'error' && <span className="text-xs text-amber-600">Сохранено локально — войдите с PAT</span>}
+        {uploadStatus === 'done' && <span className="text-[10px] text-green-600 font-mono">→ /images/uploads/</span>}
+        {uploadStatus === 'error' && <span className="text-[10px] text-amber-600 font-mono">PAT не активен — сохранено локально</span>}
       </div>
-      {value ? (
-        <div className="border border-gray-200 bg-[#F8F8F5] p-3">
-          <img src={value} alt={label} className="max-h-48 w-auto object-contain" />
+
+      {lightboxOpen && value && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxOpen(false)}>
+          <button className="absolute top-4 right-4 text-white/70 hover:text-white p-2" onClick={() => setLightboxOpen(false)}><X size={22} /></button>
+          <img src={value} alt={label} className="max-w-full max-h-full object-contain" />
+          {imgMeta && (
+            <div className="absolute bottom-4 text-center text-white/50 text-xs font-mono">{imgMeta.w} × {imgMeta.h} px</div>
+          )}
         </div>
-      ) : null}
+      )}
+    </div>
+  );
+};
+
+const AutoTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  countType?: 'chars' | 'words' | 'paragraphs';
+}> = ({ countType, className = '', onChange, value = '', style, ...props }) => {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 600) + 'px';
+  }, [value]);
+
+  const v = String(value);
+  const count = !countType ? null
+    : countType === 'words' ? v.trim().split(/\s+/).filter(Boolean).length
+    : countType === 'paragraphs' ? v.split(/\n{2,}/).filter(s => s.trim()).length
+    : v.length;
+  const countLabel = countType === 'words' ? 'сл' : countType === 'paragraphs' ? 'абз' : 'симв';
+
+  return (
+    <div className="relative">
+      <textarea ref={ref} value={value} onChange={onChange}
+        className={`w-full resize-none overflow-hidden ${className}`}
+        style={{ minHeight: '72px', ...style }}
+        {...props}
+      />
+      {count !== null && (
+        <span className="absolute bottom-2 right-2 text-[9px] font-mono text-gray-300 pointer-events-none select-none">
+          {count} {countLabel}
+        </span>
+      )}
+    </div>
+  );
+};
+
+const VariantsEditor: React.FC<{ value: string; onChange: (json: string) => void; error?: string }> = ({ value, onChange, error }) => {
+  const FORMATS: Format[] = ['paperback', 'hardcover', 'digital', 'special_edition'];
+  const parse = (): BookVariant[] => { try { return JSON.parse(value) || []; } catch { return []; } };
+  const variants = parse();
+
+  const update = (idx: number, patch: Partial<BookVariant>) => {
+    const next = variants.map((v, i) => i === idx ? { ...v, ...patch } : v);
+    onChange(JSON.stringify(next, null, 2));
+  };
+  const add = () => onChange(JSON.stringify([...variants, { id: `sku-${Date.now()}`, format: 'paperback' as Format, language: 'ru', price: 0, stock: 0, isbn: '' }], null, 2));
+  const remove = (idx: number) => onChange(JSON.stringify(variants.filter((_, i) => i !== idx), null, 2));
+
+  return (
+    <div className="space-y-3">
+      {variants.length === 0 && (
+        <p className="text-xs text-gray-400 font-mono py-6 text-center border border-dashed border-gray-200">Нет вариантов — добавьте первый</p>
+      )}
+      {variants.map((v, idx) => (
+        <div key={idx} className="border border-gray-200 p-4 bg-[#FAFAF8] space-y-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Вариант {idx + 1}</span>
+            <button type="button" onClick={() => remove(idx)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={13} /></button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <LF label="SKU / ID"><input value={v.id} onChange={e => update(idx, { id: e.target.value })} className="w-full border border-gray-300 px-3 py-2 font-mono text-xs" /></LF>
+            <LF label="Формат">
+              <select value={v.format} onChange={e => update(idx, { format: e.target.value as Format })} className="w-full border border-gray-300 px-3 py-2 bg-white text-sm">
+                {FORMATS.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </LF>
+            <LF label="Язык издания"><input value={v.language} onChange={e => update(idx, { language: e.target.value })} className="w-full border border-gray-300 px-3 py-2 text-sm" placeholder="ru, en, de" /></LF>
+            <LF label="Цена (€)"><input type="number" min={0} step={0.01} value={v.price} onChange={e => update(idx, { price: Number(e.target.value) })} className="w-full border border-gray-300 px-3 py-2" /></LF>
+            <LF label="Остаток"><input type="number" min={0} value={v.stock} onChange={e => update(idx, { stock: Number(e.target.value) })} className="w-full border border-gray-300 px-3 py-2" /></LF>
+            <LF label="ISBN"><input value={v.isbn} onChange={e => update(idx, { isbn: e.target.value })} className="w-full border border-gray-300 px-3 py-2 font-mono text-xs" /></LF>
+          </div>
+        </div>
+      ))}
+      {error && <p className="text-xs text-red-500 font-mono">{error}</p>}
+      <button type="button" onClick={add} className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-gray-300 text-xs uppercase tracking-[0.18em] hover:bg-gray-50 text-gray-500 transition-colors">
+        <Plus size={13} /> Добавить вариант
+      </button>
+    </div>
+  );
+};
+
+const ThemesEditor: React.FC<{ value: string; onChange: (json: string) => void; error?: string }> = ({ value, onChange, error }) => {
+  const parse = (): BookTheme[] => { try { return JSON.parse(value) || []; } catch { return []; } };
+  const themes = parse();
+  const update = (idx: number, patch: Partial<BookTheme>) => {
+    onChange(JSON.stringify(themes.map((t, i) => i === idx ? { ...t, ...patch } : t), null, 2));
+  };
+  const add = () => onChange(JSON.stringify([...themes, { title: '', text: '' }], null, 2));
+  const remove = (idx: number) => onChange(JSON.stringify(themes.filter((_, i) => i !== idx), null, 2));
+
+  return (
+    <div className="space-y-3">
+      {themes.map((theme, idx) => (
+        <div key={idx} className="border border-gray-200 p-4 bg-[#FAFAF8] space-y-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Тема {idx + 1}</span>
+            <button type="button" onClick={() => remove(idx)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={13} /></button>
+          </div>
+          <LF label="Заголовок">
+            <input value={theme.title} onChange={e => update(idx, { title: e.target.value })} className="w-full border border-gray-300 px-3 py-2 text-sm" />
+          </LF>
+          <LF label="Описание">
+            <AutoTextarea value={theme.text}
+              onChange={e => update(idx, { text: (e.target as HTMLTextAreaElement).value })}
+              countType="words"
+              className="border border-gray-300 px-3 py-2 text-sm" rows={3} />
+          </LF>
+        </div>
+      ))}
+      {error && <p className="text-xs text-red-500 font-mono">{error}</p>}
+      <button type="button" onClick={add} className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-gray-300 text-xs uppercase tracking-[0.18em] hover:bg-gray-50 text-gray-500 transition-colors">
+        <Plus size={13} /> Добавить тему
+      </button>
+    </div>
+  );
+};
+
+const ReviewsEditor: React.FC<{ value: string; onChange: (json: string) => void; error?: string }> = ({ value, onChange, error }) => {
+  const parse = (): BookReview[] => { try { return JSON.parse(value) || []; } catch { return []; } };
+  const reviews = parse();
+  const update = (idx: number, patch: Partial<BookReview>) => {
+    onChange(JSON.stringify(reviews.map((r, i) => i === idx ? { ...r, ...patch } : r), null, 2));
+  };
+  const add = () => onChange(JSON.stringify([...reviews, { quote: '', author: '' }], null, 2));
+  const remove = (idx: number) => onChange(JSON.stringify(reviews.filter((_, i) => i !== idx), null, 2));
+
+  return (
+    <div className="space-y-3">
+      {reviews.map((review, idx) => (
+        <div key={idx} className="border border-gray-200 p-4 bg-[#FAFAF8] space-y-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Рецензия {idx + 1}</span>
+            <button type="button" onClick={() => remove(idx)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={13} /></button>
+          </div>
+          <LF label="Цитата">
+            <AutoTextarea value={review.quote}
+              onChange={e => update(idx, { quote: (e.target as HTMLTextAreaElement).value })}
+              countType="words"
+              className="border border-gray-300 px-3 py-2 text-sm" rows={2}
+              placeholder="«...»" />
+          </LF>
+          <LF label="Автор / источник">
+            <input value={review.author} onChange={e => update(idx, { author: e.target.value })} className="w-full border border-gray-300 px-3 py-2 text-sm" placeholder="Имя, издание" />
+          </LF>
+        </div>
+      ))}
+      {error && <p className="text-xs text-red-500 font-mono">{error}</p>}
+      <button type="button" onClick={add} className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-gray-300 text-xs uppercase tracking-[0.18em] hover:bg-gray-50 text-gray-500 transition-colors">
+        <Plus size={13} /> Добавить рецензию
+      </button>
     </div>
   );
 };
@@ -1456,10 +1662,11 @@ export const AdminPage: React.FC = () => {
                           className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary"
                         />
                       ) : (
-                        <textarea
+                        <AutoTextarea
                           value={copyDrafts[field.key] || ''}
-                          onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: e.target.value }))}
+                          onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: (e.target as HTMLTextAreaElement).value }))}
                           rows={field.type === 'json' ? 12 : 5}
+                          countType={field.type === 'json' ? undefined : 'words'}
                           className={`w-full border px-4 py-3 bg-white outline-none focus:border-primary font-mono text-sm ${copyJsonErrors[field.key] ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`}
                         />
                       )}
@@ -1624,7 +1831,10 @@ export const AdminPage: React.FC = () => {
                   />
 
                   <LF label="Краткое описание">
-                    <textarea value={bookDraft.description} onChange={e => setBookDraft(prev => prev ? { ...prev, description: e.target.value } : prev)} rows={4} className="w-full border border-gray-300 px-4 py-3" />
+                    <AutoTextarea value={bookDraft.description}
+                      onChange={e => setBookDraft(prev => prev ? { ...prev, description: (e.target as HTMLTextAreaElement).value } : prev)}
+                      countType="words"
+                      className="border border-gray-300 px-4 py-3" rows={4} />
                   </LF>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
@@ -1661,26 +1871,50 @@ export const AdminPage: React.FC = () => {
                       onChange={value => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, featureImageUrl: value } } : prev)}
                       filenamePrefix={`story-${bookDraft.id || 'book'}`}
                     />
-                    <LF label="О книге (абзацы)">
-                      <textarea value={(bookDraft.story?.about || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, about: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" />
+                    <LF label="О книге (абзацы)" hint="Разделяйте абзацы двойным переносом строки">
+                      <AutoTextarea value={(bookDraft.story?.about || []).join('\n\n')}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, about: parseParagraphs((e.target as HTMLTextAreaElement).value) } } : prev)}
+                        countType="paragraphs"
+                        className="border border-gray-300 px-4 py-3" rows={6} />
                     </LF>
-                    <LF label="Отрывок">
-                      <textarea value={(bookDraft.story?.excerpt || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, excerpt: parseParagraphs(e.target.value) } } : prev)} rows={6} className="w-full border border-gray-300 px-4 py-3" />
+                    <LF label="Отрывок" hint="Разделяйте абзацы двойным переносом строки">
+                      <AutoTextarea value={(bookDraft.story?.excerpt || []).join('\n\n')}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, excerpt: parseParagraphs((e.target as HTMLTextAreaElement).value) } } : prev)}
+                        countType="paragraphs"
+                        className="border border-gray-300 px-4 py-3" rows={6} />
                     </LF>
                     <LF label="Биография автора">
-                      <textarea value={(bookDraft.story?.authorBio || []).join('\n\n')} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, authorBio: parseParagraphs(e.target.value) } } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" />
+                      <AutoTextarea value={(bookDraft.story?.authorBio || []).join('\n\n')}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, authorBio: parseParagraphs((e.target as HTMLTextAreaElement).value) } } : prev)}
+                        countType="words"
+                        className="border border-gray-300 px-4 py-3" rows={5} />
                     </LF>
                     <LF label="Примечание к заказу">
-                      <textarea value={bookDraft.story?.orderNote || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, orderNote: e.target.value } } : prev)} rows={3} className="w-full border border-gray-300 px-4 py-3" />
+                      <AutoTextarea value={bookDraft.story?.orderNote || ''}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, story: { ...prev.story!, orderNote: (e.target as HTMLTextAreaElement).value } } : prev)}
+                        countType="chars"
+                        className="border border-gray-300 px-4 py-3" rows={3} />
                     </LF>
-                    <LF label="Варианты (JSON)" hint={bookJsonErrors.variants}>
-                      <textarea value={bookJsonDrafts.variants} onChange={e => setBookJsonDrafts(prev => ({ ...prev, variants: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.variants ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} />
+                    <LF label="Варианты издания">
+                      <VariantsEditor
+                        value={bookJsonDrafts.variants}
+                        onChange={v => setBookJsonDrafts(prev => ({ ...prev, variants: v }))}
+                        error={bookJsonErrors.variants}
+                      />
                     </LF>
-                    <LF label="Темы (JSON)" hint={bookJsonErrors.themes}>
-                      <textarea value={bookJsonDrafts.themes} onChange={e => setBookJsonDrafts(prev => ({ ...prev, themes: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.themes ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} />
+                    <LF label="Темы книги">
+                      <ThemesEditor
+                        value={bookJsonDrafts.themes}
+                        onChange={v => setBookJsonDrafts(prev => ({ ...prev, themes: v }))}
+                        error={bookJsonErrors.themes}
+                      />
                     </LF>
-                    <LF label="Рецензии (JSON)" hint={bookJsonErrors.reviews}>
-                      <textarea value={bookJsonDrafts.reviews} onChange={e => setBookJsonDrafts(prev => ({ ...prev, reviews: e.target.value }))} rows={8} className={`w-full border px-4 py-3 font-mono text-sm ${bookJsonErrors.reviews ? 'border-red-400 bg-red-50/40' : 'border-gray-300'}`} />
+                    <LF label="Рецензии читателей">
+                      <ReviewsEditor
+                        value={bookJsonDrafts.reviews}
+                        onChange={v => setBookJsonDrafts(prev => ({ ...prev, reviews: v }))}
+                        error={bookJsonErrors.reviews}
+                      />
                     </LF>
                   </div>
                 </div>
@@ -1772,7 +2006,10 @@ export const AdminPage: React.FC = () => {
                     <input value={newsDraft.title} onChange={e => setNewsDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                   </LF>
                   <LF label="Краткий анонс">
-                    <textarea value={newsDraft.preview} onChange={e => setNewsDraft(prev => prev ? { ...prev, preview: e.target.value } : prev)} rows={5} className="w-full border border-gray-300 px-4 py-3" />
+                    <AutoTextarea value={newsDraft.preview}
+                      onChange={e => setNewsDraft(prev => prev ? { ...prev, preview: (e.target as HTMLTextAreaElement).value } : prev)}
+                      countType="words"
+                      className="border border-gray-300 px-4 py-3" rows={5} />
                   </LF>
                 </div>
               ) : (
