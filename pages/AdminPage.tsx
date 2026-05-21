@@ -53,12 +53,13 @@ type ContentGroup = {
 };
 
 type AdminDraftState = {
-  copyDraftsByLanguage: Partial<Record<Language, Record<string, string>>>;
-  selectedBookIdByLanguage: Partial<Record<Language, string>>;
-  selectedNewsIdByLanguage: Partial<Record<Language, string>>;
-  bookDraftByLanguage: Partial<Record<Language, Book>>;
-  newsDraftByLanguage: Partial<Record<Language, NewsItem>>;
-  bookJsonDraftsByLanguage: Partial<Record<Language, { variants: string; themes: string; reviews: string }>>;
+  copyDrafts?: Record<string, string>;
+  selectedBookId?: string;
+  selectedNewsId?: string;
+  bookDraft?: Book;
+  newsDraft?: NewsItem;
+  bookJsonDrafts?: { variants: string; themes: string; reviews: string };
+  language?: Language;
 };
 
 const ADMIN_DRAFTS_KEY = 'am-admin-drafts-v2';
@@ -781,12 +782,12 @@ export const AdminPage: React.FC = () => {
     if (!database) return;
     const existing = database[selectedLanguage].books.find(book => book.id === selectedBookId);
     if (existing) {
-      // Existing book selected (or database refreshed after save) → sync draft
+      skipBookDirtyRef.current = true;
       setBookDraft(cloneBook(existing));
+      setBookDirty(false);
     } else if (!selectedBookId) {
-      // Nothing selected → auto-pick first book
       const first = database[selectedLanguage].books[0];
-      if (first) { setSelectedBookId(first.id); setBookDraft(cloneBook(first)); }
+      if (first) { skipBookDirtyRef.current = true; setSelectedBookId(first.id); setBookDraft(cloneBook(first)); setBookDirty(false); }
       else setBookDraft(null);
     }
     // selectedBookId set but not in DB → new book template in progress, don't touch draft
@@ -805,10 +806,12 @@ export const AdminPage: React.FC = () => {
     if (!database) return;
     const existing = database[selectedLanguage].news.find(item => item.id === selectedNewsId);
     if (existing) {
+      skipNewsDirtyRef.current = true;
       setNewsDraft({ ...existing });
+      setNewsDirty(false);
     } else if (!selectedNewsId) {
       const first = database[selectedLanguage].news[0];
-      if (first) { setSelectedNewsId(first.id); setNewsDraft({ ...first }); }
+      if (first) { skipNewsDirtyRef.current = true; setSelectedNewsId(first.id); setNewsDraft({ ...first }); setNewsDirty(false); }
       else setNewsDraft(null);
     }
     // selectedNewsId set but not in DB → new news item in progress, don't touch draft
@@ -819,26 +822,14 @@ export const AdminPage: React.FC = () => {
     setShowcaseDraft(getAuthorShowcaseContent(selectedLanguage, overrides[selectedLanguage]?.['static.our_authors.showcase_items']));
   }, [selectedLanguage, overrides]);
 
+  // When language changes: reset selections so the sync effects auto-pick the first item
+  // in the new language's DB. No complex per-language draft restoration — it caused races.
   useEffect(() => {
-    const draftState = getAdminDraftState();
-    if (draftState.selectedBookIdByLanguage?.[selectedLanguage]) {
-      setSelectedBookId(draftState.selectedBookIdByLanguage[selectedLanguage] || '');
-    }
-    if (draftState.selectedNewsIdByLanguage?.[selectedLanguage]) {
-      setSelectedNewsId(draftState.selectedNewsIdByLanguage[selectedLanguage] || '');
-    }
-    if (draftState.copyDraftsByLanguage?.[selectedLanguage]) {
-      setCopyDrafts(draftState.copyDraftsByLanguage[selectedLanguage] || {});
-    }
-    if (draftState.bookDraftByLanguage?.[selectedLanguage]) {
-      setBookDraft(cloneBook(draftState.bookDraftByLanguage[selectedLanguage] as Book));
-    }
-    if (draftState.newsDraftByLanguage?.[selectedLanguage]) {
-      setNewsDraft({ ...(draftState.newsDraftByLanguage[selectedLanguage] as NewsItem) });
-    }
-    if (draftState.bookJsonDraftsByLanguage?.[selectedLanguage]) {
-      setBookJsonDrafts(draftState.bookJsonDraftsByLanguage[selectedLanguage] || { variants: '[]', themes: '[]', reviews: '[]' });
-    }
+    setSelectedBookId('');
+    setSelectedNewsId('');
+    setBookDirty(false);
+    setNewsDirty(false);
+    setDeleteConfirm(null);
   }, [selectedLanguage]);
 
   const copyValues = useMemo(() => {
@@ -864,31 +855,33 @@ export const AdminPage: React.FC = () => {
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      const previous = getAdminDraftState();
       saveAdminDraftState({
-        ...previous,
-        copyDraftsByLanguage: { ...(previous.copyDraftsByLanguage || {}), [selectedLanguage]: copyDrafts },
-        selectedBookIdByLanguage: { ...(previous.selectedBookIdByLanguage || {}), [selectedLanguage]: selectedBookId },
-        selectedNewsIdByLanguage: { ...(previous.selectedNewsIdByLanguage || {}), [selectedLanguage]: selectedNewsId },
-        bookDraftByLanguage: bookDraft ? { ...(previous.bookDraftByLanguage || {}), [selectedLanguage]: bookDraft } : previous.bookDraftByLanguage || {},
-        newsDraftByLanguage: newsDraft ? { ...(previous.newsDraftByLanguage || {}), [selectedLanguage]: newsDraft } : previous.newsDraftByLanguage || {},
-        bookJsonDraftsByLanguage: { ...(previous.bookJsonDraftsByLanguage || {}), [selectedLanguage]: bookJsonDrafts },
+        copyDrafts,
+        selectedBookId,
+        selectedNewsId,
+        bookDraft: bookDraft || undefined,
+        newsDraft: newsDraft || undefined,
+        bookJsonDrafts,
+        language: selectedLanguage,
       });
       setLastDraftSavedAt(new Date().toLocaleTimeString());
     }, 500);
-
     return () => window.clearTimeout(timeout);
   }, [selectedLanguage, copyDrafts, selectedBookId, selectedNewsId, bookDraft, newsDraft, bookJsonDrafts]);
 
-  // Mark dirty whenever the drafts change from user edits (not initial load)
+  // Mark dirty on user edits — skipNext refs let the DB-sync useEffects suppress a false-dirty
   const bookDraftRef = useRef(bookDraft);
+  const skipBookDirtyRef = useRef(false);
   useEffect(() => {
+    if (skipBookDirtyRef.current) { skipBookDirtyRef.current = false; bookDraftRef.current = bookDraft; return; }
     if (bookDraftRef.current !== null && bookDraft !== null) setBookDirty(true);
     bookDraftRef.current = bookDraft;
   }, [bookDraft, bookJsonDrafts]);
 
   const newsDraftRef = useRef(newsDraft);
+  const skipNewsDirtyRef = useRef(false);
   useEffect(() => {
+    if (skipNewsDirtyRef.current) { skipNewsDirtyRef.current = false; newsDraftRef.current = newsDraft; return; }
     if (newsDraftRef.current !== null && newsDraft !== null) setNewsDirty(true);
     newsDraftRef.current = newsDraft;
   }, [newsDraft]);
@@ -1274,22 +1267,25 @@ export const AdminPage: React.FC = () => {
 
         <div className="px-6 pb-6">
           <div className="bg-white/5 border border-white/10 p-4 mb-4">
-            <p className="text-[10px] uppercase font-mono tracking-[0.22em] text-white/50 mb-3">Language</p>
+            <p className="text-[10px] uppercase font-mono tracking-[0.22em] text-white/50 mb-3">Язык редактирования</p>
             <div className="grid grid-cols-3 gap-2">
               {(['ru', 'en', 'de'] as Language[]).map(lang => (
                 <button
                   key={lang}
-                  onClick={() => { setSelectedLanguage(lang); setLanguage(lang); }}
-                  className={`py-2 text-[10px] uppercase tracking-[0.2em] border ${
-                    selectedLanguage === lang ? 'bg-accent text-primary border-accent' : 'border-white/20 text-white/70 hover:bg-white/10'
+                  onClick={() => setSelectedLanguage(lang)}
+                  className={`py-2 text-[10px] uppercase tracking-[0.2em] border relative ${
+                    selectedLanguage === lang ? 'bg-accent text-primary border-accent font-bold' : 'border-white/20 text-white/70 hover:bg-white/10'
                   }`}
                 >
                   {lang}
+                  {lang === 'ru' && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-400" title="Основной язык" />}
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-[10px] leading-relaxed text-white/55">
-              When you save in `RU`, the admin now auto-generates `EN` and `DE` versions for copy, books, and news.
+            <p className="mt-3 text-[10px] leading-relaxed text-white/40">
+              {selectedLanguage === 'ru'
+                ? '✓ Основной. Сохрани — CI переведёт EN/DE автоматически.'
+                : `Правка ${selectedLanguage.toUpperCase()} напрямую (обход авто-перевода CI).`}
             </p>
           </div>
           <div className="bg-white/5 border border-white/10 p-4">
