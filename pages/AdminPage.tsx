@@ -469,8 +469,12 @@ const StatusPanel: React.FC = () => {
     setRunsLoading(true);
     setRunsError(null);
     try {
+      const pat = sessionStorage.getItem('gh_pat') || localStorage.getItem('gh_pat') || '';
       const res = await fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=8`, {
-        headers: { Accept: 'application/vnd.github+json' },
+        headers: {
+          Accept: 'application/vnd.github+json',
+          ...(pat ? { Authorization: `Bearer ${pat}` } : {}),
+        },
       });
       if (!res.ok) throw new Error(`GitHub API ${res.status}`);
       const data = await res.json();
@@ -1528,7 +1532,7 @@ export const AdminPage: React.FC = () => {
                     <LF label="Тип">
                       <select value={bookDraft.type || 'publisher'} onChange={e => setBookDraft(prev => prev ? { ...prev, type: e.target.value as Book['type'] } : prev)} className="w-full border border-gray-300 px-4 py-3 bg-white">
                         <option value="publisher">Издательское издание</option>
-                        <option value="self">Авторский проект</option>
+                        <option value="author_project">Авторский проект</option>
                       </select>
                     </LF>
                     <LF label="Возрастной рейтинг">
@@ -1553,7 +1557,7 @@ export const AdminPage: React.FC = () => {
                   <div>
                     <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">Значки</p>
                     <div className="flex flex-wrap gap-3">
-                      {(['new','bestseller','preorder','exclusive'] as const).map(badge => (
+                      {(['new','bestseller','18+','preorder','last_copy'] as const).map(badge => (
                         <label key={badge} className="flex items-center gap-2 border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm">
                           <input type="checkbox" checked={(bookDraft.badges || []).includes(badge)} onChange={e => setBookDraft(prev => {
                             if (!prev) return prev;
@@ -2015,9 +2019,9 @@ export const AdminPage: React.FC = () => {
                       <Plus size={12} /> Добавить ссылку
                     </button>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-3 overflow-x-auto">
                     {items.map((item, idx) => (
-                      <div key={item.id} className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-3 items-center bg-[#F8F8F5] border border-gray-200 p-3">
+                      <div key={item.id} className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-3 items-center bg-[#F8F8F5] border border-gray-200 p-3 min-w-[600px]">
                         <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest">
                           <input
                             type="checkbox"
@@ -2345,7 +2349,7 @@ export const AdminPage: React.FC = () => {
                             <option value="failed">Отклонён</option>
                             <option value="refunded">Возврат</option>
                           </select>
-                          {(savingKey === `order:${order.id}` || savingKey === `payment:${order.id}`) ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} className="text-green-600" />}
+                          {(savingKey === `order:${order.id}` || savingKey === `payment:${order.id}`) && <Loader2 size={14} className="animate-spin" />}
                         </div>
                       </td>
                     </tr>
