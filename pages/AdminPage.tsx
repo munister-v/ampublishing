@@ -36,6 +36,9 @@ import {
   Wifi,
   WifiOff,
   Copy,
+  ExternalLink,
+  Clipboard,
+  SortAsc,
 } from 'lucide-react';
 
 type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'site' | 'payments' | 'orders' | 'status';
@@ -384,6 +387,20 @@ const ImageField: React.FC<{
     if (file?.type.startsWith('image/')) await processFile(file);
   };
 
+  const handlePasteClipboard = async () => {
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const imageType = item.types.find(t => t.startsWith('image/'));
+        if (imageType) {
+          const blob = await item.getType(imageType);
+          await processFile(new File([blob], 'clipboard.png', { type: imageType }));
+          break;
+        }
+      }
+    } catch { /* clipboard API not available or denied */ }
+  };
+
   const isBase64 = value.startsWith('data:');
 
   const statusLabel: Record<string, string> = {
@@ -444,6 +461,11 @@ const ImageField: React.FC<{
           {statusLabel[uploadStatus] ?? 'Загрузить фото'}
           <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isUploading} />
         </label>
+        <button type="button" onClick={handlePasteClipboard} disabled={isUploading}
+          className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-[10px] uppercase tracking-[0.18em] disabled:opacity-40" title="Вставить изображение из буфера обмена (Ctrl+C → Ctrl+V)">
+          <Clipboard size={13} />
+          Вставить
+        </button>
         {uploadStatus === 'done' && <span className="text-[10px] text-green-600 font-mono">→ /images/uploads/</span>}
         {uploadStatus === 'error' && <span className="text-[10px] text-amber-600 font-mono">PAT не активен — сохранено локально</span>}
       </div>
@@ -940,6 +962,7 @@ export const AdminPage: React.FC = () => {
   const [orderPaymentFilter, setOrderPaymentFilter] = useState<string>('all');
   const [bookSearch, setBookSearch] = useState('');
   const [newsSearch, setNewsSearch] = useState('');
+  const [bookSort, setBookSort] = useState<'default' | 'alpha' | 'stock'>('default');
   const [saveOpPhase, setSaveOpPhase] = useState('');
   const [savedFlash, setSavedFlash] = useState('');
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -1106,6 +1129,14 @@ export const AdminPage: React.FC = () => {
   const deletingRef = useRef(false);
 
   useEffect(() => () => { if (flashTimerRef.current) clearTimeout(flashTimerRef.current); }, []);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (bookDirty || newsDirty) { e.preventDefault(); e.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [bookDirty, newsDirty]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -1701,16 +1732,28 @@ export const AdminPage: React.FC = () => {
                   Добавить
                 </button>
               </div>
-              <div className="p-3 border-b border-gray-100">
+              <div className="p-3 border-b border-gray-100 space-y-2">
                 <input
                   value={bookSearch}
                   onChange={e => setBookSearch(e.target.value)}
                   placeholder="Поиск по названию…"
                   className="w-full border border-gray-200 px-3 py-2 text-xs bg-[#F8F8F5] outline-none focus:border-primary"
                 />
+                <div className="flex gap-1 items-center">
+                  <SortAsc size={11} className="text-gray-400 flex-shrink-0" />
+                  {(['default', 'alpha', 'stock'] as const).map(s => (
+                    <button key={s} onClick={() => setBookSort(s)}
+                      className={`px-2 py-0.5 text-[9px] uppercase tracking-widest border ${bookSort === s ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:bg-gray-50 text-gray-500'}`}>
+                      {s === 'default' ? 'Дата' : s === 'alpha' ? 'А-Я' : 'Склад'}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="divide-y divide-gray-100">
-                {books.filter(b => !bookSearch || b.title.toLowerCase().includes(bookSearch.toLowerCase()) || b.author.toLowerCase().includes(bookSearch.toLowerCase())).map(book => (
+                {books
+                  .filter(b => !bookSearch || b.title.toLowerCase().includes(bookSearch.toLowerCase()) || b.author.toLowerCase().includes(bookSearch.toLowerCase()))
+                  .sort((a, b2) => bookSort === 'alpha' ? a.title.localeCompare(b2.title) : bookSort === 'stock' ? a.stock - b2.stock : 0)
+                  .map(book => (
                   <button
                     key={book.id}
                     onClick={() => { setSelectedBookId(book.id); setBookDirty(false); }}
@@ -1724,7 +1767,10 @@ export const AdminPage: React.FC = () => {
                     <div className="min-w-0">
                       <p className="font-serif text-base leading-tight truncate">{book.title || book.id}</p>
                       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-gray-400 truncate">{book.author}</p>
-                      {book.isPreorder && <span className="text-[9px] bg-accent/20 text-accent-dark px-1 uppercase tracking-widest">pre-order</span>}
+                      <div className="flex gap-1 flex-wrap mt-0.5">
+                        {book.isPreorder && <span className="text-[9px] bg-accent/20 text-accent-dark px-1 uppercase tracking-widest">pre-order</span>}
+                        {book.stock === 0 ? <span className="text-[9px] bg-red-100 text-red-600 px-1 font-mono">нет</span> : book.stock <= 3 ? <span className="text-[9px] bg-amber-100 text-amber-700 px-1 font-mono">{book.stock} ост.</span> : null}
+                      </div>
                     </div>
                   </button>
                 ))}
@@ -1750,6 +1796,13 @@ export const AdminPage: React.FC = () => {
                         </>
                       ) : (
                         <>
+                          {!isNewBook && (
+                            <a href={`/catalog/${bookDraft.id}`} target="_blank" rel="noopener noreferrer"
+                              className="px-4 py-3 border border-gray-300 hover:bg-gray-50 flex items-center gap-2 text-xs uppercase tracking-widest">
+                              <ExternalLink size={14} />
+                              Открыть
+                            </a>
+                          )}
                           <button onClick={() => setDeleteConfirm(`book:${bookDraft.id}`)} className="px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-2 text-xs uppercase tracking-widest">
                             <Trash2 size={14} />
                             Удалить
@@ -2727,7 +2780,10 @@ export const AdminPage: React.FC = () => {
                       </td>
                       <td className="p-4">
                         <div>{order.customer.name}</div>
-                        <div className="text-xs text-gray-400">{order.customer.email}</div>
+                        <div className="text-xs text-gray-400 flex items-center gap-1">
+                          <span>{order.customer.email}</span>
+                          <button onClick={() => navigator.clipboard.writeText(order.customer.email)} className="text-gray-300 hover:text-gray-600 flex-shrink-0" title="Копировать email"><Copy size={10} /></button>
+                        </div>
                         {order.customer.phone ? <div className="text-xs text-gray-400">{order.customer.phone}</div> : null}
                         <div className="text-xs text-gray-400">{order.customer.location}</div>
                         {order.customer.addressLine ? <div className="text-xs text-gray-400 mt-1">{order.customer.addressLine}{order.customer.zip ? `, ${order.customer.zip}` : ''}</div> : null}
