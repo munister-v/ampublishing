@@ -779,8 +779,17 @@ export const AdminPage: React.FC = () => {
 
   useEffect(() => {
     if (!database) return;
-    const currentBook = database[selectedLanguage].books.find(book => book.id === selectedBookId) || database[selectedLanguage].books[0] || null;
-    setBookDraft(currentBook ? cloneBook(currentBook) : null);
+    const existing = database[selectedLanguage].books.find(book => book.id === selectedBookId);
+    if (existing) {
+      // Existing book selected (or database refreshed after save) → sync draft
+      setBookDraft(cloneBook(existing));
+    } else if (!selectedBookId) {
+      // Nothing selected → auto-pick first book
+      const first = database[selectedLanguage].books[0];
+      if (first) { setSelectedBookId(first.id); setBookDraft(cloneBook(first)); }
+      else setBookDraft(null);
+    }
+    // selectedBookId set but not in DB → new book template in progress, don't touch draft
   }, [database, selectedLanguage, selectedBookId]);
 
   useEffect(() => {
@@ -794,8 +803,15 @@ export const AdminPage: React.FC = () => {
 
   useEffect(() => {
     if (!database) return;
-    const currentNews = database[selectedLanguage].news.find(item => item.id === selectedNewsId) || database[selectedLanguage].news[0] || null;
-    setNewsDraft(currentNews ? { ...currentNews } : null);
+    const existing = database[selectedLanguage].news.find(item => item.id === selectedNewsId);
+    if (existing) {
+      setNewsDraft({ ...existing });
+    } else if (!selectedNewsId) {
+      const first = database[selectedLanguage].news[0];
+      if (first) { setSelectedNewsId(first.id); setNewsDraft({ ...first }); }
+      else setNewsDraft(null);
+    }
+    // selectedNewsId set but not in DB → new news item in progress, don't touch draft
   }, [database, selectedLanguage, selectedNewsId]);
 
   useEffect(() => {
