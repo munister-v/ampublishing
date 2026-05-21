@@ -366,6 +366,8 @@ export const translations: Record<Language, TranslationTree> = {
         about: {
           title: "О нас",
           subtitle: "Независимое русскоязычное издательство, базирующееся в Берлине.",
+          image: "/images/about-hero.jpg",
+          image_alt: "Книга AM Publishing в поезде",
           mission: "Миссия",
           p1: "AM Publishing было основано в Берлине как издательство, посвящённое современной русскоязычной литературе. Мы верим, что книга — это не просто история, а опыт, способный преобразить читателя.",
           p2: "Наша миссия — продвигать литературу, которая меняет взгляд на мир, побуждает к размышлению и остаётся с человеком надолго после последней страницы.",
@@ -914,6 +916,8 @@ export const translations: Record<Language, TranslationTree> = {
         about: {
           title: "About Us",
           subtitle: "Independent Russian-language publisher based in Berlin.",
+          image: "/images/about-hero.jpg",
+          image_alt: "AM Publishing book on a train",
           mission: "Mission",
           p1: "AM Publishing was founded in Berlin as a publishing house dedicated to contemporary Russian-language literature. We believe that a book is not merely a story, but an experience capable of transforming the reader.",
           p2: "Our mission is to promote literature that reshapes perspectives, encourages reflection, and stays with a person long after the final page.",
@@ -1401,6 +1405,8 @@ export const translations: Record<Language, TranslationTree> = {
         about: {
           title: "Über uns",
           subtitle: "Unabhängiger russischsprachiger Verlag mit Sitz in Berlin.",
+          image: "/images/about-hero.jpg",
+          image_alt: "AM Publishing Buch im Zug",
           mission: "Mission",
           p1: "AM Publishing wurde in Berlin als Verlag gegründet, der sich der zeitgenössischen russischsprachigen Literatur widmet. Wir glauben, dass ein Buch nicht bloß eine Geschichte ist, sondern eine Erfahrung, die Leser:innen verwandeln kann.",
           p2: "Unsere Mission ist es, Literatur zu fördern, die Perspektiven verschiebt, zum Nachdenken anregt und noch lange nach der letzten Seite in einem Menschen nachhallt.",
