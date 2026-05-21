@@ -15,6 +15,7 @@ import {
   Gavel,
   GitBranch,
   Globe,
+  Info,
   LogOut,
   Newspaper,
   RefreshCw,
@@ -36,7 +37,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 
-type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'site' | 'payments' | 'orders' | 'status';
+type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'site' | 'payments' | 'orders' | 'status';
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -1241,6 +1242,7 @@ export const AdminPage: React.FC = () => {
             { id: 'books', label: 'Books', icon: <BookOpen size={16} /> },
             { id: 'news', label: 'News', icon: <Newspaper size={16} /> },
             { id: 'authors', label: 'Our Authors', icon: <Globe size={16} /> },
+            { id: 'about', label: 'About Page', icon: <Info size={16} /> },
             { id: 'site', label: 'Site / Header / Footer', icon: <Layout size={16} /> },
             { id: 'payments', label: 'Payments', icon: <Gavel size={16} /> },
             { id: 'orders', label: 'Orders', icon: <ShoppingBag size={16} /> },
@@ -1826,6 +1828,127 @@ export const AdminPage: React.FC = () => {
             </section>
           </div>
         ) : null}
+
+        {database && activeTab === 'about' ? (() => {
+          const aboutSections: { label: string; fields: ContentField[] }[] = [
+            {
+              label: 'Hero',
+              fields: [
+                { key: 'static.about.title', label: 'Page title', type: 'text' },
+                { key: 'static.about.subtitle', label: 'Page subtitle', type: 'textarea' },
+              ],
+            },
+            {
+              label: 'Mission & Photo',
+              fields: [
+                { key: 'static.about.mission', label: 'Mission heading', type: 'text' },
+                { key: 'static.about.p1', label: 'Text paragraph 1', type: 'textarea' },
+                { key: 'static.about.p2', label: 'Text paragraph 2', type: 'textarea' },
+                { key: 'static.about.mission_image', label: 'Mission photo', type: 'text' },
+              ],
+            },
+            {
+              label: 'Stats',
+              fields: [
+                { key: 'static.about.stat1', label: 'Stat 1 label (e.g. 300–1000+ copies)', type: 'text' },
+                { key: 'static.about.stat2', label: 'Stat 2 label (e.g. Editorial review)', type: 'text' },
+              ],
+            },
+            {
+              label: 'Team',
+              fields: [
+                { key: 'static.about.team', label: 'Team section heading', type: 'text' },
+                { key: 'static.about.role1', label: 'Team role 1', type: 'text' },
+                { key: 'static.about.role2', label: 'Team role 2', type: 'text' },
+                { key: 'static.about.role3', label: 'Team role 3', type: 'text' },
+              ],
+            },
+          ];
+          const allAboutFields = aboutSections.flatMap(s => s.fields);
+          const handleSaveAll = async () => {
+            for (const field of allAboutFields) {
+              await handleSaveTranslationField(field);
+            }
+          };
+          return (
+            <div className="space-y-8">
+              <div className="bg-white border border-primary/10 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-3xl font-serif">About Page</h2>
+                  <p className="text-xs text-gray-400 font-mono mt-1 uppercase tracking-widest">ampublishing.org/about · язык: {selectedLanguage.toUpperCase()}</p>
+                </div>
+                <div className="flex gap-3 items-center">
+                  <a href="https://ampublishing.org/about" target="_blank" rel="noopener noreferrer" className="px-4 py-3 text-xs uppercase tracking-[0.18em] border border-gray-300 hover:bg-gray-50">
+                    Preview ↗
+                  </a>
+                  <button
+                    onClick={handleSaveAll}
+                    className="px-5 py-3 text-xs uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
+                  >
+                    {savingKey ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+                    Save All
+                  </button>
+                </div>
+              </div>
+
+              {aboutSections.map(section => (
+                <section key={section.label} className="bg-white border border-primary/10 shadow-sm">
+                  <div className="px-6 py-4 border-b border-primary/10 bg-[#F8F8F5]">
+                    <h3 className="font-mono text-xs uppercase tracking-[0.22em] text-gray-500 font-bold">{section.label}</h3>
+                  </div>
+                  <div className="p-6 grid grid-cols-1 gap-5">
+                    {section.fields.map(field => (
+                      <div key={field.key} className="border border-gray-100 p-5 bg-[#FAFAF8]">
+                        <div className="flex justify-between items-start mb-3 gap-4">
+                          <div>
+                            <p className="font-bold text-sm">{field.label}</p>
+                            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-400 mt-0.5">{field.key}</p>
+                          </div>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => handleResetTranslationField(field)}
+                              className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-gray-300 hover:bg-gray-100"
+                            >
+                              Reset
+                            </button>
+                            <button
+                              onClick={() => handleSaveTranslationField(field)}
+                              className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-1.5"
+                            >
+                              {savingKey === field.key ? <Loader2 size={11} className="animate-spin" /> : null}
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                        {field.key === 'static.about.mission_image' ? (
+                          <ImageField
+                            label={field.label}
+                            value={copyDrafts[field.key] || ''}
+                            onChange={value => setCopyDrafts(prev => ({ ...prev, [field.key]: value }))}
+                            filenamePrefix="about-photo"
+                          />
+                        ) : field.type === 'textarea' ? (
+                          <textarea
+                            value={copyDrafts[field.key] || ''}
+                            onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: e.target.value }))}
+                            rows={4}
+                            className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary resize-y text-sm"
+                          />
+                        ) : (
+                          <input
+                            value={copyDrafts[field.key] || ''}
+                            onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: e.target.value }))}
+                            className="w-full border border-gray-300 px-4 py-3 bg-white outline-none focus:border-primary text-sm"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          );
+        })() : null}
 
         {activeTab === 'site' && siteDraft ? (
           <section className="bg-white border border-primary/10 p-6 md:p-8 space-y-10">
