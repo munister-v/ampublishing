@@ -71,6 +71,19 @@
         "фэнтези"
       ],
       "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1781434449332.webp"
+    },
+    {
+      "id": "lina-vleschu",
+      "nameMain": "Лина",
+      "nameAccent": "Влежу",
+      "initial": "Л",
+      "years": "наши дни",
+      "knownFor": "Книга \"Вдох. Исповедь провинциальной актрисы\"",
+      "bio": "По профессии актриса театра, десять лет проработала на подмостках театров Советского Союза.\n\nОсновная тема романа  — поиск гармонии между личным счастьем и профессиональным ростом. На основе своего личного опыта  показала жизнь актеров, эпоху, противоречия, закулисные интриги, быт, запреты: в период позднего Советского Союза — 70-90 годы. \n\nТема любви в романе звучит пронзительно: героиня ищет её, но всё время что-то мешает прийти к логическому женскому предназначению.",
+      "tags": [
+        "автофикшн"
+      ],
+      "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1782205768945.webp"
     }
   ],
   "static.about.mission_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-photo-1779387608321.webp",
