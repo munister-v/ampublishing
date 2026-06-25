@@ -8,6 +8,7 @@ import {
   fetchRadioOnline, getRadioUser, getToken,
   type RadioMessage, type RadioUser,
 } from '../services/radioApi';
+import { RadioAdminPanel } from './RadioAdminPanel';
 
 const RADIO_API = 'https://radio-api.helpushelpua.com/api';
 const POLL_MS = 3000;
@@ -640,10 +641,20 @@ export const RadioPage: React.FC = () => {
   const [online, setOnline] = useState<RadioUser[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const adminClickRef = useRef(0);
+  const adminClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastIdRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audio = useRadioAudio(user ? getToken() : null);
+
+  const handleAdminTrigger = useCallback(() => {
+    adminClickRef.current += 1;
+    if (adminClickTimerRef.current) clearTimeout(adminClickTimerRef.current);
+    if (adminClickRef.current >= 3) { adminClickRef.current = 0; setShowAdmin(true); return; }
+    adminClickTimerRef.current = setTimeout(() => { adminClickRef.current = 0; }, 600);
+  }, []);
 
   const L: Record<string, string> = {
     ru: {
@@ -869,12 +880,39 @@ export const RadioPage: React.FC = () => {
             </ul>
           </div>
           <div className="border-t border-primary p-5 flex items-center gap-3">
-            <span className="font-serif text-lg leading-none">AM</span>
+            <button onClick={handleAdminTrigger}
+              className="font-serif text-lg leading-none hover:text-accent transition-colors select-none"
+              title="">AM</button>
             <span className="w-px h-4 bg-primary/20" />
             <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40">Berlin, {new Date().getFullYear()}</span>
           </div>
         </div>
       </div>
+
+      {showAdmin && (
+        <RadioAdminPanel
+          onClose={() => setShowAdmin(false)}
+          onChatCleared={() => {
+            setMessages([]);
+            lastIdRef.current = 0;
+          }}
+          onPinChanged={(id, isPinned) => {
+            if (id === -1) {
+              setPinned([]);
+              setMessages(prev => prev.map(m => ({ ...m, is_pinned: false })));
+            } else {
+              setPinned(prev => isPinned ? prev : prev.filter(p => p.id !== id));
+              setMessages(prev => prev.map(m => m.id === id ? { ...m, is_pinned: isPinned } : m));
+            }
+          }}
+          onAnnounced={async () => {
+            const [msgs, pins] = await Promise.all([fetchRadioMessages(), fetchPinnedMessages()]);
+            setMessages(msgs.filter(m => !m.is_deleted));
+            setPinned(pins);
+            if (msgs.length) lastIdRef.current = msgs[msgs.length - 1].id;
+          }}
+        />
+      )}
     </div>
   );
 };
