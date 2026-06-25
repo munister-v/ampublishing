@@ -4,6 +4,8 @@ const USER_KEY = 'ampub_radio_user'
 
 export type RadioUser = { id: number; nickname: string; color: string }
 
+export const RADIO_COLORS = ['#e8836a', '#f3c83e', '#7c8a6e', '#60a5fa', '#f472b6', '#a78bfa', '#22d3ee']
+
 export type RadioMessage = {
   id: number
   user_id: number
@@ -52,6 +54,10 @@ function saveSession(token: string, user: RadioUser) {
   localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
+export function saveRadioUser(user: RadioUser) {
+  localStorage.setItem(USER_KEY, JSON.stringify(user))
+}
+
 async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const token = getToken()
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
@@ -93,6 +99,31 @@ export async function pinRadioMessage(id: number): Promise<{ id: number; is_pinn
 
 export async function fetchRadioOnline(): Promise<RadioUser[]> {
   return req<RadioUser[]>('/chat/online')
+}
+
+export async function renameMe(nickname: string, color?: string): Promise<RadioUser> {
+  const user = await req<RadioUser>('/auth/me', {
+    method: 'PUT',
+    body: JSON.stringify(color ? { nickname, color } : { nickname }),
+  })
+  saveRadioUser(user)
+  return user
+}
+
+export async function editRadioMessage(id: number, text: string): Promise<{ id: number; text: string; edited_at: string }> {
+  return req(`/chat/messages/${id}`, { method: 'PUT', body: JSON.stringify({ text }) })
+}
+
+export async function deleteRadioMessage(id: number): Promise<void> {
+  return req(`/chat/messages/${id}`, { method: 'DELETE' })
+}
+
+export async function reactRadioMessage(id: number, emoji: string): Promise<{ message_id: number; reactions: RadioMessage['reactions'] }> {
+  return req(`/chat/messages/${id}/react`, { method: 'POST', body: JSON.stringify({ emoji }) })
+}
+
+export async function sendRadioTyping(): Promise<void> {
+  try { await req<void>('/chat/typing', { method: 'POST' }) } catch { /* non-critical */ }
 }
 
 // ── Admin API ────────────────────────────────────────────────────────────────

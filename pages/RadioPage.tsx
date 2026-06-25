@@ -6,9 +6,13 @@ import {
   radioGuestJoin, fetchRadioMessages, fetchPinnedMessages,
   pollRadioMessages, sendRadioMessage, pinRadioMessage,
   fetchRadioOnline, getRadioUser, getToken,
+  renameMe, editRadioMessage, deleteRadioMessage, reactRadioMessage,
+  sendRadioTyping, RADIO_COLORS,
   type RadioMessage, type RadioUser,
 } from '../services/radioApi';
 import { RadioAdminPanel } from './RadioAdminPanel';
+
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '🔥', '🎉', '😮'];
 
 const RADIO_API = 'https://radio-api.helpushelpua.com/api';
 const POLL_MS = 3000;
@@ -529,10 +533,13 @@ function PlayerBlock({ audio, L, onlineCount }: { audio: ReturnType<typeof useRa
 }
 
 // ── Composer ─────────────────────────────────────────────────────────────────
-function Composer({ onSend, disabled, L }: {
-  onSend: (payload: { text: string; msg_type: MsgType; meta_title?: string; meta_description?: string; meta_url?: string; meta_image?: string }) => Promise<void>;
+function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
+  onSend: (payload: { text: string; msg_type: MsgType; meta_title?: string; meta_description?: string; meta_url?: string; meta_image?: string; reply_to_id?: number | null }) => Promise<void>;
+  onTyping: () => void;
   disabled: boolean;
   L: Record<string, string>;
+  replyTo: RadioMessage | null;
+  onCancelReply: () => void;
 }) {
   const [text, setText] = useState('');
   const [msgType, setMsgType] = useState<MsgType>('chat');
@@ -543,37 +550,52 @@ function Composer({ onSend, disabled, L }: {
   const [sending, setSending] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [showGif, setShowGif] = useState(false);
-  const [showExpanded, setShowExpanded] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const typingThrottleRef = useRef(0);
 
   const isExpanded = msgType !== 'chat';
+
+  // Focus textarea when a reply is set
+  useEffect(() => { if (replyTo) textareaRef.current?.focus(); }, [replyTo]);
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
     if ((!text.trim() && !metaTitle.trim()) || sending) return;
     setSending(true);
     try {
-      await onSend({ text: text.trim(), msg_type: msgType, meta_title: metaTitle || undefined, meta_description: metaDesc || undefined, meta_url: metaUrl || undefined, meta_image: metaImage || undefined });
+      await onSend({
+        text: text.trim(), msg_type: msgType,
+        meta_title: metaTitle || undefined, meta_description: metaDesc || undefined,
+        meta_url: metaUrl || undefined, meta_image: metaImage || undefined,
+        reply_to_id: msgType === 'chat' && replyTo ? replyTo.id : null,
+      });
       setText(''); setMetaTitle(''); setMetaDesc(''); setMetaUrl(''); setMetaImage('');
-      if (msgType !== 'chat') { setMsgType('chat'); setShowExpanded(false); }
+      onCancelReply();
+      if (msgType !== 'chat') setMsgType('chat');
     } finally { setSending(false); }
+  };
+
+  const onChangeText = (v: string) => {
+    setText(v);
+    const now = Date.now();
+    if (now - typingThrottleRef.current > 2500) { typingThrottleRef.current = now; onTyping(); }
   };
 
   const insertEmoji = (e: string) => {
     const el = textareaRef.current;
     if (!el) { setText(t => t + e); return; }
     const s = el.selectionStart, end = el.selectionEnd;
-    const next = text.slice(0, s) + e + text.slice(end);
-    setText(next);
+    setText(text.slice(0, s) + e + text.slice(end));
     setTimeout(() => { el.selectionStart = el.selectionEnd = s + e.length; el.focus(); }, 0);
   };
 
   const handleMsgType = (t: MsgType) => {
-    setMsgType(t); setShowExpanded(t !== 'chat'); setShowEmoji(false); setShowGif(false);
+    setMsgType(t); setShowEmoji(false); setShowGif(false);
+    if (t !== 'chat') onCancelReply();
   };
 
   return (
-    <div className="border-t border-primary relative">
+    <div className="border-t border-primary relative flex-shrink-0">
       {/* Type selector */}
       <div className="flex border-b border-primary/20">
         {(['chat', 'announcement', 'podcast'] as MsgType[]).map(t => (
@@ -583,6 +605,19 @@ function Composer({ onSend, disabled, L }: {
           </button>
         ))}
       </div>
+
+      {/* Reply banner */}
+      {replyTo && msgType === 'chat' && (
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-primary/10 bg-primary/[0.03]">
+          <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-accent flex-shrink-0"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 5 5v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <div className="min-w-0 flex-1">
+            <span className="font-mono text-[8px] uppercase tracking-widest text-primary/40">{L.replyingTo} </span>
+            <span className="text-[11px] font-bold" style={{ color: replyTo.color }}>{replyTo.nickname}</span>
+            <span className="text-[11px] text-primary/40 truncate"> · {replyTo.text.slice(0, 60)}</span>
+          </div>
+          <button onClick={onCancelReply} className="text-primary/40 hover:text-primary flex-shrink-0">✕</button>
+        </div>
+      )}
 
       {/* Expanded meta fields */}
       {isExpanded && (
@@ -604,20 +639,15 @@ function Composer({ onSend, disabled, L }: {
 
       {/* Main input row */}
       <form onSubmit={handleSubmit} className="flex items-stretch">
-        {/* Emoji + GIF buttons */}
         <div className="flex flex-col justify-center px-2 gap-1 border-r border-primary/10">
           <button type="button" onClick={() => { setShowEmoji(s => !s); setShowGif(false); }}
-            className={`w-8 h-8 flex items-center justify-center text-base transition-colors ${showEmoji ? 'text-accent' : 'text-primary/30 hover:text-primary'}`}>
-            😊
-          </button>
+            className={`w-8 h-8 flex items-center justify-center text-base transition-colors ${showEmoji ? 'text-accent' : 'text-primary/30 hover:text-primary'}`}>😊</button>
           <button type="button" onClick={() => { setShowGif(s => !s); setShowEmoji(false); }}
-            className={`w-8 h-8 flex items-center justify-center font-mono text-[9px] uppercase tracking-widest transition-colors ${showGif ? 'text-accent' : 'text-primary/30 hover:text-primary'}`}>
-            GIF
-          </button>
+            className={`w-8 h-8 flex items-center justify-center font-mono text-[9px] uppercase tracking-widest transition-colors ${showGif ? 'text-accent' : 'text-primary/30 hover:text-primary'}`}>GIF</button>
         </div>
 
-        <textarea ref={textareaRef} value={text} onChange={e => setText(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
+        <textarea ref={textareaRef} value={text} onChange={e => onChangeText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } if (e.key === 'Escape' && replyTo) onCancelReply(); }}
           placeholder={isExpanded ? L.placeholderExpanded : L.placeholder}
           rows={2}
           className="flex-1 resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:text-primary/30 font-sans"
@@ -632,6 +662,223 @@ function Composer({ onSend, disabled, L }: {
   );
 }
 
+// ── Name / color editor ──────────────────────────────────────────────────────
+function NameEditModal({ user, onSave, onClose, L }: {
+  user: RadioUser;
+  onSave: (nickname: string, color: string) => Promise<void>;
+  onClose: () => void;
+  L: Record<string, string>;
+}) {
+  const [name, setName] = useState(user.nickname);
+  const [color, setColor] = useState(user.color);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (trimmed.length < 2 || trimmed.length > 24) { setErr(L.nameRule); return; }
+    setSaving(true); setErr('');
+    try { await onSave(trimmed, color); onClose(); }
+    catch (e: any) { setErr(e.message || L.nameRule); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-primary/60 backdrop-blur-sm px-4" onMouseDown={onClose}>
+      <div className="bg-bg border border-primary w-full max-w-sm shadow-2xl" onMouseDown={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-primary">
+          <span className="font-mono text-[10px] uppercase tracking-widest">{L.editName}</span>
+          <button onClick={onClose} className="text-primary/40 hover:text-primary text-lg leading-none">✕</button>
+        </div>
+        <form onSubmit={submit} className="p-5 space-y-5">
+          {/* Preview */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 flex items-center justify-center text-xs font-bold uppercase tracking-widest text-white flex-shrink-0" style={{ backgroundColor: color }}>
+              {(name || '··').slice(0, 2)}
+            </div>
+            <span className="font-bold text-sm" style={{ color }}>{name || '—'}</span>
+          </div>
+          <div>
+            <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40 mb-1.5 block">{L.nickname}</span>
+            <input value={name} onChange={e => setName(e.target.value)} autoFocus maxLength={24}
+              className="w-full bg-transparent border border-primary/30 px-3 py-2.5 text-sm outline-none focus:border-primary font-sans" />
+          </div>
+          <div>
+            <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40 mb-2 block">{L.color}</span>
+            <div className="flex flex-wrap gap-2">
+              {RADIO_COLORS.map(c => (
+                <button key={c} type="button" onClick={() => setColor(c)}
+                  className={`w-7 h-7 transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-offset-bg ring-primary scale-110' : 'hover:scale-110'}`}
+                  style={{ backgroundColor: c }} aria-label={c} />
+              ))}
+            </div>
+          </div>
+          {err && <p className="font-mono text-[10px] text-red-500">{err}</p>}
+          <button type="submit" disabled={saving}
+            className="w-full bg-primary text-white font-mono text-[10px] uppercase tracking-widest py-3 hover:bg-accent hover:text-primary transition-colors disabled:opacity-40">
+            {saving ? '…' : L.save}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Identity chip ─────────────────────────────────────────────────────────────
+function IdentityChip({ user, onEdit, L }: { user: RadioUser; onEdit: () => void; L: Record<string, string> }) {
+  return (
+    <button onClick={onEdit} title={L.editName}
+      className="group flex items-center gap-2 border border-primary/20 hover:border-primary pl-1 pr-2.5 py-1 transition-colors">
+      <span className="w-6 h-6 flex items-center justify-center text-[9px] font-bold uppercase text-white flex-shrink-0" style={{ backgroundColor: user.color }}>
+        {user.nickname.slice(0, 2)}
+      </span>
+      <span className="text-xs font-medium max-w-[90px] truncate">{user.nickname}</span>
+      <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 text-primary/30 group-hover:text-primary transition-colors flex-shrink-0">
+        <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </button>
+  );
+}
+
+// ── Reply preview (quoted) ────────────────────────────────────────────────────
+function ReplyQuote({ reply, onJump }: { reply: NonNullable<RadioMessage['reply_to']>; onJump?: () => void }) {
+  return (
+    <button onClick={onJump} type="button"
+      className="flex items-stretch gap-2 mb-1 text-left max-w-full group/q">
+      <span className="w-0.5 bg-primary/30 flex-shrink-0 group-hover/q:bg-accent transition-colors" />
+      <span className="min-w-0">
+        <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40 block">{reply.nickname}</span>
+        <span className="text-[11px] text-primary/40 truncate block">{reply.text}</span>
+      </span>
+    </button>
+  );
+}
+
+// ── Chat message row (with hover actions, edit, reactions) ────────────────────
+function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDelete }: {
+  msg: RadioMessage;
+  isOwn: boolean;
+  grouped: boolean;
+  L: Record<string, string>;
+  onReply: (m: RadioMessage) => void;
+  onReact: (id: number, emoji: string) => void;
+  onEdit: (id: number, text: string) => Promise<void>;
+  onDelete: (id: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(msg.text);
+  const [showReactBar, setShowReactBar] = useState(false);
+
+  const saveEdit = async () => {
+    const t = draft.trim();
+    if (!t || t === msg.text) { setEditing(false); return; }
+    await onEdit(msg.id, t);
+    setEditing(false);
+  };
+
+  return (
+    <div className={`group/msg relative flex gap-3 px-1 -mx-1 ${grouped ? 'pt-0.5' : 'pt-4'} hover:bg-primary/[0.025] transition-colors`}>
+      <div className="w-8 flex-shrink-0">{!grouped && <Avatar nickname={msg.nickname} color={msg.color} />}</div>
+      <div className="flex-1 min-w-0">
+        {!grouped && (
+          <div className="flex items-baseline gap-2 mb-0.5">
+            <span className="font-bold text-xs" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
+            <span className="font-mono text-[9px] text-primary/30">{formatTime(msg.created_at)}</span>
+            {msg.edited_at && <span className="font-mono text-[8px] text-primary/25">({L.edited})</span>}
+          </div>
+        )}
+
+        {msg.reply_to && <ReplyQuote reply={msg.reply_to} />}
+
+        {editing ? (
+          <div className="flex flex-col gap-1.5">
+            <textarea value={draft} onChange={e => setDraft(e.target.value)} autoFocus rows={2}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveEdit(); }
+                if (e.key === 'Escape') setEditing(false);
+              }}
+              className="w-full resize-none bg-bg border border-primary/30 px-2 py-1.5 text-sm outline-none focus:border-primary font-sans" />
+            <div className="flex gap-2">
+              <button onClick={saveEdit} className="font-mono text-[8px] uppercase tracking-widest bg-primary text-white px-2 py-1 hover:bg-accent hover:text-primary transition-colors">{L.save}</button>
+              <button onClick={() => { setEditing(false); setDraft(msg.text); }} className="font-mono text-[8px] uppercase tracking-widest text-primary/40 px-2 py-1 hover:text-primary transition-colors">{L.cancel}</button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm leading-relaxed break-words"><MsgContent text={msg.text} /></p>
+        )}
+
+        {msg.reactions.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {msg.reactions.map(r => (
+              <button key={r.emoji} onClick={() => onReact(msg.id, r.emoji)}
+                className={`text-xs px-1.5 py-0.5 border transition-colors ${r.reacted ? 'border-accent bg-accent/10' : 'border-primary/15 hover:border-primary/40'}`}>
+                {r.emoji} {r.count}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Hover actions */}
+      {!editing && (
+        <div className="absolute right-1 top-1 flex items-center bg-bg border border-primary/15 opacity-0 group-hover/msg:opacity-100 transition-opacity">
+          <div className="relative">
+            <button onClick={() => setShowReactBar(s => !s)} title={L.react}
+              className="w-7 h-7 flex items-center justify-center text-primary/40 hover:text-accent transition-colors text-sm">☺</button>
+            {showReactBar && (
+              <div className="absolute bottom-full right-0 mb-1 flex bg-bg border border-primary shadow-lg z-10">
+                {QUICK_REACTIONS.map(e => (
+                  <button key={e} onClick={() => { onReact(msg.id, e); setShowReactBar(false); }}
+                    className="w-8 h-8 flex items-center justify-center text-base hover:bg-primary/10 transition-colors">{e}</button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button onClick={() => onReply(msg)} title={L.reply}
+            className="w-7 h-7 flex items-center justify-center text-primary/40 hover:text-primary transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 5 5v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          {isOwn && (
+            <>
+              <button onClick={() => { setDraft(msg.text); setEditing(true); }} title={L.edit}
+                className="w-7 h-7 flex items-center justify-center text-primary/40 hover:text-primary transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <button onClick={() => onDelete(msg.id)} title={L.delete}
+                className="w-7 h-7 flex items-center justify-center text-primary/40 hover:text-red-500 transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Typing indicator ──────────────────────────────────────────────────────────
+function TypingIndicator({ typers, L }: { typers: { nickname: string; color: string }[]; L: Record<string, string> }) {
+  if (typers.length === 0) return null;
+  const names = typers.slice(0, 3).map(t => t.nickname).join(', ');
+  return (
+    <div className="flex items-center gap-2 px-4 md:px-6 py-1.5 flex-shrink-0">
+      <span className="flex gap-0.5">
+        {[0, 1, 2].map(i => (
+          <span key={i} className="w-1 h-1 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+        ))}
+      </span>
+      <span className="font-mono text-[9px] text-primary/40 truncate">{names} {L.typing}</span>
+    </div>
+  );
+}
+
 // ── Main page ────────────────────────────────────────────────────────────────
 export const RadioPage: React.FC = () => {
   const { language } = useApp();
@@ -639,9 +886,12 @@ export const RadioPage: React.FC = () => {
   const [messages, setMessages] = useState<RadioMessage[]>([]);
   const [pinned, setPinned] = useState<RadioMessage[]>([]);
   const [online, setOnline] = useState<RadioUser[]>([]);
+  const [typing, setTyping] = useState<{ nickname: string; color: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [replyTo, setReplyTo] = useState<RadioMessage | null>(null);
   const adminClickRef = useRef(0);
   const adminClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastIdRef = useRef(0);
@@ -671,6 +921,10 @@ export const RadioPage: React.FC = () => {
       metaImage: 'Обложка (URL изображения)…',
       statsTitle: 'Соединение', statsBitrate: 'Битрейт', statsRtt: 'RTT / Пинг',
       statsJitter: 'Джиттер', statsLost: 'Потери пакетов', statsOnline: 'Слушателей',
+      editName: 'Изменить имя', nickname: 'Никнейм', color: 'Цвет', save: 'Сохранить', cancel: 'Отмена',
+      edited: 'изм.', react: 'Реакция', reply: 'Ответить', edit: 'Изменить', delete: 'Удалить',
+      replyingTo: 'Ответ', typing: 'печатает…', nameRule: 'Имя: 2–24 символа',
+      deleteConfirm: 'Удалить сообщение?',
     },
     en: {
       kicker: 'AM Publishing Radio', chat: 'Chat', placeholder: 'Write to chat…',
@@ -686,6 +940,10 @@ export const RadioPage: React.FC = () => {
       metaImage: 'Cover image URL…',
       statsTitle: 'Connection', statsBitrate: 'Bitrate', statsRtt: 'RTT / Ping',
       statsJitter: 'Jitter', statsLost: 'Packet loss', statsOnline: 'Listeners',
+      editName: 'Edit name', nickname: 'Nickname', color: 'Color', save: 'Save', cancel: 'Cancel',
+      edited: 'edited', react: 'React', reply: 'Reply', edit: 'Edit', delete: 'Delete',
+      replyingTo: 'Reply to', typing: 'typing…', nameRule: 'Name: 2–24 chars',
+      deleteConfirm: 'Delete message?',
     },
     de: {
       kicker: 'AM Publishing Radio', chat: 'Chat', placeholder: 'In den Chat schreiben…',
@@ -701,6 +959,10 @@ export const RadioPage: React.FC = () => {
       metaImage: 'Cover-Bild URL…',
       statsTitle: 'Verbindung', statsBitrate: 'Bitrate', statsRtt: 'RTT / Ping',
       statsJitter: 'Jitter', statsLost: 'Paketverlust', statsOnline: 'Zuhörer',
+      editName: 'Name ändern', nickname: 'Spitzname', color: 'Farbe', save: 'Speichern', cancel: 'Abbrechen',
+      edited: 'bearb.', react: 'Reaktion', reply: 'Antworten', edit: 'Bearbeiten', delete: 'Löschen',
+      replyingTo: 'Antwort an', typing: 'schreibt…', nameRule: 'Name: 2–24 Zeichen',
+      deleteConfirm: 'Nachricht löschen?',
     },
   }[language] ?? {};
 
@@ -738,6 +1000,14 @@ export const RadioPage: React.FC = () => {
           const last = r.messages[r.messages.length - 1];
           if (last) lastIdRef.current = last.id;
         }
+        // Live reaction updates
+        if (r.reaction_updates?.length) {
+          setMessages(prev => prev.map(m => {
+            const upd = r.reaction_updates.find(u => u.message_id === m.id);
+            return upd ? { ...m, reactions: upd.reactions } : m;
+          }));
+        }
+        setTyping(r.typing ?? []);
         const ol = await fetchRadioOnline();
         setOnline(ol);
       } catch { }
@@ -750,12 +1020,40 @@ export const RadioPage: React.FC = () => {
   const handleSend = useCallback(async (payload: Parameters<typeof sendRadioMessage>[0]) => {
     if (!getRadioUser()) await radioGuestJoin();
     const msg = await sendRadioMessage(payload);
-    if (msg.msg_type !== 'chat') {
-      setPinned(prev => [...prev, msg]);
-    }
+    if (msg.msg_type !== 'chat') setPinned(prev => [...prev, msg]);
     setMessages(prev => [...prev, msg]);
     lastIdRef.current = msg.id;
   }, []);
+
+  const handleTyping = useCallback(() => { sendRadioTyping(); }, []);
+
+  const handleRename = useCallback(async (nickname: string, color: string) => {
+    const updated = await renameMe(nickname, color);
+    setUser(updated);
+    // Reflect new name/color on own messages locally
+    setMessages(prev => prev.map(m => m.user_id === updated.id ? { ...m, nickname: updated.nickname, color: updated.color } : m));
+  }, []);
+
+  const handleReact = useCallback(async (id: number, emoji: string) => {
+    try {
+      const res = await reactRadioMessage(id, emoji);
+      setMessages(prev => prev.map(m => m.id === id ? { ...m, reactions: res.reactions } : m));
+    } catch { }
+  }, []);
+
+  const handleEdit = useCallback(async (id: number, text: string) => {
+    const res = await editRadioMessage(id, text);
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, text: res.text, edited_at: res.edited_at } : m));
+  }, []);
+
+  const handleDelete = useCallback(async (id: number) => {
+    if (!confirm(L.deleteConfirm)) return;
+    try {
+      await deleteRadioMessage(id);
+      setMessages(prev => prev.filter(m => m.id !== id));
+      setPinned(prev => prev.filter(m => m.id !== id));
+    } catch { }
+  }, [L.deleteConfirm]);
 
   const handlePin = useCallback(async (id: number) => {
     const res = await pinRadioMessage(id);
@@ -810,9 +1108,12 @@ export const RadioPage: React.FC = () => {
 
           {/* Chat column */}
           <section className="flex flex-col border-b lg:border-b-0 lg:border-r border-primary lg:flex-1 lg:min-h-0 h-[62vh] lg:h-auto">
-            <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-primary/30 flex-shrink-0">
-              <span className="font-mono text-[10px] uppercase tracking-widest">{L.chat}</span>
-              {online.length > 0 && <LiveDot count={online.length} />}
+            <div className="flex items-center justify-between gap-2 px-4 md:px-6 py-2.5 border-b border-primary/30 flex-shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="font-mono text-[10px] uppercase tracking-widest">{L.chat}</span>
+                {online.length > 0 && <LiveDot count={online.length} />}
+              </div>
+              {user && <IdentityChip user={user} onEdit={() => setEditingName(true)} L={L} />}
             </div>
 
             {/* Pinned */}
@@ -836,35 +1137,18 @@ export const RadioPage: React.FC = () => {
                 }
                 const isOwn = user?.id === msg.user_id;
                 const prev = messages[i - 1];
-                const grouped = prev && prev.user_id === msg.user_id && prev.msg_type === 'chat';
+                const grouped = !!prev && prev.user_id === msg.user_id && prev.msg_type === 'chat' && !msg.reply_to;
                 return (
-                  <div key={msg.id} className={`flex gap-3 ${grouped ? 'pt-0.5' : 'pt-4'}`}>
-                    <div className="w-8 flex-shrink-0">{!grouped && <Avatar nickname={msg.nickname} color={msg.color} />}</div>
-                    <div className="flex-1 min-w-0">
-                      {!grouped && (
-                        <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="font-bold text-xs" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
-                          <span className="font-mono text-[9px] text-primary/30">{formatTime(msg.created_at)}</span>
-                        </div>
-                      )}
-                      <p className="text-sm leading-relaxed break-words"><MsgContent text={msg.text} /></p>
-                      {msg.reactions.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {msg.reactions.map(r => (
-                            <span key={r.emoji} className={`text-xs px-1.5 py-0.5 border ${r.reacted ? 'border-accent bg-accent/10' : 'border-primary/20'}`}>
-                              {r.emoji} {r.count}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <ChatMessageRow key={msg.id} msg={msg} isOwn={isOwn} grouped={grouped} L={L}
+                    onReply={setReplyTo} onReact={handleReact} onEdit={handleEdit} onDelete={handleDelete} />
                 );
               })}
               <div ref={bottomRef} />
             </div>
 
-            <Composer onSend={handleSend} disabled={!!error} L={L} />
+            <TypingIndicator typers={typing} L={L} />
+            <Composer onSend={handleSend} onTyping={handleTyping} disabled={!!error} L={L}
+              replyTo={replyTo} onCancelReply={() => setReplyTo(null)} />
           </section>
 
           {/* Sidebar */}
@@ -893,6 +1177,10 @@ export const RadioPage: React.FC = () => {
           </aside>
         </div>
       </div>
+
+      {editingName && user && (
+        <NameEditModal user={user} onSave={handleRename} onClose={() => setEditingName(false)} L={L} />
+      )}
 
       {showAdmin && (
         <RadioAdminPanel
