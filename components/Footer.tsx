@@ -32,8 +32,8 @@ export const Footer: React.FC = () => {
             </div>
          </div>
 
-         {/* 2. LINKS */}
-         <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-white/20">
+         {/* 2. LINKS — hidden on mobile, visible from sm */}
+         <div className="hidden sm:block p-6 md:p-10 border-b md:border-b-0 md:border-r border-white/20">
             <h3 className="font-bold text-xs uppercase tracking-widest mb-6 md:mb-8 text-accent">{t('footer.directory')}</h3>
             <ul className="space-y-3 md:space-y-4 font-serif text-xl md:text-2xl">
                <li><Link to="/catalog" className="hover:text-accent transition-all">{t('nav.catalog')}</Link></li>
@@ -45,7 +45,7 @@ export const Footer: React.FC = () => {
          </div>
 
          {/* 3. TELEGRAM CTA */}
-         <div className="col-span-1 sm:col-span-2 md:col-span-2 relative overflow-hidden bg-gradient-to-br from-[#061426] via-[#0a1f3a] to-[#061426] p-6 md:p-12 flex flex-col justify-center">
+         <div className="col-span-1 sm:col-span-1 md:col-span-2 relative overflow-hidden bg-gradient-to-br from-[#061426] via-[#0a1f3a] to-[#061426] p-8 md:p-12 flex flex-col justify-center items-center sm:items-start">
             {/* Background watermark */}
             <Send
                size={520}
@@ -53,7 +53,7 @@ export const Footer: React.FC = () => {
                className="pointer-events-none absolute -right-24 -bottom-32 text-accent/[0.05] rotate-12 hidden md:block"
             />
 
-            <div className="relative z-10 max-w-xl">
+            <div className="relative z-10 max-w-xl w-full text-center sm:text-left">
                <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-accent mb-5 flex items-center gap-3">
                   <span className="inline-block w-8 h-px bg-accent" />
                   {t('footer.subscribe_label')}
@@ -74,7 +74,7 @@ export const Footer: React.FC = () => {
                   href="https://t.me/ampublishingberlin"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex flex-col xs:flex-row items-stretch mt-6 md:mt-8 border border-accent/50 hover:border-accent hover:bg-accent transition-all duration-300 w-full max-w-sm"
+                  className="group inline-flex flex-col xs:flex-row items-stretch mt-6 md:mt-8 border border-accent/50 hover:border-accent hover:bg-accent transition-all duration-300 w-full max-w-sm mx-auto sm:mx-0"
                >
                   <span className="px-5 py-4 font-mono text-sm tracking-[0.04em] border-b xs:border-b-0 xs:border-r border-accent/40 group-hover:text-primary group-hover:border-primary/40 transition-colors overflow-hidden text-ellipsis">
                      {t('footer.subscribe_handle')}
