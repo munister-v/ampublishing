@@ -26,26 +26,54 @@ const EMOJI_GROUPS: { label: string; emojis: string[] }[] = [
   { label: '📚', emojis: ['📚','📖','✍️','🖊️','📝','🎧','🎵','🎶','📻','🎙️','🗞️','📰','💬','📢','🔔','🏆'] },
 ];
 
+// ── Types ────────────────────────────────────────────────────────────────────
+type AudioStats = {
+  rttMs: number | null;
+  jitterMs: number | null;
+  packetsLost: number | null;
+  bitrateBps: number | null;
+  iceState: RTCIceConnectionState | null;
+  micLevel: number; // 0-1
+};
+
 // ── useRadioAudio ───────────────────────────────────────────────────────────
 function useRadioAudio(token: string | null) {
   const [playing, setPlaying] = useState(false);
   const [volume, setVolumeState] = useState(0.8);
   const [muted, setMuted] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
+  const [micGranted, setMicGranted] = useState<boolean | null>(null); // null=unknown, true=granted, false=denied
   const [micDevices, setMicDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedMic, setSelectedMic] = useState('');
   const [status, setStatus] = useState<'idle'|'connecting'|'waiting'|'live'|'error'>('idle');
-  const statusRef = useRef<'idle'|'connecting'|'waiting'|'live'|'error'>('idle');
-  const setStatusSafe = useCallback((s: typeof statusRef.current) => { statusRef.current = s; setStatus(s); }, []);
+  const [stats, setStats] = useState<AudioStats>({ rttMs: null, jitterMs: null, packetsLost: null, bitrateBps: null, iceState: null, micLevel: 0 });
+  const statusRef = useRef<typeof status>('idle');
+  const setStatusSafe = useCallback((s: typeof status) => { statusRef.current = s; setStatus(s); }, []);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const callIdRef = useRef<number | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const statsRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSigRef = useRef(0);
   const streamRef = useRef<MediaStream | null>(null);
+  const prevBytesRef = useRef(0);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
 
+  // Auto-request mic on mount
   useEffect(() => {
-    navigator.mediaDevices?.enumerateDevices().then(d => setMicDevices(d.filter(x => x.kind === 'audioinput'))).catch(() => {});
+    navigator.mediaDevices?.getUserMedia({ audio: true })
+      .then(s => {
+        setMicGranted(true);
+        setMicEnabled(true);
+        navigator.mediaDevices.enumerateDevices().then(d => {
+          setMicDevices(d.filter(x => x.kind === 'audioinput'));
+          if (d.find(x => x.kind === 'audioinput' && x.deviceId === 'default')) setSelectedMic('default');
+        });
+        // Keep stream for later use, stop if not needed immediately
+        micStreamRef.current = s;
+      })
+      .catch(() => setMicGranted(false));
   }, []);
 
   useEffect(() => {
@@ -56,7 +84,57 @@ function useRadioAudio(token: string | null) {
     return () => { navigator.mediaSession.setActionHandler('play', null); navigator.mediaSession.setActionHandler('pause', null); };
   }, []);
 
+  const stopStats = useCallback(() => {
+    if (statsRef.current) { clearInterval(statsRef.current); statsRef.current = null; }
+  }, []);
+
+  const startStats = useCallback((pc: RTCPeerConnection) => {
+    stopStats();
+    statsRef.current = setInterval(async () => {
+      if (!pc || pc.signalingState === 'closed') return;
+      try {
+        const reports = await pc.getStats();
+        let rtt: number | null = null, jitter: number | null = null, lost: number | null = null, bytes = 0;
+        reports.forEach((r: any) => {
+          if (r.type === 'remote-inbound-rtp' && r.kind === 'audio') {
+            if (r.roundTripTime != null) rtt = Math.round(r.roundTripTime * 1000);
+            if (r.jitter != null) jitter = Math.round(r.jitter * 1000);
+            if (r.packetsLost != null) lost = r.packetsLost;
+          }
+          if (r.type === 'inbound-rtp' && r.kind === 'audio') {
+            bytes = r.bytesReceived ?? 0;
+          }
+        });
+        const bitrate = prevBytesRef.current ? Math.round((bytes - prevBytesRef.current) * 8 / 2) : null;
+        prevBytesRef.current = bytes;
+        setStats(s => ({ ...s, rttMs: rtt, jitterMs: jitter, packetsLost: lost, bitrateBps: bitrate, iceState: pc.iceConnectionState }));
+      } catch { }
+    }, 2000);
+  }, [stopStats]);
+
+  // Mic level analyser
+  useEffect(() => {
+    if (!micEnabled || !micStreamRef.current) { setStats(s => ({ ...s, micLevel: 0 })); return; }
+    try {
+      const ctx = new AudioContext();
+      const src = ctx.createMediaStreamSource(micStreamRef.current);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      src.connect(analyser);
+      analyserRef.current = analyser;
+      const buf = new Uint8Array(analyser.frequencyBinCount);
+      const tick = setInterval(() => {
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) sum += Math.abs(buf[i] - 128);
+        setStats(s => ({ ...s, micLevel: Math.min(1, (sum / buf.length) / 40) }));
+      }, 100);
+      return () => { clearInterval(tick); ctx.close(); };
+    } catch { return undefined; }
+  }, [micEnabled]);
+
   const stopAudio = useCallback(() => {
+    stopStats();
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
     if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
     if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
@@ -66,9 +144,11 @@ function useRadioAudio(token: string | null) {
       if (t) fetch(`${RADIO_API}/calls/${callIdRef.current}/leave`, { method: 'PUT', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' } }).catch(() => {});
       callIdRef.current = null;
     }
+    prevBytesRef.current = 0;
     setPlaying(false); setStatusSafe('idle');
+    setStats(s => ({ ...s, rttMs: null, jitterMs: null, packetsLost: null, bitrateBps: null, iceState: null }));
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
-  }, [setStatusSafe]);
+  }, [setStatusSafe, stopStats]);
 
   const startAudio = useCallback(async () => {
     if (!token) return;
@@ -83,6 +163,11 @@ function useRadioAudio(token: string | null) {
       const iceServers = cfgB.data?.ice_servers ?? [{ urls: 'stun:stun.l.google.com:19302' }];
       const pc = new RTCPeerConnection({ iceServers });
       pcRef.current = pc;
+
+      pc.oniceconnectionstatechange = () => {
+        setStats(s => ({ ...s, iceState: pc.iceConnectionState }));
+      };
+
       pc.ontrack = (e) => {
         const stream = e.streams[0] ?? new MediaStream([e.track]);
         streamRef.current = stream;
@@ -90,20 +175,24 @@ function useRadioAudio(token: string | null) {
         audioRef.current.srcObject = stream; audioRef.current.volume = volume; audioRef.current.muted = muted;
         audioRef.current.play().catch(() => {});
         setPlaying(true); setStatusSafe('live');
+        startStats(pc);
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
       };
       pc.onicecandidate = (e) => {
         if (!e.candidate || !callIdRef.current) return;
         fetch(`${RADIO_API}/calls/${callIdRef.current}/signals`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ signal_type: 'ice', payload: e.candidate }) }).catch(() => {});
       };
-      if (micEnabled && selectedMic) {
-        try { const s = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: selectedMic } }); s.getAudioTracks().forEach(t => pc.addTrack(t, s)); } catch { pc.addTransceiver('audio', { direction: 'recvonly' }); }
-      } else { pc.addTransceiver('audio', { direction: 'recvonly' }); }
 
-      // After 5s without broadcast — switch to "waiting" (keeps polling, not an error)
-      setTimeout(() => {
-        if (statusRef.current === 'connecting') setStatusSafe('waiting');
-      }, 5000);
+      // Add mic if enabled and stream available
+      const micStream = micEnabled ? (micStreamRef.current ?? await navigator.mediaDevices.getUserMedia({ audio: selectedMic ? { deviceId: selectedMic } : true }).catch(() => null)) : null;
+      if (micStream) {
+        micStreamRef.current = micStream;
+        micStream.getAudioTracks().forEach(t => pc.addTrack(t, micStream));
+      } else {
+        pc.addTransceiver('audio', { direction: 'recvonly' });
+      }
+
+      setTimeout(() => { if (statusRef.current === 'connecting') setStatusSafe('waiting'); }, 5000);
 
       pollRef.current = setInterval(async () => {
         if (!callIdRef.current) return;
@@ -124,7 +213,7 @@ function useRadioAudio(token: string | null) {
         } catch { }
       }, 1500);
     } catch { setStatusSafe('error'); setTimeout(() => setStatusSafe('idle'), 3000); }
-  }, [token, micEnabled, selectedMic, volume, muted, setStatusSafe]);
+  }, [token, micEnabled, selectedMic, volume, muted, setStatusSafe, startStats]);
 
   const togglePlay = useCallback(() => {
     if (playing || status === 'connecting' || status === 'waiting' || status === 'live') stopAudio(); else startAudio();
@@ -132,14 +221,19 @@ function useRadioAudio(token: string | null) {
 
   const setVolume = useCallback((v: number) => { setVolumeState(v); if (audioRef.current) audioRef.current.volume = v; }, []);
   const toggleMute = useCallback(() => { setMuted(m => { if (audioRef.current) audioRef.current.muted = !m; return !m; }); }, []);
-  const toggleMic = useCallback(async () => {
-    if (!micEnabled) {
-      await navigator.mediaDevices?.getUserMedia({ audio: true }).then(s => { s.getTracks().forEach(t => t.stop()); navigator.mediaDevices.enumerateDevices().then(d => setMicDevices(d.filter(x => x.kind === 'audioinput'))); }).catch(() => {});
-    }
-    setMicEnabled(m => !m);
-  }, [micEnabled]);
 
-  return { playing, status, volume, setVolume, muted, toggleMute, micEnabled, toggleMic, micDevices, selectedMic, setSelectedMic, togglePlay };
+  const requestMic = useCallback(async () => {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ audio: selectedMic ? { deviceId: selectedMic } : true });
+      micStreamRef.current = s;
+      setMicGranted(true);
+      setMicEnabled(true);
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      setMicDevices(devs.filter(d => d.kind === 'audioinput'));
+    } catch { setMicGranted(false); }
+  }, [selectedMic]);
+
+  return { playing, status, stats, volume, setVolume, muted, toggleMute, micEnabled, setMicEnabled, micGranted, requestMic, micDevices, selectedMic, setSelectedMic, togglePlay };
 }
 
 // ── GIF picker ──────────────────────────────────────────────────────────────
@@ -307,68 +401,128 @@ function LiveDot({ count }: { count: number }) {
   );
 }
 
+// ── Stat row ─────────────────────────────────────────────────────────────────
+function StatRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="flex items-center justify-between py-1.5 border-b border-primary/8 last:border-0">
+      <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40">{label}</span>
+      <span className={`font-mono text-[10px] ${accent ? 'text-accent' : 'text-primary/70'}`}>{value}</span>
+    </div>
+  );
+}
+
 // ── Player sidebar block ─────────────────────────────────────────────────────
 function PlayerBlock({ audio, L, onlineCount }: { audio: ReturnType<typeof useRadioAudio>; L: Record<string, string>; onlineCount: number }) {
-  const [showMic, setShowMic] = useState(false);
-  const statusLabel = audio.status === 'connecting' ? L.connecting : audio.status === 'waiting' ? L.waiting : audio.status === 'live' ? L.live : audio.status === 'error' ? L.errAudio : L.offline;
+  const statusLabel = audio.status === 'connecting' ? L.connecting
+    : audio.status === 'waiting' ? L.waiting
+    : audio.status === 'live' ? L.live
+    : audio.status === 'error' ? L.errAudio
+    : L.offline;
+
+  const { stats } = audio;
+  const iceLabel = stats.iceState === 'connected' ? '✓ Connected'
+    : stats.iceState === 'checking' ? '… Checking'
+    : stats.iceState === 'failed' ? '✕ Failed'
+    : stats.iceState === 'disconnected' ? '⚠ Disconnected'
+    : stats.iceState ?? '—';
+  const bitrateLabel = stats.bitrateBps != null ? `${Math.round(stats.bitrateBps / 1000)} kbps` : '—';
+  const rttLabel = stats.rttMs != null ? `${stats.rttMs} ms` : '—';
+  const jitterLabel = stats.jitterMs != null ? `${stats.jitterMs} ms` : '—';
+  const lostLabel = stats.packetsLost != null ? String(stats.packetsLost) : '—';
 
   return (
     <div className="border-b border-primary">
-      <div className="px-6 md:px-8 pt-6 md:pt-8 pb-4 border-b border-primary/20">
+
+      {/* Status + play */}
+      <div className="px-6 md:px-8 pt-5 pb-4 border-b border-primary/20">
         <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary/40 mb-1">AM Publishing</p>
-        <h2 className="font-serif text-2xl md:text-3xl leading-tight">Radio</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-serif text-2xl leading-tight">Radio</h2>
+          <button onClick={audio.togglePlay}
+            className={`w-10 h-10 flex items-center justify-center border border-primary transition-colors ${audio.playing || audio.status === 'connecting' || audio.status === 'waiting' ? 'bg-primary text-white' : 'hover:bg-primary hover:text-white'}`}>
+            {audio.status === 'connecting'
+              ? <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+              : audio.playing || audio.status === 'waiting'
+                ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+                : <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M8 5.5l12 6.5-12 6.5V5.5Z"/></svg>}
+          </button>
+        </div>
         <p className="font-mono text-[10px] text-primary/40 mt-1">{statusLabel}</p>
       </div>
-      <div className="px-6 md:px-8 py-5 flex items-center gap-4 border-b border-primary/20">
-        <button onClick={audio.togglePlay}
-          className={`w-12 h-12 flex items-center justify-center border border-primary transition-colors duration-200 flex-shrink-0 ${audio.playing || audio.status === 'connecting' ? 'bg-primary text-white' : 'hover:bg-primary hover:text-white'}`}>
-          {audio.status === 'connecting'
-            ? <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-            : audio.playing
-              ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
-              : <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M8 5.5l12 6.5-12 6.5V5.5Z"/></svg>}
+
+      {/* Volume */}
+      <div className="px-6 md:px-8 py-3 flex items-center gap-3 border-b border-primary/20">
+        <button onClick={audio.toggleMute} className="text-primary/40 hover:text-primary transition-colors flex-shrink-0">
+          {audio.muted
+            ? <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M19 9l-6 6M13 9l6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
+            : <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>}
         </button>
-        <div className="flex-1 flex items-center gap-3">
-          <button onClick={audio.toggleMute} className="text-primary/50 hover:text-primary transition-colors">
-            {audio.muted
-              ? <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M19 9l-6 6M13 9l6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
-              : <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>}
-          </button>
-          <input type="range" min="0" max="1" step="0.05" value={audio.muted ? 0 : audio.volume}
-            onChange={e => { audio.setVolume(Number(e.target.value)); if (audio.muted && Number(e.target.value) > 0) audio.toggleMute(); }}
-            className="flex-1 h-px appearance-none bg-primary/20 accent-primary cursor-pointer" />
-        </div>
+        <input type="range" min="0" max="1" step="0.05" value={audio.muted ? 0 : audio.volume}
+          onChange={e => { audio.setVolume(Number(e.target.value)); if (audio.muted && Number(e.target.value) > 0) audio.toggleMute(); }}
+          className="flex-1 h-px appearance-none bg-primary/20 accent-primary cursor-pointer" />
+        <span className="font-mono text-[9px] text-primary/30 w-7 text-right">{Math.round(audio.volume * 100)}%</span>
       </div>
-      <div className="px-6 md:px-8 py-4">
-        <button onClick={() => setShowMic(s => !s)} className="flex items-center gap-2 text-primary/50 hover:text-primary transition-colors w-full">
-          <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 flex-shrink-0"><path d="M9 4.5a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0v-6Z" stroke="currentColor" strokeWidth="1.8"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-          <span className="font-mono text-[9px] uppercase tracking-widest">{L.micSettings}</span>
-          <svg viewBox="0 0 24 24" fill="none" className={`w-3 h-3 ml-auto transition-transform ${showMic ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
-        </button>
-        {showMic && (
-          <div className="mt-3 space-y-3">
-            <label className="flex items-center gap-3 cursor-pointer" onClick={audio.toggleMic}>
-              <div className={`w-8 h-4 relative transition-colors duration-200 flex-shrink-0 ${audio.micEnabled ? 'bg-primary' : 'bg-primary/20'}`}>
-                <span className={`absolute top-0.5 w-3 h-3 bg-white transition-transform duration-200 ${audio.micEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
-              </div>
-              <span className="font-mono text-[9px] uppercase tracking-widest text-primary/60">{L.micOn}</span>
-            </label>
-            {audio.micEnabled && audio.micDevices.length > 0 && (
-              <select value={audio.selectedMic} onChange={e => audio.setSelectedMic(e.target.value)}
-                className="w-full bg-transparent border border-primary/30 px-3 py-2 font-mono text-[10px] outline-none hover:border-primary transition-colors">
-                <option value="">{L.defaultMic}</option>
-                {audio.micDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label || `Mic ${d.deviceId.slice(0, 6)}`}</option>)}
-              </select>
-            )}
-            <p className="font-mono text-[9px] text-primary/30 leading-relaxed">{L.micHint}</p>
+
+      {/* Microphone — always visible */}
+      <div className="px-6 md:px-8 py-4 border-b border-primary/20">
+        <div className="flex items-center gap-2 mb-3">
+          <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-primary/50 flex-shrink-0"><path d="M9 4.5a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0v-6Z" stroke="currentColor" strokeWidth="1.8"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+          <span className="font-mono text-[9px] uppercase tracking-widest text-primary/50">{L.micSettings}</span>
+          {audio.micGranted === false && (
+            <span className="ml-auto font-mono text-[8px] uppercase tracking-widest text-red-500">{L.micDenied}</span>
+          )}
+          {audio.micGranted === true && audio.micEnabled && (
+            <span className="ml-auto font-mono text-[8px] text-accent">✓</span>
+          )}
+        </div>
+
+        {/* Mic level bar */}
+        <div className="mb-3">
+          <div className="h-1.5 bg-primary/10 w-full overflow-hidden">
+            <div className="h-full bg-primary/60 transition-all duration-100"
+              style={{ width: `${Math.round(audio.stats.micLevel * 100)}%` }} />
           </div>
-        )}
-      </div>
-      {onlineCount > 0 && (
-        <div className="px-6 md:px-8 py-3 border-t border-primary/20">
-          <LiveDot count={onlineCount} />
+          <p className="font-mono text-[8px] text-primary/25 mt-1">{L.micLevel}</p>
         </div>
-      )}
+
+        {/* Toggle */}
+        <label className="flex items-center gap-3 cursor-pointer mb-3"
+          onClick={() => audio.micGranted === false ? audio.requestMic() : audio.setMicEnabled(m => !m)}>
+          <div className={`w-8 h-4 relative transition-colors duration-200 flex-shrink-0 ${audio.micEnabled && audio.micGranted ? 'bg-primary' : 'bg-primary/20'}`}>
+            <span className={`absolute top-0.5 w-3 h-3 bg-white transition-transform duration-200 ${audio.micEnabled && audio.micGranted ? 'translate-x-4' : 'translate-x-0.5'}`} />
+          </div>
+          <span className="font-mono text-[9px] uppercase tracking-widest text-primary/60">
+            {audio.micGranted === false ? L.micGrant : L.micOn}
+          </span>
+        </label>
+
+        {/* Device select */}
+        {audio.micGranted && audio.micDevices.length > 0 && (
+          <select value={audio.selectedMic} onChange={e => audio.setSelectedMic(e.target.value)}
+            className="w-full bg-transparent border border-primary/20 px-2 py-1.5 font-mono text-[9px] outline-none hover:border-primary transition-colors">
+            <option value="">{L.defaultMic}</option>
+            {audio.micDevices.map(d => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label || `Mic ${d.deviceId.slice(0, 6)}`}
+              </option>
+            ))}
+          </select>
+        )}
+        <p className="font-mono text-[8px] text-primary/25 mt-2 leading-relaxed">{L.micHint}</p>
+      </div>
+
+      {/* Connection stats */}
+      <div className="px-6 md:px-8 py-4 border-b border-primary/20">
+        <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary/40 mb-2">{L.statsTitle}</p>
+        <div className="space-y-0">
+          <StatRow label="ICE" value={iceLabel} accent={stats.iceState === 'connected'} />
+          <StatRow label={L.statsBitrate} value={bitrateLabel} accent={!!stats.bitrateBps} />
+          <StatRow label={L.statsRtt} value={rttLabel} accent={stats.rttMs != null && stats.rttMs < 100} />
+          <StatRow label={L.statsJitter} value={jitterLabel} />
+          <StatRow label={L.statsLost} value={lostLabel} />
+          <StatRow label={L.statsOnline} value={String(onlineCount)} accent={onlineCount > 0} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -499,34 +653,43 @@ export const RadioPage: React.FC = () => {
       play: 'Слушать', stop: 'Стоп', connecting: 'Подключение…', waiting: 'Ожидание эфира…', live: 'В эфире', offline: 'Эфир не идёт',
       errAudio: 'Ошибка', micSettings: 'Настройки микрофона', micOn: 'Включить микрофон',
       defaultMic: 'Микрофон по умолчанию', micHint: 'Перезапустите эфир после изменений.',
+      micDenied: 'Доступ запрещён', micGrant: 'Разрешить микрофон', micLevel: 'Уровень сигнала',
       tuneIn: 'Слушать эфир →', pinned: 'Закреплено',
       typeChat: 'Чат', typeAnnouncement: 'Анонс', typePodcast: 'Подкаст',
       metaTitle: 'Заголовок…', metaDesc: 'Описание…', metaUrl: 'Ссылка (https://…)',
       metaImage: 'Обложка (URL изображения)…',
+      statsTitle: 'Соединение', statsBitrate: 'Битрейт', statsRtt: 'RTT / Пинг',
+      statsJitter: 'Джиттер', statsLost: 'Потери пакетов', statsOnline: 'Слушателей',
     },
     en: {
       kicker: 'AM Publishing Radio', chat: 'Chat', placeholder: 'Write to chat…',
       placeholderExpanded: 'Announcement text (optional)…', send: 'Send',
       you: 'You', listeners: 'Online', loading: 'Loading…', errorConn: 'Could not connect to radio',
       play: 'Listen', stop: 'Stop', connecting: 'Connecting…', waiting: 'Waiting for broadcast…', live: 'On air', offline: 'Off air',
-      errAudio: 'Error', micSettings: 'Microphone settings', micOn: 'Enable microphone',
+      errAudio: 'Error', micSettings: 'Microphone', micOn: 'Enable microphone',
       defaultMic: 'Default microphone', micHint: 'Restart the stream after changes.',
+      micDenied: 'Access denied', micGrant: 'Allow microphone', micLevel: 'Signal level',
       tuneIn: 'Tune in →', pinned: 'Pinned',
       typeChat: 'Chat', typeAnnouncement: 'Announcement', typePodcast: 'Podcast',
       metaTitle: 'Title…', metaDesc: 'Description…', metaUrl: 'Link (https://…)',
       metaImage: 'Cover image URL…',
+      statsTitle: 'Connection', statsBitrate: 'Bitrate', statsRtt: 'RTT / Ping',
+      statsJitter: 'Jitter', statsLost: 'Packet loss', statsOnline: 'Listeners',
     },
     de: {
       kicker: 'AM Publishing Radio', chat: 'Chat', placeholder: 'In den Chat schreiben…',
       placeholderExpanded: 'Ankündigungstext (optional)…', send: 'Senden',
       you: 'Sie', listeners: 'Online', loading: 'Laden…', errorConn: 'Verbindung fehlgeschlagen',
       play: 'Zuhören', stop: 'Stopp', connecting: 'Verbinden…', waiting: 'Warten auf Sendung…', live: 'Live', offline: 'Nicht live',
-      errAudio: 'Fehler', micSettings: 'Mikrofoneinstellungen', micOn: 'Mikrofon aktivieren',
+      errAudio: 'Fehler', micSettings: 'Mikrofon', micOn: 'Mikrofon aktivieren',
       defaultMic: 'Standardmikrofon', micHint: 'Stream nach Änderungen neu starten.',
+      micDenied: 'Zugriff verweigert', micGrant: 'Mikrofon erlauben', micLevel: 'Signalpegel',
       tuneIn: 'Reinhören →', pinned: 'Angeheftet',
       typeChat: 'Chat', typeAnnouncement: 'Ankündigung', typePodcast: 'Podcast',
       metaTitle: 'Titel…', metaDesc: 'Beschreibung…', metaUrl: 'Link (https://…)',
       metaImage: 'Cover-Bild URL…',
+      statsTitle: 'Verbindung', statsBitrate: 'Bitrate', statsRtt: 'RTT / Ping',
+      statsJitter: 'Jitter', statsLost: 'Paketverlust', statsOnline: 'Zuhörer',
     },
   }[language] ?? {};
 
