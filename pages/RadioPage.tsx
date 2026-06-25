@@ -34,7 +34,9 @@ function useRadioAudio(token: string | null) {
   const [micEnabled, setMicEnabled] = useState(false);
   const [micDevices, setMicDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedMic, setSelectedMic] = useState('');
-  const [status, setStatus] = useState<'idle'|'connecting'|'live'|'error'>('idle');
+  const [status, setStatus] = useState<'idle'|'connecting'|'waiting'|'live'|'error'>('idle');
+  const statusRef = useRef<'idle'|'connecting'|'waiting'|'live'|'error'>('idle');
+  const setStatusSafe = useCallback((s: typeof statusRef.current) => { statusRef.current = s; setStatus(s); }, []);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const callIdRef = useRef<number | null>(null);
@@ -64,13 +66,13 @@ function useRadioAudio(token: string | null) {
       if (t) fetch(`${RADIO_API}/calls/${callIdRef.current}/leave`, { method: 'PUT', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' } }).catch(() => {});
       callIdRef.current = null;
     }
-    setPlaying(false); setStatus('idle');
+    setPlaying(false); setStatusSafe('idle');
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
-  }, []);
+  }, [setStatusSafe]);
 
   const startAudio = useCallback(async () => {
     if (!token) return;
-    setStatus('connecting');
+    setStatusSafe('connecting');
     try {
       const joinRes = await fetch(`${RADIO_API}/calls/join`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
       const jb = await joinRes.json();
@@ -87,7 +89,7 @@ function useRadioAudio(token: string | null) {
         if (!audioRef.current) audioRef.current = new Audio();
         audioRef.current.srcObject = stream; audioRef.current.volume = volume; audioRef.current.muted = muted;
         audioRef.current.play().catch(() => {});
-        setPlaying(true); setStatus('live');
+        setPlaying(true); setStatusSafe('live');
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
       };
       pc.onicecandidate = (e) => {
@@ -97,6 +99,12 @@ function useRadioAudio(token: string | null) {
       if (micEnabled && selectedMic) {
         try { const s = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: selectedMic } }); s.getAudioTracks().forEach(t => pc.addTrack(t, s)); } catch { pc.addTransceiver('audio', { direction: 'recvonly' }); }
       } else { pc.addTransceiver('audio', { direction: 'recvonly' }); }
+
+      // After 5s without broadcast — switch to "waiting" (keeps polling, not an error)
+      setTimeout(() => {
+        if (statusRef.current === 'connecting') setStatusSafe('waiting');
+      }, 5000);
+
       pollRef.current = setInterval(async () => {
         if (!callIdRef.current) return;
         try {
@@ -105,6 +113,7 @@ function useRadioAudio(token: string | null) {
           for (const sig of (b.data ?? [])) {
             lastSigRef.current = sig.id;
             if (sig.signal_type === 'offer') {
+              if (statusRef.current === 'waiting') setStatusSafe('connecting');
               await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(sig.payload)));
               const ans = await pc.createAnswer(); await pc.setLocalDescription(ans);
               await fetch(`${RADIO_API}/calls/${callIdRef.current}/signals`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ to_user_id: sig.from_user_id, signal_type: 'answer', payload: ans }) });
@@ -114,11 +123,11 @@ function useRadioAudio(token: string | null) {
           }
         } catch { }
       }, 1500);
-    } catch { setStatus('error'); setTimeout(() => setStatus('idle'), 3000); }
-  }, [token, micEnabled, selectedMic, volume, muted]);
+    } catch { setStatusSafe('error'); setTimeout(() => setStatusSafe('idle'), 3000); }
+  }, [token, micEnabled, selectedMic, volume, muted, setStatusSafe]);
 
   const togglePlay = useCallback(() => {
-    if (playing || status === 'connecting' || status === 'live') stopAudio(); else startAudio();
+    if (playing || status === 'connecting' || status === 'waiting' || status === 'live') stopAudio(); else startAudio();
   }, [playing, status, startAudio, stopAudio]);
 
   const setVolume = useCallback((v: number) => { setVolumeState(v); if (audioRef.current) audioRef.current.volume = v; }, []);
@@ -301,7 +310,7 @@ function LiveDot({ count }: { count: number }) {
 // ── Player sidebar block ─────────────────────────────────────────────────────
 function PlayerBlock({ audio, L, onlineCount }: { audio: ReturnType<typeof useRadioAudio>; L: Record<string, string>; onlineCount: number }) {
   const [showMic, setShowMic] = useState(false);
-  const statusLabel = audio.status === 'connecting' ? L.connecting : audio.status === 'live' ? L.live : audio.status === 'error' ? L.errAudio : L.offline;
+  const statusLabel = audio.status === 'connecting' ? L.connecting : audio.status === 'waiting' ? L.waiting : audio.status === 'live' ? L.live : audio.status === 'error' ? L.errAudio : L.offline;
 
   return (
     <div className="border-b border-primary">
@@ -487,7 +496,7 @@ export const RadioPage: React.FC = () => {
       kicker: 'AM Publishing Radio', chat: 'Чат', placeholder: 'Написать в чат…',
       placeholderExpanded: 'Текст анонса (необязательно)…', send: 'Отправить',
       you: 'Вы', listeners: 'В эфире', loading: 'Загрузка…', errorConn: 'Не удалось подключиться к радио',
-      play: 'Слушать', stop: 'Стоп', connecting: 'Подключение…', live: 'В эфире', offline: 'Эфир не идёт',
+      play: 'Слушать', stop: 'Стоп', connecting: 'Подключение…', waiting: 'Ожидание эфира…', live: 'В эфире', offline: 'Эфир не идёт',
       errAudio: 'Ошибка', micSettings: 'Настройки микрофона', micOn: 'Включить микрофон',
       defaultMic: 'Микрофон по умолчанию', micHint: 'Перезапустите эфир после изменений.',
       tuneIn: 'Слушать эфир →', pinned: 'Закреплено',
@@ -499,7 +508,7 @@ export const RadioPage: React.FC = () => {
       kicker: 'AM Publishing Radio', chat: 'Chat', placeholder: 'Write to chat…',
       placeholderExpanded: 'Announcement text (optional)…', send: 'Send',
       you: 'You', listeners: 'Online', loading: 'Loading…', errorConn: 'Could not connect to radio',
-      play: 'Listen', stop: 'Stop', connecting: 'Connecting…', live: 'On air', offline: 'Off air',
+      play: 'Listen', stop: 'Stop', connecting: 'Connecting…', waiting: 'Waiting for broadcast…', live: 'On air', offline: 'Off air',
       errAudio: 'Error', micSettings: 'Microphone settings', micOn: 'Enable microphone',
       defaultMic: 'Default microphone', micHint: 'Restart the stream after changes.',
       tuneIn: 'Tune in →', pinned: 'Pinned',
@@ -511,7 +520,7 @@ export const RadioPage: React.FC = () => {
       kicker: 'AM Publishing Radio', chat: 'Chat', placeholder: 'In den Chat schreiben…',
       placeholderExpanded: 'Ankündigungstext (optional)…', send: 'Senden',
       you: 'Sie', listeners: 'Online', loading: 'Laden…', errorConn: 'Verbindung fehlgeschlagen',
-      play: 'Zuhören', stop: 'Stopp', connecting: 'Verbinden…', live: 'Live', offline: 'Nicht live',
+      play: 'Zuhören', stop: 'Stopp', connecting: 'Verbinden…', waiting: 'Warten auf Sendung…', live: 'Live', offline: 'Nicht live',
       errAudio: 'Fehler', micSettings: 'Mikrofoneinstellungen', micOn: 'Mikrofon aktivieren',
       defaultMic: 'Standardmikrofon', micHint: 'Stream nach Änderungen neu starten.',
       tuneIn: 'Reinhören →', pinned: 'Angeheftet',
@@ -599,7 +608,7 @@ export const RadioPage: React.FC = () => {
             <h1 className="font-serif text-5xl md:text-7xl leading-none mt-4">AM Publishing Radio</h1>
           </div>
           <button onClick={audio.togglePlay}
-            className={`w-[160px] md:w-[220px] flex flex-col items-center justify-center gap-3 transition-colors duration-300 cursor-pointer group ${audio.playing ? 'bg-accent text-primary' : 'bg-primary text-white hover:bg-accent hover:text-primary'}`}>
+            className={`w-[160px] md:w-[220px] flex flex-col items-center justify-center gap-3 transition-colors duration-300 cursor-pointer group ${(audio.playing || audio.status === 'waiting') ? 'bg-accent text-primary' : 'bg-primary text-white hover:bg-accent hover:text-primary'}`}>
             {audio.status === 'connecting'
               ? <span className="w-8 h-8 border-2 border-current border-t-transparent rounded-full animate-spin" />
               : audio.playing
@@ -611,7 +620,7 @@ export const RadioPage: React.FC = () => {
                     <rect x="42" y="12" width="4" height="8"/>
                   </svg>}
             <span className="font-mono text-[10px] uppercase tracking-widest text-center px-2">
-              {audio.status === 'connecting' ? L.connecting : audio.playing ? L.stop : L.tuneIn}
+              {audio.status === 'connecting' ? L.connecting : audio.status === 'waiting' ? L.stop : audio.playing ? L.stop : L.tuneIn}
             </span>
           </button>
         </div>
