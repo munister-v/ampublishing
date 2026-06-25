@@ -11,7 +11,7 @@ import {
   type RadioUser,
 } from '../services/radioApi';
 
-const RADIO_URL = 'https://radio.munister.com.ua';
+const RADIO_URL = 'https://radio.ampublishing.org';
 const POLL_MS = 3000;
 
 const MEDIA_RE = /^https?:\/\/\S+\.(gif|jpg|jpeg|png|webp)(\?.*)?$/i;

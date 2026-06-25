@@ -1,4 +1,4 @@
-const RADIO_BASE = 'https://radio.munister.com.ua/api'
+const RADIO_BASE = 'https://radio.ampublishing.org/api'
 const TOKEN_KEY = 'ampub_radio_token'
 const USER_KEY = 'ampub_radio_user'
 
