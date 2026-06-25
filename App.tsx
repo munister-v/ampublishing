@@ -21,6 +21,7 @@ import { AuthorsPage, AboutPage, MediaPage, PrivacyPage, ImpressumPage, TermsPag
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminPage } from './pages/AdminPage';
+import { RadioPage } from './pages/RadioPage';
 
 // --- App Content with Routing ---
 
@@ -61,6 +62,8 @@ const AppContent: React.FC = () => {
           
           <Route path="/services" element={<ServiceOrderPage />} />
           <Route path="/services/order" element={<ServiceOrderPage />} />
+
+          <Route path="/radio" element={<RadioPage />} />
 
           <Route path="/authors" element={<AuthorsPage />} />
           <Route path="/our-authors" element={<OurAuthorsPage />} />
