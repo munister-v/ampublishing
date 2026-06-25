@@ -1,6 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../AppContext';
 import { api } from '../services/api';
+import {
+  adminLogin as radioAdminLogin, adminClearChat, adminUnpinAll, adminPin,
+  adminAnnounce, getAdminToken as getRadioAdminToken, clearAdminToken as clearRadioAdminToken,
+  fetchPinnedMessages, fetchRadioMessages, deleteRadioMessage,
+  type RadioMessage, type AnnouncePayload,
+} from '../services/radioApi';
 import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
@@ -41,7 +47,7 @@ import {
   SortAsc,
 } from 'lucide-react';
 
-type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'site' | 'payments' | 'orders' | 'status';
+type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'site' | 'payments' | 'orders' | 'status' | 'radio';
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -977,6 +983,25 @@ export const AdminPage: React.FC = () => {
   const [savedFlash, setSavedFlash] = useState('');
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // ── Radio section state ──────────────────────────────────────────────────
+  const [radioAuthed, setRadioAuthed] = useState(!!getRadioAdminToken());
+  const [radioPassword, setRadioPassword] = useState('');
+  const [radioLoginErr, setRadioLoginErr] = useState('');
+  const [radioLoginBusy, setRadioLoginBusy] = useState(false);
+  const [radioTab, setRadioTab] = useState<'announce' | 'pins' | 'messages' | 'chat'>('announce');
+  const [radioBusy, setRadioBusy] = useState(false);
+  const [radioFlash, setRadioFlash] = useState('');
+  const [radioFlashErr, setRadioFlashErr] = useState(false);
+  const [aType, setAType] = useState<'announcement' | 'podcast'>('announcement');
+  const [aTitle, setATitle] = useState('');
+  const [aText, setAText] = useState('');
+  const [aDesc, setADesc] = useState('');
+  const [aUrl, setAUrl] = useState('');
+  const [aImage, setAImage] = useState('');
+  const [aPinned, setAPinned] = useState(true);
+  const [radioPins, setRadioPins] = useState<RadioMessage[]>([]);
+  const [radioMessages, setRadioMessages] = useState<RadioMessage[]>([]);
+
   const startSave = (key: string, phase = '') => {
     setSavingKey(key);
     setSaveOpPhase(phase);
@@ -1024,6 +1049,71 @@ export const AdminPage: React.FC = () => {
   useEffect(() => {
     setSidebarOpen(false);
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'radio' || !radioAuthed) return;
+    if (radioTab === 'pins') fetchPinnedMessages().then(setRadioPins).catch(() => {});
+    if (radioTab === 'messages') fetchRadioMessages().then(msgs => setRadioMessages(msgs.filter(m => !m.is_deleted))).catch(() => {});
+  }, [activeTab, radioAuthed, radioTab]);
+
+  const radioFlashMsg = (text: string, err = false) => {
+    setRadioFlash(text); setRadioFlashErr(err);
+    setTimeout(() => setRadioFlash(''), 3500);
+  };
+
+  const handleRadioLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRadioLoginBusy(true); setRadioLoginErr('');
+    try { await radioAdminLogin(radioPassword); setRadioAuthed(true); setRadioPassword(''); }
+    catch (err: any) { setRadioLoginErr(err.message || 'Неверный пароль'); }
+    finally { setRadioLoginBusy(false); }
+  };
+
+  const handleRadioAnnounce = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aTitle && !aText) return;
+    setRadioBusy(true);
+    try {
+      const payload: AnnouncePayload = { msg_type: aType, text: aText, meta_title: aTitle, meta_description: aDesc, meta_url: aUrl, meta_image: aImage, pinned: aPinned };
+      await adminAnnounce(payload);
+      radioFlashMsg(aPinned ? 'Опубликовано и закреплено' : 'Опубликовано');
+      setATitle(''); setAText(''); setADesc(''); setAUrl(''); setAImage('');
+    } catch (err: any) { radioFlashMsg(err.message || 'Ошибка', true); }
+    finally { setRadioBusy(false); }
+  };
+
+  const handleRadioUnpin = async (id: number) => {
+    setRadioBusy(true);
+    try { await adminPin(id); setRadioPins(p => p.filter(m => m.id !== id)); radioFlashMsg('Откреплено'); }
+    catch (err: any) { radioFlashMsg(err.message || 'Ошибка', true); }
+    finally { setRadioBusy(false); }
+  };
+
+  const handleRadioUnpinAll = async () => {
+    if (!confirm('Открепить все?')) return;
+    setRadioBusy(true);
+    try { await adminUnpinAll(); setRadioPins([]); radioFlashMsg('Все откреплены'); }
+    catch (err: any) { radioFlashMsg(err.message || 'Ошибка', true); }
+    finally { setRadioBusy(false); }
+  };
+
+  const handleRadioClearChat = async () => {
+    if (!confirm('Очистить весь чат? Это нельзя отменить.')) return;
+    setRadioBusy(true);
+    try { const r = await adminClearChat(); radioFlashMsg(`Очищено: ${r.cleared} сообщений`); }
+    catch (err: any) { radioFlashMsg(err.message || 'Ошибка', true); }
+    finally { setRadioBusy(false); }
+  };
+
+  const handleRadioDeleteMsg = async (id: number) => {
+    setRadioBusy(true);
+    try {
+      await deleteRadioMessage(id);
+      setRadioMessages(prev => prev.filter(m => m.id !== id));
+      radioFlashMsg('Сообщение удалено');
+    } catch (err: any) { radioFlashMsg(err.message || 'Ошибка', true); }
+    finally { setRadioBusy(false); }
+  };
 
   useEffect(() => {
     if (!database) return;
@@ -1519,6 +1609,7 @@ export const AdminPage: React.FC = () => {
             { id: 'payments', label: 'Оплата', icon: <Gavel size={16} /> },
             { id: 'orders', label: 'Заказы', icon: <ShoppingBag size={16} />, badge: orders.filter(o => o.paymentStatus === 'pending').length },
             { id: 'status', label: 'Статус системы', icon: <Activity size={16} />, badge: 0 },
+            { id: 'radio', label: 'Радио', icon: <Wifi size={16} /> },
           ].map(item => (
             <button
               key={item.id}
@@ -2915,6 +3006,191 @@ export const AdminPage: React.FC = () => {
           </section>
           );
         })() : null}
+
+        {/* ── Radio section ─────────────────────────────────────────────── */}
+        {activeTab === 'radio' && (
+          <section className="space-y-6 max-w-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-serif text-3xl mb-1">Радио</h2>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Анонсы · Чат · Закрепы</p>
+              </div>
+              {radioAuthed && (
+                <button onClick={() => { clearRadioAdminToken(); setRadioAuthed(false); }}
+                  className="font-mono text-[10px] uppercase tracking-widest border border-gray-200 px-3 py-2 hover:bg-gray-100 transition-colors flex items-center gap-2">
+                  <LogOut size={13} /> Выйти
+                </button>
+              )}
+            </div>
+
+            {radioFlash && (
+              <div className={`px-4 py-2.5 font-mono text-[11px] border ${radioFlashErr ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'}`}>
+                {radioFlash}
+              </div>
+            )}
+
+            {!radioAuthed ? (
+              <form onSubmit={handleRadioLogin} className="bg-white border border-primary/10 p-6 space-y-4 max-w-sm">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Пароль радио-администратора</p>
+                <input type="password" value={radioPassword} onChange={e => setRadioPassword(e.target.value)}
+                  placeholder="Пароль…" autoFocus
+                  className="w-full border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary transition-colors" />
+                {radioLoginErr && <p className="text-xs text-red-500 font-mono">{radioLoginErr}</p>}
+                <button type="submit" disabled={radioLoginBusy || !radioPassword}
+                  className="w-full bg-primary text-white font-mono text-[10px] uppercase tracking-widest py-3 hover:bg-accent hover:text-primary transition-colors disabled:opacity-40">
+                  {radioLoginBusy ? '…' : 'Войти'}
+                </button>
+              </form>
+            ) : (
+              <>
+                {/* Sub-tabs */}
+                <div className="flex border border-primary/15">
+                  {([['announce', 'Новый анонс'], ['pins', 'Закрепы'], ['messages', 'Сообщения'], ['chat', 'Чат']] as const).map(([t, label]) => (
+                    <button key={t} onClick={() => setRadioTab(t)}
+                      className={`flex-1 py-2.5 font-mono text-[9px] uppercase tracking-widest transition-colors border-r border-primary/15 last:border-r-0 ${radioTab === t ? 'bg-primary text-white' : 'text-gray-400 hover:text-primary hover:bg-gray-50'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="bg-white border border-primary/10 p-6">
+
+                  {/* Announce */}
+                  {radioTab === 'announce' && (
+                    <form onSubmit={handleRadioAnnounce} className="space-y-5">
+                      <div>
+                        <p className="font-mono text-[9px] uppercase tracking-widest text-gray-400 mb-2">Тип публикации</p>
+                        <div className="flex gap-0">
+                          {(['announcement', 'podcast'] as const).map(t => (
+                            <button key={t} type="button" onClick={() => setAType(t)}
+                              className={`flex-1 py-2.5 font-mono text-[10px] uppercase tracking-widest border transition-colors ${aType === t ? 'bg-primary text-white border-primary' : 'border-gray-200 text-gray-400 hover:border-primary hover:text-primary'}`}>
+                              {t === 'announcement' ? '📢 Анонс' : '🎙 Подкаст'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {[
+                        { label: 'Заголовок', val: aTitle, set: setATitle, ph: 'Заголовок публикации…', req: true },
+                        { label: 'Текст / подпись', val: aText, set: setAText, ph: 'Текст анонса или описание эпизода…', textarea: true },
+                        { label: 'Краткое описание', val: aDesc, set: setADesc, ph: 'Одно предложение…' },
+                        { label: 'Ссылка', val: aUrl, set: setAUrl, ph: 'https://…', type: 'url' },
+                        { label: 'Обложка (URL)', val: aImage, set: setAImage, ph: 'https://…/cover.jpg' },
+                      ].map(({ label, val, set, ph, textarea, type, req }) => (
+                        <div key={label}>
+                          <p className="font-mono text-[9px] uppercase tracking-widest text-gray-400 mb-1.5">
+                            {label}{req && <span className="text-red-400 ml-1">*</span>}
+                          </p>
+                          {textarea
+                            ? <textarea value={val} onChange={e => set(e.target.value)} placeholder={ph} rows={3}
+                                className="w-full border-b border-gray-200 pb-1.5 text-sm outline-none placeholder:text-gray-300 focus:border-primary transition-colors resize-none font-sans" />
+                            : <input value={val} onChange={e => set(e.target.value)} placeholder={ph} type={type || 'text'}
+                                className="w-full border-b border-gray-200 pb-1.5 text-sm outline-none placeholder:text-gray-300 focus:border-primary transition-colors font-sans" />
+                          }
+                          {label === 'Обложка (URL)' && val && (
+                            <img src={val} alt="" className="mt-2 h-24 w-full object-cover border border-gray-100"
+                              onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                          )}
+                        </div>
+                      ))}
+
+                      <label className="flex items-center gap-3 cursor-pointer" onClick={() => setAPinned(p => !p)}>
+                        <div className={`w-8 h-4 relative transition-colors flex-shrink-0 ${aPinned ? 'bg-primary' : 'bg-gray-200'}`}>
+                          <span className={`absolute top-0.5 w-3 h-3 bg-white transition-transform ${aPinned ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                        </div>
+                        <span className="font-mono text-[9px] uppercase tracking-widest text-gray-500">Закрепить после публикации</span>
+                      </label>
+
+                      <button type="submit" disabled={radioBusy || (!aTitle && !aText)}
+                        className="w-full bg-primary text-white font-mono text-[10px] uppercase tracking-widest py-3 hover:bg-accent hover:text-primary transition-colors disabled:opacity-40">
+                        {radioBusy ? '…' : aPinned ? 'Опубликовать и закрепить →' : 'Опубликовать →'}
+                      </button>
+                    </form>
+                  )}
+
+                  {/* Pins */}
+                  {radioTab === 'pins' && (
+                    <div className="space-y-4">
+                      {radioPins.length === 0 && (
+                        <p className="font-mono text-[10px] text-gray-400 text-center py-8">Нет закреплённых</p>
+                      )}
+                      {radioPins.map(m => (
+                        <div key={m.id} className={`border-l-2 ${m.msg_type === 'podcast' ? 'border-accent' : 'border-primary'} pl-4 py-2 flex items-start justify-between gap-4`}>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-mono text-[8px] uppercase tracking-widest text-gray-400 mb-1">
+                              {m.msg_type === 'podcast' ? '🎙 Подкаст' : '📢 Анонс'} · #{m.id}
+                            </p>
+                            {m.meta_title && <p className="font-serif text-base leading-tight mb-1">{m.meta_title}</p>}
+                            {m.text && <p className="text-xs text-gray-500 line-clamp-2 mb-1">{m.text}</p>}
+                            {m.meta_url && <p className="font-mono text-[9px] text-gray-300 truncate">{m.meta_url}</p>}
+                          </div>
+                          <button onClick={() => handleRadioUnpin(m.id)} disabled={radioBusy}
+                            className="font-mono text-[9px] uppercase tracking-widest border border-gray-200 px-3 py-1.5 hover:bg-primary hover:text-white hover:border-primary transition-colors disabled:opacity-40 flex-shrink-0">
+                            Открепить
+                          </button>
+                        </div>
+                      ))}
+                      {radioPins.length > 1 && (
+                        <button onClick={handleRadioUnpinAll} disabled={radioBusy}
+                          className="w-full font-mono text-[9px] uppercase tracking-widest border border-gray-200 py-2.5 text-gray-400 hover:border-primary hover:text-primary transition-colors disabled:opacity-40 mt-2">
+                          Открепить все
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Messages */}
+                  {radioTab === 'messages' && (
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="font-mono text-[9px] uppercase tracking-widest text-gray-400">{radioMessages.length} сообщений</p>
+                        <button onClick={() => fetchRadioMessages().then(msgs => setRadioMessages(msgs.filter(m => !m.is_deleted)))}
+                          className="font-mono text-[9px] uppercase tracking-widest text-gray-400 hover:text-primary transition-colors flex items-center gap-1">
+                          <RefreshCw size={11} /> Обновить
+                        </button>
+                      </div>
+                      {radioMessages.length === 0 && <p className="font-mono text-[10px] text-gray-400 text-center py-8">Нет сообщений</p>}
+                      {[...radioMessages].reverse().map(m => (
+                        <div key={m.id} className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0 group">
+                          <div className="w-6 h-6 flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5"
+                            style={{ backgroundColor: m.color || '#040F1E' }}>
+                            {m.nickname.slice(0, 2)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-baseline gap-2 mb-0.5">
+                              <span className="text-xs font-bold" style={{ color: m.color }}>{m.nickname}</span>
+                              <span className="font-mono text-[9px] text-gray-300">{new Date(m.created_at.includes('T') ? m.created_at : m.created_at.replace(' ', 'T') + 'Z').toLocaleString('ru', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                              {m.msg_type !== 'chat' && <span className="font-mono text-[8px] text-accent uppercase tracking-widest">{m.msg_type}</span>}
+                            </div>
+                            <p className="text-sm text-gray-600 break-words line-clamp-2">{m.meta_title || m.text}</p>
+                          </div>
+                          <button onClick={() => handleRadioDeleteMsg(m.id)} disabled={radioBusy}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[9px] text-red-400 hover:text-red-600 flex-shrink-0 p-1 mt-0.5">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Chat */}
+                  {radioTab === 'chat' && (
+                    <div className="space-y-4">
+                      <div className="bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-700 font-mono">
+                        Очистка помечает все чат-сообщения как удалённые. Анонсы и закрепы не затрагиваются.
+                      </div>
+                      <button onClick={handleRadioClearChat} disabled={radioBusy}
+                        className="w-full border border-red-200 py-3 font-mono text-[10px] uppercase tracking-widest text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors disabled:opacity-40">
+                        {radioBusy ? '…' : 'Очистить чат'}
+                      </button>
+                    </div>
+                  )}
+
+                </div>
+              </>
+            )}
+          </section>
+        )}
       </main>
     </div>
   );

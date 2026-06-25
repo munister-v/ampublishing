@@ -22,11 +22,11 @@ export const Footer: React.FC = () => {
             <div className="mt-8 md:mt-12">
                <span className="block text-[10px] uppercase tracking-widest opacity-40 mb-2">{t('footer.social_index')}</span>
                <div className="flex flex-col gap-2 font-mono text-xs">
-                  <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer" className="hover:text-accent flex items-center gap-2">
-                     <Send size={12} /> Telegram {'->'}
+                  <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
+                     Telegram
                   </a>
-                  <a href="https://www.instagram.com/am.publishing?igsh=b2JoMDZqdDJzMXdj" target="_blank" rel="noopener noreferrer" className="hover:text-accent">
-                     Instagram {'->'}
+                  <a href="https://www.instagram.com/am.publishing?igsh=b2JoMDZqdDJzMXdj" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
+                     Instagram
                   </a>
                </div>
             </div>
@@ -74,14 +74,11 @@ export const Footer: React.FC = () => {
                   href="https://t.me/ampublishingberlin"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex flex-col xs:flex-row items-stretch mt-6 md:mt-8 border border-accent/50 hover:border-accent hover:bg-accent transition-all duration-300 w-full max-w-sm mx-auto sm:mx-0"
+                  className="group inline-flex items-center justify-center gap-3 mt-6 md:mt-8 border border-accent/50 hover:border-accent hover:bg-accent transition-all duration-300 w-full max-w-sm mx-auto sm:mx-0 px-6 py-4"
                >
-                  <span className="px-5 py-4 font-mono text-sm tracking-[0.04em] border-b xs:border-b-0 xs:border-r border-accent/40 group-hover:text-primary group-hover:border-primary/40 transition-colors overflow-hidden text-ellipsis">
-                     {t('footer.subscribe_handle')}
-                  </span>
-                  <span className="px-5 py-4 font-mono text-xs uppercase tracking-[0.18em] inline-flex items-center justify-center gap-2 group-hover:text-primary transition-colors whitespace-nowrap flex-shrink-0">
+                  <Send size={14} className="text-accent group-hover:text-primary flex-shrink-0 transition-colors" />
+                  <span className="font-mono text-xs uppercase tracking-[0.18em] group-hover:text-primary transition-colors">
                      {t('footer.submit')}
-                     <Send size={13} className="group-hover:translate-x-1 transition-transform" />
                   </span>
                </a>
             </div>

@@ -81,13 +81,44 @@ function useRadioAudio(token: string | null) {
       .catch(() => setMicGranted(false));
   }, []);
 
+  // Persistent audio element attached to DOM — required for reliable
+  // background / lock-screen playback on mobile (esp. iOS Safari).
+  const ensureAudioEl = useCallback(() => {
+    if (audioRef.current) return audioRef.current;
+    const el = new Audio();
+    el.setAttribute('playsinline', '');
+    el.setAttribute('webkit-playsinline', '');
+    el.autoplay = true;
+    el.preload = 'auto';
+    (el as any).disableRemotePlayback = false;
+    el.style.display = 'none';
+    document.body.appendChild(el);
+    audioRef.current = el;
+    return el;
+  }, []);
+
   useEffect(() => {
     if (!('mediaSession' in navigator)) return;
-    navigator.mediaSession.metadata = new MediaMetadata({ title: 'AM Publishing Radio', artist: 'AM Publishing Berlin', album: 'Live' });
-    navigator.mediaSession.setActionHandler('play', () => { audioRef.current?.play(); setPlaying(true); });
-    navigator.mediaSession.setActionHandler('pause', () => { audioRef.current?.pause(); setPlaying(false); });
-    return () => { navigator.mediaSession.setActionHandler('play', null); navigator.mediaSession.setActionHandler('pause', null); };
-  }, []);
+    const artwork = ['256x256', '384x384', '512x512'].map(sizes => ({
+      src: 'https://ampublishing.org/images/ambook-cover.jpg',
+      sizes, type: 'image/jpeg',
+    }));
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'AM Publishing Radio',
+        artist: 'AM Publishing Berlin',
+        album: 'Прямой эфир',
+        artwork,
+      });
+    } catch { /* MediaMetadata may be unavailable */ }
+    navigator.mediaSession.setActionHandler('play', () => { ensureAudioEl().play().catch(() => {}); setPlaying(true); navigator.mediaSession.playbackState = 'playing'; });
+    navigator.mediaSession.setActionHandler('pause', () => { audioRef.current?.pause(); setPlaying(false); navigator.mediaSession.playbackState = 'paused'; });
+    try { navigator.mediaSession.setActionHandler('stop', () => { audioRef.current?.pause(); setPlaying(false); }); } catch { /* not supported */ }
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+    };
+  }, [ensureAudioEl]);
 
   const stopStats = useCallback(() => {
     if (statsRef.current) { clearInterval(statsRef.current); statsRef.current = null; }
@@ -176,9 +207,9 @@ function useRadioAudio(token: string | null) {
       pc.ontrack = (e) => {
         const stream = e.streams[0] ?? new MediaStream([e.track]);
         streamRef.current = stream;
-        if (!audioRef.current) audioRef.current = new Audio();
-        audioRef.current.srcObject = stream; audioRef.current.volume = volume; audioRef.current.muted = muted;
-        audioRef.current.play().catch(() => {});
+        const el = ensureAudioEl();
+        el.srcObject = stream; el.volume = volume; el.muted = muted;
+        el.play().catch(() => {});
         setPlaying(true); setStatusSafe('live');
         startStats(pc);
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
@@ -218,7 +249,7 @@ function useRadioAudio(token: string | null) {
         } catch { }
       }, 1500);
     } catch { setStatusSafe('error'); setTimeout(() => setStatusSafe('idle'), 3000); }
-  }, [token, micEnabled, selectedMic, volume, muted, setStatusSafe, startStats]);
+  }, [token, micEnabled, selectedMic, volume, muted, setStatusSafe, startStats, ensureAudioEl]);
 
   const togglePlay = useCallback(() => {
     if (playing || status === 'connecting' || status === 'waiting' || status === 'live') stopAudio(); else startAudio();
@@ -349,31 +380,61 @@ function MsgContent({ text }: { text: string }) {
 function AnnouncementCard({ msg, onPin }: { msg: RadioMessage; onPin: (id: number) => void }) {
   const isPodcast = msg.msg_type === 'podcast';
   return (
-    <div className={`my-3 border-l-2 ${isPodcast ? 'border-accent' : 'border-primary'} bg-primary/5 p-4 relative`}>
-      {msg.is_pinned && (
-        <span className="absolute top-2 right-2 font-mono text-[8px] uppercase tracking-widest text-accent">📌</span>
-      )}
-      <p className="font-mono text-[8px] uppercase tracking-widest text-primary/40 mb-1.5">
-        {isPodcast ? '🎙 Подкаст' : '📢 Анонс'}
-      </p>
+    <article className="group bg-bg border border-primary/12 hover:border-primary/30 transition-colors relative overflow-hidden">
+      <span className={`absolute left-0 top-0 bottom-0 w-1 ${isPodcast ? 'bg-accent' : 'bg-primary'}`} />
       {msg.meta_image && (
-        <img src={msg.meta_image} alt="" className="w-full max-h-40 object-cover mb-3 border border-primary/20" loading="lazy"
+        <img src={msg.meta_image} alt="" className="w-full h-36 object-cover" loading="lazy"
           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
       )}
-      {msg.meta_title && <p className="font-serif text-xl leading-tight mb-1">{msg.meta_title}</p>}
-      {msg.text && <p className="text-sm text-primary/70 leading-relaxed mb-2"><MsgContent text={msg.text} /></p>}
-      {msg.meta_description && <p className="text-xs text-primary/50 leading-relaxed mb-2">{msg.meta_description}</p>}
-      {msg.meta_url && (
-        <a href={msg.meta_url} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest border border-primary/40 px-3 py-1.5 hover:bg-primary hover:text-white transition-colors">
-          {isPodcast ? 'Слушать →' : 'Подробнее →'}
-        </a>
-      )}
-      <div className="flex items-center justify-between mt-3">
-        <span className="font-mono text-[9px] text-primary/30">{msg.nickname}</span>
-        <button onClick={() => onPin(msg.id)} className="font-mono text-[8px] uppercase tracking-widest text-primary/30 hover:text-accent transition-colors">
-          {msg.is_pinned ? 'Открепить' : 'Закрепить'}
-        </button>
+      <div className="p-4 pl-5">
+        <div className="flex items-center justify-between mb-2">
+          <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-primary/40 flex items-center gap-1.5">
+            <span className={isPodcast ? 'text-accent' : 'text-primary'}>{isPodcast ? '🎙' : '📢'}</span>
+            {isPodcast ? 'Подкаст' : 'Анонс'}
+          </p>
+          {msg.is_pinned && <span className="font-mono text-[8px] text-accent">📌</span>}
+        </div>
+        {msg.meta_title && <h3 className="font-serif text-lg leading-snug mb-1.5">{msg.meta_title}</h3>}
+        {msg.text && <p className="text-[13px] text-primary/70 leading-relaxed mb-2 break-words"><MsgContent text={msg.text} /></p>}
+        {msg.meta_description && <p className="text-xs text-primary/45 leading-relaxed mb-3">{msg.meta_description}</p>}
+        {msg.meta_url && (
+          <a href={msg.meta_url} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest border border-primary/30 px-3 py-1.5 hover:bg-primary hover:text-white hover:border-primary transition-colors">
+            {isPodcast ? 'Слушать →' : 'Подробнее →'}
+          </a>
+        )}
+        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-primary/8">
+          <span className="font-mono text-[9px] text-primary/30">{msg.nickname}</span>
+          <button onClick={() => onPin(msg.id)} className="font-mono text-[8px] uppercase tracking-widest text-primary/30 hover:text-accent transition-colors opacity-0 group-hover:opacity-100">
+            {msg.is_pinned ? 'Открепить' : 'Закрепить'}
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+// ── Empty state for the right panel ──────────────────────────────────────────
+function EmptyPanel({ tab, L }: { tab: 'ann' | 'pod' | 'pin'; L: Record<string, string> }) {
+  const cfg = {
+    ann: { icon: '📢', title: L.emptyAnnTitle, body: L.emptyAnnBody },
+    pod: { icon: '🎙', title: L.emptyPodTitle, body: L.emptyPodBody },
+    pin: { icon: '📌', title: L.emptyPinTitle, body: L.emptyPinBody },
+  }[tab];
+  return (
+    <div className="h-full flex flex-col items-center justify-center text-center px-6 py-10">
+      <div className="w-14 h-14 flex items-center justify-center border border-primary/15 text-2xl mb-5 bg-bg">
+        {cfg.icon}
+      </div>
+      <p className="font-serif text-lg leading-tight mb-2">{cfg.title}</p>
+      <p className="text-xs text-primary/45 leading-relaxed max-w-[230px] mb-6">{cfg.body}</p>
+      <div className="w-full max-w-[230px] space-y-px">
+        {[L.emptyHint1, L.emptyHint2, L.emptyHint3].map((h, i) => (
+          <div key={i} className="flex items-center gap-2.5 py-2 border-t border-primary/8 text-left">
+            <span className="font-mono text-[9px] text-accent w-4 flex-shrink-0">0{i + 1}</span>
+            <span className="font-mono text-[10px] text-primary/40 leading-snug">{h}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -507,9 +568,9 @@ function PlayerBlock({ audio, L }: { audio: ReturnType<typeof useRadioAudio>; L:
   );
 }
 
-// ── Composer ─────────────────────────────────────────────────────────────────
+// ── Composer (chat only — announcements live in the admin panel) ──────────────
 function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
-  onSend: (payload: { text: string; msg_type: MsgType; meta_title?: string; meta_description?: string; meta_url?: string; meta_image?: string; reply_to_id?: number | null }) => Promise<void>;
+  onSend: (payload: { text: string; msg_type: MsgType; reply_to_id?: number | null }) => Promise<void>;
   onTyping: () => void;
   disabled: boolean;
   L: Record<string, string>;
@@ -517,36 +578,23 @@ function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
   onCancelReply: () => void;
 }) {
   const [text, setText] = useState('');
-  const [msgType, setMsgType] = useState<MsgType>('chat');
-  const [metaTitle, setMetaTitle] = useState('');
-  const [metaDesc, setMetaDesc] = useState('');
-  const [metaUrl, setMetaUrl] = useState('');
-  const [metaImage, setMetaImage] = useState('');
   const [sending, setSending] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [showGif, setShowGif] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingThrottleRef = useRef(0);
 
-  const isExpanded = msgType !== 'chat';
-
   // Focus textarea when a reply is set
   useEffect(() => { if (replyTo) textareaRef.current?.focus(); }, [replyTo]);
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
-    if ((!text.trim() && !metaTitle.trim()) || sending) return;
+    if (!text.trim() || sending) return;
     setSending(true);
     try {
-      await onSend({
-        text: text.trim(), msg_type: msgType,
-        meta_title: metaTitle || undefined, meta_description: metaDesc || undefined,
-        meta_url: metaUrl || undefined, meta_image: metaImage || undefined,
-        reply_to_id: msgType === 'chat' && replyTo ? replyTo.id : null,
-      });
-      setText(''); setMetaTitle(''); setMetaDesc(''); setMetaUrl(''); setMetaImage('');
+      await onSend({ text: text.trim(), msg_type: 'chat', reply_to_id: replyTo ? replyTo.id : null });
+      setText('');
       onCancelReply();
-      if (msgType !== 'chat') setMsgType('chat');
     } finally { setSending(false); }
   };
 
@@ -564,25 +612,10 @@ function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
     setTimeout(() => { el.selectionStart = el.selectionEnd = s + e.length; el.focus(); }, 0);
   };
 
-  const handleMsgType = (t: MsgType) => {
-    setMsgType(t); setShowEmoji(false); setShowGif(false);
-    if (t !== 'chat') onCancelReply();
-  };
-
   return (
-    <div className="border-t border-primary relative flex-shrink-0">
-      {/* Type selector */}
-      <div className="flex border-b border-primary/20">
-        {(['chat', 'announcement', 'podcast'] as MsgType[]).map(t => (
-          <button key={t} type="button" onClick={() => handleMsgType(t)}
-            className={`flex-1 py-2 font-mono text-[9px] uppercase tracking-widest transition-colors ${msgType === t ? 'bg-primary text-white' : 'text-primary/40 hover:text-primary'}`}>
-            {t === 'chat' ? L.typeChat : t === 'announcement' ? L.typeAnnouncement : L.typePodcast}
-          </button>
-        ))}
-      </div>
-
+    <div className="border-t border-primary relative flex-shrink-0 bg-bg">
       {/* Reply banner */}
-      {replyTo && msgType === 'chat' && (
+      {replyTo && (
         <div className="flex items-center gap-2 px-4 py-2 border-b border-primary/10 bg-primary/[0.03]">
           <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-accent flex-shrink-0"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 5 5v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           <div className="min-w-0 flex-1">
@@ -594,43 +627,32 @@ function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
         </div>
       )}
 
-      {/* Expanded meta fields */}
-      {isExpanded && (
-        <div className="px-4 pt-3 space-y-2 border-b border-primary/10">
-          <input value={metaTitle} onChange={e => setMetaTitle(e.target.value)} placeholder={L.metaTitle}
-            className="w-full bg-transparent border-b border-primary/20 pb-1.5 text-sm font-serif outline-none placeholder:text-primary/30 focus:border-primary" />
-          <input value={metaDesc} onChange={e => setMetaDesc(e.target.value)} placeholder={L.metaDesc}
-            className="w-full bg-transparent border-b border-primary/20 pb-1.5 text-xs outline-none placeholder:text-primary/30 focus:border-primary" />
-          <input value={metaUrl} onChange={e => setMetaUrl(e.target.value)} placeholder={L.metaUrl}
-            className="w-full bg-transparent border-b border-primary/20 pb-1.5 text-xs font-mono outline-none placeholder:text-primary/30 focus:border-primary" />
-          <input value={metaImage} onChange={e => setMetaImage(e.target.value)} placeholder={L.metaImage}
-            className="w-full bg-transparent border-b border-primary/20 pb-1.5 text-xs font-mono outline-none placeholder:text-primary/30 focus:border-primary" />
-        </div>
-      )}
-
       {/* Pickers */}
       {showEmoji && <EmojiPicker onPick={insertEmoji} onClose={() => setShowEmoji(false)} />}
       {showGif && <GifPicker onPick={url => { setText(url); setShowEmoji(false); }} onClose={() => setShowGif(false)} />}
 
       {/* Main input row */}
-      <form onSubmit={handleSubmit} className="flex items-stretch">
-        <div className="flex flex-col justify-center px-2 gap-1 border-r border-primary/10">
+      <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 md:p-4">
+        <div className="flex items-center gap-0.5 self-stretch">
           <button type="button" onClick={() => { setShowEmoji(s => !s); setShowGif(false); }}
-            className={`w-8 h-8 flex items-center justify-center text-base transition-colors ${showEmoji ? 'text-accent' : 'text-primary/30 hover:text-primary'}`}>😊</button>
+            className={`w-9 h-9 flex items-center justify-center text-lg rounded-sm transition-colors ${showEmoji ? 'bg-accent/15 text-accent' : 'text-primary/30 hover:text-primary hover:bg-primary/5'}`}>😊</button>
           <button type="button" onClick={() => { setShowGif(s => !s); setShowEmoji(false); }}
-            className={`w-8 h-8 flex items-center justify-center font-mono text-[9px] uppercase tracking-widest transition-colors ${showGif ? 'text-accent' : 'text-primary/30 hover:text-primary'}`}>GIF</button>
+            className={`w-9 h-9 flex items-center justify-center font-mono text-[9px] font-bold uppercase tracking-widest rounded-sm transition-colors ${showGif ? 'bg-accent/15 text-accent' : 'text-primary/30 hover:text-primary hover:bg-primary/5'}`}>GIF</button>
         </div>
 
         <textarea ref={textareaRef} value={text} onChange={e => onChangeText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } if (e.key === 'Escape' && replyTo) onCancelReply(); }}
-          placeholder={isExpanded ? L.placeholderExpanded : L.placeholder}
-          rows={2}
-          className="flex-1 resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:text-primary/30 font-sans"
+          placeholder={L.placeholder}
+          rows={1}
+          className="flex-1 resize-none bg-primary/[0.04] border border-primary/15 focus:border-primary/40 rounded-sm px-4 py-2.5 text-[15px] leading-snug outline-none placeholder:text-primary/30 font-sans transition-colors max-h-32"
           disabled={disabled || sending} maxLength={2000} />
 
-        <button type="submit" disabled={(!text.trim() && !metaTitle.trim()) || sending || disabled}
-          className="w-[90px] md:w-[120px] border-l border-primary bg-primary text-white font-mono text-[10px] uppercase tracking-widest hover:bg-accent hover:text-primary hover:border-accent transition-colors duration-200 disabled:opacity-30 disabled:cursor-default">
-          {sending ? '…' : L.send}
+        <button type="submit" disabled={!text.trim() || sending || disabled}
+          className="h-11 w-11 flex-shrink-0 flex items-center justify-center bg-primary text-white rounded-sm hover:bg-accent hover:text-primary transition-colors duration-200 disabled:opacity-25 disabled:cursor-default"
+          title={L.send}>
+          {sending
+            ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            : <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M4 12l16-8-6 16-3-6-7-2Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>}
         </button>
       </form>
     </div>
@@ -786,7 +808,7 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
             </div>
           </div>
         ) : (
-          <p className="text-sm leading-relaxed break-words"><MsgContent text={msg.text} /></p>
+          <p className="text-[15px] leading-relaxed break-words text-primary/90"><MsgContent text={msg.text} /></p>
         )}
 
         {msg.reactions.length > 0 && (
@@ -902,6 +924,11 @@ export const RadioPage: React.FC = () => {
       edited: 'изм.', react: 'Реакция', reply: 'Ответить', edit: 'Изменить', delete: 'Удалить',
       replyingTo: 'Ответ', typing: 'печатает…', nameRule: 'Имя: 2–24 символа',
       deleteConfirm: 'Удалить сообщение?',
+      subscribeKicker: 'Канал издательства',
+      emptyAnnTitle: 'Пока без анонсов', emptyAnnBody: 'Здесь появляются новости редакции, анонсы книг и отрывки до релиза.',
+      emptyPodTitle: 'Подкастов пока нет', emptyPodBody: 'Аудиоэпизоды и записи эфиров будут собираться в этой вкладке.',
+      emptyPinTitle: 'Ничего не закреплено', emptyPinBody: 'Важные сообщения и анонсы редакция закрепляет здесь.',
+      emptyHint1: 'Слушайте прямой эфир', emptyHint2: 'Общайтесь в чате', emptyHint3: 'Следите в Telegram',
     },
     en: {
       kicker: 'AM Publishing Radio', chat: 'Chat', placeholder: 'Write to chat…',
@@ -921,6 +948,11 @@ export const RadioPage: React.FC = () => {
       edited: 'edited', react: 'React', reply: 'Reply', edit: 'Edit', delete: 'Delete',
       replyingTo: 'Reply to', typing: 'typing…', nameRule: 'Name: 2–24 chars',
       deleteConfirm: 'Delete message?',
+      subscribeKicker: 'Publisher channel',
+      emptyAnnTitle: 'No announcements yet', emptyAnnBody: 'Editorial news, book announcements and pre-release excerpts appear here.',
+      emptyPodTitle: 'No podcasts yet', emptyPodBody: 'Audio episodes and broadcast recordings will be collected in this tab.',
+      emptyPinTitle: 'Nothing pinned', emptyPinBody: 'The editors pin important messages and announcements here.',
+      emptyHint1: 'Tune into the live stream', emptyHint2: 'Chat with listeners', emptyHint3: 'Follow on Telegram',
     },
     de: {
       kicker: 'AM Publishing Radio', chat: 'Chat', placeholder: 'In den Chat schreiben…',
@@ -940,6 +972,11 @@ export const RadioPage: React.FC = () => {
       edited: 'bearb.', react: 'Reaktion', reply: 'Antworten', edit: 'Bearbeiten', delete: 'Löschen',
       replyingTo: 'Antwort an', typing: 'schreibt…', nameRule: 'Name: 2–24 Zeichen',
       deleteConfirm: 'Nachricht löschen?',
+      subscribeKicker: 'Verlagskanal',
+      emptyAnnTitle: 'Noch keine Ankündigungen', emptyAnnBody: 'Redaktionsnews, Buchankündigungen und Leseproben erscheinen hier.',
+      emptyPodTitle: 'Noch keine Podcasts', emptyPodBody: 'Audio-Episoden und Sendungsmitschnitte werden in diesem Tab gesammelt.',
+      emptyPinTitle: 'Nichts angeheftet', emptyPinBody: 'Wichtige Nachrichten und Ankündigungen werden hier angeheftet.',
+      emptyHint1: 'Live-Stream hören', emptyHint2: 'Im Chat mitreden', emptyHint3: 'Auf Telegram folgen',
     },
   }[language] ?? {};
 
@@ -1158,21 +1195,38 @@ export const RadioPage: React.FC = () => {
           </section>
 
           {/* Right: Announcements / Podcasts / Pinned */}
-          <aside className={`lg:w-[260px] lg:flex-shrink-0 flex flex-col lg:min-h-0 ${activeMobileTab !== 'content' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
+          <aside className={`lg:w-[360px] lg:flex-shrink-0 flex flex-col lg:min-h-0 bg-primary/[0.015] ${activeMobileTab !== 'content' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
             <div className="flex border-b border-primary flex-shrink-0">
-              {(['ann', 'pod', 'pin'] as const).map((tab, i) => (
-                <button key={tab} onClick={() => setActiveRightTab(tab)}
-                  className={`flex-1 py-2.5 font-mono text-[8px] uppercase tracking-widest transition-colors ${i < 2 ? 'border-r border-primary' : ''} ${activeRightTab === tab ? 'bg-primary text-white' : 'text-primary/40 hover:text-primary'}`}>
-                  {rightTabLabel(tab)}
-                </button>
-              ))}
+              {(['ann', 'pod', 'pin'] as const).map((tab, i) => {
+                const count = tab === 'ann' ? annMessages.length : tab === 'pod' ? podMessages.length : pinned.length;
+                return (
+                  <button key={tab} onClick={() => setActiveRightTab(tab)}
+                    className={`flex-1 py-3 font-mono text-[9px] uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${i < 2 ? 'border-r border-primary' : ''} ${activeRightTab === tab ? 'bg-primary text-white' : 'text-primary/40 hover:text-primary hover:bg-primary/[0.04]'}`}>
+                    {rightTabLabel(tab)}
+                    {count > 0 && <span className={`text-[8px] px-1 py-px ${activeRightTab === tab ? 'bg-white/20' : 'bg-primary/10'}`}>{count}</span>}
+                  </button>
+                );
+              })}
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
-              {rightTabContent.length === 0
-                ? <p className="font-mono text-xs text-primary/30 text-center py-8">—</p>
-                : rightTabContent.map(msg => <AnnouncementCard key={msg.id} msg={msg} onPin={handlePin} />)
-              }
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              {rightTabContent.length === 0 ? (
+                <EmptyPanel tab={activeRightTab} L={L} />
+              ) : (
+                <div className="p-4 space-y-4">
+                  {[...rightTabContent].reverse().map(msg => <AnnouncementCard key={msg.id} msg={msg} onPin={handlePin} />)}
+                </div>
+              )}
             </div>
+            {/* Telegram CTA pinned to bottom */}
+            <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer"
+              className="group flex items-center gap-3 border-t border-primary px-4 py-3.5 flex-shrink-0 hover:bg-primary hover:text-white transition-colors">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-accent group-hover:text-white flex-shrink-0"><path d="M21.9 4.3 18.7 19c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-4.9 9-8.1c.4-.3-.1-.5-.6-.2L6.3 12.6l-4.8-1.5c-1-.3-1-1 .2-1.5l18.7-7.2c.9-.3 1.6.2 1.3 1.4Z"/></svg>
+              <div className="min-w-0 flex-1">
+                <p className="font-mono text-[9px] uppercase tracking-widest opacity-50 group-hover:opacity-70">{L.subscribeKicker}</p>
+                <p className="text-sm font-medium truncate">@ampublishingberlin</p>
+              </div>
+              <span className="font-mono text-[9px] uppercase tracking-widest opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">→</span>
+            </a>
           </aside>
         </div>
       </div>
