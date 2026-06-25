@@ -768,124 +768,129 @@ export const RadioPage: React.FC = () => {
     }
   }, [messages]);
 
-  return (
-    <div className="min-h-screen bg-bg text-primary font-sans">
+  const statusLabel = audio.status === 'connecting' ? L.connecting
+    : audio.status === 'waiting' ? L.waiting
+    : audio.status === 'live' ? L.live
+    : audio.status === 'error' ? L.errAudio
+    : L.offline;
+  const isActive = audio.playing || audio.status === 'waiting' || audio.status === 'connecting';
 
-      {/* Header */}
-      <div className="border-b border-primary">
-        <div className="flex items-stretch min-h-[120px] md:min-h-[160px]">
-          <div className="flex-1 p-6 md:p-10 border-r border-primary flex flex-col justify-between">
-            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-accent flex items-center gap-3">
-              <span className="inline-block w-8 h-px bg-accent" />
+  return (
+    <div className="bg-bg text-primary font-sans pt-[60px] md:pt-[80px]">
+      <div className="flex flex-col lg:h-[calc(100vh-80px)]">
+
+        {/* ── Header band ─────────────────────────────────────────── */}
+        <header className="flex items-center justify-between gap-4 px-4 md:px-8 py-4 md:py-5 border-b border-primary flex-shrink-0">
+          <div className="min-w-0">
+            <p className="font-mono text-[9px] md:text-[10px] uppercase tracking-[0.28em] text-accent flex items-center gap-2 mb-1.5">
+              <span className="inline-block w-6 h-px bg-accent" />
               {L.kicker}
             </p>
-            <h1 className="font-serif text-5xl md:text-7xl leading-none mt-4">AM Publishing Radio</h1>
+            <h1 className="font-serif text-2xl md:text-4xl leading-none truncate">AM Publishing Radio</h1>
           </div>
-          <button onClick={audio.togglePlay}
-            className={`w-[160px] md:w-[220px] flex flex-col items-center justify-center gap-3 transition-colors duration-300 cursor-pointer group ${(audio.playing || audio.status === 'waiting') ? 'bg-accent text-primary' : 'bg-primary text-white hover:bg-accent hover:text-primary'}`}>
-            {audio.status === 'connecting'
-              ? <span className="w-8 h-8 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              : audio.playing
-                ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-10 h-10"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
-                : <svg viewBox="0 0 48 32" className="w-10 h-7 opacity-60 group-hover:opacity-100 transition-opacity" fill="currentColor">
-                    <rect x="0" y="10" width="4" height="12"/><rect x="7" y="4" width="4" height="24"/>
-                    <rect x="14" y="0" width="4" height="32"/><rect x="21" y="6" width="4" height="20"/>
-                    <rect x="28" y="2" width="4" height="28"/><rect x="35" y="8" width="4" height="16"/>
-                    <rect x="42" y="12" width="4" height="8"/>
-                  </svg>}
-            <span className="font-mono text-[10px] uppercase tracking-widest text-center px-2">
-              {audio.status === 'connecting' ? L.connecting : audio.status === 'waiting' ? L.stop : audio.playing ? L.stop : L.tuneIn}
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] min-h-[calc(100vh-160px)]">
-
-        {/* Chat column */}
-        <div className="flex flex-col border-r border-primary">
-          <div className="flex items-center justify-between px-6 py-3 border-b border-primary">
-            <span className="font-mono text-[10px] uppercase tracking-widest">{L.chat}</span>
-            {online.length > 0 && <LiveDot count={online.length} />}
-          </div>
-
-          {/* Pinned announcements */}
-          {pinned.length > 0 && (
-            <div className="px-4 md:px-6 border-b border-primary/20 bg-accent/5">
-              <p className="font-mono text-[8px] uppercase tracking-widest text-primary/30 pt-3 mb-1">📌 {L.pinned}</p>
-              {pinned.map(msg => (
-                <AnnouncementCard key={msg.id} msg={msg} onPin={handlePin} />
-              ))}
+          <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
+            <div className="hidden sm:flex items-center gap-2">
+              <span className={`w-1.5 h-1.5 rounded-full ${audio.status === 'live' ? 'bg-accent animate-pulse' : isActive ? 'bg-accent/50' : 'bg-primary/20'}`} />
+              <span className="font-mono text-[9px] uppercase tracking-widest text-primary/50">{statusLabel}</span>
             </div>
-          )}
+            <button onClick={audio.togglePlay}
+              className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center transition-colors duration-200 ${isActive ? 'bg-accent text-primary' : 'bg-primary text-white hover:bg-accent hover:text-primary'}`}
+              title={isActive ? L.stop : L.play}>
+              {audio.status === 'connecting'
+                ? <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                : isActive
+                  ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+                  : <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M8 5.5l12 6.5-12 6.5V5.5Z"/></svg>}
+            </button>
+          </div>
+        </header>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4" style={{ maxHeight: 'calc(100vh - 340px)' }}>
-            {loading && <p className="font-mono text-xs text-primary/40 text-center py-12">{L.loading}</p>}
-            {!loading && error && <p className="font-mono text-xs text-red-600 text-center py-12">{error}</p>}
-            {!loading && !error && messages.length === 0 && <p className="font-mono text-xs text-primary/30 text-center py-12">—</p>}
-            {messages.map((msg, i) => {
-              if (msg.msg_type !== 'chat') {
-                return <AnnouncementCard key={msg.id} msg={msg} onPin={handlePin} />;
-              }
-              const isOwn = user?.id === msg.user_id;
-              const prev = messages[i - 1];
-              const grouped = prev && prev.user_id === msg.user_id && prev.msg_type === 'chat';
-              return (
-                <div key={msg.id} className={`flex gap-3 ${grouped ? 'pt-0.5' : 'pt-4'}`}>
-                  <div className="w-8 flex-shrink-0">{!grouped && <Avatar nickname={msg.nickname} color={msg.color} />}</div>
-                  <div className="flex-1 min-w-0">
-                    {!grouped && (
-                      <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="font-bold text-xs" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
-                        <span className="font-mono text-[9px] text-primary/30">{formatTime(msg.created_at)}</span>
-                      </div>
-                    )}
-                    <p className="text-sm leading-relaxed break-words"><MsgContent text={msg.text} /></p>
-                    {msg.reactions.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {msg.reactions.map(r => (
-                          <span key={r.emoji} className={`text-xs px-1.5 py-0.5 border ${r.reacted ? 'border-accent bg-accent/10' : 'border-primary/20'}`}>
-                            {r.emoji} {r.count}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+        {/* ── Body ────────────────────────────────────────────────── */}
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
+
+          {/* Chat column */}
+          <section className="flex flex-col border-b lg:border-b-0 lg:border-r border-primary lg:flex-1 lg:min-h-0 h-[62vh] lg:h-auto">
+            <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-primary/30 flex-shrink-0">
+              <span className="font-mono text-[10px] uppercase tracking-widest">{L.chat}</span>
+              {online.length > 0 && <LiveDot count={online.length} />}
+            </div>
+
+            {/* Pinned */}
+            {pinned.length > 0 && (
+              <div className="px-4 md:px-6 border-b border-accent/20 bg-accent/5 flex-shrink-0 max-h-[40%] overflow-y-auto">
+                <p className="font-mono text-[8px] uppercase tracking-widest text-primary/30 pt-3 mb-1">📌 {L.pinned}</p>
+                {pinned.map(msg => (
+                  <AnnouncementCard key={msg.id} msg={msg} onPin={handlePin} />
+                ))}
+              </div>
+            )}
+
+            {/* Messages */}
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">
+              {loading && <p className="font-mono text-xs text-primary/40 text-center py-12">{L.loading}</p>}
+              {!loading && error && <p className="font-mono text-xs text-red-600 text-center py-12">{error}</p>}
+              {!loading && !error && messages.length === 0 && <p className="font-mono text-xs text-primary/30 text-center py-12">—</p>}
+              {messages.map((msg, i) => {
+                if (msg.msg_type !== 'chat') {
+                  return <AnnouncementCard key={msg.id} msg={msg} onPin={handlePin} />;
+                }
+                const isOwn = user?.id === msg.user_id;
+                const prev = messages[i - 1];
+                const grouped = prev && prev.user_id === msg.user_id && prev.msg_type === 'chat';
+                return (
+                  <div key={msg.id} className={`flex gap-3 ${grouped ? 'pt-0.5' : 'pt-4'}`}>
+                    <div className="w-8 flex-shrink-0">{!grouped && <Avatar nickname={msg.nickname} color={msg.color} />}</div>
+                    <div className="flex-1 min-w-0">
+                      {!grouped && (
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="font-bold text-xs" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
+                          <span className="font-mono text-[9px] text-primary/30">{formatTime(msg.created_at)}</span>
+                        </div>
+                      )}
+                      <p className="text-sm leading-relaxed break-words"><MsgContent text={msg.text} /></p>
+                      {msg.reactions.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {msg.reactions.map(r => (
+                            <span key={r.emoji} className={`text-xs px-1.5 py-0.5 border ${r.reacted ? 'border-accent bg-accent/10' : 'border-primary/20'}`}>
+                              {r.emoji} {r.count}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-            <div ref={bottomRef} />
-          </div>
+                );
+              })}
+              <div ref={bottomRef} />
+            </div>
 
-          <Composer onSend={handleSend} disabled={!!error} L={L} />
-        </div>
+            <Composer onSend={handleSend} disabled={!!error} L={L} />
+          </section>
 
-        {/* Sidebar */}
-        <div className="flex flex-col">
-          <PlayerBlock audio={audio} L={L} onlineCount={online.length} />
-          <div className="p-6 md:p-8 flex-1">
-            <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary/40 mb-4">{L.listeners}</p>
-            <ul className="space-y-2">
-              {online.map(u => (
-                <li key={u.id} className="flex items-center gap-2.5">
-                  <Avatar nickname={u.nickname} color={u.color} />
-                  <span className="text-xs truncate" style={{ color: u.id === user?.id ? '#C9A66B' : undefined }}>
-                    {u.id === user?.id ? `${u.nickname} (${L.you?.toLowerCase()})` : u.nickname}
-                  </span>
-                </li>
-              ))}
-              {online.length === 0 && !loading && <li className="font-mono text-[10px] text-primary/30">—</li>}
-            </ul>
-          </div>
-          <div className="border-t border-primary p-5 flex items-center gap-3">
-            <button onClick={handleAdminTrigger}
-              className="font-serif text-lg leading-none hover:text-accent transition-colors select-none"
-              title="">AM</button>
-            <span className="w-px h-4 bg-primary/20" />
-            <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40">Berlin, {new Date().getFullYear()}</span>
-          </div>
+          {/* Sidebar */}
+          <aside className="flex flex-col lg:w-[340px] lg:flex-shrink-0 lg:min-h-0 lg:overflow-y-auto">
+            <PlayerBlock audio={audio} L={L} onlineCount={online.length} />
+            <div className="p-5 md:p-6 flex-1">
+              <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary/40 mb-3">{L.listeners}</p>
+              <ul className="space-y-2">
+                {online.map(u => (
+                  <li key={u.id} className="flex items-center gap-2.5">
+                    <Avatar nickname={u.nickname} color={u.color} />
+                    <span className="text-xs truncate" style={{ color: u.id === user?.id ? '#C9A66B' : undefined }}>
+                      {u.id === user?.id ? `${u.nickname} (${L.you?.toLowerCase()})` : u.nickname}
+                    </span>
+                  </li>
+                ))}
+                {online.length === 0 && !loading && <li className="font-mono text-[10px] text-primary/30">—</li>}
+              </ul>
+            </div>
+            <div className="border-t border-primary p-4 md:p-5 flex items-center gap-3 flex-shrink-0">
+              <button onClick={handleAdminTrigger}
+                className="font-serif text-lg leading-none hover:text-accent transition-colors select-none">AM</button>
+              <span className="w-px h-4 bg-primary/20" />
+              <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40">Berlin, {new Date().getFullYear()}</span>
+            </div>
+          </aside>
         </div>
       </div>
 
