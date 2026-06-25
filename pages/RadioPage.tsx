@@ -96,7 +96,7 @@ export const RadioPage: React.FC = () => {
   const labels = {
     ru: {
       kicker: 'AM Publishing Radio',
-      title: 'Vinnipeg Nights',
+      title: 'AM Publishing Radio',
       subtitle: 'Живое радио издательства. Музыка, атмосфера, разговоры.',
       tuneIn: 'Слушать эфир →',
       chat: 'Чат',
@@ -111,7 +111,7 @@ export const RadioPage: React.FC = () => {
     },
     en: {
       kicker: 'AM Publishing Radio',
-      title: 'Vinnipeg Nights',
+      title: 'AM Publishing Radio',
       subtitle: 'Live radio from the publishing house. Music, atmosphere, conversations.',
       tuneIn: 'Tune in →',
       chat: 'Chat',
@@ -126,7 +126,7 @@ export const RadioPage: React.FC = () => {
     },
     de: {
       kicker: 'AM Publishing Radio',
-      title: 'Vinnipeg Nights',
+      title: 'AM Publishing Radio',
       subtitle: 'Live-Radio des Verlags. Musik, Atmosphäre, Gespräche.',
       tuneIn: 'Reinhören →',
       chat: 'Chat',
@@ -342,7 +342,7 @@ export const RadioPage: React.FC = () => {
             <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary/40 mb-4">
               Station
             </p>
-            <h2 className="font-serif text-3xl leading-tight mb-3">Vinnipeg Nights</h2>
+            <h2 className="font-serif text-3xl leading-tight mb-3">AM Publishing Radio</h2>
             <p className="text-xs text-primary/60 leading-relaxed font-sans">{L.stationDesc}</p>
             <a
               href={RADIO_URL}
