@@ -10,10 +10,18 @@ export type RadioMessage = {
   nickname: string
   color: string
   text: string
+  msg_type: 'chat' | 'announcement' | 'podcast'
+  meta_title?: string
+  meta_description?: string
+  meta_url?: string
+  meta_image?: string
   is_deleted: boolean
+  is_pinned: boolean
+  pinned_at?: string
   created_at: string
   reply_to_id: number | null
   reply_to: { id: number; nickname: string; text: string } | null
+  edited_at?: string
   reactions: { emoji: string; count: number; reacted: boolean }[]
 }
 
@@ -23,9 +31,17 @@ export type PollResult = {
   reaction_updates: { message_id: number; reactions: RadioMessage['reactions'] }[]
 }
 
-function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
+export type SendMessagePayload = {
+  text: string
+  msg_type?: 'chat' | 'announcement' | 'podcast'
+  meta_title?: string
+  meta_description?: string
+  meta_url?: string
+  meta_image?: string
+  reply_to_id?: number | null
 }
+
+export function getToken(): string | null { return localStorage.getItem(TOKEN_KEY) }
 
 export function getRadioUser(): RadioUser | null {
   try { return JSON.parse(localStorage.getItem(USER_KEY) || '') } catch { return null }
@@ -59,15 +75,20 @@ export async function fetchRadioMessages(): Promise<RadioMessage[]> {
   return req<RadioMessage[]>('/chat/messages')
 }
 
+export async function fetchPinnedMessages(): Promise<RadioMessage[]> {
+  return req<RadioMessage[]>('/chat/pinned')
+}
+
 export async function pollRadioMessages(afterId: number): Promise<PollResult> {
   return req<PollResult>(`/chat/poll?after_id=${afterId}`)
 }
 
-export async function sendRadioMessage(text: string): Promise<RadioMessage> {
-  return req<RadioMessage>('/chat/messages', {
-    method: 'POST',
-    body: JSON.stringify({ text, reply_to_id: null }),
-  })
+export async function sendRadioMessage(payload: SendMessagePayload): Promise<RadioMessage> {
+  return req<RadioMessage>('/chat/messages', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export async function pinRadioMessage(id: number): Promise<{ id: number; is_pinned: boolean }> {
+  return req(`/chat/messages/${id}/pin`, { method: 'POST' })
 }
 
 export async function fetchRadioOnline(): Promise<RadioUser[]> {
