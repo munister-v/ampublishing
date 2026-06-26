@@ -719,7 +719,7 @@ function EmptyPanel({ tab, L }: { tab: 'ann' | 'pod' | 'pin'; L: Record<string, 
 
 function Avatar({ nickname, color }: { nickname: string; color: string }) {
   return (
-    <div className="w-10 h-10 flex items-center justify-center text-xs font-bold uppercase tracking-widest text-white flex-shrink-0 opacity-90"
+    <div className="w-9 h-9 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest text-white flex-shrink-0 rounded-full shadow-sm"
       style={{ backgroundColor: color || '#1a2840' }}>
       {nickname.slice(0, 2)}
     </div>
@@ -1122,13 +1122,13 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
   };
 
   return (
-    <div className={`group/msg relative flex gap-3 px-3 md:px-4 -mx-0 ${grouped ? 'pt-0.5' : 'pt-4'} hover:bg-white/[0.03] transition-colors`}>
-      <div className="w-10 flex-shrink-0">{!grouped && <Avatar nickname={msg.nickname} color={msg.color} />}</div>
+    <div className={`group/msg relative flex gap-3 px-3 md:px-5 ${grouped ? 'pt-px' : 'pt-4'} pb-0.5 hover:bg-white/[0.025] transition-colors rounded-sm`}>
+      <div className="w-9 flex-shrink-0 mt-0.5">{!grouped && <Avatar nickname={msg.nickname} color={msg.color} />}</div>
       <div className="flex-1 min-w-0">
         {!grouped && (
           <div className="flex items-baseline gap-2 mb-1">
-            <span className="font-bold text-sm" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
-            <span className="font-mono text-[10px] text-white/30">{formatTime(msg.created_at)}</span>
+            <span className="font-semibold text-[13px]" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
+            <span className="font-mono text-[10px] text-white/25">{formatTime(msg.created_at)}</span>
             {msg.edited_at && <span className="font-mono text-[9px] text-white/20">({L.edited})</span>}
           </div>
         )}
@@ -1149,7 +1149,7 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
             </div>
           </div>
         ) : (
-          <p className="text-base leading-relaxed break-words text-white/85"><MsgContent text={msg.text} /></p>
+          <p className="text-[14px] leading-relaxed break-words text-white/80"><MsgContent text={msg.text} /></p>
         )}
 
         {msg.reactions.length > 0 && (
@@ -1233,6 +1233,7 @@ export const RadioPage: React.FC = () => {
   const [activeRightTab, setActiveRightTab] = useState<'ann' | 'pod' | 'pin'>('ann');
   const [activeMobileTab, setActiveMobileTab] = useState<'player' | 'chat' | 'content'>('chat');
   const adminClickRef = useRef(0);
+  const onlinePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const adminClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastIdRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -1375,11 +1376,15 @@ export const RadioPage: React.FC = () => {
           }));
         }
         setTyping(r.typing ?? []);
-        const ol = await fetchRadioOnline();
-        setOnline(ol);
       } catch { }
     }, POLL_MS);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+    onlinePollRef.current = setInterval(async () => {
+      try { const ol = await fetchRadioOnline(); setOnline(ol); } catch {}
+    }, 1000);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      if (onlinePollRef.current) clearInterval(onlinePollRef.current);
+    };
   }, [user]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
@@ -1519,10 +1524,13 @@ export const RadioPage: React.FC = () => {
 
           {/* Center: Chat */}
           <section className={`flex flex-col border-r border-white/8 lg:flex-1 lg:min-h-0 ${activeMobileTab !== 'chat' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
-            <div className="flex items-center justify-between gap-2 px-4 md:px-6 py-2.5 border-b border-white/8 flex-shrink-0">
+            <div className="flex items-center justify-between gap-2 px-4 md:px-6 py-3 border-b border-white/8 flex-shrink-0 bg-white/[0.015]">
               <div className="flex items-center gap-3 min-w-0">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-white/50">{L.chat}</span>
-                {online.length > 0 && <LiveDot count={online.length} />}
+                <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-white/35">lounge</span>
+                <span className="w-px h-3 bg-white/10" />
+                {online.length > 0
+                  ? <LiveDot count={online.length} />
+                  : <span className="font-mono text-[9px] text-white/20">—</span>}
               </div>
               {user && <IdentityChip user={user} onEdit={() => setEditingName(true)} L={L} />}
             </div>
