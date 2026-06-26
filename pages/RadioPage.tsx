@@ -380,32 +380,32 @@ function MsgContent({ text }: { text: string }) {
 function AnnouncementCard({ msg, onPin }: { msg: RadioMessage; onPin: (id: number) => void }) {
   const isPodcast = msg.msg_type === 'podcast';
   return (
-    <article className="group bg-bg border border-primary/12 hover:border-primary/30 transition-colors relative overflow-hidden">
-      <span className={`absolute left-0 top-0 bottom-0 w-1 ${isPodcast ? 'bg-accent' : 'bg-primary'}`} />
+    <article className="group bg-white/[0.04] border border-white/8 hover:border-white/20 transition-colors relative overflow-hidden">
+      <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${isPodcast ? 'bg-accent' : 'bg-white/40'}`} />
       {msg.meta_image && (
-        <img src={msg.meta_image} alt="" className="w-full h-36 object-cover" loading="lazy"
+        <img src={msg.meta_image} alt="" className="w-full h-36 object-cover opacity-90" loading="lazy"
           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
       )}
       <div className="p-4 pl-5">
-        <div className="flex items-center justify-between mb-2">
-          <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-primary/40 flex items-center gap-1.5">
-            <span className={isPodcast ? 'text-accent' : 'text-primary'}>{isPodcast ? '🎙' : '📢'}</span>
+        <div className="flex items-center justify-between mb-2.5">
+          <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35 flex items-center gap-1.5">
+            <span className="text-accent">{isPodcast ? '🎙' : '📢'}</span>
             {isPodcast ? 'Подкаст' : 'Анонс'}
           </p>
-          {msg.is_pinned && <span className="font-mono text-[8px] text-accent">📌</span>}
+          {msg.is_pinned && <span className="text-accent text-[10px]">📌</span>}
         </div>
-        {msg.meta_title && <h3 className="font-serif text-lg leading-snug mb-1.5">{msg.meta_title}</h3>}
-        {msg.text && <p className="text-[13px] text-primary/70 leading-relaxed mb-2 break-words"><MsgContent text={msg.text} /></p>}
-        {msg.meta_description && <p className="text-xs text-primary/45 leading-relaxed mb-3">{msg.meta_description}</p>}
+        {msg.meta_title && <h3 className="font-serif text-lg leading-snug mb-2 text-white">{msg.meta_title}</h3>}
+        {msg.text && <p className="text-[13px] text-white/55 leading-relaxed mb-2 break-words"><MsgContent text={msg.text} /></p>}
+        {msg.meta_description && <p className="text-xs text-white/35 leading-relaxed mb-3">{msg.meta_description}</p>}
         {msg.meta_url && (
           <a href={msg.meta_url} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest border border-primary/30 px-3 py-1.5 hover:bg-primary hover:text-white hover:border-primary transition-colors">
+            className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest border border-white/20 px-3 py-1.5 text-white/60 hover:bg-accent hover:text-primary hover:border-accent transition-colors">
             {isPodcast ? 'Слушать →' : 'Подробнее →'}
           </a>
         )}
-        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-primary/8">
-          <span className="font-mono text-[9px] text-primary/30">{msg.nickname}</span>
-          <button onClick={() => onPin(msg.id)} className="font-mono text-[8px] uppercase tracking-widest text-primary/30 hover:text-accent transition-colors opacity-0 group-hover:opacity-100">
+        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-white/8">
+          <span className="font-mono text-[9px] text-white/25">{msg.nickname}</span>
+          <button onClick={() => onPin(msg.id)} className="font-mono text-[8px] uppercase tracking-widest text-white/25 hover:text-accent transition-colors opacity-0 group-hover:opacity-100">
             {msg.is_pinned ? 'Открепить' : 'Закрепить'}
           </button>
         </div>
@@ -422,17 +422,17 @@ function EmptyPanel({ tab, L }: { tab: 'ann' | 'pod' | 'pin'; L: Record<string, 
     pin: { icon: '📌', title: L.emptyPinTitle, body: L.emptyPinBody },
   }[tab];
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center px-6 py-10">
-      <div className="w-14 h-14 flex items-center justify-center border border-primary/15 text-2xl mb-5 bg-bg">
+    <div className="h-full flex flex-col items-center justify-center text-center px-8 py-12">
+      <div className="w-16 h-16 flex items-center justify-center border border-white/10 text-3xl mb-6 bg-white/5">
         {cfg.icon}
       </div>
-      <p className="font-serif text-lg leading-tight mb-2">{cfg.title}</p>
-      <p className="text-xs text-primary/45 leading-relaxed max-w-[230px] mb-6">{cfg.body}</p>
-      <div className="w-full max-w-[230px] space-y-px">
+      <p className="font-serif text-xl leading-tight mb-2 text-white">{cfg.title}</p>
+      <p className="text-xs text-white/40 leading-relaxed max-w-[220px] mb-8">{cfg.body}</p>
+      <div className="w-full max-w-[220px] space-y-px">
         {[L.emptyHint1, L.emptyHint2, L.emptyHint3].map((h, i) => (
-          <div key={i} className="flex items-center gap-2.5 py-2 border-t border-primary/8 text-left">
-            <span className="font-mono text-[9px] text-accent w-4 flex-shrink-0">0{i + 1}</span>
-            <span className="font-mono text-[10px] text-primary/40 leading-snug">{h}</span>
+          <div key={i} className="flex items-center gap-3 py-2.5 border-t border-white/8 text-left">
+            <span className="font-mono text-[9px] text-accent w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
+            <span className="font-mono text-[10px] text-white/35 leading-snug">{h}</span>
           </div>
         ))}
       </div>
@@ -442,8 +442,8 @@ function EmptyPanel({ tab, L }: { tab: 'ann' | 'pod' | 'pin'; L: Record<string, 
 
 function Avatar({ nickname, color }: { nickname: string; color: string }) {
   return (
-    <div className="w-8 h-8 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-white flex-shrink-0"
-      style={{ backgroundColor: color || '#040F1E' }}>
+    <div className="w-8 h-8 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-white flex-shrink-0 opacity-90"
+      style={{ backgroundColor: color || '#1a2840' }}>
       {nickname.slice(0, 2)}
     </div>
   );
@@ -470,15 +470,35 @@ function LiveDot({ count }: { count: number }) {
 // ── Stat row ─────────────────────────────────────────────────────────────────
 function StatRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-primary/8 last:border-0">
-      <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40">{label}</span>
-      <span className={`font-mono text-[10px] ${accent ? 'text-accent' : 'text-primary/70'}`}>{value}</span>
+    <div className="flex items-center justify-between py-1.5 border-b border-white/8 last:border-0">
+      <span className="font-mono text-[9px] uppercase tracking-widest text-white/35">{label}</span>
+      <span className={`font-mono text-[10px] ${accent ? 'text-accent' : 'text-white/55'}`}>{value}</span>
+    </div>
+  );
+}
+
+// ── Equalizer bars (decorative, animated when live) ───────────────────────────
+function EqBars({ active }: { active: boolean }) {
+  return (
+    <div className="flex items-end gap-px h-4" aria-hidden>
+      {[3, 5, 4, 7, 3, 6, 4, 5, 3].map((h, i) => (
+        <div key={i} className={`w-0.5 bg-accent transition-all ${active ? 'opacity-100' : 'opacity-20'}`}
+          style={{
+            height: active ? `${h * 2}px` : '4px',
+            animation: active ? `eqBar ${0.4 + i * 0.07}s ease-in-out infinite alternate` : 'none',
+          }} />
+      ))}
     </div>
   );
 }
 
 // ── Player sidebar block ─────────────────────────────────────────────────────
-function PlayerBlock({ audio, L }: { audio: ReturnType<typeof useRadioAudio>; L: Record<string, string> }) {
+function PlayerBlock({ audio, L, onToggle, isActive }: {
+  audio: ReturnType<typeof useRadioAudio>;
+  L: Record<string, string>;
+  onToggle: () => void;
+  isActive: boolean;
+}) {
   const [statsOpen, setStatsOpen] = useState(false);
 
   const statusLabel = audio.status === 'connecting' ? L.connecting
@@ -500,40 +520,60 @@ function PlayerBlock({ audio, L }: { audio: ReturnType<typeof useRadioAudio>; L:
 
   return (
     <div>
-      {/* Status + volume */}
-      <div className="px-4 py-4 border-b border-primary/20">
-        <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary/40 mb-0.5">AM Publishing</p>
-        <p className="font-mono text-[10px] text-primary/40 mb-3">{statusLabel}</p>
+      {/* Big play area */}
+      <div className="px-5 pt-6 pb-5 border-b border-white/8">
+        <p className="font-mono text-[8px] uppercase tracking-[0.35em] text-white/30 mb-4">AM Publishing</p>
+
+        {/* Play button + eq bars */}
+        <div className="flex items-center gap-4 mb-5">
+          <button onClick={onToggle}
+            className={`relative w-12 h-12 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isActive ? 'bg-accent text-primary' : 'bg-white/10 text-white hover:bg-accent hover:text-primary'}`}>
+            {audio.status === 'connecting'
+              ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              : isActive
+                ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+                : <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M8 5.5l12 6.5-12 6.5V5.5Z"/></svg>}
+            {isActive && audio.status === 'live' && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-accent rounded-full animate-ping opacity-75" />
+            )}
+          </button>
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-[10px] text-white/50 mb-1.5">{statusLabel}</p>
+            <EqBars active={audio.status === 'live'} />
+          </div>
+        </div>
+
+        {/* Volume */}
         <div className="flex items-center gap-2.5">
-          <button onClick={audio.toggleMute} className="text-primary/40 hover:text-primary transition-colors flex-shrink-0">
+          <button onClick={audio.toggleMute} className="text-white/30 hover:text-white transition-colors flex-shrink-0">
             {audio.muted
               ? <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M19 9l-6 6M13 9l6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
               : <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>}
           </button>
           <input type="range" min="0" max="1" step="0.05" value={audio.muted ? 0 : audio.volume}
             onChange={e => { audio.setVolume(Number(e.target.value)); if (audio.muted && Number(e.target.value) > 0) audio.toggleMute(); }}
-            className="flex-1 h-px appearance-none bg-primary/20 accent-primary cursor-pointer" />
-          <span className="font-mono text-[9px] text-primary/30 w-7 text-right">{Math.round(audio.volume * 100)}%</span>
+            className="flex-1 h-px appearance-none bg-white/15 accent-[#C9A66B] cursor-pointer" />
+          <span className="font-mono text-[9px] text-white/25 w-7 text-right tabular-nums">{Math.round(audio.volume * 100)}%</span>
         </div>
       </div>
 
       {/* Mic — compact */}
-      <div className="px-4 py-3 border-b border-primary/20">
-        <div className="flex items-center justify-between mb-2.5">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-primary/50">{L.micSettings}</span>
+      <div className="px-5 py-3.5 border-b border-white/8">
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">{L.micSettings}</span>
           <label className="flex items-center gap-2 cursor-pointer"
             onClick={() => audio.micGranted === false ? audio.requestMic() : audio.setMicEnabled(m => !m)}>
-            <div className={`w-7 h-3.5 relative transition-colors flex-shrink-0 ${audio.micEnabled && audio.micGranted ? 'bg-primary' : 'bg-primary/20'}`}>
+            <div className={`w-7 h-3.5 relative transition-colors flex-shrink-0 ${audio.micEnabled && audio.micGranted ? 'bg-accent' : 'bg-white/15'}`}>
               <span className={`absolute top-0.5 w-2.5 h-2.5 bg-white transition-transform ${audio.micEnabled && audio.micGranted ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
             </div>
           </label>
         </div>
-        <div className="h-1 bg-primary/10 w-full overflow-hidden">
-          <div className="h-full bg-primary/50 transition-all duration-100" style={{ width: `${Math.round(audio.stats.micLevel * 100)}%` }} />
+        <div className="h-0.5 bg-white/8 w-full overflow-hidden">
+          <div className="h-full bg-accent/70 transition-all duration-100" style={{ width: `${Math.round(audio.stats.micLevel * 100)}%` }} />
         </div>
         {audio.micGranted && audio.micDevices.length > 0 && (
           <select value={audio.selectedMic} onChange={e => audio.setSelectedMic(e.target.value)}
-            className="w-full bg-transparent border border-primary/20 px-2 py-1 font-mono text-[8px] outline-none hover:border-primary transition-colors mt-2">
+            className="w-full bg-white/5 border border-white/10 px-2 py-1 font-mono text-[8px] outline-none hover:border-white/25 transition-colors mt-2 text-white/60">
             <option value="">{L.defaultMic}</option>
             {audio.micDevices.map(d => (
               <option key={d.deviceId} value={d.deviceId}>{d.label || `Mic ${d.deviceId.slice(0, 6)}`}</option>
@@ -546,16 +586,16 @@ function PlayerBlock({ audio, L }: { audio: ReturnType<typeof useRadioAudio>; L:
       </div>
 
       {/* Stats — collapsible */}
-      <div className="border-b border-primary/20">
+      <div className="border-b border-white/8">
         <button onClick={() => setStatsOpen(s => !s)}
-          className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-primary/5 transition-colors">
-          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-primary/40">{L.statsTitle}</span>
-          <svg viewBox="0 0 24 24" fill="none" className={`w-3 h-3 text-primary/30 transition-transform ${statsOpen ? 'rotate-180' : ''}`}>
+          className="w-full flex items-center justify-between px-5 py-2.5 hover:bg-white/5 transition-colors">
+          <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/30">{L.statsTitle}</span>
+          <svg viewBox="0 0 24 24" fill="none" className={`w-3 h-3 text-white/25 transition-transform ${statsOpen ? 'rotate-180' : ''}`}>
             <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
         {statsOpen && (
-          <div className="px-4 pb-3">
+          <div className="px-5 pb-3">
             <StatRow label="ICE" value={iceLabel} accent={stats.iceState === 'connected'} />
             <StatRow label={L.statsBitrate} value={bitrateLabel} accent={!!stats.bitrateBps} />
             <StatRow label={L.statsRtt} value={rttLabel} accent={stats.rttMs != null && stats.rttMs < 100} />
@@ -613,17 +653,17 @@ function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
   };
 
   return (
-    <div className="border-t border-primary relative flex-shrink-0 bg-bg">
+    <div className="border-t border-white/8 relative flex-shrink-0 bg-[#071020]">
       {/* Reply banner */}
       {replyTo && (
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-primary/10 bg-primary/[0.03]">
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-white/8 bg-white/[0.03]">
           <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-accent flex-shrink-0"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 5 5v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           <div className="min-w-0 flex-1">
-            <span className="font-mono text-[8px] uppercase tracking-widest text-primary/40">{L.replyingTo} </span>
+            <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">{L.replyingTo} </span>
             <span className="text-[11px] font-bold" style={{ color: replyTo.color }}>{replyTo.nickname}</span>
-            <span className="text-[11px] text-primary/40 truncate"> · {replyTo.text.slice(0, 60)}</span>
+            <span className="text-[11px] text-white/30 truncate"> · {replyTo.text.slice(0, 60)}</span>
           </div>
-          <button onClick={onCancelReply} className="text-primary/40 hover:text-primary flex-shrink-0">✕</button>
+          <button onClick={onCancelReply} className="text-white/30 hover:text-white flex-shrink-0">✕</button>
         </div>
       )}
 
@@ -632,23 +672,23 @@ function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
       {showGif && <GifPicker onPick={url => { setText(url); setShowEmoji(false); }} onClose={() => setShowGif(false)} />}
 
       {/* Main input row */}
-      <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 md:p-4">
+      <form onSubmit={handleSubmit} className="flex items-end gap-2 px-3 py-3 md:px-4 md:py-3">
         <div className="flex items-center gap-0.5 self-stretch">
           <button type="button" onClick={() => { setShowEmoji(s => !s); setShowGif(false); }}
-            className={`w-9 h-9 flex items-center justify-center text-lg rounded-sm transition-colors ${showEmoji ? 'bg-accent/15 text-accent' : 'text-primary/30 hover:text-primary hover:bg-primary/5'}`}>😊</button>
+            className={`w-9 h-9 flex items-center justify-center text-lg transition-colors ${showEmoji ? 'text-accent' : 'text-white/25 hover:text-white/60'}`}>😊</button>
           <button type="button" onClick={() => { setShowGif(s => !s); setShowEmoji(false); }}
-            className={`w-9 h-9 flex items-center justify-center font-mono text-[9px] font-bold uppercase tracking-widest rounded-sm transition-colors ${showGif ? 'bg-accent/15 text-accent' : 'text-primary/30 hover:text-primary hover:bg-primary/5'}`}>GIF</button>
+            className={`w-9 h-9 flex items-center justify-center font-mono text-[9px] font-bold uppercase tracking-widest transition-colors ${showGif ? 'text-accent' : 'text-white/25 hover:text-white/60'}`}>GIF</button>
         </div>
 
         <textarea ref={textareaRef} value={text} onChange={e => onChangeText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } if (e.key === 'Escape' && replyTo) onCancelReply(); }}
           placeholder={L.placeholder}
           rows={1}
-          className="flex-1 resize-none bg-primary/[0.04] border border-primary/15 focus:border-primary/40 rounded-sm px-4 py-2.5 text-[15px] leading-snug outline-none placeholder:text-primary/30 font-sans transition-colors max-h-32"
+          className="flex-1 resize-none bg-white/6 border border-white/10 focus:border-white/25 px-4 py-2.5 text-[15px] leading-snug outline-none placeholder:text-white/20 font-sans transition-colors max-h-32 text-white/90"
           disabled={disabled || sending} maxLength={2000} />
 
         <button type="submit" disabled={!text.trim() || sending || disabled}
-          className="h-11 w-11 flex-shrink-0 flex items-center justify-center bg-primary text-white rounded-sm hover:bg-accent hover:text-primary transition-colors duration-200 disabled:opacity-25 disabled:cursor-default"
+          className="h-11 w-11 flex-shrink-0 flex items-center justify-center bg-accent text-primary hover:bg-white hover:text-primary transition-colors duration-200 disabled:opacity-20 disabled:cursor-default"
           title={L.send}>
           {sending
             ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -732,12 +772,12 @@ function NameEditModal({ user, onSave, onClose, L }: {
 function IdentityChip({ user, onEdit, L }: { user: RadioUser; onEdit: () => void; L: Record<string, string> }) {
   return (
     <button onClick={onEdit} title={L.editName}
-      className="group flex items-center gap-2 border border-primary/20 hover:border-primary pl-1 pr-2.5 py-1 transition-colors">
+      className="group flex items-center gap-2 border border-white/15 hover:border-white/35 pl-1 pr-2.5 py-1 transition-colors">
       <span className="w-6 h-6 flex items-center justify-center text-[9px] font-bold uppercase text-white flex-shrink-0" style={{ backgroundColor: user.color }}>
         {user.nickname.slice(0, 2)}
       </span>
-      <span className="text-xs font-medium max-w-[90px] truncate">{user.nickname}</span>
-      <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 text-primary/30 group-hover:text-primary transition-colors flex-shrink-0">
+      <span className="text-xs font-medium max-w-[90px] truncate text-white/70 group-hover:text-white transition-colors">{user.nickname}</span>
+      <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 text-white/25 group-hover:text-white/60 transition-colors flex-shrink-0">
         <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     </button>
@@ -749,10 +789,10 @@ function ReplyQuote({ reply, onJump }: { reply: NonNullable<RadioMessage['reply_
   return (
     <button onClick={onJump} type="button"
       className="flex items-stretch gap-2 mb-1 text-left max-w-full group/q">
-      <span className="w-0.5 bg-primary/30 flex-shrink-0 group-hover/q:bg-accent transition-colors" />
+      <span className="w-0.5 bg-white/20 flex-shrink-0 group-hover/q:bg-accent transition-colors" />
       <span className="min-w-0">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40 block">{reply.nickname}</span>
-        <span className="text-[11px] text-primary/40 truncate block">{reply.text}</span>
+        <span className="font-mono text-[9px] uppercase tracking-widest text-white/35 block">{reply.nickname}</span>
+        <span className="text-[11px] text-white/35 truncate block">{reply.text}</span>
       </span>
     </button>
   );
@@ -781,14 +821,14 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
   };
 
   return (
-    <div className={`group/msg relative flex gap-3 px-1 -mx-1 ${grouped ? 'pt-0.5' : 'pt-4'} hover:bg-primary/[0.025] transition-colors`}>
+    <div className={`group/msg relative flex gap-3 px-1 -mx-1 ${grouped ? 'pt-0.5' : 'pt-4'} hover:bg-white/[0.03] transition-colors`}>
       <div className="w-8 flex-shrink-0">{!grouped && <Avatar nickname={msg.nickname} color={msg.color} />}</div>
       <div className="flex-1 min-w-0">
         {!grouped && (
           <div className="flex items-baseline gap-2 mb-0.5">
             <span className="font-bold text-xs" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
-            <span className="font-mono text-[9px] text-primary/30">{formatTime(msg.created_at)}</span>
-            {msg.edited_at && <span className="font-mono text-[8px] text-primary/25">({L.edited})</span>}
+            <span className="font-mono text-[9px] text-white/25">{formatTime(msg.created_at)}</span>
+            {msg.edited_at && <span className="font-mono text-[8px] text-white/20">({L.edited})</span>}
           </div>
         )}
 
@@ -808,7 +848,7 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
             </div>
           </div>
         ) : (
-          <p className="text-[15px] leading-relaxed break-words text-primary/90"><MsgContent text={msg.text} /></p>
+          <p className="text-[15px] leading-relaxed break-words text-white/80"><MsgContent text={msg.text} /></p>
         )}
 
         {msg.reactions.length > 0 && (
@@ -825,31 +865,31 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
 
       {/* Hover actions */}
       {!editing && (
-        <div className="absolute right-1 top-1 flex items-center bg-bg border border-primary/15 opacity-0 group-hover/msg:opacity-100 transition-opacity">
+        <div className="absolute right-1 top-1 flex items-center bg-[#0d1929] border border-white/12 opacity-0 group-hover/msg:opacity-100 transition-opacity">
           <div className="relative">
             <button onClick={() => setShowReactBar(s => !s)} title={L.react}
-              className="w-7 h-7 flex items-center justify-center text-primary/40 hover:text-accent transition-colors text-sm">☺</button>
+              className="w-7 h-7 flex items-center justify-center text-white/30 hover:text-accent transition-colors text-sm">☺</button>
             {showReactBar && (
-              <div className="absolute bottom-full right-0 mb-1 flex bg-bg border border-primary shadow-lg z-10">
+              <div className="absolute bottom-full right-0 mb-1 flex bg-[#0d1929] border border-white/15 shadow-lg z-10">
                 {QUICK_REACTIONS.map(e => (
                   <button key={e} onClick={() => { onReact(msg.id, e); setShowReactBar(false); }}
-                    className="w-8 h-8 flex items-center justify-center text-base hover:bg-primary/10 transition-colors">{e}</button>
+                    className="w-8 h-8 flex items-center justify-center text-base hover:bg-white/10 transition-colors">{e}</button>
                 ))}
               </div>
             )}
           </div>
           <button onClick={() => onReply(msg)} title={L.reply}
-            className="w-7 h-7 flex items-center justify-center text-primary/40 hover:text-primary transition-colors">
+            className="w-7 h-7 flex items-center justify-center text-white/30 hover:text-white transition-colors">
             <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 5 5v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           {isOwn && (
             <>
               <button onClick={() => { setDraft(msg.text); setEditing(true); }} title={L.edit}
-                className="w-7 h-7 flex items-center justify-center text-primary/40 hover:text-primary transition-colors">
+                className="w-7 h-7 flex items-center justify-center text-white/30 hover:text-white transition-colors">
                 <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
               <button onClick={() => onDelete(msg.id)} title={L.delete}
-                className="w-7 h-7 flex items-center justify-center text-primary/40 hover:text-red-500 transition-colors">
+                className="w-7 h-7 flex items-center justify-center text-white/30 hover:text-red-400 transition-colors">
                 <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
             </>
@@ -868,10 +908,10 @@ function TypingIndicator({ typers, L }: { typers: { nickname: string; color: str
     <div className="flex items-center gap-2 px-4 md:px-6 py-1.5 flex-shrink-0">
       <span className="flex gap-0.5">
         {[0, 1, 2].map(i => (
-          <span key={i} className="w-1 h-1 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+          <span key={i} className="w-1 h-1 rounded-full bg-white/30 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
         ))}
       </span>
-      <span className="font-mono text-[9px] text-primary/40 truncate">{names} {L.typing}</span>
+      <span className="font-mono text-[9px] text-white/30 truncate">{names} {L.typing}</span>
     </div>
   );
 }
@@ -1096,40 +1136,36 @@ export const RadioPage: React.FC = () => {
   const rightTabContent = activeRightTab === 'ann' ? annMessages : activeRightTab === 'pod' ? podMessages : pinned;
 
   return (
-    <div className="bg-bg text-primary font-sans pt-[60px] md:pt-[80px]">
+    <div className="bg-primary text-white font-sans pt-[60px] md:pt-[80px] min-h-screen">
+      {/* EQ bar keyframes injected once */}
+      <style>{`@keyframes eqBar{from{transform:scaleY(0.3)}to{transform:scaleY(1)}}`}</style>
+
       <div className="flex flex-col lg:h-[calc(100vh-80px)]">
 
         {/* ── Header ── */}
-        <header className="flex items-center justify-between gap-4 px-4 md:px-8 py-4 md:py-5 border-b border-primary flex-shrink-0">
+        <header className="flex items-center justify-between gap-4 px-4 md:px-8 py-4 md:py-5 border-b border-white/10 flex-shrink-0 bg-primary/80 backdrop-blur-sm">
           <div className="min-w-0">
-            <p className="font-mono text-[9px] md:text-[10px] uppercase tracking-[0.28em] text-accent flex items-center gap-2 mb-1.5">
-              <span className="inline-block w-6 h-px bg-accent" />
+            <p className="font-mono text-[9px] md:text-[10px] uppercase tracking-[0.32em] text-accent flex items-center gap-2.5 mb-1.5">
+              <span className="inline-block w-6 h-px bg-accent opacity-70" />
               {L.kicker}
             </p>
-            <h1 className="font-serif text-2xl md:text-4xl leading-none truncate">AM Publishing Radio</h1>
+            <h1 className="font-serif text-2xl md:text-4xl leading-none truncate text-white">AM Publishing Radio</h1>
           </div>
-          <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
+          <div className="flex items-center gap-4 flex-shrink-0">
             <div className="hidden sm:flex items-center gap-2">
-              <span className={`w-1.5 h-1.5 rounded-full ${audio.status === 'live' ? 'bg-accent animate-pulse' : isActive ? 'bg-accent/50' : 'bg-primary/20'}`} />
-              <span className="font-mono text-[9px] uppercase tracking-widest text-primary/50">{statusLabel}</span>
+              {audio.status === 'live'
+                ? <EqBars active />
+                : <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-accent/50 animate-pulse' : 'bg-white/15'}`} />}
+              <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">{statusLabel}</span>
             </div>
-            <button onClick={audio.togglePlay}
-              className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center transition-colors duration-200 ${isActive ? 'bg-accent text-primary' : 'bg-primary text-white hover:bg-accent hover:text-primary'}`}
-              title={isActive ? L.stop : L.play}>
-              {audio.status === 'connecting'
-                ? <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                : isActive
-                  ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
-                  : <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M8 5.5l12 6.5-12 6.5V5.5Z"/></svg>}
-            </button>
           </div>
         </header>
 
         {/* ── Mobile tab bar ── */}
-        <div className="flex lg:hidden border-b border-primary flex-shrink-0">
+        <div className="flex lg:hidden border-b border-white/10 flex-shrink-0">
           {(['player', 'chat', 'content'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveMobileTab(tab)}
-              className={`flex-1 py-2.5 font-mono text-[9px] uppercase tracking-widest transition-colors ${activeMobileTab === tab ? 'bg-primary text-white' : 'text-primary/40 hover:text-primary'}`}>
+              className={`flex-1 py-2.5 font-mono text-[9px] uppercase tracking-widest transition-colors ${activeMobileTab === tab ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'}`}>
               {tab === 'player' ? 'Плеер' : tab === 'chat' ? L.chat : 'Анонсы'}
             </button>
           ))}
@@ -1139,44 +1175,46 @@ export const RadioPage: React.FC = () => {
         <div className="flex-1 min-h-0 lg:flex">
 
           {/* Left: Player + Listeners */}
-          <aside className={`lg:w-[200px] lg:flex-shrink-0 border-r border-primary flex flex-col lg:overflow-y-auto ${activeMobileTab !== 'player' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
-            <PlayerBlock audio={audio} L={L} />
-            <div className="p-4 flex-1 overflow-y-auto">
-              <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-primary/40 mb-3">{L.listeners}</p>
-              <ul className="space-y-2">
+          <aside className={`lg:w-[220px] lg:flex-shrink-0 border-r border-white/8 flex flex-col lg:overflow-y-auto bg-white/[0.02] ${activeMobileTab !== 'player' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
+            <PlayerBlock audio={audio} L={L} onToggle={audio.togglePlay} isActive={isActive} />
+            <div className="px-5 py-4 flex-1 overflow-y-auto">
+              <p className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/25 mb-3">{L.listeners}</p>
+              <ul className="space-y-2.5">
                 {online.map(u => (
                   <li key={u.id} className="flex items-center gap-2.5">
                     <Avatar nickname={u.nickname} color={u.color} />
-                    <span className="text-xs truncate" style={{ color: u.id === user?.id ? '#C9A66B' : undefined }}>
+                    <span className="text-xs truncate text-white/60" style={{ color: u.id === user?.id ? '#C9A66B' : undefined }}>
                       {u.id === user?.id ? `${u.nickname} (${L.you?.toLowerCase()})` : u.nickname}
                     </span>
                   </li>
                 ))}
-                {online.length === 0 && !loading && <li className="font-mono text-[10px] text-primary/30">—</li>}
+                {online.length === 0 && !loading && <li className="font-mono text-[10px] text-white/20">—</li>}
               </ul>
             </div>
-            <div className="border-t border-primary p-4 flex items-center gap-3 flex-shrink-0">
+            <div className="border-t border-white/8 px-5 py-3.5 flex items-center gap-3 flex-shrink-0">
               <button onClick={handleAdminTrigger}
-                className="font-serif text-lg leading-none hover:text-accent transition-colors select-none">AM</button>
-              <span className="w-px h-4 bg-primary/20" />
-              <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40">Berlin, {new Date().getFullYear()}</span>
+                className="font-serif text-base leading-none text-white/50 hover:text-accent transition-colors select-none">AM</button>
+              <span className="w-px h-3 bg-white/15" />
+              <span className="font-mono text-[8px] uppercase tracking-widest text-white/25">Berlin, {new Date().getFullYear()}</span>
             </div>
           </aside>
 
           {/* Center: Chat */}
-          <section className={`flex flex-col border-r border-primary lg:flex-1 lg:min-h-0 ${activeMobileTab !== 'chat' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
-            <div className="flex items-center justify-between gap-2 px-4 md:px-6 py-2.5 border-b border-primary/30 flex-shrink-0">
+          <section className={`flex flex-col border-r border-white/8 lg:flex-1 lg:min-h-0 ${activeMobileTab !== 'chat' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
+            <div className="flex items-center justify-between gap-2 px-4 md:px-6 py-2.5 border-b border-white/8 flex-shrink-0">
               <div className="flex items-center gap-3 min-w-0">
-                <span className="font-mono text-[10px] uppercase tracking-widest">{L.chat}</span>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-white/50">{L.chat}</span>
                 {online.length > 0 && <LiveDot count={online.length} />}
               </div>
               {user && <IdentityChip user={user} onEdit={() => setEditingName(true)} L={L} />}
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">
-              {loading && <p className="font-mono text-xs text-primary/40 text-center py-12">{L.loading}</p>}
-              {!loading && error && <p className="font-mono text-xs text-red-600 text-center py-12">{error}</p>}
-              {!loading && !error && chatMessages.length === 0 && <p className="font-mono text-xs text-primary/30 text-center py-12">—</p>}
+              {loading && <p className="font-mono text-xs text-white/30 text-center py-12">{L.loading}</p>}
+              {!loading && error && <p className="font-mono text-xs text-red-400 text-center py-12">{error}</p>}
+              {!loading && !error && chatMessages.length === 0 && (
+                <p className="font-mono text-xs text-white/20 text-center py-12">—</p>
+              )}
               {chatMessages.map((msg, i) => {
                 const isOwn = user?.id === msg.user_id;
                 const prev = chatMessages[i - 1];
@@ -1195,15 +1233,15 @@ export const RadioPage: React.FC = () => {
           </section>
 
           {/* Right: Announcements / Podcasts / Pinned */}
-          <aside className={`lg:w-[360px] lg:flex-shrink-0 flex flex-col lg:min-h-0 bg-primary/[0.015] ${activeMobileTab !== 'content' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
-            <div className="flex border-b border-primary flex-shrink-0">
+          <aside className={`lg:w-[360px] lg:flex-shrink-0 flex flex-col lg:min-h-0 bg-white/[0.015] ${activeMobileTab !== 'content' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
+            <div className="flex border-b border-white/10 flex-shrink-0">
               {(['ann', 'pod', 'pin'] as const).map((tab, i) => {
                 const count = tab === 'ann' ? annMessages.length : tab === 'pod' ? podMessages.length : pinned.length;
                 return (
                   <button key={tab} onClick={() => setActiveRightTab(tab)}
-                    className={`flex-1 py-3 font-mono text-[9px] uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${i < 2 ? 'border-r border-primary' : ''} ${activeRightTab === tab ? 'bg-primary text-white' : 'text-primary/40 hover:text-primary hover:bg-primary/[0.04]'}`}>
+                    className={`flex-1 py-3 font-mono text-[8px] uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${i < 2 ? 'border-r border-white/8' : ''} ${activeRightTab === tab ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.04]'}`}>
                     {rightTabLabel(tab)}
-                    {count > 0 && <span className={`text-[8px] px-1 py-px ${activeRightTab === tab ? 'bg-white/20' : 'bg-primary/10'}`}>{count}</span>}
+                    {count > 0 && <span className={`text-[8px] px-1 py-px ${activeRightTab === tab ? 'bg-white/20' : 'bg-white/8'}`}>{count}</span>}
                   </button>
                 );
               })}
@@ -1212,20 +1250,20 @@ export const RadioPage: React.FC = () => {
               {rightTabContent.length === 0 ? (
                 <EmptyPanel tab={activeRightTab} L={L} />
               ) : (
-                <div className="p-4 space-y-4">
+                <div className="p-4 space-y-3">
                   {[...rightTabContent].reverse().map(msg => <AnnouncementCard key={msg.id} msg={msg} onPin={handlePin} />)}
                 </div>
               )}
             </div>
-            {/* Telegram CTA pinned to bottom */}
+            {/* Telegram CTA */}
             <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer"
-              className="group flex items-center gap-3 border-t border-primary px-4 py-3.5 flex-shrink-0 hover:bg-primary hover:text-white transition-colors">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-accent group-hover:text-white flex-shrink-0"><path d="M21.9 4.3 18.7 19c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-4.9 9-8.1c.4-.3-.1-.5-.6-.2L6.3 12.6l-4.8-1.5c-1-.3-1-1 .2-1.5l18.7-7.2c.9-.3 1.6.2 1.3 1.4Z"/></svg>
+              className="group flex items-center gap-3 border-t border-white/10 px-4 py-3.5 flex-shrink-0 hover:bg-accent/10 transition-colors">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-accent flex-shrink-0"><path d="M21.9 4.3 18.7 19c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-4.9 9-8.1c.4-.3-.1-.5-.6-.2L6.3 12.6l-4.8-1.5c-1-.3-1-1 .2-1.5l18.7-7.2c.9-.3 1.6.2 1.3 1.4Z"/></svg>
               <div className="min-w-0 flex-1">
-                <p className="font-mono text-[9px] uppercase tracking-widest opacity-50 group-hover:opacity-70">{L.subscribeKicker}</p>
-                <p className="text-sm font-medium truncate">@ampublishingberlin</p>
+                <p className="font-mono text-[8px] uppercase tracking-widest text-white/30 mb-0.5">{L.subscribeKicker}</p>
+                <p className="text-sm font-medium truncate text-white/70 group-hover:text-white transition-colors">@ampublishingberlin</p>
               </div>
-              <span className="font-mono text-[9px] uppercase tracking-widest opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">→</span>
+              <span className="font-mono text-[9px] text-accent opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">→</span>
             </a>
           </aside>
         </div>
