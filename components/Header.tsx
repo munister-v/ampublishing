@@ -51,12 +51,11 @@ export const Header: React.FC = () => {
         <div className="w-full h-full flex items-stretch">
           
           {/* Logo */}
-          <Link to="/" className="w-[72px] md:w-[80px] border-r border-primary flex items-center justify-center group relative overflow-hidden">
-             <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-out-quart"></div>
-             <div className="relative z-10">
-                <BrandLogo className="w-10 h-10 object-contain absolute inset-0 m-auto transition-opacity duration-500 group-hover:opacity-0" />
-                <BrandLogo white className="w-10 h-10 object-contain absolute inset-0 m-auto opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                <span className="w-10 h-10 block" />
+          <Link to="/" className="w-[96px] md:w-[120px] border-r border-primary flex items-center justify-center group relative overflow-hidden flex-shrink-0">
+             <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-out-quart" />
+             <div className="relative z-10 w-14 h-14 md:w-[60px] md:h-[60px]">
+                <BrandLogo className="w-full h-full object-contain absolute inset-0 transition-opacity duration-500 group-hover:opacity-0" />
+                <BrandLogo white className="w-full h-full object-contain absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
              </div>
           </Link>
 

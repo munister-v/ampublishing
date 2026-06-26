@@ -478,7 +478,7 @@ function EmptyPanel({ tab, L }: { tab: 'ann' | 'pod' | 'pin'; L: Record<string, 
 
 function Avatar({ nickname, color }: { nickname: string; color: string }) {
   return (
-    <div className="w-8 h-8 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-white flex-shrink-0 opacity-90"
+    <div className="w-10 h-10 flex items-center justify-center text-xs font-bold uppercase tracking-widest text-white flex-shrink-0 opacity-90"
       style={{ backgroundColor: color || '#1a2840' }}>
       {nickname.slice(0, 2)}
     </div>
@@ -709,24 +709,24 @@ function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
       {showGif && <GifPicker onPick={url => { setText(url); setShowEmoji(false); }} onClose={() => setShowGif(false)} />}
 
       {/* Main input row */}
-      <form onSubmit={handleSubmit} className="flex items-end gap-2 px-3 py-3 md:px-4 md:py-3">
-        <div className="flex items-center gap-0.5 self-stretch">
+      <form onSubmit={handleSubmit} className="flex items-end gap-2 px-3 py-3 md:px-4 md:py-4">
+        <div className="flex items-center gap-0 self-stretch">
           <button type="button" onClick={() => { setShowEmoji(s => !s); setShowGif(false); }}
-            className={`w-9 h-9 flex items-center justify-center text-lg transition-colors ${showEmoji ? 'text-accent' : 'text-white/25 hover:text-white/60'}`}>😊</button>
+            className={`w-10 h-10 flex items-center justify-center text-xl transition-colors ${showEmoji ? 'text-accent' : 'text-white/30 hover:text-white/60'}`}>😊</button>
           <button type="button" onClick={() => { setShowGif(s => !s); setShowEmoji(false); }}
-            className={`w-9 h-9 flex items-center justify-center font-mono text-[9px] font-bold uppercase tracking-widest transition-colors ${showGif ? 'text-accent' : 'text-white/25 hover:text-white/60'}`}>GIF</button>
+            className={`w-10 h-10 flex items-center justify-center font-mono text-[10px] font-bold uppercase tracking-widest transition-colors ${showGif ? 'text-accent' : 'text-white/30 hover:text-white/60'}`}>GIF</button>
         </div>
 
         <textarea ref={textareaRef} value={text} onChange={e => onChangeText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } if (e.key === 'Escape' && replyTo) onCancelReply(); }}
           placeholder={L.placeholder}
-          rows={1}
-          className="flex-1 resize-none border border-white/10 focus:border-white/30 px-4 py-3 text-base leading-snug outline-none font-sans transition-colors max-h-32 text-white/90 placeholder:text-white/25"
-          style={{ background: 'rgba(255,255,255,0.05)', colorScheme: 'dark' }}
+          rows={2}
+          className="flex-1 resize-none border border-white/10 focus:border-white/30 px-4 py-3 text-base leading-relaxed outline-none font-sans transition-colors max-h-40 text-white/90 placeholder:text-white/30"
+          style={{ background: 'rgba(255,255,255,0.06)', colorScheme: 'dark' }}
           disabled={disabled || sending} maxLength={2000} />
 
         <button type="submit" disabled={!text.trim() || sending || disabled}
-          className="h-11 w-11 flex-shrink-0 flex items-center justify-center bg-accent text-primary hover:bg-white hover:text-primary transition-colors duration-200 disabled:opacity-20 disabled:cursor-default"
+          className="h-12 w-12 flex-shrink-0 flex items-center justify-center bg-accent text-primary hover:bg-white hover:text-primary transition-colors duration-200 disabled:opacity-20 disabled:cursor-default"
           title={L.send}>
           {sending
             ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -829,8 +829,8 @@ function ReplyQuote({ reply, onJump }: { reply: NonNullable<RadioMessage['reply_
       className="flex items-stretch gap-2 mb-1 text-left max-w-full group/q">
       <span className="w-0.5 bg-white/20 flex-shrink-0 group-hover/q:bg-accent transition-colors" />
       <span className="min-w-0">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-white/35 block">{reply.nickname}</span>
-        <span className="text-[11px] text-white/35 truncate block">{reply.text}</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-white/40 block">{reply.nickname}</span>
+        <span className="text-xs text-white/35 truncate block">{reply.text}</span>
       </span>
     </button>
   );
@@ -859,14 +859,14 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
   };
 
   return (
-    <div className={`group/msg relative flex gap-3 px-1 -mx-1 ${grouped ? 'pt-0.5' : 'pt-4'} hover:bg-white/[0.03] transition-colors`}>
-      <div className="w-8 flex-shrink-0">{!grouped && <Avatar nickname={msg.nickname} color={msg.color} />}</div>
+    <div className={`group/msg relative flex gap-3 px-3 md:px-4 -mx-0 ${grouped ? 'pt-0.5' : 'pt-4'} hover:bg-white/[0.03] transition-colors`}>
+      <div className="w-10 flex-shrink-0">{!grouped && <Avatar nickname={msg.nickname} color={msg.color} />}</div>
       <div className="flex-1 min-w-0">
         {!grouped && (
-          <div className="flex items-baseline gap-2 mb-0.5">
-            <span className="font-bold text-xs" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
-            <span className="font-mono text-[9px] text-white/25">{formatTime(msg.created_at)}</span>
-            {msg.edited_at && <span className="font-mono text-[8px] text-white/20">({L.edited})</span>}
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="font-bold text-sm" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
+            <span className="font-mono text-[10px] text-white/30">{formatTime(msg.created_at)}</span>
+            {msg.edited_at && <span className="font-mono text-[9px] text-white/20">({L.edited})</span>}
           </div>
         )}
 
@@ -879,14 +879,14 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveEdit(); }
                 if (e.key === 'Escape') setEditing(false);
               }}
-              className="w-full resize-none bg-bg border border-primary/30 px-2 py-1.5 text-sm outline-none focus:border-primary font-sans" />
+              className="w-full resize-none bg-bg border border-primary/30 px-3 py-2 text-sm outline-none focus:border-primary font-sans" />
             <div className="flex gap-2">
-              <button onClick={saveEdit} className="font-mono text-[8px] uppercase tracking-widest bg-primary text-white px-2 py-1 hover:bg-accent hover:text-primary transition-colors">{L.save}</button>
-              <button onClick={() => { setEditing(false); setDraft(msg.text); }} className="font-mono text-[8px] uppercase tracking-widest text-primary/40 px-2 py-1 hover:text-primary transition-colors">{L.cancel}</button>
+              <button onClick={saveEdit} className="font-mono text-[9px] uppercase tracking-widest bg-primary text-white px-3 py-1.5 hover:bg-accent hover:text-primary transition-colors">{L.save}</button>
+              <button onClick={() => { setEditing(false); setDraft(msg.text); }} className="font-mono text-[9px] uppercase tracking-widest text-primary/40 px-3 py-1.5 hover:text-primary transition-colors">{L.cancel}</button>
             </div>
           </div>
         ) : (
-          <p className="text-[15px] leading-relaxed break-words text-white/80"><MsgContent text={msg.text} /></p>
+          <p className="text-base leading-relaxed break-words text-white/85"><MsgContent text={msg.text} /></p>
         )}
 
         {msg.reactions.length > 0 && (
@@ -943,13 +943,13 @@ function TypingIndicator({ typers, L }: { typers: { nickname: string; color: str
   if (typers.length === 0) return null;
   const names = typers.slice(0, 3).map(t => t.nickname).join(', ');
   return (
-    <div className="flex items-center gap-2 px-4 md:px-6 py-1.5 flex-shrink-0">
+    <div className="flex items-center gap-2 px-4 md:px-6 py-2 flex-shrink-0">
       <span className="flex gap-0.5">
         {[0, 1, 2].map(i => (
-          <span key={i} className="w-1 h-1 rounded-full bg-white/30 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+          <span key={i} className="w-1.5 h-1.5 rounded-full bg-white/30 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
         ))}
       </span>
-      <span className="font-mono text-[9px] text-white/30 truncate">{names} {L.typing}</span>
+      <span className="font-mono text-xs text-white/35 truncate">{names} {L.typing}</span>
     </div>
   );
 }
@@ -1250,7 +1250,7 @@ export const RadioPage: React.FC = () => {
               {user && <IdentityChip user={user} onEdit={() => setEditingName(true)} L={L} />}
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">
+            <div className="flex-1 min-h-0 overflow-y-auto py-3 pb-4">
               {loading && <p className="font-mono text-xs text-white/30 text-center py-12">{L.loading}</p>}
               {!loading && error && <p className="font-mono text-xs text-red-400 text-center py-12">{error}</p>}
               {!loading && !error && chatMessages.length === 0 && (
