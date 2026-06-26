@@ -41,95 +41,199 @@ type AudioStats = {
   micLevel: number; // 0-1
 };
 
-// ── useRadioAudio ───────────────────────────────────────────────────────────
-function useRadioAudio(token: string | null) {
-  const [playing, setPlaying] = useState(false);
+// ── useRadioAudio — real radio (listen-first, star broadcast) ─────────────────
+// Model: everyone joins the room as a LISTENER (recvonly). Anyone may optionally
+// "go on air" (mic on) to broadcast. Broadcasters open one peer connection per
+// other participant and stream their audio out; listeners only connect to
+// broadcasters (never to each other). Deterministic offerer rule avoids glare:
+//   • broadcaster ↔ listener  → the broadcaster offers
+//   • broadcaster ↔ broadcaster (co-hosts) → the lower user-id offers
+type Broadcaster = { id: number; nickname: string; color: string };
+type PeerEntry = {
+  pc: RTCPeerConnection;
+  remoteSet: boolean;
+  pendingIce: any[];
+};
+
+function useRadioAudio(token: string | null, myId: number | null) {
+  const [playing, setPlaying] = useState(false);            // connected to the room
   const [volume, setVolumeState] = useState(0.8);
   const [muted, setMuted] = useState(false);
-  const [micEnabled, setMicEnabled] = useState(false);
-  const [micGranted, setMicGranted] = useState<boolean | null>(null); // null=unknown, true=granted, false=denied
+  const [micEnabled, setMicEnabledState] = useState(false);  // === on air
+  const [micGranted, setMicGranted] = useState<boolean | null>(null);
   const [micDevices, setMicDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedMic, setSelectedMic] = useState('');
-  const [status, setStatus] = useState<'idle'|'connecting'|'waiting'|'live'|'error'>('idle');
+  const [status, setStatus] = useState<'idle'|'connecting'|'silent'|'live'|'error'>('idle');
+  const [broadcasters, setBroadcasters] = useState<Broadcaster[]>([]);
   const [stats, setStats] = useState<AudioStats>({ rttMs: null, jitterMs: null, packetsLost: null, bitrateBps: null, iceState: null, micLevel: 0 });
+
   const statusRef = useRef<typeof status>('idle');
   const setStatusSafe = useCallback((s: typeof status) => { statusRef.current = s; setStatus(s); }, []);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
+
   const callIdRef = useRef<number | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const statsRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSigRef = useRef(0);
-  const streamRef = useRef<MediaStream | null>(null);
+  const peersRef = useRef<Map<number, PeerEntry>>(new Map());
+  const audioElsRef = useRef<Map<number, HTMLAudioElement>>(new Map());
+  const sigPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const memPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const statsRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const prevBytesRef = useRef(0);
-  const analyserRef = useRef<AnalyserNode | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
+  const iceServersRef = useRef<any[]>([{ urls: 'stun:stun.l.google.com:19302' }]);
 
-  // Auto-request mic on mount
-  useEffect(() => {
-    navigator.mediaDevices?.getUserMedia({ audio: true })
-      .then(s => {
-        setMicGranted(true);
-        setMicEnabled(true);
-        navigator.mediaDevices.enumerateDevices().then(d => {
-          setMicDevices(d.filter(x => x.kind === 'audioinput'));
-          if (d.find(x => x.kind === 'audioinput' && x.deviceId === 'default')) setSelectedMic('default');
-        });
-        // Keep stream for later use, stop if not needed immediately
-        micStreamRef.current = s;
-      })
-      .catch(() => setMicGranted(false));
-  }, []);
+  // Live-value refs (so the polling closures always read fresh state)
+  const onAirRef = useRef(false);
+  const volumeRef = useRef(volume);
+  const mutedRef = useRef(muted);
+  const myIdRef = useRef<number | null>(myId);
+  useEffect(() => { myIdRef.current = myId; }, [myId]);
+  useEffect(() => { volumeRef.current = volume; }, [volume]);
+  useEffect(() => { mutedRef.current = muted; }, [muted]);
 
-  // Persistent audio element attached to DOM — required for reliable
-  // background / lock-screen playback on mobile (esp. iOS Safari).
-  const ensureAudioEl = useCallback(() => {
-    if (audioRef.current) return audioRef.current;
-    const el = new Audio();
+  const headers = useCallback(() => ({
+    Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json',
+  }), []);
+
+  const sendSig = useCallback((toId: number, type: string, payload: any) => {
+    if (!callIdRef.current) return;
+    fetch(`${RADIO_API}/calls/${callIdRef.current}/signals`, {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({ to_user_id: toId, signal_type: type, payload }),
+    }).catch(() => {});
+  }, [headers]);
+
+  // ── per-peer hidden audio element (direct srcObject = iOS-safe playback) ────
+  const ensureAudioEl = useCallback((uid: number) => {
+    let el = audioElsRef.current.get(uid);
+    if (el) return el;
+    el = new Audio();
     el.setAttribute('playsinline', '');
     el.setAttribute('webkit-playsinline', '');
-    el.autoplay = true;
-    el.preload = 'auto';
+    el.autoplay = true; el.preload = 'auto';
     (el as any).disableRemotePlayback = false;
     el.style.display = 'none';
     document.body.appendChild(el);
-    audioRef.current = el;
+    audioElsRef.current.set(uid, el);
     return el;
   }, []);
 
-  useEffect(() => {
-    if (!('mediaSession' in navigator)) return;
-    const artwork = ['256x256', '384x384', '512x512'].map(sizes => ({
-      src: 'https://ampublishing.org/images/ambook-cover.jpg',
-      sizes, type: 'image/jpeg',
-    }));
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: 'AM Publishing Radio',
-        artist: 'AM Publishing Berlin',
-        album: 'Прямой эфир',
-        artwork,
-      });
-    } catch { /* MediaMetadata may be unavailable */ }
-    navigator.mediaSession.setActionHandler('play', () => { ensureAudioEl().play().catch(() => {}); setPlaying(true); navigator.mediaSession.playbackState = 'playing'; });
-    navigator.mediaSession.setActionHandler('pause', () => { audioRef.current?.pause(); setPlaying(false); navigator.mediaSession.playbackState = 'paused'; });
-    try { navigator.mediaSession.setActionHandler('stop', () => { audioRef.current?.pause(); setPlaying(false); }); } catch { /* not supported */ }
-    return () => {
-      navigator.mediaSession.setActionHandler('play', null);
-      navigator.mediaSession.setActionHandler('pause', null);
-    };
-  }, [ensureAudioEl]);
-
-  const stopStats = useCallback(() => {
-    if (statsRef.current) { clearInterval(statsRef.current); statsRef.current = null; }
+  const applyVolumeToAll = useCallback(() => {
+    audioElsRef.current.forEach(el => { el.volume = volumeRef.current; el.muted = mutedRef.current; });
   }, []);
 
-  const startStats = useCallback((pc: RTCPeerConnection) => {
-    stopStats();
+  const recomputeLiveStatus = useCallback(() => {
+    if (!playing && statusRef.current === 'idle') return;
+    const receiving = audioElsRef.current.size > 0;
+    if (onAirRef.current || receiving) setStatusSafe('live');
+    else setStatusSafe('silent');
+  }, [playing, setStatusSafe]);
+
+  const closePeer = useCallback((uid: number, sendBye = true) => {
+    const entry = peersRef.current.get(uid);
+    if (entry) { try { entry.pc.close(); } catch {} peersRef.current.delete(uid); }
+    const el = audioElsRef.current.get(uid);
+    if (el) { try { el.pause(); el.srcObject = null; el.remove(); } catch {} audioElsRef.current.delete(uid); }
+    if (sendBye && callIdRef.current) sendSig(uid, 'bye', '1');
+  }, [sendSig]);
+
+  const flushIce = useCallback(async (entry: PeerEntry) => {
+    for (const c of entry.pendingIce) { try { await entry.pc.addIceCandidate(new RTCIceCandidate(c)); } catch {} }
+    entry.pendingIce = [];
+  }, []);
+
+  const createPeer = useCallback((uid: number, asOfferer: boolean): PeerEntry => {
+    const existing = peersRef.current.get(uid);
+    if (existing) return existing;
+    const pc = new RTCPeerConnection({ iceServers: iceServersRef.current });
+    const entry: PeerEntry = { pc, remoteSet: false, pendingIce: [] };
+    peersRef.current.set(uid, entry);
+
+    pc.onicecandidate = (e) => { if (e.candidate) sendSig(uid, 'ice', e.candidate); };
+    pc.ontrack = (e) => {
+      const stream = e.streams[0] ?? new MediaStream([e.track]);
+      const el = ensureAudioEl(uid);
+      el.srcObject = stream; el.volume = volumeRef.current; el.muted = mutedRef.current;
+      el.play().catch(() => {});
+      setStatusSafe('live');
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+    };
+    pc.oniceconnectionstatechange = () => {
+      setStats(s => ({ ...s, iceState: pc.iceConnectionState }));
+      if (['failed', 'closed', 'disconnected'].includes(pc.iceConnectionState)) {
+        const el = audioElsRef.current.get(uid);
+        if (el && pc.iceConnectionState !== 'disconnected') { try { el.pause(); el.srcObject = null; el.remove(); } catch {} audioElsRef.current.delete(uid); }
+        recomputeLiveStatus();
+      }
+    };
+
+    // If I'm on air, send my mic to this peer; otherwise I only receive.
+    if (onAirRef.current && micStreamRef.current) {
+      micStreamRef.current.getAudioTracks().forEach(t => pc.addTrack(t, micStreamRef.current!));
+    } else {
+      pc.addTransceiver('audio', { direction: 'recvonly' });
+    }
+
+    if (asOfferer) {
+      (async () => {
+        try {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          sendSig(uid, 'offer', pc.localDescription);
+        } catch {}
+      })();
+    }
+    return entry;
+  }, [sendSig, ensureAudioEl, setStatusSafe, recomputeLiveStatus]);
+
+  // Decide whether *I* should be the one creating the offer for a given peer.
+  const iAmOfferer = useCallback((otherId: number, otherMicOn: boolean) => {
+    const me = myIdRef.current ?? 0;
+    if (onAirRef.current && !otherMicOn) return true;    // I broadcast → I offer to listener
+    if (!onAirRef.current && otherMicOn) return false;   // they broadcast → I answer
+    if (onAirRef.current && otherMicOn) return me < otherId; // co-hosts → lower id offers
+    return false;
+  }, []);
+
+  // Reconcile peer connections against the current member list.
+  const reconcile = useCallback((members: any[]) => {
+    const me = myIdRef.current ?? 0;
+    const micMap = new Map<number, boolean>();
+    const bcast: Broadcaster[] = [];
+    for (const m of members) {
+      const uid = Number(m.user_id);
+      if (uid === me) continue;
+      const on = !!m.mic_on;
+      micMap.set(uid, on);
+      if (on) bcast.push({ id: uid, nickname: m.nickname, color: m.color });
+    }
+    setBroadcasters(bcast);
+
+    // Which peers do I need a connection with? (at least one side broadcasting)
+    const needed = new Set<number>();
+    micMap.forEach((on, uid) => { if (onAirRef.current || on) needed.add(uid); });
+
+    // Drop peers that left or are no longer relevant.
+    for (const uid of Array.from(peersRef.current.keys()) as number[]) {
+      if (!needed.has(uid)) closePeer(uid, false);
+    }
+    // Open the peers I'm responsible for initiating.
+    needed.forEach(uid => {
+      if (!peersRef.current.has(uid) && iAmOfferer(uid, micMap.get(uid) ?? false)) {
+        createPeer(uid, true);
+      }
+    });
+
+    recomputeLiveStatus();
+  }, [closePeer, iAmOfferer, createPeer, recomputeLiveStatus]);
+
+  // ── stats (from any inbound peer) ──────────────────────────────────────────
+  const startStats = useCallback(() => {
+    if (statsRef.current) return;
     statsRef.current = setInterval(async () => {
-      if (!pc || pc.signalingState === 'closed') return;
+      const entry = peersRef.current.values().next().value as PeerEntry | undefined;
+      if (!entry || entry.pc.signalingState === 'closed') return;
       try {
-        const reports = await pc.getStats();
+        const reports = await entry.pc.getStats();
         let rtt: number | null = null, jitter: number | null = null, lost: number | null = null, bytes = 0;
         reports.forEach((r: any) => {
           if (r.type === 'remote-inbound-rtp' && r.kind === 'audio') {
@@ -137,18 +241,32 @@ function useRadioAudio(token: string | null) {
             if (r.jitter != null) jitter = Math.round(r.jitter * 1000);
             if (r.packetsLost != null) lost = r.packetsLost;
           }
-          if (r.type === 'inbound-rtp' && r.kind === 'audio') {
-            bytes = r.bytesReceived ?? 0;
-          }
+          if (r.type === 'inbound-rtp' && r.kind === 'audio') bytes = r.bytesReceived ?? 0;
         });
         const bitrate = prevBytesRef.current ? Math.round((bytes - prevBytesRef.current) * 8 / 2) : null;
         prevBytesRef.current = bytes;
-        setStats(s => ({ ...s, rttMs: rtt, jitterMs: jitter, packetsLost: lost, bitrateBps: bitrate, iceState: pc.iceConnectionState }));
-      } catch { }
+        setStats(s => ({ ...s, rttMs: rtt, jitterMs: jitter, packetsLost: lost, bitrateBps: bitrate, iceState: entry.pc.iceConnectionState }));
+      } catch {}
     }, 2000);
-  }, [stopStats]);
+  }, []);
 
-  // Mic level analyser
+  // ── MediaSession (lock-screen controls) ────────────────────────────────────
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    const artwork = ['256x256', '384x384', '512x512'].map(sizes => ({
+      src: 'https://ampublishing.org/images/ambook-cover.jpg', sizes, type: 'image/jpeg',
+    }));
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'AM Publishing Radio', artist: 'AM Publishing Berlin', album: 'Live', artwork,
+      });
+    } catch {}
+    return () => {
+      try { navigator.mediaSession.setActionHandler('play', null); navigator.mediaSession.setActionHandler('pause', null); } catch {}
+    };
+  }, []);
+
+  // ── mic level analyser (active while on air) ───────────────────────────────
   useEffect(() => {
     if (!micEnabled || !micStreamRef.current) { setStats(s => ({ ...s, micLevel: 0 })); return; }
     try {
@@ -157,7 +275,6 @@ function useRadioAudio(token: string | null) {
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
       src.connect(analyser);
-      analyserRef.current = analyser;
       const buf = new Uint8Array(analyser.frequencyBinCount);
       const tick = setInterval(() => {
         analyser.getByteTimeDomainData(buf);
@@ -165,111 +282,147 @@ function useRadioAudio(token: string | null) {
         for (let i = 0; i < buf.length; i++) sum += Math.abs(buf[i] - 128);
         setStats(s => ({ ...s, micLevel: Math.min(1, (sum / buf.length) / 40) }));
       }, 100);
-      return () => { clearInterval(tick); ctx.close(); };
+      return () => { clearInterval(tick); ctx.close().catch(() => {}); };
     } catch { return undefined; }
   }, [micEnabled]);
 
+  // ── signal handling ────────────────────────────────────────────────────────
+  const handleSignals = useCallback(async () => {
+    if (!callIdRef.current) return;
+    try {
+      const r = await fetch(`${RADIO_API}/calls/${callIdRef.current}/signals?after_id=${lastSigRef.current}`, { headers: headers() });
+      const b = await r.json();
+      for (const sig of (b.data ?? [])) {
+        lastSigRef.current = sig.id;
+        const from = Number(sig.from_user_id);
+        let payload: any;
+        try { payload = JSON.parse(sig.payload); } catch { payload = sig.payload; }
+
+        if (sig.signal_type === 'offer') {
+          let entry = peersRef.current.get(from);
+          if (!entry) entry = createPeer(from, false); // they initiated
+          await entry.pc.setRemoteDescription(new RTCSessionDescription(payload));
+          entry.remoteSet = true; await flushIce(entry);
+          const ans = await entry.pc.createAnswer();
+          await entry.pc.setLocalDescription(ans);
+          sendSig(from, 'answer', entry.pc.localDescription);
+        } else if (sig.signal_type === 'answer') {
+          const entry = peersRef.current.get(from);
+          if (entry) { await entry.pc.setRemoteDescription(new RTCSessionDescription(payload)); entry.remoteSet = true; await flushIce(entry); }
+        } else if (sig.signal_type === 'ice') {
+          const entry = peersRef.current.get(from);
+          if (entry) { if (entry.remoteSet) { try { await entry.pc.addIceCandidate(new RTCIceCandidate(payload)); } catch {} } else entry.pendingIce.push(payload); }
+        } else if (sig.signal_type === 'bye') {
+          closePeer(from, false);
+          recomputeLiveStatus();
+        }
+      }
+    } catch {}
+  }, [headers, createPeer, flushIce, sendSig, closePeer, recomputeLiveStatus]);
+
+  // ── member polling (+ heartbeat) ───────────────────────────────────────────
+  const pollMembers = useCallback(async () => {
+    if (!callIdRef.current) return;
+    try {
+      const r = await fetch(`${RADIO_API}/calls/${callIdRef.current}/members`, { headers: headers() });
+      const b = await r.json();
+      reconcile(b.data ?? []);
+    } catch {}
+  }, [headers, reconcile]);
+
   const stopAudio = useCallback(() => {
-    stopStats();
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
-    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
-    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
-    if (audioRef.current) audioRef.current.srcObject = null;
+    if (sigPollRef.current) { clearInterval(sigPollRef.current); sigPollRef.current = null; }
+    if (memPollRef.current) { clearInterval(memPollRef.current); memPollRef.current = null; }
+    if (statsRef.current) { clearInterval(statsRef.current); statsRef.current = null; }
+    for (const uid of Array.from(peersRef.current.keys()) as number[]) closePeer(uid, true);
     if (callIdRef.current) {
-      const t = getToken();
-      if (t) fetch(`${RADIO_API}/calls/${callIdRef.current}/leave`, { method: 'PUT', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' } }).catch(() => {});
+      const cid = callIdRef.current;
+      fetch(`${RADIO_API}/calls/${cid}/leave`, { method: 'PUT', headers: headers() }).catch(() => {});
       callIdRef.current = null;
     }
+    if (onAirRef.current && micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
+    onAirRef.current = false; setMicEnabledState(false);
     prevBytesRef.current = 0;
-    setPlaying(false); setStatusSafe('idle');
+    setBroadcasters([]); setPlaying(false); setStatusSafe('idle');
     setStats(s => ({ ...s, rttMs: null, jitterMs: null, packetsLost: null, bitrateBps: null, iceState: null }));
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
-  }, [setStatusSafe, stopStats]);
+  }, [closePeer, headers, setStatusSafe]);
 
   const startAudio = useCallback(async () => {
     if (!token) return;
     setStatusSafe('connecting');
     try {
-      const joinRes = await fetch(`${RADIO_API}/calls/join`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
+      const joinRes = await fetch(`${RADIO_API}/calls/join`, { method: 'POST', headers: headers() });
       const jb = await joinRes.json();
       const { call_id, latest_signal_id } = jb.data;
       callIdRef.current = call_id; lastSigRef.current = latest_signal_id ?? 0;
-      const cfgRes = await fetch(`${RADIO_API}/calls/config`, { headers: { Authorization: `Bearer ${token}` } });
+
+      const cfgRes = await fetch(`${RADIO_API}/calls/config`, { headers: headers() });
       const cfgB = await cfgRes.json();
-      const iceServers = cfgB.data?.ice_servers ?? [{ urls: 'stun:stun.l.google.com:19302' }];
-      const pc = new RTCPeerConnection({ iceServers });
-      pcRef.current = pc;
+      iceServersRef.current = cfgB.data?.ice_servers ?? iceServersRef.current;
 
-      pc.oniceconnectionstatechange = () => {
-        setStats(s => ({ ...s, iceState: pc.iceConnectionState }));
-      };
-
-      pc.ontrack = (e) => {
-        const stream = e.streams[0] ?? new MediaStream([e.track]);
-        streamRef.current = stream;
-        const el = ensureAudioEl();
-        el.srcObject = stream; el.volume = volume; el.muted = muted;
-        el.play().catch(() => {});
-        setPlaying(true); setStatusSafe('live');
-        startStats(pc);
-        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
-      };
-      pc.onicecandidate = (e) => {
-        if (!e.candidate || !callIdRef.current) return;
-        fetch(`${RADIO_API}/calls/${callIdRef.current}/signals`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ signal_type: 'ice', payload: e.candidate }) }).catch(() => {});
-      };
-
-      // Add mic if enabled and stream available
-      const micStream = micEnabled ? (micStreamRef.current ?? await navigator.mediaDevices.getUserMedia({ audio: selectedMic ? { deviceId: selectedMic } : true }).catch(() => null)) : null;
-      if (micStream) {
-        micStreamRef.current = micStream;
-        micStream.getAudioTracks().forEach(t => pc.addTrack(t, micStream));
-      } else {
-        pc.addTransceiver('audio', { direction: 'recvonly' });
-      }
-
-      setTimeout(() => { if (statusRef.current === 'connecting') setStatusSafe('waiting'); }, 5000);
-
-      pollRef.current = setInterval(async () => {
-        if (!callIdRef.current) return;
-        try {
-          const r = await fetch(`${RADIO_API}/calls/${callIdRef.current}/signals?after_id=${lastSigRef.current}`, { headers: { Authorization: `Bearer ${token}` } });
-          const b = await r.json();
-          for (const sig of (b.data ?? [])) {
-            lastSigRef.current = sig.id;
-            if (sig.signal_type === 'offer') {
-              if (statusRef.current === 'waiting') setStatusSafe('connecting');
-              await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(sig.payload)));
-              const ans = await pc.createAnswer(); await pc.setLocalDescription(ans);
-              await fetch(`${RADIO_API}/calls/${callIdRef.current}/signals`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ to_user_id: sig.from_user_id, signal_type: 'answer', payload: ans }) });
-            } else if (sig.signal_type === 'ice') {
-              try { await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(sig.payload))); } catch { }
-            }
-          }
-        } catch { }
-      }, 1500);
-    } catch { setStatusSafe('error'); setTimeout(() => setStatusSafe('idle'), 3000); }
-  }, [token, micEnabled, selectedMic, volume, muted, setStatusSafe, startStats, ensureAudioEl]);
+      setPlaying(true);
+      setStatusSafe('silent'); // connected; will flip to 'live' on first inbound track
+      startStats();
+      await pollMembers();
+      sigPollRef.current = setInterval(handleSignals, 1200);
+      memPollRef.current = setInterval(pollMembers, 2500);
+    } catch { setStatusSafe('error'); setTimeout(() => { if (statusRef.current === 'error') setStatusSafe('idle'); }, 3000); }
+  }, [token, headers, setStatusSafe, startStats, pollMembers, handleSignals]);
 
   const togglePlay = useCallback(() => {
-    if (playing || status === 'connecting' || status === 'waiting' || status === 'live') stopAudio(); else startAudio();
+    if (playing || status === 'connecting') stopAudio(); else startAudio();
   }, [playing, status, startAudio, stopAudio]);
 
-  const setVolume = useCallback((v: number) => { setVolumeState(v); if (audioRef.current) audioRef.current.volume = v; }, []);
-  const toggleMute = useCallback(() => { setMuted(m => { if (audioRef.current) audioRef.current.muted = !m; return !m; }); }, []);
-
+  // ── go on air / leave air ──────────────────────────────────────────────────
   const requestMic = useCallback(async () => {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ audio: selectedMic ? { deviceId: selectedMic } : true });
       micStreamRef.current = s;
       setMicGranted(true);
-      setMicEnabled(true);
       const devs = await navigator.mediaDevices.enumerateDevices();
       setMicDevices(devs.filter(d => d.kind === 'audioinput'));
-    } catch { setMicGranted(false); }
+      return s;
+    } catch { setMicGranted(false); return null; }
   }, [selectedMic]);
 
-  return { playing, status, stats, volume, setVolume, muted, toggleMute, micEnabled, setMicEnabled, micGranted, requestMic, micDevices, selectedMic, setSelectedMic, togglePlay };
+  const rebuildPeers = useCallback(() => {
+    // Tear down all peers; the next member poll re-establishes them with the
+    // correct send/receive direction for the new on-air state.
+    for (const uid of Array.from(peersRef.current.keys()) as number[]) closePeer(uid, true);
+    pollMembers();
+  }, [closePeer, pollMembers]);
+
+  const toggleAir = useCallback(async () => {
+    if (!onAirRef.current) {
+      // Going on air — ensure we're connected to the room first.
+      if (!callIdRef.current) await startAudio();
+      const stream = micStreamRef.current ?? await requestMic();
+      if (!stream) return; // mic denied
+      onAirRef.current = true; setMicEnabledState(true);
+      if (callIdRef.current) fetch(`${RADIO_API}/calls/${callIdRef.current}/mic`, { method: 'PUT', headers: headers(), body: JSON.stringify({ on: true }) }).catch(() => {});
+      rebuildPeers();
+      setStatusSafe('live');
+    } else {
+      onAirRef.current = false; setMicEnabledState(false);
+      if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
+      if (callIdRef.current) fetch(`${RADIO_API}/calls/${callIdRef.current}/mic`, { method: 'PUT', headers: headers(), body: JSON.stringify({ on: false }) }).catch(() => {});
+      rebuildPeers();
+      recomputeLiveStatus();
+    }
+  }, [startAudio, requestMic, headers, rebuildPeers, setStatusSafe, recomputeLiveStatus]);
+
+  const setVolume = useCallback((v: number) => { setVolumeState(v); volumeRef.current = v; applyVolumeToAll(); }, [applyVolumeToAll]);
+  const toggleMute = useCallback(() => { setMuted(m => { mutedRef.current = !m; applyVolumeToAll(); return !m; }); }, [applyVolumeToAll]);
+
+  // Cleanup on unmount
+  useEffect(() => () => { stopAudio(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return {
+    playing, status, stats, volume, setVolume, muted, toggleMute,
+    micEnabled, onAir: micEnabled, toggleAir, micGranted, requestMic,
+    micDevices, selectedMic, setSelectedMic, togglePlay, broadcasters,
+  };
 }
 
 // ── GIF picker ──────────────────────────────────────────────────────────────
@@ -595,9 +748,10 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
 }) {
   const [statsOpen, setStatsOpen] = useState(false);
 
+  const isLive = audio.status === 'live';
   const statusLabel = audio.status === 'connecting' ? L.connecting
-    : audio.status === 'waiting' ? L.waiting
-    : audio.status === 'live' ? L.live
+    : audio.status === 'live' ? (audio.onAir ? L.youAreLive : L.live)
+    : audio.status === 'silent' ? L.silentAir
     : audio.status === 'error' ? L.errAudio
     : L.offline;
 
@@ -612,29 +766,49 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
   const jitterLabel = stats.jitterMs != null ? `${stats.jitterMs} ms` : '—';
   const lostLabel = stats.packetsLost != null ? String(stats.packetsLost) : '—';
 
+  const onAirNames = audio.broadcasters.map(b => b.nickname);
+  if (audio.onAir) onAirNames.unshift(L.you);
+
   return (
     <div>
-      {/* Big play area */}
+      {/* Big LISTEN area */}
       <div className="px-5 pt-7 pb-6 border-b border-white/8">
         <img src="/logo-white.png" alt="AM Publishing" className="w-20 h-20 object-contain mb-5 opacity-85" draggable={false} />
 
-        {/* Play button + eq bars */}
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={onToggle}
-            className={`relative w-14 h-14 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isActive ? 'bg-accent text-primary' : 'bg-white/10 text-white hover:bg-accent hover:text-primary'}`}>
+        {/* Primary action: LISTEN */}
+        <button onClick={onToggle}
+          className={`group relative w-full flex items-center gap-4 px-4 py-4 mb-4 transition-all duration-300 ${isActive ? 'bg-accent text-primary' : 'bg-white/[0.06] text-white hover:bg-accent hover:text-primary border border-white/10'}`}>
+          <span className="relative flex items-center justify-center w-10 h-10 flex-shrink-0">
             {audio.status === 'connecting'
               ? <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
               : isActive
-                ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
-                : <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M8 5.5l12 6.5-12 6.5V5.5Z"/></svg>}
-            {isActive && audio.status === 'live' && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-ping opacity-75" />
-            )}
-          </button>
-          <div className="flex-1 min-w-0">
-            <p className="font-mono text-xs text-white/50 mb-2">{statusLabel}</p>
-            <EqBars active={audio.status === 'live'} />
-          </div>
+                ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+                : <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7"><path d="M8 5.5l12 6.5-12 6.5V5.5Z"/></svg>}
+            {isLive && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-current rounded-full animate-ping opacity-60" />}
+          </span>
+          <span className="flex-1 text-left min-w-0">
+            <span className="block font-mono text-[10px] uppercase tracking-[0.25em] opacity-60 mb-0.5">
+              {isActive ? L.stopListening : L.listenLive}
+            </span>
+            <span className="block font-serif text-lg leading-none truncate">{statusLabel}</span>
+          </span>
+        </button>
+
+        {/* Now on air */}
+        <div className="flex items-center gap-2.5 mb-5 min-h-[16px]">
+          {onAirNames.length > 0 ? (
+            <>
+              <EqBars active={isLive} />
+              <span className="font-mono text-[10px] text-white/45 truncate">
+                <span className="text-accent uppercase tracking-widest">{L.onAirNow}: </span>
+                {onAirNames.join(', ')}
+              </span>
+            </>
+          ) : isActive ? (
+            <span className="font-mono text-[10px] text-white/30 italic">{L.nobodyOnAir}</span>
+          ) : (
+            <span className="font-mono text-[10px] text-white/25">{L.listenHint}</span>
+          )}
         </div>
 
         {/* Volume */}
@@ -651,21 +825,22 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
         </div>
       </div>
 
-      {/* Mic — compact */}
+      {/* Optional: GO ON AIR (secondary — most people just listen) */}
       <div className="px-5 py-4 border-b border-white/8">
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-white/35">{L.micSettings}</span>
-          <label className="flex items-center gap-2 cursor-pointer"
-            onClick={() => audio.micGranted === false ? audio.requestMic() : audio.setMicEnabled(m => !m)}>
-            <div className={`w-8 h-4 relative transition-colors flex-shrink-0 ${audio.micEnabled && audio.micGranted ? 'bg-accent' : 'bg-white/15'}`}>
-              <span className={`absolute top-0.5 w-3 h-3 bg-white transition-transform ${audio.micEnabled && audio.micGranted ? 'translate-x-4' : 'translate-x-0.5'}`} />
-            </div>
-          </label>
-        </div>
-        <div className="h-1 bg-white/8 w-full overflow-hidden rounded-full">
-          <div className="h-full bg-accent/70 transition-all duration-100 rounded-full" style={{ width: `${Math.round(audio.stats.micLevel * 100)}%` }} />
-        </div>
-        {audio.micGranted && audio.micDevices.length > 0 && (
+        <button onClick={audio.toggleAir}
+          className={`w-full flex items-center justify-center gap-2.5 px-3 py-2.5 font-mono text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${audio.onAir ? 'bg-accent text-primary' : 'border border-white/15 text-white/55 hover:border-accent hover:text-accent'}`}>
+          <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5">
+            <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z" stroke="currentColor" strokeWidth="1.7"/>
+            <path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+          </svg>
+          {audio.onAir ? L.leaveAir : L.goOnAir}
+        </button>
+        {audio.onAir && (
+          <div className="h-1 bg-white/8 w-full overflow-hidden rounded-full mt-3">
+            <div className="h-full bg-accent/70 transition-all duration-100 rounded-full" style={{ width: `${Math.round(audio.stats.micLevel * 100)}%` }} />
+          </div>
+        )}
+        {audio.onAir && audio.micDevices.length > 0 && (
           <select value={audio.selectedMic} onChange={e => audio.setSelectedMic(e.target.value)}
             style={{ background: 'rgba(255,255,255,0.05)', colorScheme: 'dark' }}
             className="w-full border border-white/10 px-2 py-1.5 font-mono text-[10px] outline-none hover:border-white/25 transition-colors mt-3 text-white/55">
@@ -676,7 +851,7 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
           </select>
         )}
         {audio.micGranted === false && (
-          <button onClick={audio.requestMic} className="font-mono text-[10px] uppercase tracking-widest text-accent hover:underline mt-2 block">{L.micGrant}</button>
+          <p className="font-mono text-[9px] text-red-400/70 mt-2 leading-snug">{L.micGrant}</p>
         )}
       </div>
 
@@ -1032,7 +1207,7 @@ export const RadioPage: React.FC = () => {
   const lastIdRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const audio = useRadioAudio(user ? getToken() : null);
+  const audio = useRadioAudio(user ? getToken() : null, user?.id ?? null);
 
   const handleAdminTrigger = useCallback(() => {
     adminClickRef.current += 1;
@@ -1047,6 +1222,9 @@ export const RadioPage: React.FC = () => {
       placeholderExpanded: 'Текст анонса (необязательно)…', send: 'Отправить',
       you: 'Вы', listeners: 'В эфире', loading: 'Загрузка…', errorConn: 'Не удалось подключиться к радио',
       play: 'Слушать', stop: 'Стоп', connecting: 'Подключение…', waiting: 'Ожидание эфира…', live: 'В эфире', offline: 'Эфир не идёт',
+      listenLive: 'Слушать эфир', stopListening: 'Остановить', silentAir: 'Тишина в эфире', youAreLive: 'Вы в эфире',
+      onAirNow: 'В эфире', nobodyOnAir: 'Сейчас никто не вещает', listenHint: 'Нажмите, чтобы слушать',
+      goOnAir: 'Выйти в эфир', leaveAir: 'Завершить эфир',
       errAudio: 'Ошибка', micSettings: 'Настройки микрофона', micOn: 'Включить микрофон',
       defaultMic: 'Микрофон по умолчанию', micHint: 'Перезапустите эфир после изменений.',
       micDenied: 'Доступ запрещён', micGrant: 'Разрешить микрофон', micLevel: 'Уровень сигнала',
@@ -1072,6 +1250,9 @@ export const RadioPage: React.FC = () => {
       placeholderExpanded: 'Announcement text (optional)…', send: 'Send',
       you: 'You', listeners: 'Online', loading: 'Loading…', errorConn: 'Could not connect to radio',
       play: 'Listen', stop: 'Stop', connecting: 'Connecting…', waiting: 'Waiting for broadcast…', live: 'On air', offline: 'Off air',
+      listenLive: 'Listen live', stopListening: 'Stop', silentAir: 'Silent — no broadcast', youAreLive: 'You are on air',
+      onAirNow: 'On air', nobodyOnAir: 'Nobody is broadcasting yet', listenHint: 'Tap to start listening',
+      goOnAir: 'Go on air', leaveAir: 'Leave air',
       errAudio: 'Error', micSettings: 'Microphone', micOn: 'Enable microphone',
       defaultMic: 'Default microphone', micHint: 'Restart the stream after changes.',
       micDenied: 'Access denied', micGrant: 'Allow microphone', micLevel: 'Signal level',
@@ -1097,6 +1278,9 @@ export const RadioPage: React.FC = () => {
       placeholderExpanded: 'Ankündigungstext (optional)…', send: 'Senden',
       you: 'Sie', listeners: 'Online', loading: 'Laden…', errorConn: 'Verbindung fehlgeschlagen',
       play: 'Zuhören', stop: 'Stopp', connecting: 'Verbinden…', waiting: 'Warten auf Sendung…', live: 'Live', offline: 'Nicht live',
+      listenLive: 'Live hören', stopListening: 'Stopp', silentAir: 'Stille — keine Sendung', youAreLive: 'Sie sind live',
+      onAirNow: 'Live', nobodyOnAir: 'Niemand sendet gerade', listenHint: 'Tippen zum Hören',
+      goOnAir: 'Live gehen', leaveAir: 'Sendung beenden',
       errAudio: 'Fehler', micSettings: 'Mikrofon', micOn: 'Mikrofon aktivieren',
       defaultMic: 'Standardmikrofon', micHint: 'Stream nach Änderungen neu starten.',
       micDenied: 'Zugriff verweigert', micGrant: 'Mikrofon erlauben', micLevel: 'Signalpegel',
@@ -1220,11 +1404,11 @@ export const RadioPage: React.FC = () => {
   }, [messages]);
 
   const statusLabel = audio.status === 'connecting' ? L.connecting
-    : audio.status === 'waiting' ? L.waiting
-    : audio.status === 'live' ? L.live
+    : audio.status === 'live' ? (audio.onAir ? L.youAreLive : L.live)
+    : audio.status === 'silent' ? L.silentAir
     : audio.status === 'error' ? L.errAudio
     : L.offline;
-  const isActive = audio.playing || audio.status === 'waiting' || audio.status === 'connecting';
+  const isActive = audio.playing || audio.status === 'connecting';
 
   const chatMessages = messages.filter(m => m.msg_type === 'chat');
   const annMessages = messages.filter(m => m.msg_type === 'announcement');
@@ -1279,16 +1463,19 @@ export const RadioPage: React.FC = () => {
             <div className="px-5 py-4 flex-1 overflow-y-auto">
               <p className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/25 mb-3">{L.listeners}</p>
               <ul className="space-y-2.5">
-                {online.map(u => (
-                  <li key={u.id} className="flex items-center gap-2.5">
+                {online.map((u, i) => {
+                  const isMe = u.nickname === user?.nickname;
+                  return (
+                  <li key={`${u.nickname}-${i}`} className="flex items-center gap-2.5">
                     <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-white/8 border border-white/10">
                       <img src="/logo-white.png" alt="" className="w-4 h-4 object-contain opacity-70" draggable={false} />
                     </div>
-                    <span className="text-xs truncate" style={{ color: u.id === user?.id ? '#C9A66B' : 'rgba(255,255,255,0.6)' }}>
-                      {u.id === user?.id ? `${u.nickname} (${L.you?.toLowerCase()})` : u.nickname}
+                    <span className="text-xs truncate" style={{ color: isMe ? '#C9A66B' : 'rgba(255,255,255,0.6)' }}>
+                      {isMe ? `${u.nickname} (${L.you?.toLowerCase()})` : u.nickname}
                     </span>
                   </li>
-                ))}
+                  );
+                })}
                 {online.length === 0 && !loading && <li className="font-mono text-[10px] text-white/20">—</li>}
               </ul>
             </div>
