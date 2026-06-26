@@ -4,13 +4,13 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Search, Menu, X, ArrowRight, Clock, Trash2 } from 'lucide-react';
 import { useApp } from '../AppContext';
 
-export const BrandLogo: React.FC<{ className?: string }> = ({ className = "w-10 h-10" }) => (
-  <svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <rect x="20" y="20" width="60" height="60" stroke="currentColor" strokeWidth="2" fill="none"/>
-    <path d="M20 20 L80 80" stroke="currentColor" strokeWidth="1"/>
-    <path d="M80 20 L20 80" stroke="currentColor" strokeWidth="1"/>
-    <circle cx="50" cy="50" r="15" fill="currentColor"/>
-  </svg>
+export const BrandLogo: React.FC<{ className?: string; white?: boolean }> = ({ className = "w-10 h-10", white }) => (
+  <img
+    src={white ? '/logo-white.png' : '/logo-dark.png'}
+    alt="AM Publishing"
+    className={className}
+    draggable={false}
+  />
 );
 
 export const Header: React.FC = () => {
@@ -53,9 +53,14 @@ export const Header: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="w-[80px] md:w-[200px] border-r border-primary flex items-center justify-center md:justify-start md:px-6 group relative overflow-hidden">
              <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-out-quart"></div>
-             <div className="flex items-center gap-3 relative z-10 group-hover:text-white transition-colors duration-500">
-                <BrandLogo className="w-6 h-6 transition-transform duration-700 ease-out-quart group-hover:rotate-90" />
-                <span className="hidden md:block font-bold text-xs uppercase tracking-[0.2em] transition-transform duration-700 ease-out-quart group-hover:translate-x-1">{brandShort}</span>
+             <div className="flex items-center gap-3 relative z-10">
+                {/* dark logo — visible on light bg, hides on hover */}
+                <BrandLogo className="w-8 h-8 object-contain absolute transition-opacity duration-500 group-hover:opacity-0" />
+                {/* white logo — hidden normally, appears on hover */}
+                <BrandLogo white className="w-8 h-8 object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                {/* spacer so the link keeps its width */}
+                <span className="w-8 h-8 flex-shrink-0" />
+                <span className="hidden md:block font-bold text-xs uppercase tracking-[0.2em] text-primary group-hover:text-white transition-colors duration-500 transition-transform duration-700 ease-out-quart group-hover:translate-x-1">{brandShort}</span>
              </div>
           </Link>
 

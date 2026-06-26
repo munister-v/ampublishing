@@ -14,7 +14,7 @@ export const Footer: React.FC = () => {
          {/* 1. BRAND BLOCK */}
          <div className="p-6 md:p-10 border-b sm:border-r md:border-b-0 md:border-r border-white/20 flex flex-col justify-between">
             <div>
-               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif mb-4 md:mb-6 leading-none">AM Publishing</h2>
+               <img src="/logo-white.png" alt="AM Publishing" className="w-20 h-20 object-contain mb-4 md:mb-6 -ml-1" draggable={false} />
                <p className="font-mono text-xs max-w-[260px] opacity-60">
                   {t('footer.desc')}
                </p>
