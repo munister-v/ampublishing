@@ -414,25 +414,61 @@ function AnnouncementCard({ msg, onPin }: { msg: RadioMessage; onPin: (id: numbe
   );
 }
 
+// ── Demo announcement card (shown when panel is empty) ───────────────────────
+function DemoCard({ L }: { L: Record<string, string> }) {
+  return (
+    <div className="p-4 space-y-3">
+      {/* Demo card */}
+      <article className="relative overflow-hidden border border-accent/25 bg-accent/5">
+        <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
+        <div className="relative overflow-hidden" style={{ height: 140 }}>
+          <img src="/images/home-hero.webp" alt="" className="w-full h-full object-cover opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent" />
+          <div className="absolute bottom-3 left-5">
+            <span className="font-mono text-[9px] uppercase tracking-widest text-accent/80">📢 {L.typeAnnouncement}</span>
+          </div>
+        </div>
+        <div className="p-4 pl-5">
+          <h3 className="font-serif text-xl leading-snug mb-2 text-white">{L.demoTitle}</h3>
+          <p className="text-sm text-white/50 leading-relaxed mb-3">{L.demoBody}</p>
+          <span className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest border border-accent/40 px-3 py-1.5 text-accent/80">{L.demoBtn}</span>
+        </div>
+      </article>
+
+      {/* Hints below */}
+      <div className="px-1 pt-2 space-y-px">
+        {[L.emptyHint1, L.emptyHint2, L.emptyHint3].map((h, i) => (
+          <div key={i} className="flex items-center gap-3 py-2.5 border-t border-white/8">
+            <span className="font-mono text-[9px] text-accent/60 w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
+            <span className="font-mono text-[10px] text-white/30 leading-snug">{h}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Empty state for the right panel ──────────────────────────────────────────
 function EmptyPanel({ tab, L }: { tab: 'ann' | 'pod' | 'pin'; L: Record<string, string> }) {
+  // Announcements tab shows a demo card instead of a plain empty state
+  if (tab === 'ann') return <DemoCard L={L} />;
+
   const cfg = {
-    ann: { icon: '📢', title: L.emptyAnnTitle, body: L.emptyAnnBody },
     pod: { icon: '🎙', title: L.emptyPodTitle, body: L.emptyPodBody },
     pin: { icon: '📌', title: L.emptyPinTitle, body: L.emptyPinBody },
-  }[tab];
+  }[tab as 'pod' | 'pin'];
   return (
     <div className="h-full flex flex-col items-center justify-center text-center px-8 py-12">
       <div className="w-16 h-16 flex items-center justify-center border border-white/10 text-3xl mb-6 bg-white/5">
         {cfg.icon}
       </div>
       <p className="font-serif text-xl leading-tight mb-2 text-white">{cfg.title}</p>
-      <p className="text-xs text-white/40 leading-relaxed max-w-[220px] mb-8">{cfg.body}</p>
+      <p className="text-sm text-white/40 leading-relaxed max-w-[220px] mb-8">{cfg.body}</p>
       <div className="w-full max-w-[220px] space-y-px">
         {[L.emptyHint1, L.emptyHint2, L.emptyHint3].map((h, i) => (
           <div key={i} className="flex items-center gap-3 py-2.5 border-t border-white/8 text-left">
-            <span className="font-mono text-[9px] text-accent w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
-            <span className="font-mono text-[10px] text-white/35 leading-snug">{h}</span>
+            <span className="font-mono text-[10px] text-accent/60 w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
+            <span className="font-mono text-[11px] text-white/35 leading-snug">{h}</span>
           </div>
         ))}
       </div>
@@ -521,59 +557,60 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
   return (
     <div>
       {/* Big play area */}
-      <div className="px-5 pt-6 pb-5 border-b border-white/8">
-        <p className="font-mono text-[8px] uppercase tracking-[0.35em] text-white/30 mb-4">AM Publishing</p>
+      <div className="px-5 pt-7 pb-6 border-b border-white/8">
+        <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-white/30 mb-5">AM Publishing</p>
 
         {/* Play button + eq bars */}
-        <div className="flex items-center gap-4 mb-5">
+        <div className="flex items-center gap-4 mb-6">
           <button onClick={onToggle}
-            className={`relative w-12 h-12 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isActive ? 'bg-accent text-primary' : 'bg-white/10 text-white hover:bg-accent hover:text-primary'}`}>
+            className={`relative w-14 h-14 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isActive ? 'bg-accent text-primary' : 'bg-white/10 text-white hover:bg-accent hover:text-primary'}`}>
             {audio.status === 'connecting'
-              ? <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ? <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
               : isActive
-                ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
-                : <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M8 5.5l12 6.5-12 6.5V5.5Z"/></svg>}
+                ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+                : <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M8 5.5l12 6.5-12 6.5V5.5Z"/></svg>}
             {isActive && audio.status === 'live' && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-accent rounded-full animate-ping opacity-75" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-ping opacity-75" />
             )}
           </button>
           <div className="flex-1 min-w-0">
-            <p className="font-mono text-[10px] text-white/50 mb-1.5">{statusLabel}</p>
+            <p className="font-mono text-xs text-white/50 mb-2">{statusLabel}</p>
             <EqBars active={audio.status === 'live'} />
           </div>
         </div>
 
         {/* Volume */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <button onClick={audio.toggleMute} className="text-white/30 hover:text-white transition-colors flex-shrink-0">
             {audio.muted
-              ? <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M19 9l-6 6M13 9l6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
-              : <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>}
+              ? <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M19 9l-6 6M13 9l6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
+              : <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>}
           </button>
           <input type="range" min="0" max="1" step="0.05" value={audio.muted ? 0 : audio.volume}
             onChange={e => { audio.setVolume(Number(e.target.value)); if (audio.muted && Number(e.target.value) > 0) audio.toggleMute(); }}
             className="flex-1 h-px appearance-none bg-white/15 accent-[#C9A66B] cursor-pointer" />
-          <span className="font-mono text-[9px] text-white/25 w-7 text-right tabular-nums">{Math.round(audio.volume * 100)}%</span>
+          <span className="font-mono text-[10px] text-white/30 w-8 text-right tabular-nums">{Math.round(audio.volume * 100)}%</span>
         </div>
       </div>
 
       {/* Mic — compact */}
-      <div className="px-5 py-3.5 border-b border-white/8">
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">{L.micSettings}</span>
+      <div className="px-5 py-4 border-b border-white/8">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-white/35">{L.micSettings}</span>
           <label className="flex items-center gap-2 cursor-pointer"
             onClick={() => audio.micGranted === false ? audio.requestMic() : audio.setMicEnabled(m => !m)}>
-            <div className={`w-7 h-3.5 relative transition-colors flex-shrink-0 ${audio.micEnabled && audio.micGranted ? 'bg-accent' : 'bg-white/15'}`}>
-              <span className={`absolute top-0.5 w-2.5 h-2.5 bg-white transition-transform ${audio.micEnabled && audio.micGranted ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+            <div className={`w-8 h-4 relative transition-colors flex-shrink-0 ${audio.micEnabled && audio.micGranted ? 'bg-accent' : 'bg-white/15'}`}>
+              <span className={`absolute top-0.5 w-3 h-3 bg-white transition-transform ${audio.micEnabled && audio.micGranted ? 'translate-x-4' : 'translate-x-0.5'}`} />
             </div>
           </label>
         </div>
-        <div className="h-0.5 bg-white/8 w-full overflow-hidden">
-          <div className="h-full bg-accent/70 transition-all duration-100" style={{ width: `${Math.round(audio.stats.micLevel * 100)}%` }} />
+        <div className="h-1 bg-white/8 w-full overflow-hidden rounded-full">
+          <div className="h-full bg-accent/70 transition-all duration-100 rounded-full" style={{ width: `${Math.round(audio.stats.micLevel * 100)}%` }} />
         </div>
         {audio.micGranted && audio.micDevices.length > 0 && (
           <select value={audio.selectedMic} onChange={e => audio.setSelectedMic(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 px-2 py-1 font-mono text-[8px] outline-none hover:border-white/25 transition-colors mt-2 text-white/60">
+            style={{ background: 'rgba(255,255,255,0.05)', colorScheme: 'dark' }}
+            className="w-full border border-white/10 px-2 py-1.5 font-mono text-[10px] outline-none hover:border-white/25 transition-colors mt-3 text-white/55">
             <option value="">{L.defaultMic}</option>
             {audio.micDevices.map(d => (
               <option key={d.deviceId} value={d.deviceId}>{d.label || `Mic ${d.deviceId.slice(0, 6)}`}</option>
@@ -581,16 +618,16 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
           </select>
         )}
         {audio.micGranted === false && (
-          <button onClick={audio.requestMic} className="font-mono text-[8px] uppercase tracking-widest text-accent hover:underline mt-1 block">{L.micGrant}</button>
+          <button onClick={audio.requestMic} className="font-mono text-[10px] uppercase tracking-widest text-accent hover:underline mt-2 block">{L.micGrant}</button>
         )}
       </div>
 
       {/* Stats — collapsible */}
       <div className="border-b border-white/8">
         <button onClick={() => setStatsOpen(s => !s)}
-          className="w-full flex items-center justify-between px-5 py-2.5 hover:bg-white/5 transition-colors">
-          <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/30">{L.statsTitle}</span>
-          <svg viewBox="0 0 24 24" fill="none" className={`w-3 h-3 text-white/25 transition-transform ${statsOpen ? 'rotate-180' : ''}`}>
+          className="w-full flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors">
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/30">{L.statsTitle}</span>
+          <svg viewBox="0 0 24 24" fill="none" className={`w-3.5 h-3.5 text-white/25 transition-transform ${statsOpen ? 'rotate-180' : ''}`}>
             <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
@@ -684,7 +721,8 @@ function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } if (e.key === 'Escape' && replyTo) onCancelReply(); }}
           placeholder={L.placeholder}
           rows={1}
-          className="flex-1 resize-none bg-white/6 border border-white/10 focus:border-white/25 px-4 py-2.5 text-[15px] leading-snug outline-none placeholder:text-white/20 font-sans transition-colors max-h-32 text-white/90"
+          className="flex-1 resize-none border border-white/10 focus:border-white/30 px-4 py-3 text-base leading-snug outline-none font-sans transition-colors max-h-32 text-white/90 placeholder:text-white/25"
+          style={{ background: 'rgba(255,255,255,0.05)', colorScheme: 'dark' }}
           disabled={disabled || sending} maxLength={2000} />
 
         <button type="submit" disabled={!text.trim() || sending || disabled}
@@ -965,6 +1003,7 @@ export const RadioPage: React.FC = () => {
       replyingTo: 'Ответ', typing: 'печатает…', nameRule: 'Имя: 2–24 символа',
       deleteConfirm: 'Удалить сообщение?',
       subscribeKicker: 'Канал издательства',
+      demoTitle: 'Новые книги этого сезона', demoBody: 'Следите за анонсами — здесь первыми появляются отрывки, даты выхода и новости редакции.', demoBtn: 'Подписаться на канал →',
       emptyAnnTitle: 'Пока без анонсов', emptyAnnBody: 'Здесь появляются новости редакции, анонсы книг и отрывки до релиза.',
       emptyPodTitle: 'Подкастов пока нет', emptyPodBody: 'Аудиоэпизоды и записи эфиров будут собираться в этой вкладке.',
       emptyPinTitle: 'Ничего не закреплено', emptyPinBody: 'Важные сообщения и анонсы редакция закрепляет здесь.',
@@ -989,6 +1028,7 @@ export const RadioPage: React.FC = () => {
       replyingTo: 'Reply to', typing: 'typing…', nameRule: 'Name: 2–24 chars',
       deleteConfirm: 'Delete message?',
       subscribeKicker: 'Publisher channel',
+      demoTitle: 'New books this season', demoBody: 'Follow our announcements — excerpts, release dates and editorial news appear here first.', demoBtn: 'Subscribe to channel →',
       emptyAnnTitle: 'No announcements yet', emptyAnnBody: 'Editorial news, book announcements and pre-release excerpts appear here.',
       emptyPodTitle: 'No podcasts yet', emptyPodBody: 'Audio episodes and broadcast recordings will be collected in this tab.',
       emptyPinTitle: 'Nothing pinned', emptyPinBody: 'The editors pin important messages and announcements here.',
@@ -1013,6 +1053,7 @@ export const RadioPage: React.FC = () => {
       replyingTo: 'Antwort an', typing: 'schreibt…', nameRule: 'Name: 2–24 Zeichen',
       deleteConfirm: 'Nachricht löschen?',
       subscribeKicker: 'Verlagskanal',
+      demoTitle: 'Neue Bücher dieser Saison', demoBody: 'Bleib auf dem Laufenden — Leseproben, Erscheinungstermine und Neuigkeiten erscheinen hier zuerst.', demoBtn: 'Kanal abonnieren →',
       emptyAnnTitle: 'Noch keine Ankündigungen', emptyAnnBody: 'Redaktionsnews, Buchankündigungen und Leseproben erscheinen hier.',
       emptyPodTitle: 'Noch keine Podcasts', emptyPodBody: 'Audio-Episoden und Sendungsmitschnitte werden in diesem Tab gesammelt.',
       emptyPinTitle: 'Nichts angeheftet', emptyPinBody: 'Wichtige Nachrichten und Ankündigungen werden hier angeheftet.',

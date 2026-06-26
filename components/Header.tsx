@@ -51,16 +51,12 @@ export const Header: React.FC = () => {
         <div className="w-full h-full flex items-stretch">
           
           {/* Logo */}
-          <Link to="/" className="w-[80px] md:w-[200px] border-r border-primary flex items-center justify-center md:justify-start md:px-6 group relative overflow-hidden">
+          <Link to="/" className="w-[72px] md:w-[80px] border-r border-primary flex items-center justify-center group relative overflow-hidden">
              <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-out-quart"></div>
-             <div className="flex items-center gap-3 relative z-10">
-                {/* dark logo — visible on light bg, hides on hover */}
-                <BrandLogo className="w-8 h-8 object-contain absolute transition-opacity duration-500 group-hover:opacity-0" />
-                {/* white logo — hidden normally, appears on hover */}
-                <BrandLogo white className="w-8 h-8 object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                {/* spacer so the link keeps its width */}
-                <span className="w-8 h-8 flex-shrink-0" />
-                <span className="hidden md:block font-bold text-xs uppercase tracking-[0.2em] text-primary group-hover:text-white transition-colors duration-500 transition-transform duration-700 ease-out-quart group-hover:translate-x-1">{brandShort}</span>
+             <div className="relative z-10">
+                <BrandLogo className="w-10 h-10 object-contain absolute inset-0 m-auto transition-opacity duration-500 group-hover:opacity-0" />
+                <BrandLogo white className="w-10 h-10 object-contain absolute inset-0 m-auto opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                <span className="w-10 h-10 block" />
              </div>
           </Link>
 
