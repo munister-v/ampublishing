@@ -74,8 +74,11 @@ function useRadioAudio(token: string | null, myId: number | null) {
   const lastSigRef = useRef(0);
   const peersRef = useRef<Map<number, PeerEntry>>(new Map());
   const audioElsRef = useRef<Map<number, HTMLAudioElement>>(new Map());
-  const sigPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sigTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sigDelayRef = useRef(1000);          // adaptive: fast while negotiating, slow when idle
+  const runningRef = useRef(false);
   const memPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const memInFlightRef = useRef(false);
   const statsRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const prevBytesRef = useRef(0);
   const micStreamRef = useRef<MediaStream | null>(null);
@@ -213,15 +216,19 @@ function useRadioAudio(token: string | null, myId: number | null) {
     micMap.forEach((on, uid) => { if (onAirRef.current || on) needed.add(uid); });
 
     // Drop peers that left or are no longer relevant.
+    let changed = false;
     for (const uid of Array.from(peersRef.current.keys()) as number[]) {
-      if (!needed.has(uid)) closePeer(uid, false);
+      if (!needed.has(uid)) { closePeer(uid, false); changed = true; }
     }
     // Open the peers I'm responsible for initiating.
     needed.forEach(uid => {
       if (!peersRef.current.has(uid) && iAmOfferer(uid, micMap.get(uid) ?? false)) {
-        createPeer(uid, true);
+        createPeer(uid, true); changed = true;
       }
     });
+
+    // Membership/topology changed → poll signals fast again to finish negotiation.
+    if (changed) sigDelayRef.current = 1000;
 
     recomputeLiveStatus();
   }, [closePeer, iAmOfferer, createPeer, recomputeLiveStatus]);
@@ -287,12 +294,13 @@ function useRadioAudio(token: string | null, myId: number | null) {
   }, [micEnabled]);
 
   // ── signal handling ────────────────────────────────────────────────────────
-  const handleSignals = useCallback(async () => {
-    if (!callIdRef.current) return;
+  const handleSignals = useCallback(async (): Promise<number> => {
+    if (!callIdRef.current) return 0;
     try {
       const r = await fetch(`${RADIO_API}/calls/${callIdRef.current}/signals?after_id=${lastSigRef.current}`, { headers: headers() });
       const b = await r.json();
-      for (const sig of (b.data ?? [])) {
+      const list = b.data ?? [];
+      for (const sig of list) {
         lastSigRef.current = sig.id;
         const from = Number(sig.from_user_id);
         let payload: any;
@@ -317,21 +325,40 @@ function useRadioAudio(token: string | null, myId: number | null) {
           recomputeLiveStatus();
         }
       }
-    } catch {}
+      return list.length;
+    } catch { return 0; }
   }, [headers, createPeer, flushIce, sendSig, closePeer, recomputeLiveStatus]);
 
   // ── member polling (+ heartbeat) ───────────────────────────────────────────
   const pollMembers = useCallback(async () => {
-    if (!callIdRef.current) return;
+    if (!callIdRef.current || memInFlightRef.current) return; // skip if a poll is still in flight
+    memInFlightRef.current = true;
     try {
       const r = await fetch(`${RADIO_API}/calls/${callIdRef.current}/members`, { headers: headers() });
       const b = await r.json();
       reconcile(b.data ?? []);
-    } catch {}
+    } catch {} finally { memInFlightRef.current = false; }
   }, [headers, reconcile]);
 
+  // ── adaptive signal polling — fast while negotiating, backs off when idle ───
+  const scheduleSignals = useCallback(() => {
+    sigTimerRef.current = setTimeout(async () => {
+      if (!runningRef.current) return;
+      const got = await handleSignals();
+      let negotiating = false;
+      peersRef.current.forEach(e => {
+        const st = e.pc.iceConnectionState;
+        if (st !== 'connected' && st !== 'completed' && st !== 'closed') negotiating = true;
+      });
+      if (got > 0 || negotiating) sigDelayRef.current = 1000;
+      else sigDelayRef.current = Math.min(Math.round(sigDelayRef.current * 1.5), 5000);
+      if (runningRef.current) scheduleSignals();
+    }, sigDelayRef.current);
+  }, [handleSignals]);
+
   const stopAudio = useCallback(() => {
-    if (sigPollRef.current) { clearInterval(sigPollRef.current); sigPollRef.current = null; }
+    runningRef.current = false;
+    if (sigTimerRef.current) { clearTimeout(sigTimerRef.current); sigTimerRef.current = null; }
     if (memPollRef.current) { clearInterval(memPollRef.current); memPollRef.current = null; }
     if (statsRef.current) { clearInterval(statsRef.current); statsRef.current = null; }
     for (const uid of Array.from(peersRef.current.keys()) as number[]) closePeer(uid, true);
@@ -363,12 +390,14 @@ function useRadioAudio(token: string | null, myId: number | null) {
 
       setPlaying(true);
       setStatusSafe('silent'); // connected; will flip to 'live' on first inbound track
+      runningRef.current = true;
+      sigDelayRef.current = 1000;
       startStats();
       await pollMembers();
-      sigPollRef.current = setInterval(handleSignals, 1200);
-      memPollRef.current = setInterval(pollMembers, 2500);
+      scheduleSignals();
+      memPollRef.current = setInterval(pollMembers, 4000);
     } catch { setStatusSafe('error'); setTimeout(() => { if (statusRef.current === 'error') setStatusSafe('idle'); }, 3000); }
-  }, [token, headers, setStatusSafe, startStats, pollMembers, handleSignals]);
+  }, [token, headers, setStatusSafe, startStats, pollMembers, scheduleSignals]);
 
   const togglePlay = useCallback(() => {
     if (playing || status === 'connecting') stopAudio(); else startAudio();
@@ -390,6 +419,7 @@ function useRadioAudio(token: string | null, myId: number | null) {
     // Tear down all peers; the next member poll re-establishes them with the
     // correct send/receive direction for the new on-air state.
     for (const uid of Array.from(peersRef.current.keys()) as number[]) closePeer(uid, true);
+    sigDelayRef.current = 1000; // negotiation restarts → poll fast
     pollMembers();
   }, [closePeer, pollMembers]);
 
