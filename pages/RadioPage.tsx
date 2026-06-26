@@ -84,6 +84,7 @@ function useRadioAudio(token: string | null, myId: number | null) {
   const prevBytesRef = useRef(0);
   const micStreamRef = useRef<MediaStream | null>(null);
   const iceServersRef = useRef<any[]>([{ urls: 'stun:stun.l.google.com:19302' }]);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   // Live-value refs (so the polling closures always read fresh state)
   const onAirRef = useRef(false);
@@ -157,9 +158,7 @@ function useRadioAudio(token: string | null, myId: number | null) {
       const stream = e.streams[0] ?? new MediaStream([e.track]);
       const el = ensureAudioEl(uid);
       el.srcObject = stream; el.volume = volumeRef.current; el.muted = mutedRef.current;
-      el.play().catch((err: unknown) => {
-        if (err instanceof DOMException && err.name === 'NotAllowedError') setAudioBlocked(true);
-      });
+      el.play().catch(() => { setAudioBlocked(true); });
       setStatusSafe('live');
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     };
@@ -373,6 +372,7 @@ function useRadioAudio(token: string | null, myId: number | null) {
     if (onAirRef.current && micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
     onAirRef.current = false; setMicEnabledState(false);
     prevBytesRef.current = 0;
+    setAudioBlocked(false);
     setBroadcasters([]); setPlaying(false); setStatusSafe('idle');
     setStats(s => ({ ...s, rttMs: null, jitterMs: null, packetsLost: null, bitrateBps: null, iceState: null }));
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
@@ -380,6 +380,11 @@ function useRadioAudio(token: string | null, myId: number | null) {
 
   const startAudio = useCallback(async () => {
     if (!token) return;
+    // Pre-unlock audio context in user gesture so async play() works on mobile
+    try {
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+      if (audioCtxRef.current.state === 'suspended') await audioCtxRef.current.resume();
+    } catch {}
     setStatusSafe('connecting');
     try {
       const joinRes = await fetch(`${RADIO_API}/calls/join`, { method: 'POST', headers: headers() });
@@ -451,7 +456,11 @@ function useRadioAudio(token: string | null, myId: number | null) {
   // Cleanup on unmount
   useEffect(() => () => { stopAudio(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const unlockAudio = useCallback(() => {
+  const unlockAudio = useCallback(async () => {
+    try {
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+      if (audioCtxRef.current.state === 'suspended') await audioCtxRef.current.resume();
+    } catch {}
     audioElsRef.current.forEach(el => { el.play().catch(() => {}); });
     setAudioBlocked(false);
   }, []);
