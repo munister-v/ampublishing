@@ -379,37 +379,87 @@ function MsgContent({ text }: { text: string }) {
 
 function AnnouncementCard({ msg, onPin }: { msg: RadioMessage; onPin: (id: number) => void }) {
   const isPodcast = msg.msg_type === 'podcast';
+  const accentColor = isPodcast ? '#C9A66B' : '#ffffff';
+
   return (
-    <article className="group bg-white/[0.04] border border-white/8 hover:border-white/20 transition-colors relative overflow-hidden">
-      <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${isPodcast ? 'bg-accent' : 'bg-white/40'}`} />
-      {msg.meta_image && (
-        <img src={msg.meta_image} alt="" className="w-full h-36 object-cover opacity-90" loading="lazy"
-          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-      )}
-      <div className="p-4 pl-5">
-        <div className="flex items-center justify-between mb-2.5">
-          <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35 flex items-center gap-1.5">
-            <span className="text-accent">{isPodcast ? '🎙' : '📢'}</span>
-            {isPodcast ? 'Подкаст' : 'Анонс'}
-          </p>
-          {msg.is_pinned && <span className="text-accent text-[10px]">📌</span>}
+    <article className="group relative overflow-hidden border border-white/10 hover:border-accent/40 transition-all duration-500 bg-white/[0.02]">
+      {/* Hero image block */}
+      {msg.meta_image ? (
+        <div className="relative overflow-hidden" style={{ height: 180 }}>
+          <img src={msg.meta_image} alt="" className="w-full h-full object-cover opacity-70 scale-105 group-hover:scale-100 transition-transform duration-700" loading="lazy"
+            onError={e => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none'; }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent" />
+          {/* Type badge inside image */}
+          <div className="absolute top-4 left-4 flex items-center gap-2">
+            <span className={`font-mono text-[9px] uppercase tracking-[0.28em] px-2.5 py-1 border ${isPodcast ? 'border-accent/60 text-accent bg-primary/70' : 'border-white/30 text-white/80 bg-primary/70'}`}>
+              {isPodcast ? '🎙 Podcast' : '📢 Announcement'}
+            </span>
+            {msg.is_pinned && (
+              <span className="font-mono text-[9px] uppercase tracking-widest px-2 py-1 bg-accent text-primary">
+                Pinned
+              </span>
+            )}
+          </div>
+          {/* Title overlaid on image */}
+          {msg.meta_title && (
+            <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
+              <h3 className="font-serif text-xl leading-tight text-white drop-shadow-lg">{msg.meta_title}</h3>
+            </div>
+          )}
         </div>
-        {msg.meta_title && <h3 className="font-serif text-lg leading-snug mb-2 text-white">{msg.meta_title}</h3>}
-        {msg.text && <p className="text-[13px] text-white/55 leading-relaxed mb-2 break-words"><MsgContent text={msg.text} /></p>}
-        {msg.meta_description && <p className="text-xs text-white/35 leading-relaxed mb-3">{msg.meta_description}</p>}
-        {msg.meta_url && (
-          <a href={msg.meta_url} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest border border-white/20 px-3 py-1.5 text-white/60 hover:bg-accent hover:text-primary hover:border-accent transition-colors">
-            {isPodcast ? 'Слушать →' : 'Подробнее →'}
-          </a>
+      ) : (
+        /* No image — top badge row */
+        <div className="flex items-center justify-between px-5 pt-5 pb-0">
+          <span className={`font-mono text-[9px] uppercase tracking-[0.28em] flex items-center gap-2 ${isPodcast ? 'text-accent' : 'text-white/50'}`}>
+            <span className={`inline-block w-4 h-px ${isPodcast ? 'bg-accent' : 'bg-white/30'}`} />
+            {isPodcast ? 'Podcast' : 'Announcement'}
+          </span>
+          {msg.is_pinned && (
+            <span className="font-mono text-[9px] uppercase tracking-widest text-accent border border-accent/40 px-2 py-0.5">Pinned</span>
+          )}
+        </div>
+      )}
+
+      {/* Content area */}
+      <div className="px-5 pb-5 pt-4">
+        {/* Title (shown here only if no image) */}
+        {msg.meta_title && !msg.meta_image && (
+          <h3 className="font-serif text-2xl leading-snug mb-3 text-white">{msg.meta_title}</h3>
         )}
-        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-white/8">
-          <span className="font-mono text-[9px] text-white/25">{msg.nickname}</span>
-          <button onClick={() => onPin(msg.id)} className="font-mono text-[8px] uppercase tracking-widest text-white/25 hover:text-accent transition-colors opacity-0 group-hover:opacity-100">
-            {msg.is_pinned ? 'Открепить' : 'Закрепить'}
+
+        {/* Body text */}
+        {msg.text && (
+          <p className="text-sm text-white/65 leading-relaxed mb-3 break-words">
+            <MsgContent text={msg.text} />
+          </p>
+        )}
+        {msg.meta_description && (
+          <p className="text-xs text-white/40 leading-relaxed mb-4">{msg.meta_description}</p>
+        )}
+
+        {/* Divider */}
+        <div className="h-px bg-white/8 mb-4" />
+
+        {/* Bottom row: CTA + pin */}
+        <div className="flex items-center justify-between gap-3">
+          {msg.meta_url ? (
+            <a href={msg.meta_url} target="_blank" rel="noopener noreferrer"
+              className={`group/btn inline-flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.2em] border px-4 py-2.5 transition-all duration-300 ${isPodcast ? 'border-accent/50 text-accent hover:bg-accent hover:text-primary' : 'border-white/25 text-white/70 hover:border-accent hover:text-accent'}`}>
+              <span>{isPodcast ? '▶ Listen' : 'Read more'}</span>
+              <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          ) : <span />}
+          <button onClick={() => onPin(msg.id)}
+            className="font-mono text-[9px] uppercase tracking-widest text-white/20 hover:text-accent transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0">
+            {msg.is_pinned ? '− unpin' : '+ pin'}
           </button>
         </div>
       </div>
+
+      {/* Left accent bar */}
+      <span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ backgroundColor: accentColor, opacity: isPodcast ? 1 : 0.3 }} />
     </article>
   );
 }
@@ -417,29 +467,37 @@ function AnnouncementCard({ msg, onPin }: { msg: RadioMessage; onPin: (id: numbe
 // ── Demo announcement card (shown when panel is empty) ───────────────────────
 function DemoCard({ L }: { L: Record<string, string> }) {
   return (
-    <div className="p-4 space-y-3">
-      {/* Demo card */}
-      <article className="relative overflow-hidden border border-accent/25 bg-accent/5">
+    <div className="p-4 space-y-4">
+      {/* Demo announcement card — styled like a real one */}
+      <article className="relative overflow-hidden border border-accent/30 bg-accent/[0.04] hover:border-accent/50 transition-colors duration-300">
         <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
-        <div className="relative overflow-hidden" style={{ height: 140 }}>
-          <img src="/images/home-hero.webp" alt="" className="w-full h-full object-cover opacity-60" />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent" />
-          <div className="absolute bottom-3 left-5">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-accent/80">📢 {L.typeAnnouncement}</span>
+        <div className="relative overflow-hidden" style={{ height: 180 }}>
+          <img src="/images/home-hero.webp" alt="" className="w-full h-full object-cover opacity-55" />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent" />
+          <div className="absolute top-4 left-4">
+            <span className="font-mono text-[9px] uppercase tracking-[0.28em] px-2.5 py-1 border border-white/30 text-white/80 bg-primary/70">
+              📢 {L.typeAnnouncement}
+            </span>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
+            <h3 className="font-serif text-xl leading-tight text-white">{L.demoTitle}</h3>
           </div>
         </div>
-        <div className="p-4 pl-5">
-          <h3 className="font-serif text-xl leading-snug mb-2 text-white">{L.demoTitle}</h3>
-          <p className="text-sm text-white/50 leading-relaxed mb-3">{L.demoBody}</p>
-          <span className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest border border-accent/40 px-3 py-1.5 text-accent/80">{L.demoBtn}</span>
+        <div className="px-5 pb-5 pt-4">
+          <p className="text-sm text-white/50 leading-relaxed mb-4">{L.demoBody}</p>
+          <div className="h-px bg-white/8 mb-4" />
+          <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] border border-accent/40 px-4 py-2.5 text-accent/80">
+            {L.demoBtn}
+            <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </span>
         </div>
       </article>
 
-      {/* Hints below */}
-      <div className="px-1 pt-2 space-y-px">
+      {/* Hints */}
+      <div className="space-y-px">
         {[L.emptyHint1, L.emptyHint2, L.emptyHint3].map((h, i) => (
-          <div key={i} className="flex items-center gap-3 py-2.5 border-t border-white/8">
-            <span className="font-mono text-[9px] text-accent/60 w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
+          <div key={i} className="flex items-center gap-3 py-3 border-t border-white/8">
+            <span className="font-mono text-[9px] text-accent/50 w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
             <span className="font-mono text-[10px] text-white/30 leading-snug">{h}</span>
           </div>
         ))}
@@ -558,7 +616,7 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
     <div>
       {/* Big play area */}
       <div className="px-5 pt-7 pb-6 border-b border-white/8">
-        <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-white/30 mb-5">AM Publishing</p>
+        <img src="/logo-white.png" alt="AM Publishing" className="w-12 h-12 object-contain mb-5 opacity-80" draggable={false} />
 
         {/* Play button + eq bars */}
         <div className="flex items-center gap-4 mb-6">
@@ -1223,8 +1281,10 @@ export const RadioPage: React.FC = () => {
               <ul className="space-y-2.5">
                 {online.map(u => (
                   <li key={u.id} className="flex items-center gap-2.5">
-                    <Avatar nickname={u.nickname} color={u.color} />
-                    <span className="text-xs truncate text-white/60" style={{ color: u.id === user?.id ? '#C9A66B' : undefined }}>
+                    <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-white/8 border border-white/10">
+                      <img src="/logo-white.png" alt="" className="w-4 h-4 object-contain opacity-70" draggable={false} />
+                    </div>
+                    <span className="text-xs truncate" style={{ color: u.id === user?.id ? '#C9A66B' : 'rgba(255,255,255,0.6)' }}>
                       {u.id === user?.id ? `${u.nickname} (${L.you?.toLowerCase()})` : u.nickname}
                     </span>
                   </li>
