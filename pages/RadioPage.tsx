@@ -616,7 +616,7 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
     <div>
       {/* Big play area */}
       <div className="px-5 pt-7 pb-6 border-b border-white/8">
-        <img src="/logo-white.png" alt="AM Publishing" className="w-12 h-12 object-contain mb-5 opacity-80" draggable={false} />
+        <img src="/logo-white.png" alt="AM Publishing" className="w-20 h-20 object-contain mb-5 opacity-85" draggable={false} />
 
         {/* Play button + eq bars */}
         <div className="flex items-center gap-4 mb-6">
