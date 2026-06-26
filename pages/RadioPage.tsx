@@ -66,6 +66,7 @@ function useRadioAudio(token: string | null, myId: number | null) {
   const [status, setStatus] = useState<'idle'|'connecting'|'silent'|'live'|'error'>('idle');
   const [broadcasters, setBroadcasters] = useState<Broadcaster[]>([]);
   const [stats, setStats] = useState<AudioStats>({ rttMs: null, jitterMs: null, packetsLost: null, bitrateBps: null, iceState: null, micLevel: 0 });
+  const [audioBlocked, setAudioBlocked] = useState(false);
 
   const statusRef = useRef<typeof status>('idle');
   const setStatusSafe = useCallback((s: typeof status) => { statusRef.current = s; setStatus(s); }, []);
@@ -156,7 +157,9 @@ function useRadioAudio(token: string | null, myId: number | null) {
       const stream = e.streams[0] ?? new MediaStream([e.track]);
       const el = ensureAudioEl(uid);
       el.srcObject = stream; el.volume = volumeRef.current; el.muted = mutedRef.current;
-      el.play().catch(() => {});
+      el.play().catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'NotAllowedError') setAudioBlocked(true);
+      });
       setStatusSafe('live');
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     };
@@ -448,10 +451,16 @@ function useRadioAudio(token: string | null, myId: number | null) {
   // Cleanup on unmount
   useEffect(() => () => { stopAudio(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const unlockAudio = useCallback(() => {
+    audioElsRef.current.forEach(el => { el.play().catch(() => {}); });
+    setAudioBlocked(false);
+  }, []);
+
   return {
     playing, status, stats, volume, setVolume, muted, toggleMute,
     micEnabled, onAir: micEnabled, toggleAir, micGranted, requestMic,
     micDevices, selectedMic, setSelectedMic, togglePlay, broadcasters,
+    audioBlocked, unlockAudio,
   };
 }
 
@@ -823,6 +832,15 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
             <span className="block font-serif text-lg leading-none truncate">{statusLabel}</span>
           </span>
         </button>
+
+        {/* Mobile autoplay unlock */}
+        {audio.audioBlocked && (
+          <button onClick={audio.unlockAudio}
+            className="w-full flex items-center justify-center gap-2.5 mb-4 px-4 py-3 bg-accent/15 border border-accent/40 text-accent font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-accent/25 transition-colors animate-pulse">
+            <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 flex-shrink-0"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
+            Tap to hear audio
+          </button>
+        )}
 
         {/* Now on air */}
         <div className="flex items-center gap-2.5 mb-5 min-h-[16px]">
