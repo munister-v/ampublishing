@@ -174,3 +174,31 @@ export type AnnouncePayload = {
 export async function adminAnnounce(payload: AnnouncePayload): Promise<{ id: number }> {
   return adminReq('/admin/announce', { method: 'POST', body: JSON.stringify(payload) })
 }
+
+// ── Editorial radio-page config ───────────────────────────────────────────────
+export type ScheduleEntry = { time: string; title: string; host?: string }
+export type RadioConfig = {
+  hero_image?: string
+  now_title?: string
+  now_host?: string
+  now_description?: string
+  guest_name?: string
+  guest_role?: string
+  guest_time?: string
+  guest_duration?: string
+  schedule?: ScheduleEntry[]
+  book_title?: string
+  book_author?: string
+  book_image?: string
+  book_url?: string
+  telegram?: string
+}
+
+export async function fetchRadioConfig(): Promise<RadioConfig> {
+  try { return await req<RadioConfig>('/radio/config') } catch { return {} }
+}
+
+export async function saveRadioConfig(cfg: RadioConfig): Promise<RadioConfig> {
+  // Admin-token protected (X-Admin-Token via adminReq), public path though.
+  return adminReq<RadioConfig>('/radio/config', { method: 'PUT', body: JSON.stringify(cfg) })
+}

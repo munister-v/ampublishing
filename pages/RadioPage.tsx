@@ -7,8 +7,8 @@ import {
   pollRadioMessages, sendRadioMessage, pinRadioMessage,
   fetchRadioOnline, getRadioUser, getToken,
   renameMe, editRadioMessage, deleteRadioMessage, reactRadioMessage,
-  sendRadioTyping, RADIO_COLORS,
-  type RadioMessage, type RadioUser,
+  sendRadioTyping, RADIO_COLORS, fetchRadioConfig,
+  type RadioMessage, type RadioUser, type RadioConfig,
 } from '../services/radioApi';
 import { RadioAdminPanel } from './RadioAdminPanel';
 
@@ -1261,8 +1261,11 @@ export const RadioPage: React.FC = () => {
   const [activeMobileTab, setActiveMobileTab] = useState<'player' | 'chat' | 'content'>('chat');
   const [bookIdx, setBookIdx] = useState(0);
   const [chatInput, setChatInput] = useState('');
+  const [config, setConfig] = useState<RadioConfig>({});
   const carouselRef = useRef<HTMLDivElement>(null);
   const typingTsRef = useRef(0);
+
+  useEffect(() => { fetchRadioConfig().then(setConfig).catch(() => {}); }, []);
   const adminClickRef = useRef(0);
   const onlinePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const adminClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1513,6 +1516,23 @@ export const RadioPage: React.FC = () => {
   const books = withImage.length ? withImage : (featured ? [featured] : []);
   const book = books.length ? books[bookIdx % books.length] : null;
 
+  // Config-driven editorial layer (admin configurator); falls back to announcements
+  const heroImage = config.hero_image || '/images/about-hero.jpg';
+  const tgHandle = (config.telegram || '@ampublishingberlin').replace(/^@?/, '@');
+  const tgUrl = `https://t.me/${tgHandle.replace(/^@/, '')}`;
+  const nowTitle = config.now_title || featured?.meta_title || '';
+  const nowHost = config.now_host || '';
+  const nowDesc = config.now_description || featured?.text || featured?.meta_description || '';
+  const guest = config.guest_name
+    ? { name: config.guest_name, role: config.guest_role || '', time: config.guest_time || '', duration: config.guest_duration || '', url: '' }
+    : (featured && (featured.meta_title || featured.meta_description)
+      ? { name: featured.meta_title || '', role: featured.meta_description || '', time: '', duration: '', url: featured.meta_url || '' }
+      : null);
+  const cfgSchedule = (config.schedule || []).filter(s => s.title);
+  const bookCard = config.book_title
+    ? { title: config.book_title, author: config.book_author || '', image: config.book_image || '/images/ambook-cover.jpg', url: config.book_url || '' }
+    : (book ? { title: book.meta_title || '', author: book.meta_description || '', image: book.meta_image || '/images/ambook-cover.jpg', url: book.meta_url || '' } : null);
+
   const sendChat = async () => {
     const t = chatInput.trim();
     if (!t) return;
@@ -1584,7 +1604,7 @@ export const RadioPage: React.FC = () => {
 
           {/* portrait */}
           <div className="order-1 md:order-2 relative bg-primary min-h-[260px] md:min-h-[440px] overflow-hidden">
-            <img src="/images/about-hero.jpg" alt="" className="w-full h-full object-cover grayscale opacity-90" draggable={false}
+            <img src={heroImage} alt="" className="w-full h-full object-cover grayscale opacity-90" draggable={false}
               onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/home-hero.webp'; }} />
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent" />
           </div>
@@ -1594,24 +1614,32 @@ export const RadioPage: React.FC = () => {
         <aside className="px-6 md:px-10 py-10 md:py-12 flex flex-col">
           <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/40 mb-5">{L.nowOnAir}</p>
           <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-2">
-            {liveBroadcaster ? L.live : (featured?.meta_title || 'AM Publishing Radio')}
+            {liveBroadcaster ? (nowTitle || L.live) : (nowTitle || 'AM Publishing Radio')}
           </h2>
-          {liveBroadcaster && <p className="font-serif text-lg italic text-accent mb-4">с {liveBroadcaster.nickname}</p>}
-          <p className="text-sm text-primary/55 leading-relaxed">
-            {featured?.text || featured?.meta_description || L.heroSubtitle}
-          </p>
+          {(liveBroadcaster || nowHost) && (
+            <p className="font-serif text-lg italic text-accent mb-4">с {liveBroadcaster ? liveBroadcaster.nickname : nowHost}</p>
+          )}
+          <p className="text-sm text-primary/55 leading-relaxed">{nowDesc || L.heroSubtitle}</p>
 
-          {featured && (featured.meta_title || featured.meta_description) && (
+          {guest && (
             <>
               <div className="h-px bg-primary/10 my-7" />
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/40">{L.guestLabel}</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/40 mb-3">{L.guestLabel}</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="font-serif text-xl leading-snug mb-1.5">{guest.name || '—'}</p>
+                  {guest.role && <p className="text-xs text-primary/50 leading-relaxed">{guest.role}</p>}
+                </div>
+                {(guest.time || guest.duration) && (
+                  <div className="text-right flex-shrink-0 font-mono text-[10px] text-primary/40 space-y-1 pt-1">
+                    {guest.time && <p className="whitespace-nowrap">{guest.time}</p>}
+                    {guest.duration && <p className="whitespace-nowrap">{guest.duration}</p>}
+                  </div>
+                )}
               </div>
-              <p className="font-serif text-xl leading-snug mb-1.5">{featured.meta_title || '—'}</p>
-              {featured.meta_description && <p className="text-xs text-primary/50 leading-relaxed mb-3">{featured.meta_description}</p>}
-              {featured.meta_url && (
-                <a href={featured.meta_url} target="_blank" rel="noopener noreferrer"
-                  className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent hover:underline">Подробнее →</a>
+              {guest.url && (
+                <a href={guest.url} target="_blank" rel="noopener noreferrer"
+                  className="inline-block mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-accent hover:underline">Подробнее →</a>
               )}
             </>
           )}
@@ -1695,11 +1723,23 @@ export const RadioPage: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <p className="font-mono text-[11px] uppercase tracking-[0.25em]">{L.scheduleLabel}</p>
             </div>
-            {scheduleItems.length > 0 ? (
+            {cfgSchedule.length > 0 ? (
+              <ul className="space-y-5">
+                {cfgSchedule.map((row, i) => (
+                  <li key={i} className="flex gap-4">
+                    <span className="font-mono text-[11px] text-primary/40 tabular-nums pt-0.5 w-12 flex-shrink-0">{row.time || '—'}</span>
+                    <div className="min-w-0">
+                      <p className="font-serif text-base leading-snug">{row.title}</p>
+                      {row.host && <p className="text-xs text-primary/45 mt-0.5 line-clamp-1">{row.host}</p>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : scheduleItems.length > 0 ? (
               <ul className="space-y-5">
                 {scheduleItems.map(m => (
                   <li key={m.id} className="flex gap-4">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-accent/80 pt-1 w-10 flex-shrink-0">{m.msg_type === 'podcast' ? 'POD' : 'ANN'}</span>
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-accent/80 pt-1 w-12 flex-shrink-0">{m.msg_type === 'podcast' ? 'POD' : 'ANN'}</span>
                     <div className="min-w-0">
                       <p className="font-serif text-base leading-snug">{m.meta_title || m.text?.slice(0, 60) || '—'}</p>
                       {m.meta_description && <p className="text-xs text-primary/45 mt-0.5 line-clamp-1">{m.meta_description}</p>}
@@ -1711,25 +1751,27 @@ export const RadioPage: React.FC = () => {
           </div>
 
           {/* editor pick / book of week */}
-          {book && (
+          {bookCard && (
             <div className="px-6 md:px-8 py-7">
               <p className="font-mono text-[11px] uppercase tracking-[0.25em] mb-5">{L.editorPick}</p>
-              <div className="flex items-center gap-5">
+              <a href={bookCard.url || undefined} target={bookCard.url ? '_blank' : undefined} rel="noopener noreferrer"
+                className={`flex items-center gap-5 ${bookCard.url ? 'group' : ''}`}>
                 <div className="w-16 h-[88px] flex-shrink-0 overflow-hidden bg-primary/5 border border-primary/10">
-                  <img src={book.meta_image || '/images/ambook-cover.jpg'} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  <img src={bookCard.image} alt="" className="w-full h-full object-cover" loading="lazy"
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/ambook-cover.jpg'; }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-serif text-lg leading-tight mb-1">{book.meta_title || '—'}</p>
-                  <p className="text-xs text-primary/50 mb-2 line-clamp-1">{book.meta_description || L.author}</p>
+                  <p className="font-serif text-lg leading-tight mb-1 group-hover:text-accent transition-colors">{bookCard.title || '—'}</p>
+                  <p className="text-xs text-primary/50 mb-2 line-clamp-1">{bookCard.author || L.author}</p>
                   <p className="font-mono text-[9px] uppercase tracking-widest text-primary/35">{L.bookOfWeek}</p>
                 </div>
-                {books.length > 1 && (
+                {!config.book_title && books.length > 1 && (
                   <div className="flex flex-col gap-2 flex-shrink-0">
-                    <button onClick={() => setBookIdx(i => (i - 1 + books.length) % books.length)} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">‹</button>
-                    <button onClick={() => setBookIdx(i => (i + 1) % books.length)} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">›</button>
+                    <button type="button" onClick={e => { e.preventDefault(); setBookIdx(i => (i - 1 + books.length) % books.length); }} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">‹</button>
+                    <button type="button" onClick={e => { e.preventDefault(); setBookIdx(i => (i + 1) % books.length); }} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">›</button>
                   </div>
                 )}
-              </div>
+              </a>
             </div>
           )}
 
@@ -1752,11 +1794,11 @@ export const RadioPage: React.FC = () => {
           )}
 
           {/* telegram */}
-          <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer"
+          <a href={tgUrl} target="_blank" rel="noopener noreferrer"
             className="group flex items-center justify-between px-6 md:px-8 py-7 hover:bg-primary/[0.03] transition-colors">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.25em] mb-1.5">{L.weInTelegram}</p>
-              <p className="text-sm text-primary/55 group-hover:text-primary transition-colors">@ampublishingberlin</p>
+              <p className="text-sm text-primary/55 group-hover:text-primary transition-colors">{tgHandle}</p>
             </div>
             <span className="text-accent text-lg group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
           </a>
