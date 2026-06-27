@@ -249,7 +249,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const overrideValue = translationOverrides[language]?.[key];
     if (typeof overrideValue !== 'undefined') {
       if (typeof overrideValue === 'string' && params) {
-        return overrideValue.replace(/{(\w+)}/g, (_, match) => String(params[match] || `{${match}}`));
+        return overrideValue.replace(/{(\w+)}/g, (_, match) => params[match] != null ? String(params[match]) : `{${match}}`);
       }
       return overrideValue;
     }
@@ -261,7 +261,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       else return key; 
     }
     if (typeof value === 'string' && params) {
-        return value.replace(/{(\w+)}/g, (_, match) => String(params[match] || `{${match}}`));
+        return value.replace(/{(\w+)}/g, (_, match) => params[match] != null ? String(params[match]) : `{${match}}`);
     }
     return value;
   };

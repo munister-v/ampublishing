@@ -398,7 +398,39 @@ export const CatalogPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Mobile Genre - REMOVED */}
+                {/* Mobile Authors */}
+                {authors.length > 0 && (
+                  <div>
+                    <h3 className="font-bold mb-4 uppercase border-b border-primary/20 pb-2">{t('catalog.filters.authors')}</h3>
+                    <div className="flex flex-col gap-3">
+                      {authors.map(a => (
+                        <label key={a} className="flex items-center gap-3 cursor-pointer group">
+                          <div className={`w-5 h-5 border border-primary flex items-center justify-center flex-shrink-0 transition-colors ${activeAuthors.includes(a) ? 'bg-primary' : 'bg-transparent'}`}>
+                            {activeAuthors.includes(a) && <div className="w-2.5 h-2.5 bg-white" />}
+                          </div>
+                          <span className={`text-sm font-serif ${activeAuthors.includes(a) ? 'text-primary font-bold italic' : 'text-gray-600'}`}>{a}</span>
+                          <input type="checkbox" className="hidden" checked={activeAuthors.includes(a)} onChange={() => updateParams('author', a)} />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Mobile Availability */}
+                <div>
+                  <h3 className="font-bold mb-4 uppercase border-b border-primary/20 pb-2">{t('catalog.filters.availability')}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {['instock', 'preorder'].map(opt => {
+                      const active = searchParams.get('avail') === opt;
+                      return (
+                        <button key={opt} onClick={() => updateParams('avail', opt, 'set')}
+                          className={`px-4 py-2 border text-xs font-mono uppercase ${active ? 'bg-primary text-white border-primary' : 'bg-white border-gray-300'}`}>
+                          {t(`catalog.filters.${opt}`)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
             </div>
 
             <div className="p-6 border-t border-primary bg-white">
