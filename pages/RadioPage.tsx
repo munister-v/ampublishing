@@ -1259,6 +1259,10 @@ export const RadioPage: React.FC = () => {
   const [replyTo, setReplyTo] = useState<RadioMessage | null>(null);
   const [activeRightTab, setActiveRightTab] = useState<'ann' | 'pod' | 'pin'>('ann');
   const [activeMobileTab, setActiveMobileTab] = useState<'player' | 'chat' | 'content'>('chat');
+  const [bookIdx, setBookIdx] = useState(0);
+  const [chatInput, setChatInput] = useState('');
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const typingTsRef = useRef(0);
   const adminClickRef = useRef(0);
   const onlinePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const adminClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1297,6 +1301,12 @@ export const RadioPage: React.FC = () => {
       replyingTo: 'Ответ', typing: 'печатает…', nameRule: 'Имя: 2–24 символа',
       deleteConfirm: 'Удалить сообщение?',
       subscribeKicker: 'Канал издательства',
+      heroSubtitle: 'Прямые эфиры и подкасты о литературе, авторах и книгах',
+      nowOnAir: 'Сейчас в эфире', guestLabel: 'Гость эфира', scheduleLabel: 'Расписание', viewAll: 'Смотреть все',
+      editorPick: 'Редактор рекомендует', bookOfWeek: 'Книга недели', latestPodcastLabel: 'Последний подкаст',
+      latestBroadcasts: 'Последние эфиры', chatTitle: 'Чат эфира', listenersWord: 'слушателей',
+      listenWord: 'Слушать', minutesShort: 'мин', weInTelegram: 'Мы в Telegram',
+      soonOnAir: 'Скоро в эфире', noBroadcasts: 'Эфиры скоро появятся', author: 'Автор', stopAir: 'Остановить',
       demoTitle: 'Новые книги этого сезона', demoBody: 'Следите за анонсами — здесь первыми появляются отрывки, даты выхода и новости редакции.', demoBtn: 'Подписаться на канал →',
       emptyAnnTitle: 'Пока без анонсов', emptyAnnBody: 'Здесь появляются новости редакции, анонсы книг и отрывки до релиза.',
       emptyPodTitle: 'Подкастов пока нет', emptyPodBody: 'Аудиоэпизоды и записи эфиров будут собираться в этой вкладке.',
@@ -1325,6 +1335,12 @@ export const RadioPage: React.FC = () => {
       replyingTo: 'Reply to', typing: 'typing…', nameRule: 'Name: 2–24 chars',
       deleteConfirm: 'Delete message?',
       subscribeKicker: 'Publisher channel',
+      heroSubtitle: 'Live broadcasts and podcasts on literature, authors and books',
+      nowOnAir: 'On air now', guestLabel: 'On-air guest', scheduleLabel: 'Schedule', viewAll: 'View all',
+      editorPick: 'Editor picks', bookOfWeek: 'Book of the week', latestPodcastLabel: 'Latest podcast',
+      latestBroadcasts: 'Latest broadcasts', chatTitle: 'Live chat', listenersWord: 'listeners',
+      listenWord: 'Listen', minutesShort: 'min', weInTelegram: 'We are on Telegram',
+      soonOnAir: 'Coming soon', noBroadcasts: 'Broadcasts coming soon', author: 'Author', stopAir: 'Stop',
       demoTitle: 'New books this season', demoBody: 'Follow our announcements — excerpts, release dates and editorial news appear here first.', demoBtn: 'Subscribe to channel →',
       emptyAnnTitle: 'No announcements yet', emptyAnnBody: 'Editorial news, book announcements and pre-release excerpts appear here.',
       emptyPodTitle: 'No podcasts yet', emptyPodBody: 'Audio episodes and broadcast recordings will be collected in this tab.',
@@ -1353,6 +1369,12 @@ export const RadioPage: React.FC = () => {
       replyingTo: 'Antwort an', typing: 'schreibt…', nameRule: 'Name: 2–24 Zeichen',
       deleteConfirm: 'Nachricht löschen?',
       subscribeKicker: 'Verlagskanal',
+      heroSubtitle: 'Live-Sendungen und Podcasts über Literatur, Autoren und Bücher',
+      nowOnAir: 'Jetzt live', guestLabel: 'Studiogast', scheduleLabel: 'Programm', viewAll: 'Alle ansehen',
+      editorPick: 'Redaktion empfiehlt', bookOfWeek: 'Buch der Woche', latestPodcastLabel: 'Neuester Podcast',
+      latestBroadcasts: 'Letzte Sendungen', chatTitle: 'Live-Chat', listenersWord: 'Hörer',
+      listenWord: 'Hören', minutesShort: 'Min', weInTelegram: 'Wir auf Telegram',
+      soonOnAir: 'Demnächst', noBroadcasts: 'Sendungen folgen bald', author: 'Autor', stopAir: 'Stopp',
       demoTitle: 'Neue Bücher dieser Saison', demoBody: 'Bleib auf dem Laufenden — Leseproben, Erscheinungstermine und Neuigkeiten erscheinen hier zuerst.', demoBtn: 'Kanal abonnieren →',
       emptyAnnTitle: 'Noch keine Ankündigungen', emptyAnnBody: 'Redaktionsnews, Buchankündigungen und Leseproben erscheinen hier.',
       emptyPodTitle: 'Noch keine Podcasts', emptyPodBody: 'Audio-Episoden und Sendungsmitschnitte werden in diesem Tab gesammelt.',
@@ -1476,151 +1498,306 @@ export const RadioPage: React.FC = () => {
   const annMessages = messages.filter(m => m.msg_type === 'announcement');
   const podMessages = messages.filter(m => m.msg_type === 'podcast');
 
-  const rightTabLabel = (tab: 'ann' | 'pod' | 'pin') =>
-    tab === 'ann' ? L.typeAnnouncement : tab === 'pod' ? L.typePodcast : L.pinned;
-  const rightTabContent = activeRightTab === 'ann' ? annMessages : activeRightTab === 'pod' ? podMessages : pinned;
+  const isLive = audio.status === 'live';
+
+  // Editorial data (driven by real announcements / podcasts the admin posts)
+  const annNewest = [...annMessages].reverse();
+  const podNewest = [...podMessages].reverse();
+  const broadcasts = [...podNewest, ...annNewest];
+  const withImage = broadcasts.filter(m => m.meta_image);
+  const featured = pinned.find(p => p.msg_type !== 'chat') || annNewest[0] || podNewest[0] || null;
+  const latestPodcast = podNewest[0] || null;
+  const scheduleItems = broadcasts.slice(0, 5);
+  const liveBroadcaster = audio.broadcasters[0] || (audio.onAir && user ? { id: user.id, nickname: user.nickname, color: user.color } : null);
+  const listenersCount = online.length;
+  const books = withImage.length ? withImage : (featured ? [featured] : []);
+  const book = books.length ? books[bookIdx % books.length] : null;
+
+  const sendChat = async () => {
+    const t = chatInput.trim();
+    if (!t) return;
+    setChatInput('');
+    try { await handleSend({ text: t, msg_type: 'chat', reply_to_id: replyTo ? replyTo.id : null }); setReplyTo(null); }
+    catch { setChatInput(t); }
+  };
+  const onChatType = (v: string) => {
+    setChatInput(v);
+    const now = Date.now();
+    if (now - typingTsRef.current > 2500) { typingTsRef.current = now; handleTyping(); }
+  };
 
   return (
-    <div className="bg-primary text-white font-sans pt-[60px] md:pt-[80px] min-h-screen">
-      {/* EQ bar keyframes injected once */}
+    <div className="bg-[#F4F4F0] text-primary font-sans pt-[60px] md:pt-[80px] min-h-screen">
       <style>{`@keyframes eqBar{from{transform:scaleY(0.3)}to{transform:scaleY(1)}}`}</style>
 
-      <div className="flex flex-col lg:h-[calc(100vh-80px)]">
-
-        {/* ── Header ── */}
-        <header className="flex items-center justify-between gap-4 px-4 md:px-8 py-4 md:py-5 border-b border-white/10 flex-shrink-0 bg-primary/80 backdrop-blur-sm">
-          <div className="min-w-0">
-            <p className="font-mono text-[9px] md:text-[10px] uppercase tracking-[0.32em] text-accent flex items-center gap-2.5 mb-1.5">
-              <span className="inline-block w-6 h-px bg-accent opacity-70" />
-              {L.kicker}
-            </p>
-            <h1 className="font-serif text-2xl md:text-4xl leading-none truncate text-white">AM Publishing Radio</h1>
-          </div>
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <div className="hidden sm:flex items-center gap-2">
-              {audio.status === 'live'
-                ? <EqBars active />
-                : <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-accent/50 animate-pulse' : 'bg-white/15'}`} />}
-              <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">{statusLabel}</span>
-            </div>
-          </div>
-        </header>
-
-        {/* ── Mobile tab bar ── */}
-        <div className="flex lg:hidden border-b border-white/10 flex-shrink-0">
-          {(['player', 'chat', 'content'] as const).map(tab => (
-            <button key={tab} onClick={() => setActiveMobileTab(tab)}
-              className={`flex-1 py-2.5 font-mono text-[9px] uppercase tracking-widest transition-colors ${activeMobileTab === tab ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'}`}>
-              {tab === 'player' ? 'Плеер' : tab === 'chat' ? L.chat : 'Анонсы'}
+      {/* ════ HERO ════ */}
+      <section className="grid lg:grid-cols-[1fr_minmax(320px,400px)] border-b border-primary/15">
+        {/* left: text + portrait */}
+        <div className="grid md:grid-cols-2 lg:border-r border-primary/15">
+          {/* text */}
+          <div className="order-2 md:order-1 px-6 md:px-10 lg:px-12 py-10 md:py-14 flex flex-col justify-center">
+            <button onClick={handleAdminTrigger} className="font-mono text-[10px] md:text-[11px] uppercase tracking-[0.3em] text-accent flex items-center gap-3 mb-6 select-none">
+              <span className="w-7 h-px bg-accent/70" /> AM Publishing Radio
             </button>
-          ))}
+            <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl leading-[0.92] mb-6">AM Publishing<br />Radio</h1>
+            <p className="font-mono text-xs md:text-sm text-primary/55 leading-relaxed max-w-sm mb-9">{L.heroSubtitle}</p>
+
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+              <button onClick={audio.togglePlay}
+                className="group inline-flex items-center gap-3.5 bg-primary text-white pl-2.5 pr-7 py-2.5 hover:bg-accent hover:text-primary transition-colors duration-300">
+                <span className="w-9 h-9 rounded-full border border-white/30 group-hover:border-primary/40 flex items-center justify-center flex-shrink-0">
+                  {audio.status === 'connecting'
+                    ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    : isActive
+                      ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" /></svg>
+                      : <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-0.5"><path d="M8 5.5l12 6.5-12 6.5V5.5Z" /></svg>}
+                </span>
+                <span className="font-mono text-[11px] uppercase tracking-[0.2em]">{isActive ? L.stopAir : L.listenLive}</span>
+              </button>
+
+              <div className="flex items-center gap-3">
+                <EqBars active={isLive} />
+                <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-primary/45">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-accent animate-pulse' : 'bg-primary/25'}`} />
+                  {isLive ? 'LIVE' : statusLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* volume + go on air */}
+            <div className="flex items-center gap-4 mt-7">
+              <button onClick={audio.toggleMute} className="text-primary/40 hover:text-primary transition-colors flex-shrink-0">
+                {audio.muted
+                  ? <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M19 9l-6 6M13 9l6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+                  : <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M15.5 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>}
+              </button>
+              <input type="range" min="0" max="1" step="0.05" value={audio.muted ? 0 : audio.volume}
+                onChange={e => { audio.setVolume(Number(e.target.value)); if (audio.muted && Number(e.target.value) > 0) audio.toggleMute(); }}
+                className="w-28 h-px appearance-none bg-primary/20 accent-[#C9A66B] cursor-pointer" />
+              <span className="w-px h-3 bg-primary/15" />
+              <button onClick={audio.toggleAir}
+                className={`font-mono text-[10px] uppercase tracking-[0.2em] transition-colors ${audio.onAir ? 'text-accent' : 'text-primary/40 hover:text-accent'}`}>
+                {audio.onAir ? L.leaveAir : L.goOnAir} →
+              </button>
+            </div>
+          </div>
+
+          {/* portrait */}
+          <div className="order-1 md:order-2 relative bg-primary min-h-[260px] md:min-h-[440px] overflow-hidden">
+            <img src="/images/about-hero.jpg" alt="" className="w-full h-full object-cover grayscale opacity-90" draggable={false}
+              onError={e => { (e.currentTarget as HTMLImageElement).src = '/images/home-hero.webp'; }} />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent" />
+          </div>
         </div>
 
-        {/* ── 3-col body ── */}
-        <div className="flex-1 min-h-0 lg:flex">
+        {/* right: now on air */}
+        <aside className="px-6 md:px-10 py-10 md:py-12 flex flex-col">
+          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/40 mb-5">{L.nowOnAir}</p>
+          <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-2">
+            {liveBroadcaster ? L.live : (featured?.meta_title || 'AM Publishing Radio')}
+          </h2>
+          {liveBroadcaster && <p className="font-serif text-lg italic text-accent mb-4">с {liveBroadcaster.nickname}</p>}
+          <p className="text-sm text-primary/55 leading-relaxed">
+            {featured?.text || featured?.meta_description || L.heroSubtitle}
+          </p>
 
-          {/* Left: Player + Listeners */}
-          <aside className={`lg:w-[220px] lg:flex-shrink-0 border-r border-white/8 flex flex-col lg:overflow-y-auto bg-white/[0.02] ${activeMobileTab !== 'player' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
-            <PlayerBlock audio={audio} L={L} onToggle={audio.togglePlay} isActive={isActive} />
-            <div className="px-5 py-4 flex-1 overflow-y-auto">
-              <p className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/25 mb-3">{L.listeners}</p>
-              <ul className="space-y-2.5">
-                {online.map((u, i) => {
-                  const isMe = u.nickname === user?.nickname;
-                  return (
-                  <li key={`${u.nickname}-${i}`} className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-white/8 border border-white/10">
-                      <img src="/logo-white.png" alt="" className="w-4 h-4 object-contain opacity-70" draggable={false} />
+          {featured && (featured.meta_title || featured.meta_description) && (
+            <>
+              <div className="h-px bg-primary/10 my-7" />
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/40">{L.guestLabel}</p>
+              </div>
+              <p className="font-serif text-xl leading-snug mb-1.5">{featured.meta_title || '—'}</p>
+              {featured.meta_description && <p className="text-xs text-primary/50 leading-relaxed mb-3">{featured.meta_description}</p>}
+              {featured.meta_url && (
+                <a href={featured.meta_url} target="_blank" rel="noopener noreferrer"
+                  className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent hover:underline">Подробнее →</a>
+              )}
+            </>
+          )}
+        </aside>
+      </section>
+
+      {/* ════ CHAT + SIDEBAR ════ */}
+      <section className="grid lg:grid-cols-[1fr_minmax(320px,400px)] border-b border-primary/15">
+        {/* chat */}
+        <div className="lg:border-r border-primary/15 flex flex-col">
+          <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b border-primary/10">
+            <p className="font-mono text-[11px] uppercase tracking-[0.25em]">{L.chatTitle}</p>
+            <span className="font-mono text-[11px] text-primary/45 flex items-center gap-2">
+              {listenersCount} {L.listenersWord}
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            </span>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6 md:px-8 py-5 space-y-5 max-h-[480px] min-h-[300px]">
+            {loading && <p className="font-mono text-xs text-primary/35 text-center py-12">{L.loading}</p>}
+            {!loading && error && <p className="font-mono text-xs text-red-500/70 text-center py-12">{error}</p>}
+            {!loading && !error && chatMessages.length === 0 && (
+              <p className="font-mono text-xs text-primary/30 text-center py-12">—</p>
+            )}
+            {chatMessages.map(m => {
+              const isOwn = user?.id === m.user_id;
+              const likes = m.reactions.reduce((a, r) => a + r.count, 0);
+              const reacted = m.reactions.some(r => r.reacted);
+              return (
+                <div key={m.id} className="group flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0 uppercase"
+                    style={{ backgroundColor: m.color || '#1a2840' }}>{m.nickname.slice(0, 2)}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2.5 mb-1">
+                      <span className="font-semibold text-sm" style={{ color: isOwn ? '#C9A66B' : undefined }}>{isOwn ? L.you : m.nickname}</span>
+                      <span className="font-mono text-[10px] text-primary/35">{formatTime(m.created_at)}</span>
+                      {m.edited_at && <span className="font-mono text-[9px] text-primary/25">({L.edited})</span>}
                     </div>
-                    <span className="text-xs truncate" style={{ color: isMe ? '#C9A66B' : 'rgba(255,255,255,0.6)' }}>
-                      {isMe ? `${u.nickname} (${L.you?.toLowerCase()})` : u.nickname}
-                    </span>
-                  </li>
-                  );
-                })}
-                {online.length === 0 && !loading && <li className="font-mono text-[10px] text-white/20">—</li>}
-              </ul>
-            </div>
-            <div className="border-t border-white/8 px-5 py-3.5 flex items-center gap-3 flex-shrink-0">
-              <button onClick={handleAdminTrigger}
-                className="font-serif text-base leading-none text-white/50 hover:text-accent transition-colors select-none">AM</button>
-              <span className="w-px h-3 bg-white/15" />
-              <span className="font-mono text-[8px] uppercase tracking-widest text-white/25">Berlin, {new Date().getFullYear()}</span>
-            </div>
-          </aside>
-
-          {/* Center: Chat */}
-          <section className={`flex flex-col border-r border-white/8 lg:flex-1 lg:min-h-0 ${activeMobileTab !== 'chat' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
-            <div className="flex items-center justify-between gap-2 px-4 md:px-6 py-3 border-b border-white/8 flex-shrink-0 bg-white/[0.015]">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-white/35">lounge</span>
-                <span className="w-px h-3 bg-white/10" />
-                {online.length > 0
-                  ? <LiveDot count={online.length} />
-                  : <span className="font-mono text-[9px] text-white/20">—</span>}
-              </div>
-              {user && <IdentityChip user={user} onEdit={() => setEditingName(true)} L={L} />}
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto py-3 pb-4">
-              {loading && <p className="font-mono text-xs text-white/30 text-center py-12">{L.loading}</p>}
-              {!loading && error && <p className="font-mono text-xs text-red-400 text-center py-12">{error}</p>}
-              {!loading && !error && chatMessages.length === 0 && (
-                <p className="font-mono text-xs text-white/20 text-center py-12">—</p>
-              )}
-              {chatMessages.map((msg, i) => {
-                const isOwn = user?.id === msg.user_id;
-                const prev = chatMessages[i - 1];
-                const grouped = !!prev && prev.user_id === msg.user_id && !msg.reply_to;
-                return (
-                  <ChatMessageRow key={msg.id} msg={msg} isOwn={isOwn} grouped={grouped} L={L}
-                    onReply={setReplyTo} onReact={handleReact} onEdit={handleEdit} onDelete={handleDelete} />
-                );
-              })}
-              <div ref={bottomRef} />
-            </div>
-
-            <TypingIndicator typers={typing} L={L} />
-            <Composer onSend={handleSend} onTyping={handleTyping} disabled={!!error} L={L}
-              replyTo={replyTo} onCancelReply={() => setReplyTo(null)} />
-          </section>
-
-          {/* Right: Announcements / Podcasts / Pinned */}
-          <aside className={`lg:w-[360px] lg:flex-shrink-0 flex flex-col lg:min-h-0 bg-white/[0.015] ${activeMobileTab !== 'content' ? 'hidden lg:flex' : 'flex h-[calc(100vh-160px)]'}`}>
-            <div className="flex border-b border-white/10 flex-shrink-0">
-              {(['ann', 'pod', 'pin'] as const).map((tab, i) => {
-                const count = tab === 'ann' ? annMessages.length : tab === 'pod' ? podMessages.length : pinned.length;
-                return (
-                  <button key={tab} onClick={() => setActiveRightTab(tab)}
-                    className={`flex-1 py-3 font-mono text-[8px] uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${i < 2 ? 'border-r border-white/8' : ''} ${activeRightTab === tab ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.04]'}`}>
-                    {rightTabLabel(tab)}
-                    {count > 0 && <span className={`text-[8px] px-1 py-px ${activeRightTab === tab ? 'bg-white/20' : 'bg-white/8'}`}>{count}</span>}
+                    <p className="text-sm text-primary/75 leading-relaxed break-words"><MsgContent text={m.text} /></p>
+                  </div>
+                  <button onClick={() => handleReact(m.id, '❤️')} title={L.react}
+                    className={`flex items-center gap-1.5 flex-shrink-0 mt-0.5 transition-colors ${reacted ? 'text-accent' : 'text-primary/30 hover:text-accent'}`}>
+                    <svg viewBox="0 0 24 24" fill={reacted ? 'currentColor' : 'none'} className="w-4 h-4"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2 4.8 5.3 4.8c2 0 3.3 1.2 4.7 2.9 1.4-1.7 2.7-2.9 4.7-2.9 3.3 0 4.9 3.5 3.3 6.9C19.5 16.4 12 21 12 21Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
+                    {likes > 0 && <span className="font-mono text-[11px] tabular-nums">{likes}</span>}
                   </button>
-                );
-              })}
-            </div>
-            <div className="flex-1 min-h-0 overflow-y-auto">
-              {rightTabContent.length === 0 ? (
-                <EmptyPanel tab={activeRightTab} L={L} />
-              ) : (
-                <div className="p-4 space-y-3">
-                  {[...rightTabContent].reverse().map(msg => <AnnouncementCard key={msg.id} msg={msg} onPin={handlePin} />)}
                 </div>
-              )}
-            </div>
-            {/* Telegram CTA */}
-            <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer"
-              className="group flex items-center gap-3 border-t border-white/10 px-4 py-3.5 flex-shrink-0 hover:bg-accent/10 transition-colors">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-accent flex-shrink-0"><path d="M21.9 4.3 18.7 19c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-4.9 9-8.1c.4-.3-.1-.5-.6-.2L6.3 12.6l-4.8-1.5c-1-.3-1-1 .2-1.5l18.7-7.2c.9-.3 1.6.2 1.3 1.4Z"/></svg>
-              <div className="min-w-0 flex-1">
-                <p className="font-mono text-[8px] uppercase tracking-widest text-white/30 mb-0.5">{L.subscribeKicker}</p>
-                <p className="text-sm font-medium truncate text-white/70 group-hover:text-white transition-colors">@ampublishingberlin</p>
+              );
+            })}
+            <div ref={bottomRef} />
+          </div>
+
+          <div className="border-t border-primary/10 px-6 md:px-8 py-4">
+            {replyTo && (
+              <div className="flex items-center gap-2 mb-2.5 text-xs">
+                <span className="w-0.5 self-stretch bg-accent" />
+                <span className="font-mono text-[9px] uppercase tracking-widest text-primary/35">{L.replyingTo}</span>
+                <span className="font-semibold" style={{ color: replyTo.color }}>{replyTo.nickname}</span>
+                <span className="text-primary/40 truncate flex-1">{replyTo.text.slice(0, 50)}</span>
+                <button onClick={() => setReplyTo(null)} className="text-primary/30 hover:text-primary flex-shrink-0">✕</button>
               </div>
-              <span className="font-mono text-[9px] text-accent opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">→</span>
-            </a>
-          </aside>
+            )}
+            <form onSubmit={e => { e.preventDefault(); sendChat(); }} className="flex items-center gap-3">
+              <input value={chatInput} onChange={e => onChatType(e.target.value)} placeholder={L.placeholder} maxLength={2000}
+                disabled={!!error}
+                className="flex-1 bg-transparent border-b border-primary/15 focus:border-primary/45 py-2.5 text-sm outline-none transition-colors placeholder:text-primary/30" />
+              <button type="submit" disabled={!chatInput.trim() || !!error}
+                className="w-11 h-11 bg-primary text-white flex items-center justify-center hover:bg-accent hover:text-primary transition-colors flex-shrink-0 disabled:opacity-30">
+                <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M4 12l16-8-6 16-3-6-7-2Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </button>
+            </form>
+            {typing.length > 0 && (
+              <p className="font-mono text-[10px] text-primary/35 mt-2">{typing.slice(0, 3).map(t => t.nickname).join(', ')} {L.typing}</p>
+            )}
+          </div>
         </div>
-      </div>
+
+        {/* sidebar */}
+        <aside className="divide-y divide-primary/10">
+          {/* schedule */}
+          <div className="px-6 md:px-8 py-7">
+            <div className="flex items-center justify-between mb-6">
+              <p className="font-mono text-[11px] uppercase tracking-[0.25em]">{L.scheduleLabel}</p>
+            </div>
+            {scheduleItems.length > 0 ? (
+              <ul className="space-y-5">
+                {scheduleItems.map(m => (
+                  <li key={m.id} className="flex gap-4">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-accent/80 pt-1 w-10 flex-shrink-0">{m.msg_type === 'podcast' ? 'POD' : 'ANN'}</span>
+                    <div className="min-w-0">
+                      <p className="font-serif text-base leading-snug">{m.meta_title || m.text?.slice(0, 60) || '—'}</p>
+                      {m.meta_description && <p className="text-xs text-primary/45 mt-0.5 line-clamp-1">{m.meta_description}</p>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="font-mono text-xs text-primary/35">{L.soonOnAir}</p>}
+          </div>
+
+          {/* editor pick / book of week */}
+          {book && (
+            <div className="px-6 md:px-8 py-7">
+              <p className="font-mono text-[11px] uppercase tracking-[0.25em] mb-5">{L.editorPick}</p>
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-[88px] flex-shrink-0 overflow-hidden bg-primary/5 border border-primary/10">
+                  <img src={book.meta_image || '/images/ambook-cover.jpg'} alt="" className="w-full h-full object-cover" loading="lazy" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-serif text-lg leading-tight mb-1">{book.meta_title || '—'}</p>
+                  <p className="text-xs text-primary/50 mb-2 line-clamp-1">{book.meta_description || L.author}</p>
+                  <p className="font-mono text-[9px] uppercase tracking-widest text-primary/35">{L.bookOfWeek}</p>
+                </div>
+                {books.length > 1 && (
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    <button onClick={() => setBookIdx(i => (i - 1 + books.length) % books.length)} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">‹</button>
+                    <button onClick={() => setBookIdx(i => (i + 1) % books.length)} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">›</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* latest podcast */}
+          {latestPodcast && (
+            <div className="px-6 md:px-8 py-7">
+              <p className="font-mono text-[11px] uppercase tracking-[0.25em] mb-5">{L.latestPodcastLabel}</p>
+              <div className="flex items-center gap-4">
+                <a href={latestPodcast.meta_url || '#'} target="_blank" rel="noopener noreferrer"
+                  className="w-12 h-12 rounded-full border border-primary/25 flex items-center justify-center text-primary/60 hover:border-accent hover:text-accent transition-colors flex-shrink-0">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-0.5"><path d="M8 5.5l12 6.5-12 6.5V5.5Z" /></svg>
+                </a>
+                <div className="min-w-0">
+                  <p className="font-serif text-lg leading-tight">{latestPodcast.meta_title || '—'}</p>
+                  {latestPodcast.meta_description && <p className="text-xs text-primary/45 line-clamp-1">{latestPodcast.meta_description}</p>}
+                  <p className="font-mono text-[9px] uppercase tracking-widest text-accent mt-1.5">{L.listenWord} →</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* telegram */}
+          <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer"
+            className="group flex items-center justify-between px-6 md:px-8 py-7 hover:bg-primary/[0.03] transition-colors">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.25em] mb-1.5">{L.weInTelegram}</p>
+              <p className="text-sm text-primary/55 group-hover:text-primary transition-colors">@ampublishingberlin</p>
+            </div>
+            <span className="text-accent text-lg group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+          </a>
+        </aside>
+      </section>
+
+      {/* ════ LATEST BROADCASTS ════ */}
+      <section className="px-6 md:px-10 lg:px-12 py-10 md:py-14">
+        <div className="flex items-center justify-between mb-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em]">{L.latestBroadcasts}</p>
+          {broadcasts.length > 2 && (
+            <div className="flex gap-2">
+              <button onClick={() => carouselRef.current?.scrollBy({ left: -320, behavior: 'smooth' })}
+                className="w-9 h-9 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">‹</button>
+              <button onClick={() => carouselRef.current?.scrollBy({ left: 320, behavior: 'smooth' })}
+                className="w-9 h-9 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">›</button>
+            </div>
+          )}
+        </div>
+        {broadcasts.length > 0 ? (
+          <div ref={carouselRef} className="flex gap-6 overflow-x-auto pb-2 snap-x" style={{ scrollbarWidth: 'none' }}>
+            {broadcasts.map(m => (
+              <article key={m.id} className="w-[260px] md:w-[280px] flex-shrink-0 snap-start group">
+                <div className="relative aspect-[4/3] overflow-hidden bg-primary mb-4">
+                  <img src={m.meta_image || '/images/ambook-object.jpg'} alt="" loading="lazy"
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
+                  <a href={m.meta_url || '#'} target="_blank" rel="noopener noreferrer"
+                    className="absolute inset-0 flex items-center justify-center bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                    <span className="w-12 h-12 rounded-full border-2 border-white/80 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-0.5"><path d="M8 5.5l12 6.5-12 6.5V5.5Z" /></svg>
+                    </span>
+                  </a>
+                </div>
+                <p className="font-mono text-[9px] uppercase tracking-widest text-accent mb-1.5">{m.msg_type === 'podcast' ? L.typePodcast : L.typeAnnouncement}</p>
+                <h3 className="font-serif text-lg leading-tight mb-1">{m.meta_title || m.text?.slice(0, 50) || '—'}</h3>
+                {m.meta_description && <p className="text-xs text-primary/45 line-clamp-1">{m.meta_description}</p>}
+              </article>
+            ))}
+          </div>
+        ) : <p className="font-mono text-xs text-primary/35">{L.noBroadcasts}</p>}
+      </section>
 
       {editingName && user && (
         <NameEditModal user={user} onSave={handleRename} onClose={() => setEditingName(false)} L={L} />
