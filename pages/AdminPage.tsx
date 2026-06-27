@@ -7,6 +7,7 @@ import {
   fetchPinnedMessages, fetchRadioMessages, deleteRadioMessage,
   type RadioMessage, type AnnouncePayload,
 } from '../services/radioApi';
+import { RadioConfigForm } from './RadioConfigForm';
 import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
@@ -988,7 +989,7 @@ export const AdminPage: React.FC = () => {
   const [radioPassword, setRadioPassword] = useState('');
   const [radioLoginErr, setRadioLoginErr] = useState('');
   const [radioLoginBusy, setRadioLoginBusy] = useState(false);
-  const [radioTab, setRadioTab] = useState<'announce' | 'pins' | 'messages' | 'chat'>('announce');
+  const [radioTab, setRadioTab] = useState<'config' | 'announce' | 'pins' | 'messages' | 'chat'>('config');
   const [radioBusy, setRadioBusy] = useState(false);
   const [radioFlash, setRadioFlash] = useState('');
   const [radioFlashErr, setRadioFlashErr] = useState(false);
@@ -3045,7 +3046,7 @@ export const AdminPage: React.FC = () => {
               <>
                 {/* Sub-tabs */}
                 <div className="flex border border-primary/15">
-                  {([['announce', 'Новый анонс'], ['pins', 'Закрепы'], ['messages', 'Сообщения'], ['chat', 'Чат']] as const).map(([t, label]) => (
+                  {([['config', 'Оформление'], ['announce', 'Новый анонс'], ['pins', 'Закрепы'], ['messages', 'Сообщения'], ['chat', 'Чат']] as const).map(([t, label]) => (
                     <button key={t} onClick={() => setRadioTab(t)}
                       className={`flex-1 py-2.5 font-mono text-[9px] uppercase tracking-widest transition-colors border-r border-primary/15 last:border-r-0 ${radioTab === t ? 'bg-primary text-white' : 'text-gray-400 hover:text-primary hover:bg-gray-50'}`}>
                       {label}
@@ -3054,6 +3055,9 @@ export const AdminPage: React.FC = () => {
                 </div>
 
                 <div className="bg-white border border-primary/10 p-6">
+
+                  {/* Configurator */}
+                  {radioTab === 'config' && <RadioConfigForm />}
 
                   {/* Announce */}
                   {radioTab === 'announce' && (

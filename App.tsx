@@ -22,6 +22,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminPage } from './pages/AdminPage';
 import { RadioPage } from './pages/RadioPage';
+import { RadioAdminPage } from './pages/RadioAdminPage';
 
 // --- App Content with Routing ---
 
@@ -42,7 +43,7 @@ const AppContent: React.FC = () => {
   }, [location.pathname]);
 
   // Hide standard Header/Footer on Admin pages
-  const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname === '/login';
+  const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname.startsWith('/radio/admin');
 
   return (
     <div className="flex flex-col min-h-screen font-sans text-primary">
@@ -64,6 +65,7 @@ const AppContent: React.FC = () => {
           <Route path="/services/order" element={<ServiceOrderPage />} />
 
           <Route path="/radio" element={<RadioPage />} />
+          <Route path="/radio/admin" element={<RadioAdminPage />} />
 
           <Route path="/authors" element={<AuthorsPage />} />
           <Route path="/our-authors" element={<OurAuthorsPage />} />
