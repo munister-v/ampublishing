@@ -75,6 +75,7 @@ function useRadioAudio(token: string | null, myId: number | null) {
   const lastSigRef = useRef(0);
   const peersRef = useRef<Map<number, PeerEntry>>(new Map());
   const audioElsRef = useRef<Map<number, HTMLAudioElement>>(new Map());
+  const noSleepElRef = useRef<HTMLAudioElement | null>(null);
   const sigTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sigDelayRef = useRef(1000);          // adaptive: fast while negotiating, slow when idle
   const runningRef = useRef(false);
@@ -117,6 +118,9 @@ function useRadioAudio(token: string | null, myId: number | null) {
     el.autoplay = true; el.preload = 'auto';
     (el as any).disableRemotePlayback = false;
     el.style.display = 'none';
+    el.addEventListener('pause', () => {
+      if (el!.srcObject) el!.play().catch(() => {});
+    });
     document.body.appendChild(el);
     audioElsRef.current.set(uid, el);
     return el;
@@ -269,9 +273,19 @@ function useRadioAudio(token: string | null, myId: number | null) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: 'AM Publishing Radio', artist: 'AM Publishing Berlin', album: 'Live', artwork,
       });
+      navigator.mediaSession.playbackState = 'playing';
+      // Резистуємо 'stop' — iOS локскрин вбиває сесію через цю кнопку
+      const resist = () => { try { navigator.mediaSession.playbackState = 'playing'; } catch {} };
+      navigator.mediaSession.setActionHandler('play', resist);
+      navigator.mediaSession.setActionHandler('pause', resist);
+      try { navigator.mediaSession.setActionHandler('stop', resist); } catch {}
     } catch {}
     return () => {
-      try { navigator.mediaSession.setActionHandler('play', null); navigator.mediaSession.setActionHandler('pause', null); } catch {}
+      try {
+        navigator.mediaSession.setActionHandler('play', null);
+        navigator.mediaSession.setActionHandler('pause', null);
+        try { navigator.mediaSession.setActionHandler('stop', null); } catch {}
+      } catch {}
     };
   }, []);
 
@@ -376,6 +390,7 @@ function useRadioAudio(token: string | null, myId: number | null) {
     setBroadcasters([]); setPlaying(false); setStatusSafe('idle');
     setStats(s => ({ ...s, rttMs: null, jitterMs: null, packetsLost: null, bitrateBps: null, iceState: null }));
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
+    if (noSleepElRef.current) { noSleepElRef.current.pause(); noSleepElRef.current.src = ''; noSleepElRef.current.remove(); noSleepElRef.current = null; }
   }, [closePeer, headers, setStatusSafe]);
 
   const startAudio = useCallback(async () => {
@@ -385,6 +400,15 @@ function useRadioAudio(token: string | null, myId: number | null) {
       if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
       if (audioCtxRef.current.state === 'suspended') await audioCtxRef.current.resume();
     } catch {}
+    // NoSleep: реальний WAV-блоб утримує аудіо-сесію iOS при заблокованому екрані
+    if (!noSleepElRef.current) {
+      try {
+        const wav = new Uint8Array([0x52,0x49,0x46,0x46,0x25,0x00,0x00,0x00,0x57,0x41,0x56,0x45,0x66,0x6d,0x74,0x20,0x10,0x00,0x00,0x00,0x01,0x00,0x01,0x00,0x40,0x1f,0x00,0x00,0x40,0x1f,0x00,0x00,0x01,0x00,0x08,0x00,0x64,0x61,0x74,0x61,0x01,0x00,0x00,0x00,0x80]);
+        const ns = new Audio(URL.createObjectURL(new Blob([wav], { type: 'audio/wav' })));
+        ns.loop = true; ns.volume = 0.001; ns.setAttribute('playsinline', '');
+        document.body.appendChild(ns); noSleepElRef.current = ns; ns.play().catch(() => {});
+      } catch {}
+    }
     setStatusSafe('connecting');
     try {
       const joinRes = await fetch(`${RADIO_API}/calls/join`, { method: 'POST', headers: headers() });
