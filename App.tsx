@@ -8,6 +8,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { ToastContainer } from './components/Toast';
 import { CookieConsent, RegionModal, AgeGateModal } from './components/Modals';
 import { DevTools } from './components/DevTools';
+import { SEO } from './components/SEO';
 import { AppProvider, useApp } from './AppContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { analytics } from './services/analytics'; // Import Analytics
@@ -47,6 +48,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen font-sans text-primary">
+      <SEO />
       {!isAdminRoute && <Preloader />}
       {!isAdminRoute && <Header />}
       <CartDrawer />
