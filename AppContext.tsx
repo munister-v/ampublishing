@@ -71,6 +71,9 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
+const uniqueSorted = (values: string[]) =>
+  Array.from(new Set(values.map(value => value.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+
 export const useApp = () => {
   const context = useContext(AppContext);
   if (!context) throw new Error("useApp must be used within AppProvider");
@@ -155,7 +158,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setBooks(booksData);
         setNews(newsData);
         setGenres(metaData.genres);
-        setAuthors(metaData.authors);
+        setAuthors(uniqueSorted([...metaData.authors, ...booksData.map(book => book.author)]));
         setTranslationOverrides(overrides);
         setSiteSettings(site);
       } catch (e) {

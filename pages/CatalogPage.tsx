@@ -421,9 +421,10 @@ export const CatalogPage: React.FC = () => {
                   <h3 className="font-bold mb-4 uppercase border-b border-primary/20 pb-2">{t('catalog.filters.availability')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {['instock', 'preorder'].map(opt => {
-                      const active = searchParams.get('avail') === opt;
+                      const paramKey = opt === 'instock' ? 'instock' : 'preorder';
+                      const active = searchParams.get(paramKey) === 'true';
                       return (
-                        <button key={opt} onClick={() => updateParams('avail', opt, 'set')}
+                        <button key={opt} onClick={() => updateParams(paramKey, active ? null : 'true', 'set')}
                           className={`px-4 py-2 border text-xs font-mono uppercase ${active ? 'bg-primary text-white border-primary' : 'bg-white border-gray-300'}`}>
                           {t(`catalog.filters.${opt}`)}
                         </button>

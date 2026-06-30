@@ -211,13 +211,13 @@ export const Header: React.FC = () => {
                 {t('common.close')} <X size={20} />
              </button>
            </div>
-           <nav className="flex-1 flex flex-col p-6 overflow-y-auto">
+           <nav className="flex-1 min-h-0 flex flex-col p-5 overflow-y-auto">
               {headerNav.map((item, i) => (
                 <Link
                   key={item.id}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-5xl font-serif py-6 border-b border-white/10 hover:pl-6 transition-all duration-700 ease-out-quart flex justify-between items-center group animate-fade-up gpu-accelerated"
+                  className="text-3xl sm:text-4xl font-serif py-4 border-b border-white/10 hover:pl-6 transition-all duration-700 ease-out-quart flex justify-between items-center group animate-fade-up gpu-accelerated"
                   style={{ animationDelay: `${i * 100}ms` }}
                 >
                   {t(item.labelKey)}

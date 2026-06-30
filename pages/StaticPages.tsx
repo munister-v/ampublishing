@@ -274,8 +274,16 @@ export const AuthorsPage: React.FC = () => {
 };
 
 export const OurAuthorsPage: React.FC = () => {
-  const { t, language } = useApp();
+  const { t, language, authors } = useApp();
   const authorShowcase = getAuthorShowcaseContent(language, t('static.our_authors.showcase_items'));
+  const showcasedNames = new Set(
+    authorShowcase.flatMap(item => [
+      `${item.nameMain} ${item.nameAccent}`.toLowerCase(),
+      item.nameMain.toLowerCase(),
+      item.nameAccent.toLowerCase(),
+    ]),
+  );
+  const catalogAuthors = authors.filter(author => !showcasedNames.has(author.toLowerCase()));
 
   return (
     <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
@@ -351,6 +359,32 @@ export const OurAuthorsPage: React.FC = () => {
           </article>
         ))}
         </div>
+
+        {catalogAuthors.length > 0 && (
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 border-l border-t border-primary bg-white">
+            {catalogAuthors.map((author, index) => (
+              <article key={author} className="border-r border-b border-primary p-8 md:p-10 bg-[#F7F1E6]">
+                <div className="flex items-start justify-between gap-4 mb-10">
+                  <span className="border border-primary/15 bg-white/60 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
+                    {t('home.authors_card_label')}
+                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary/35">
+                    {String(authorShowcase.length + index + 1).padStart(2, '0')}
+                  </span>
+                </div>
+                <h2 className="text-4xl md:text-5xl font-serif leading-[0.95] text-primary break-words">
+                  {author}
+                </h2>
+                <Link
+                  to={`/catalog?author=${encodeURIComponent(author)}`}
+                  className="mt-8 inline-flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-accent hover:text-primary transition-colors"
+                >
+                  {t('home.discover_author')} <BookOpen size={14} />
+                </Link>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

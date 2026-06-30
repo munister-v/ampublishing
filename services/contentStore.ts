@@ -182,6 +182,9 @@ const fetchContent = async <T,>(filename: string, fallback: T): Promise<T> => {
   }
 };
 
+const keepFallbackWhenEmpty = <T,>(items: T[], fallback: T[]): T[] =>
+  items.length > 0 ? items : fallback;
+
 // ----------------- Override warm-cache (survives page refresh, bridges CDN lag) -----------------
 // After each write, the latest overrides are persisted to localStorage so that on the next
 // page load they take precedence over a potentially stale CDN response.
@@ -349,9 +352,18 @@ const ensureLoaded = async (): Promise<void> => {
     ]);
 
     cache.database = {
-      ru: normalizeLanguageData(bru, nru),
-      en: normalizeLanguageData(ben, nen),
-      de: normalizeLanguageData(bde, nde),
+      ru: normalizeLanguageData(
+        keepFallbackWhenEmpty(bru, fallbackBooks('ru')),
+        keepFallbackWhenEmpty(nru, fallbackNews('ru')),
+      ),
+      en: normalizeLanguageData(
+        keepFallbackWhenEmpty(ben, fallbackBooks('en')),
+        keepFallbackWhenEmpty(nen, fallbackNews('en')),
+      ),
+      de: normalizeLanguageData(
+        keepFallbackWhenEmpty(bde, fallbackBooks('de')),
+        keepFallbackWhenEmpty(nde, fallbackNews('de')),
+      ),
     };
     // Merge warm-cache over CDN response so a stale CDN doesn't wipe recently-saved values
     const warm = loadOverrideWarmCache();
