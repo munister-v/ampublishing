@@ -74,6 +74,16 @@ const AppContext = createContext<AppContextType | null>(null);
 const uniqueSorted = (values: string[]) =>
   Array.from(new Set(values.map(value => value.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
 
+const readRequestedLanguage = (): Language | null => {
+  if (typeof window === 'undefined') return null;
+
+  const fromHash = window.location.hash.replace(/^#/, '').toLowerCase();
+  const fromQuery = new URLSearchParams(window.location.search).get('lang')?.toLowerCase();
+  const requested = fromHash || fromQuery || '';
+
+  return requested === 'ru' || requested === 'en' || requested === 'de' ? requested : null;
+};
+
 export const useApp = () => {
   const context = useContext(AppContext);
   if (!context) throw new Error("useApp must be used within AppProvider");
@@ -207,8 +217,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const savedAge = localStorage.getItem('age-verified');
     if (savedAge === 'true') setIsAgeVerified(true);
 
+    const requestedLang = readRequestedLanguage();
     const savedLang = localStorage.getItem('app-language') as Language;
-    if (savedLang && ['ru', 'en', 'de'].includes(savedLang)) {
+    if (requestedLang) {
+      setLanguageState(requestedLang);
+      localStorage.setItem('app-language', requestedLang);
+    } else if (savedLang && ['ru', 'en', 'de'].includes(savedLang)) {
       setLanguageState(savedLang);
     } else {
       const browserLang = navigator.language.slice(0, 2);
@@ -238,6 +252,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('app-language', lang);
+    if (typeof window !== 'undefined' && window.location.hash !== `#${lang}`) {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${lang}`);
+    }
   };
 
   const setRegionById = (id: string) => {

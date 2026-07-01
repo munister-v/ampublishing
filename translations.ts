@@ -49,7 +49,7 @@ export const translations: Record<Language, TranslationTree> = {
     home: {
       hero_title_1: "Книги с собой",
       hero_title_2: "",
-      hero_subtitle: "Мы издаём современную литературную прозу с глубиной и психологической тонкостью — книги, которые легко взять с собой и невозможно забыть.",
+      hero_subtitle: "Мы издаём современную литературную прозу с глубиной и психологической тонкостью - книги, которые легко взять с собой и невозможно забыть.",
       hero_cta: "Перейти в каталог",
       new_arrivals: "Новинки",
       all_new: "Все новинки",
@@ -231,7 +231,7 @@ export const translations: Record<Language, TranslationTree> = {
       cookies: "Мы используем файлы cookie для улучшения работы сайта.",
       accept: "Принять",
       region_detecting: "Определяем ваш регион...",
-      region_confirm: "Ваш регион — {region}?",
+      region_confirm: "Ваш регион - {region}?",
       region_desc: "Это поможет нам рассчитать стоимость доставки.",
       yes_correct: "Да, верно",
       choose_other: "Выбрать другой",
@@ -370,8 +370,8 @@ export const translations: Record<Language, TranslationTree> = {
           image: "/images/about-hero.jpg",
           image_alt: "Книга AM Publishing в поезде",
           mission: "Миссия",
-          p1: "AM Publishing было основано в Берлине как издательство, посвящённое современной русскоязычной литературе. Мы верим, что книга — это не просто история, а опыт, способный преобразить читателя.",
-          p2: "Наша миссия — продвигать литературу, которая меняет взгляд на мир, побуждает к размышлению и остаётся с человеком надолго после последней страницы.",
+          p1: "AM Publishing было основано в Берлине как издательство, посвящённое современной русскоязычной литературе. Мы верим, что книга - это не просто история, а опыт, способный преобразить читателя.",
+          p2: "Наша миссия - продвигать литературу, которая меняет взгляд на мир, побуждает к размышлению и остаётся с человеком надолго после последней страницы.",
           stat1: "Малые тиражи",
           stat2: "Редакционное рассмотрение рукописей",
           team: "Команда",
@@ -401,7 +401,7 @@ export const translations: Record<Language, TranslationTree> = {
         }
       },
       footer: {
-        desc: "Независимое русскоязычное издательство из Берлина. Наши истории созданы для дороги — для поездок, перелётов, утреннего метро и тихих домашних вечеров.",
+        desc: "Независимое русскоязычное издательство из Берлина. Наши истории созданы для дороги - для поездок, перелётов, утреннего метро и тихих домашних вечеров.",
         sections: {
           catalog: "Каталог",
           info: "Информация",
@@ -418,7 +418,7 @@ export const translations: Record<Language, TranslationTree> = {
         subscribe_label: "Канал издательства",
         subscribe_title: "Анонсы, заметки",
         subscribe_span: "и отрывки до релиза",
-        subscribe_desc: "Анонсы новых книг, дневник редакции и отрывки до выхода. Без рассылок — только Telegram.",
+        subscribe_desc: "Анонсы новых книг, дневник редакции и отрывки до выхода. Без рассылок - только Telegram.",
         subscribe_handle: "@ampublishingberlin",
         social_index: "Социальный Индекс",
         directory: "Навигация",
@@ -648,7 +648,7 @@ export const translations: Record<Language, TranslationTree> = {
     home: {
       hero_title_1: "Prose that slows time",
       hero_title_2: "",
-      hero_subtitle: "We bring out books for those who want more than a gripping story — readers who appreciate depth, psychological richness, and a distinctive atmosphere.",
+      hero_subtitle: "We bring out books for those who want more than a gripping story - readers who appreciate depth, psychological richness, and a distinctive atmosphere.",
       hero_cta: "Go to Catalog",
       new_arrivals: "New Arrivals",
       all_new: "See all new",
@@ -698,7 +698,7 @@ export const translations: Record<Language, TranslationTree> = {
       subscribe_label: "Publisher's channel",
       subscribe_title: "Announcements, notes",
       subscribe_span: "and pre-release excerpts",
-      subscribe_desc: "New book announcements, editorial notes and early excerpts. No email blasts — Telegram only.",
+      subscribe_desc: "New book announcements, editorial notes and early excerpts. No email blasts - Telegram only.",
       subscribe_handle: "@ampublishingberlin",
       social_index: "Social Index",
       directory: "Directory",
@@ -814,7 +814,7 @@ export const translations: Record<Language, TranslationTree> = {
       cookies: "We use cookies to improve the site experience. By continuing, you agree to our privacy policy.",
       accept: "Accept",
       region_detecting: "Detecting your region...",
-      region_confirm: "Is your region — {region}?",
+      region_confirm: "Is your region - {region}?",
       region_desc: "This helps us calculate shipping costs.",
       yes_correct: "Yes, correct",
       choose_other: "Choose another",
@@ -1128,7 +1128,7 @@ export const translations: Record<Language, TranslationTree> = {
     home: {
       hero_title_1: "Bücher für unterwegs",
       hero_title_2: "",
-      hero_subtitle: "Wir veröffentlichen moderne literarische Prosa mit Tiefe und psychologischem Feingefühl — Bücher, die man leicht mitnehmen kann und unmöglich vergisst.",
+      hero_subtitle: "Wir veröffentlichen moderne literarische Prosa mit Tiefe und psychologischem Feingefühl - Bücher, die man leicht mitnehmen kann und unmöglich vergisst.",
       hero_cta: "Zum Katalog",
       new_arrivals: "Neuheiten",
       all_new: "Alle Neuheiten ansehen",
@@ -1161,7 +1161,7 @@ export const translations: Record<Language, TranslationTree> = {
       discover_author: "Zum Buch",
     },
     footer: {
-      desc: "Ein unabhängiger russischsprachiger Verlag aus Berlin. Unsere Geschichten sind für unterwegs — für Reisen, Flüge, die morgendliche U-Bahn und ruhige Abende zu Hause.",
+      desc: "Ein unabhängiger russischsprachiger Verlag aus Berlin. Unsere Geschichten sind für unterwegs - für Reisen, Flüge, die morgendliche U-Bahn und ruhige Abende zu Hause.",
       sections: {
         catalog: "Katalog",
         info: "Information",
@@ -1178,7 +1178,7 @@ export const translations: Record<Language, TranslationTree> = {
       subscribe_label: "Verlagskanal",
       subscribe_title: "Ankündigungen, Notizen",
       subscribe_span: "und Pre-Release-Auszüge",
-      subscribe_desc: "Neue Buchankündigungen, redaktionelle Notizen und frühe Leseproben. Keine Newsletter — nur Telegram.",
+      subscribe_desc: "Neue Buchankündigungen, redaktionelle Notizen und frühe Leseproben. Keine Newsletter - nur Telegram.",
       subscribe_handle: "@ampublishingberlin",
       social_index: "Sozialindex",
       directory: "Verzeichnis",
@@ -1294,7 +1294,7 @@ export const translations: Record<Language, TranslationTree> = {
       cookies: "Wir verwenden Cookies, um das Website-Erlebnis zu verbessern. Durch die weitere Nutzung stimmen Sie unserer Datenschutzerklärung zu.",
       accept: "Akzeptieren",
       region_detecting: "Region wird erkannt...",
-      region_confirm: "Ist Ihre Region — {region}?",
+      region_confirm: "Ist Ihre Region - {region}?",
       region_desc: "Dies hilft uns bei der Berechnung der Versandkosten.",
       yes_correct: "Ja, richtig",
       choose_other: "Andere wählen",
@@ -1331,7 +1331,7 @@ export const translations: Record<Language, TranslationTree> = {
         },
         privacy: {
             title: "Datenschutzerklärung",
-            updated: "(Deutsch – maßgebliche Version)",
+            updated: "(Deutsch - maßgebliche Version)",
             intro: "Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Personenbezogene Daten werden von uns nur im notwendigen Umfang und gemäß den gesetzlichen Datenschutzvorschriften verarbeitet.",
             sections: [
                 { 
@@ -1356,7 +1356,7 @@ export const translations: Record<Language, TranslationTree> = {
                 },
                 { 
                     title: "6. Verkauf von Büchern und digitalen Produkten", 
-                    text: "Bei der Bestellung von gedruckten oder elektronischen Büchern verarbeiten wir personenbezogene Daten, die zur Abwicklung des Kaufvertrags erforderlich sind, insbesondere:\n- Name\n- Rechnungs- und ggf. Lieferadresse\n- E-Mail-Adresse\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\n\n6a. Zahlungsabwicklung über PayPal\nPayPal (Europe) S.à r.l. et Cie, S.C.A.\n22–24 Boulevard Royal\nL-2449 Luxemburg\n\nWenn Sie die Zahlung via PayPal auswählen, werden die zur Zahlungsabwicklung erforderlichen personenbezogenen Daten an PayPal übermittelt. Dazu gehören insbesondere:\n- Name\n- E-Mail-Adresse\n- Zahlungsbetrag\n- ggf. Rechnungs- und Lieferadresse\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\n\nWeitere Informationen zum Datenschutz bei PayPal:\nhttps://www.paypal.com/de/webapps/mpp/ua/privacy-full\n\n6b. Zahlungsabwicklung über Stripe (Kreditkarte)\nStripe Payments Europe, Ltd.\n1 Grand Canal Street Lower\nGrand Canal Dock\nDublin, Irland\n\nStripe verarbeitet personenbezogene Daten, die zur Zahlungsabwicklung erforderlich sind, darunter:\n- Name\n- E-Mail-Adresse\n- Zahlungsbetrag\n- Zahlungsdaten (Kreditkartendaten werden direkt von Stripe verarbeitet)\n\nWir erhalten keine vollständigen Kreditkartendaten.\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\n\nWeitere Informationen zum Datenschutz bei Stripe:\nhttps://stripe.com/de/privacy" 
+                    text: "Bei der Bestellung von gedruckten oder elektronischen Büchern verarbeiten wir personenbezogene Daten, die zur Abwicklung des Kaufvertrags erforderlich sind, insbesondere:\n- Name\n- Rechnungs- und ggf. Lieferadresse\n- E-Mail-Adresse\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\n\n6a. Zahlungsabwicklung über PayPal\nPayPal (Europe) S.à r.l. et Cie, S.C.A.\n22-24 Boulevard Royal\nL-2449 Luxemburg\n\nWenn Sie die Zahlung via PayPal auswählen, werden die zur Zahlungsabwicklung erforderlichen personenbezogenen Daten an PayPal übermittelt. Dazu gehören insbesondere:\n- Name\n- E-Mail-Adresse\n- Zahlungsbetrag\n- ggf. Rechnungs- und Lieferadresse\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\n\nWeitere Informationen zum Datenschutz bei PayPal:\nhttps://www.paypal.com/de/webapps/mpp/ua/privacy-full\n\n6b. Zahlungsabwicklung über Stripe (Kreditkarte)\nStripe Payments Europe, Ltd.\n1 Grand Canal Street Lower\nGrand Canal Dock\nDublin, Irland\n\nStripe verarbeitet personenbezogene Daten, die zur Zahlungsabwicklung erforderlich sind, darunter:\n- Name\n- E-Mail-Adresse\n- Zahlungsbetrag\n- Zahlungsdaten (Kreditkartendaten werden direkt von Stripe verarbeitet)\n\nWir erhalten keine vollständigen Kreditkartendaten.\n\nRechtsgrundlage:\nArt. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)\n\nWeitere Informationen zum Datenschutz bei Stripe:\nhttps://stripe.com/de/privacy" 
                 },
                 { 
                     title: "7. Cookies", 
@@ -1372,7 +1372,7 @@ export const translations: Record<Language, TranslationTree> = {
                 },
                 { 
                     title: "10. Beschwerderecht bei der Aufsichtsbehörde", 
-                    text: "Sie haben das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren. Zuständig ist insbesondere:\n\nBerliner Beauftragte für Datenschutz und Informationsfreiheit\nAlt-Moabit 59–61\n10555 Berlin" 
+                    text: "Sie haben das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren. Zuständig ist insbesondere:\n\nBerliner Beauftragte für Datenschutz und Informationsfreiheit\nAlt-Moabit 59-61\n10555 Berlin" 
                 },
                 { 
                     title: "11. Änderungen dieser Datenschutzerklärung", 

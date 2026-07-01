@@ -56,7 +56,7 @@ export const HomePage: React.FC = () => {
               <div className="w-full h-full overflow-hidden">
                 <img 
                    src={heroImageUrl}
-                   alt="Всё, что останется — обложка книги"
+                   alt="Всё, что останется - обложка книги"
                    className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-[2000ms] ease-out-quart mix-blend-luminosity group-hover:scale-105 gpu-accelerated"
                 />
               </div>
@@ -134,7 +134,7 @@ export const HomePage: React.FC = () => {
             <div className="w-full h-full overflow-hidden">
                <img 
                   src={featureImageUrl}
-                  alt="Всё, что останется — предметное фото книги"
+                  alt="Всё, что останется - предметное фото книги"
                   className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-[2000ms] ease-out-quart gpu-accelerated"
                />
             </div>
