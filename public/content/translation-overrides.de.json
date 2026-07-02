@@ -1,1 +1,59 @@
-{}
+{
+  "static.our_authors.showcase_items": [
+    {
+      "id": "aleksa-dragan",
+      "nameMain": "Aleksa",
+      "nameAccent": "Dragan",
+      "initial": "A",
+      "years": "Gegenwart",
+      "knownFor": "Das Buch „Im Tanz der Wahnvorstellungen"",
+      "bio": "Aleksas erste Novelle erschien in einer angesehenen Literaturzeitschrift, ihre zweite stand auf der Longlist des Lizei-Preises. Im Zentrum ihres Schreibens steht die Erforschung der menschlichen Seele: Beziehungen, Abhängigkeiten, der Grat zwischen Norm und Pathologie. Genres sind ihr zweitrangig — sie schreibt Horror, Science-Fiction und Fantasy, am nächsten stehen ihr magischer Realismus, Gotik und die Familiensaga.",
+      "tags": ["magischer realismus", "gotik", "psychologische Prosa"],
+      "imageUrl": "/images/authors/aleksa-dragan.jpg"
+    },
+    {
+      "id": "sergey-kalinin",
+      "nameMain": "Sergey",
+      "nameAccent": "Kalinin",
+      "initial": "S",
+      "years": "Gegenwart",
+      "knownFor": "Das Buch „Alles, was bleibt"",
+      "bio": "Geboren in Gomel, Belarus. Sein erstes Buch veröffentlichte Sergey vor zwölf Jahren — seitdem sucht, probiert und geht er weiter. Seine Texte handeln von Entscheidung, Freiheit und Traum, davon, wie schwer es ist, das eigene Leben zu lernen, und wie wichtig es ist, nicht aufzugeben.",
+      "tags": ["zeitgenössische Prosa", "psychologischer Realismus"],
+      "imageUrl": "/images/authors/sergey-kalinin.jpg"
+    },
+    {
+      "id": "nadia-hedvig",
+      "nameMain": "Nadia",
+      "nameAccent": "Hedwig",
+      "initial": "N",
+      "years": "Gegenwart",
+      "knownFor": "Das Buch „Der Orden der (Un)Gerechtigkeit"",
+      "bio": "Literaturwissenschaftlerin, Beraterin und Dozentin für literarisches Schreiben. Autorin der Trilogie Große Mädchen (Chernym Belo), des Romans Dunkelheit in dir (Shortlist des Elektronischer-Buchstabe-Preises 2025; Steklograph) und Herausgeberin der Anthologie Tra(uma). Ihre Texte widmen sich der Darstellung psychischer Verletzungen, des Trauerns und Verlustes; sie hält Vorträge über die Natur von Gewalt.",
+      "tags": ["magischer Realismus", "zeitgenössische Prosa"],
+      "imageUrl": "/images/authors/nadia-hedvig.jpg"
+    },
+    {
+      "id": "nikolai-pokusch",
+      "nameMain": "Nikolai",
+      "nameAccent": "Pokusch",
+      "initial": "H",
+      "years": "Gegenwart",
+      "knownFor": "Das Buch „Graues Tal"",
+      "bio": "Arbeitet als Prüfer in einem Produktionsbetrieb. Er ist ein leidenschaftlicher Fan von Video- und Brettspielen, doch sein wichtigstes Hobby sind Pen-and-Paper-Rollenspiele (TTRPG). Seit über zwanzig Jahren ist er Spielleiter und hat ein eigenes System und eine eigene Welt entwickelt. Neuerdings moderiert er ein Podcast-Projekt zum Thema TTRPG.\n\nEr schreibt seit seinem achtzehnten Lebensjahr. Seine erste Kurzgeschichte entstand nach der Begegnung mit H. P. Lovecraft.\n\nUnter seinen Lieblingsautoren nennt er Andrzej Sapkowski, Joe Abercrombie und Brandon Sanderson.\n\nIn den meisten seiner Werke zieht sich als roter Faden das Thema des menschlichen Kampfes gegen äußere Kräfte und Feinde sowie gegen die eigenen Schwächen und Ängste.",
+      "tags": ["Fantasy"],
+      "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1781434449332.webp"
+    },
+    {
+      "id": "lina-vleschu",
+      "nameMain": "Lina",
+      "nameAccent": "Wleschu",
+      "initial": "L",
+      "years": "Gegenwart",
+      "knownFor": "Das Buch „Atemzug. Bekenntnis einer provinziellen Schauspielerin"",
+      "bio": "Von Beruf Theaterschauspielerin, die zehn Jahre lang auf den Bühnen des sowjetischen Theaters stand.\n\nDas zentrale Thema des Romans ist die Suche nach Harmonie zwischen persönlichem Glück und beruflichem Wachstum. Aus eigener Erfahrung schildert sie das Leben der Schauspieler, die Epoche, ihre Widersprüche, Hinterbühnenintrigen, den Alltag und die Verbote der späten Sowjetunion — die 1970er bis 1990er Jahre.\n\nDas Thema der Liebe klingt im Roman durchdringend: Die Heldin sucht sie, doch immer wieder stellt sich ihr etwas in den Weg zu ihrer ersehnten weiblichen Bestimmung.",
+      "tags": ["Autofiktion"],
+      "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1782205768945.webp"
+    }
+  ]
+}

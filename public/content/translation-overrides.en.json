@@ -1,1 +1,59 @@
-{}
+{
+  "static.our_authors.showcase_items": [
+    {
+      "id": "aleksa-dragan",
+      "nameMain": "Aleksa",
+      "nameAccent": "Dragan",
+      "initial": "A",
+      "years": "contemporary",
+      "knownFor": "The book \"In the Dance of Delusions\"",
+      "bio": "Aleksa's first novella appeared in a leading literary journal; her second was longlisted for the Litsey prize. Her work is an inquiry into the human soul: relationships, addictions of every kind, and the line between norm and pathology. Genre is secondary for her — she writes horror, science fiction and fantasy, but feels closest to magic realism, gothic and the family saga.",
+      "tags": ["magic realism", "gothic", "psychological prose"],
+      "imageUrl": "/images/authors/aleksa-dragan.jpg"
+    },
+    {
+      "id": "sergey-kalinin",
+      "nameMain": "Sergey",
+      "nameAccent": "Kalinin",
+      "initial": "S",
+      "years": "contemporary",
+      "knownFor": "The book \"Everything That Will Remain\"",
+      "bio": "Born in Gomel, Belarus. Sergey published his first book twelve years ago and has been searching, trying and moving forward ever since. His texts are about choice, freedom, and the dream — about how hard it can be to learn to live your own life and how important it is not to give up.",
+      "tags": ["contemporary prose", "psychological realism"],
+      "imageUrl": "/images/authors/sergey-kalinin.jpg"
+    },
+    {
+      "id": "nadia-hedvig",
+      "nameMain": "Nadia",
+      "nameAccent": "Hedwig",
+      "initial": "N",
+      "years": "contemporary",
+      "knownFor": "The book \"The Order of (In)Justice\"",
+      "bio": "Literary scholar, consultant and teacher of creative writing. Author of the Great Maidens trilogy (Chernym Belo), of the novel Darkness Inside You (Electronic Letter prize shortlist, 2025; Steklograph), and editor of the anthology Tra(uma). Her work centres on the depiction of psychological trauma, grief and loss, and the nature of violence — she also lectures on these subjects.",
+      "tags": ["magic realism", "contemporary prose"],
+      "imageUrl": "/images/authors/nadia-hedvig.jpg"
+    },
+    {
+      "id": "nikolai-pokusch",
+      "nameMain": "Nikolai",
+      "nameAccent": "Pokush",
+      "initial": "H",
+      "years": "contemporary",
+      "knownFor": "The book \"Grey Dale\"",
+      "bio": "Works as an equipment tester at a manufacturing plant. A passionate fan of video games and board games, his main hobby is tabletop role-playing games (TTRPGs). He has been a game master for over twenty years and has developed his own system and world. More recently he began hosting a podcast dedicated to TTRPGs.\n\nHe has been writing since the age of eighteen. His first short story came after discovering H. P. Lovecraft.\n\nAmong his favourite authors he singles out Andrzej Sapkowski, Joe Abercrombie, and Brandon Sanderson.\n\nA recurring thread through most of his work is the struggle of a human being against external forces and enemies as well as against their own weaknesses and fears.",
+      "tags": ["fantasy"],
+      "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1781434449332.webp"
+    },
+    {
+      "id": "lina-vleschu",
+      "nameMain": "Lina",
+      "nameAccent": "Vleschu",
+      "initial": "L",
+      "years": "contemporary",
+      "knownFor": "The book \"Inhale. Confession of a Provincial Actress\"",
+      "bio": "A theatre actress by profession, she worked on the stages of Soviet theatre for ten years.\n\nThe central theme of the novel is the search for harmony between personal happiness and professional fulfilment. Drawing on her own experience, she portrays the lives of actors, the era, its contradictions, backstage intrigue, daily life, and the restrictions of the late Soviet Union — the 1970s to 1990s.\n\nThe theme of love in the novel is piercing: the heroine seeks it, yet something always stands in the way of reaching what she sees as her natural female destiny.",
+      "tags": ["autofiction"],
+      "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1782205768945.webp"
+    }
+  ]
+}
