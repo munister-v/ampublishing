@@ -4,7 +4,7 @@
     "title": "Всё, что останется",
     "author": "Сергей Калинин",
     "price": 15,
-    "coverUrl": "",
+    "coverUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/cover-ambook-001-1783281941881.webp",
     "badges": [
       "new"
     ],
@@ -29,27 +29,11 @@
     "variants": [
       {
         "id": "ambook-001-hc",
-        "format": "hardcover",
+        "format": "paperback",
         "language": "Русский",
-        "price": 24,
+        "price": 15,
         "stock": 24,
         "isbn": "AM-BOOK-HC-001"
-      },
-      {
-        "id": "ambook-001-se",
-        "format": "special_edition",
-        "language": "Русский",
-        "price": 39,
-        "stock": 8,
-        "isbn": "AM-BOOK-GIFT-001"
-      },
-      {
-        "id": "ambook-001-dg",
-        "format": "digital",
-        "language": "Русский",
-        "price": 0,
-        "stock": 999,
-        "isbn": "AM-BOOK-EXCERPT-001"
       }
     ],
     "story": {
@@ -69,8 +53,8 @@
       ],
       "themes": [
         {
-          "title": "Память как бремя",
-          "text": "Прошлое не отпускает - оно меняет форму. Воспоминания искажаются, но никуда не уходят."
+          "title": "Вера в лучшее",
+          "text": "Всегда есть надежда, что выход найдётся из любой ситуации. "
         },
         {
           "title": "Три поколения",
@@ -87,20 +71,12 @@
       ],
       "reviews": [
         {
-          "quote": "«Калинин превращает обыденное в невыносимо точное. Я читала и узнавала людей, места, молчание.»",
-          "author": "Читательница из Москвы"
-        },
-        {
-          "quote": "«Роман держит не сюжетом - он держит воздухом. Той особой атмосферой, от которой не можешь оторваться.»",
-          "author": "Читатель из Берлина"
-        },
-        {
-          "quote": "«Это книга о том, как больно возвращаться. И как еще больнее не возвращаться.»",
-          "author": "Читатель из Тель-Авива"
+          "quote": "Эта книга оставила в моей душе не просто тепло, а настоящее воодушевление. После таких книг хочется свернуть горы.\n\nДавно ещё ни один книжный герой не вдохновлял меня настолько сильно.\n\nЭта история наполнена светом и верой в лучшее. После неё остаётся ощущение, что даже после самых тяжёлых испытаний можно найти силы идти дальше.",
+          "author": "Мария Сурконт, основательница издательства"
         }
       ],
       "orderNote": "Малый тираж. Мягкая обложка. Офсетная печать.",
-      "featureImageUrl": "/images/ambook-object.jpg",
+      "featureImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/story-ambook-001-1783281981001.webp",
       "detailPageUrl": "https://munister.com.ua/ambook.html"
     },
     "purchaseLinks": {
