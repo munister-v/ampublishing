@@ -5,9 +5,7 @@
     "author": "Сергей Калинин",
     "price": 15,
     "coverUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/cover-ambook-001-1783281941881.webp",
-    "badges": [
-      "new"
-    ],
+    "badges": [],
     "type": "publisher",
     "isPreorder": true,
     "stock": 0,
