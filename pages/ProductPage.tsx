@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
-import { Minus, Plus, ArrowLeft, AlertCircle, ArrowUpRight } from 'lucide-react';
+import { Minus, Plus, ArrowLeft, AlertCircle, ExternalLink } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { BookVariant, Format } from '../types';
 import { formatLabel } from '../utils/formatLabel';
@@ -155,27 +155,31 @@ export const ProductPage: React.FC = () => {
                     </div>
                   )}
 
-                  {book.story?.detailPageUrl ? (
-                    <div className="mt-8 border-t border-dashed border-primary/20 pt-6">
-                      <a
-                        href={book.story.detailPageUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full md:w-auto inline-flex items-center justify-center gap-3 border border-primary bg-primary text-white px-8 py-5 text-sm uppercase tracking-[0.22em] font-bold hover:bg-accent hover:text-primary transition-colors"
-                      >
-                        {t('product.read_full_story')}
-                        <ArrowUpRight size={14} />
-                      </a>
-                      <p className="mt-4 max-w-2xl text-sm text-gray-500 leading-relaxed">
-                        {t('product.full_story_note')}
-                      </p>
-                    </div>
-                  ) : null}
-
                   {!currentVariant && selectedFormat && (
                      <p className="text-red-500 text-xs font-mono flex items-center gap-2 mt-4"><AlertCircle size={12}/> {t('product.variant_unavailable')}</p>
                   )}
                </div>
+
+               {Array.isArray(book.purchaseLinks) && book.purchaseLinks.filter(l => l?.url?.trim()).length > 0 ? (
+                 <section className="border-t border-primary py-8 md:py-10">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
+                       {t('product.buy_elsewhere_title')}
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                       {book.purchaseLinks.filter(l => l?.url?.trim()).map(link => (
+                          <a
+                            key={link.id}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 border border-primary px-5 py-3 text-xs uppercase tracking-[0.18em] font-bold hover:bg-primary hover:text-white transition-colors"
+                          >
+                             {link.label} <ExternalLink size={12} />
+                          </a>
+                       ))}
+                    </div>
+                 </section>
+               ) : null}
 
                <section className="border-t border-primary py-8 md:py-10">
                   <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">

@@ -457,63 +457,33 @@ export const AboutPage: React.FC = () => {
 
 // --- Media Page ---
 export const MediaPage: React.FC = () => {
-  const { t } = useApp();
+  const { t, news } = useApp();
 
   return (
     <div className="bg-bg pt-[60px] md:pt-[80px]">
-      <SectionHeader 
+      <SectionHeader
         title={t('static.media.title')}
         subtitle={t('static.media.subtitle')}
       />
-      <div className="container mx-auto px-4 py-24">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
-            
-            {/* Press Kit */}
-            <div className="bg-white p-10 shadow-sm border border-gray-100 hover:border-primary/20 transition-all duration-300 flex flex-col items-start">
-              <div className="w-12 h-12 bg-bg flex items-center justify-center mb-6 text-primary rounded-full">
-                 <Download size={20} />
-              </div>
-              <h2 className="text-2xl font-serif text-primary mb-4">{t('static.media.kit_title')}</h2>
-              <p className="text-sm text-gray-500 mb-8 font-light leading-relaxed flex-1">
-                {t('static.media.kit_desc')}
-              </p>
-              <button className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary border-b border-primary pb-1 hover:text-accent hover:border-accent transition-colors">
-                {t('static.media.download')} (ZIP, 45MB)
-              </button>
+      <div className="container mx-auto px-4 py-16 md:py-24">
+        <div className="max-w-4xl mx-auto">
+          {news.length > 0 ? (
+            <div className="space-y-12 md:space-y-16">
+              {news.map((item) => (
+                <article key={item.id} className="border-b border-primary/15 pb-12 last:border-b-0">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-accent mb-4">{item.date}</p>
+                  <h2 className="text-3xl md:text-5xl font-serif text-primary leading-tight mb-5">{item.title}</h2>
+                  <div className="text-lg text-gray-600 leading-relaxed font-light whitespace-pre-line">
+                    {item.body && item.body.trim() ? item.body : item.preview}
+                  </div>
+                </article>
+              ))}
             </div>
-
-            {/* Request Review Copy */}
-            <div className="bg-white p-10 shadow-sm border border-gray-100 hover:border-primary/20 transition-all duration-300 flex flex-col items-start">
-              <div className="w-12 h-12 bg-bg flex items-center justify-center mb-6 text-primary rounded-full">
-                 <BookOpen size={20} />
-              </div>
-              <h2 className="text-2xl font-serif text-primary mb-4">{t('static.media.review_title')}</h2>
-              <p className="text-sm text-gray-500 mb-8 font-light leading-relaxed flex-1">
-                {t('static.media.review_desc')}
-              </p>
-              <a href="mailto:am.hybridpublishing@gmail.com" className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary border-b border-primary pb-1 hover:text-accent hover:border-accent transition-colors">
-                {t('static.media.contact_pr')}
-              </a>
-            </div>
-
-             {/* Interviews */}
-             <div className="bg-white p-10 shadow-sm border border-gray-100 hover:border-primary/20 transition-all duration-300 flex flex-col items-start">
-              <div className="w-12 h-12 bg-bg flex items-center justify-center mb-6 text-primary rounded-full">
-                 <User size={20} />
-              </div>
-              <h2 className="text-2xl font-serif text-primary mb-4">{t('static.media.interview_title')}</h2>
-              <p className="text-sm text-gray-500 mb-8 font-light leading-relaxed flex-1">
-                {t('static.media.interview_desc')}
-              </p>
-              <a href="mailto:am.hybridpublishing@gmail.com" className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary border-b border-primary pb-1 hover:text-accent hover:border-accent transition-colors">
-                {t('static.media.interview_cta')}
-              </a>
-            </div>
-
-          </div>
-
-          <div className="h-px w-full bg-gray-200"></div>
+          ) : (
+            <p className="text-center text-gray-400 font-mono uppercase tracking-widest py-24">
+              {t('static.media.empty')}
+            </p>
+          )}
         </div>
       </div>
     </div>

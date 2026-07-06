@@ -750,15 +750,13 @@ export const contentStore = {
     const db = cache.database || DATABASE;
     const books = [...db.ru.books, ...db.en.books, ...db.de.books];
     const paymentPrefix =
-      payload.customer.paymentMethod === 'amazon'
-        ? 'AMZ'
-        : payload.customer.paymentMethod === 'mir'
-          ? 'MIR'
-          : payload.customer.paymentMethod === 'visa'
-            ? 'VIS'
-            : payload.customer.paymentMethod === 'mastercard'
-              ? 'MCR'
-              : 'INV';
+      payload.customer.paymentMethod === 'mir'
+        ? 'MIR'
+        : payload.customer.paymentMethod === 'visa'
+          ? 'VIS'
+          : payload.customer.paymentMethod === 'mastercard'
+            ? 'MCR'
+            : 'INV';
     const paymentReference = `${paymentPrefix}-${Date.now().toString().slice(-6)}`;
     const items = payload.items.map(item => {
       const book = books.find(entry => entry.variants.some(variant => variant.id === item.variantId));

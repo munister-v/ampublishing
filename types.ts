@@ -62,9 +62,14 @@ export interface Book {
   variants: BookVariant[];
   releaseDate: string; // ISO date for sorting
   story?: BookStory;
-  purchaseLinks?: {
-    amazon?: string;
-  };
+  purchaseLinks?: PurchaseLink[];
+}
+
+// Editable external "buy elsewhere" links (Mnogoknig, Mostik.de, etc.)
+export interface PurchaseLink {
+  id: string;
+  label: string;
+  url: string;
 }
 
 export interface CartItem {
@@ -100,6 +105,7 @@ export interface NewsItem {
   date: string;
   title: string;
   preview: string;
+  body?: string; // full event text ("Мероприятия" feed)
 }
 
 export interface LocalizedCatalogData {
@@ -144,7 +150,7 @@ export interface CheckoutFormData {
   zip: string;
   country: string;
   shippingMethod: 'standard' | 'express';
-  paymentMethod: 'visa' | 'mastercard' | 'amazon' | 'invoice' | 'mir';
+  paymentMethod: 'visa' | 'mastercard' | 'invoice' | 'mir';
 }
 
 // --- SITE SETTINGS (editable via admin: header/footer/menu/contacts) ---

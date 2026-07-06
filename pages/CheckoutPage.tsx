@@ -208,7 +208,7 @@ const digitsOnly = (value: string) => value.replace(/\D/g, '');
 
 export const CheckoutPage: React.FC = () => {
   // Хуки приложения
-  const { cart, region, t, clearCart, language, books } = useApp();
+  const { cart, region, t, clearCart, language } = useApp();
   const navigate = useNavigate();
 
   // Локальное состояние UI
@@ -240,13 +240,6 @@ export const CheckoutPage: React.FC = () => {
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
   const shippingCost = formData.shippingMethod === 'express' ? 15 : 5;
   const finalTotal = total + shippingCost;
-  const amazonUrl = useMemo(() => {
-    if (cart.length !== 1) return '';
-    const item = cart[0];
-    const book = books.find(entry => entry.id === item.bookId);
-    return book?.purchaseLinks?.amazon || '';
-  }, [books, cart]);
-  const canUseAmazon = Boolean(amazonUrl);
   const visaUrl = paymentSettings.visaPaymentUrl || '';
   const mastercardUrl = paymentSettings.mastercardPaymentUrl || '';
   const canUseVisa = Boolean(visaUrl);
@@ -279,23 +272,21 @@ export const CheckoutPage: React.FC = () => {
   useEffect(() => {
     if (formData.paymentMethod === 'visa' && canUseVisa) return;
     if (formData.paymentMethod === 'mastercard' && canUseMastercard) return;
-    if (formData.paymentMethod === 'amazon' && canUseAmazon) return;
     if (formData.paymentMethod === 'invoice' || formData.paymentMethod === 'mir') return;
 
-    const fallbackMethod = canUseVisa ? 'visa' : canUseMastercard ? 'mastercard' : canUseAmazon ? 'amazon' : 'invoice';
+    const fallbackMethod = canUseVisa ? 'visa' : canUseMastercard ? 'mastercard' : 'invoice';
     setFormData(prev => ({ ...prev, paymentMethod: fallbackMethod }));
-  }, [canUseAmazon, canUseMastercard, canUseVisa, formData.paymentMethod]);
+  }, [canUseMastercard, canUseVisa, formData.paymentMethod]);
 
   // Проверка валидности всей формы.
   // Используется для блокировки кнопки "Place Order".
   const isFormValid = useMemo(() => {
     if (currentStep !== 'payment') return true; // На первых шагах валидация через HTML5 (required)
     if (formData.paymentMethod === 'invoice' || formData.paymentMethod === 'mir') return true;
-    if (formData.paymentMethod === 'amazon') return canUseAmazon;
     if (formData.paymentMethod === 'visa') return canUseVisa;
     if (formData.paymentMethod === 'mastercard') return canUseMastercard;
     return true;
-  }, [currentStep, formData.paymentMethod, canUseAmazon, canUseMastercard, canUseVisa]);
+  }, [currentStep, formData.paymentMethod, canUseMastercard, canUseVisa]);
 
   // Переход к следующему шагу
   const handleNext = async (e: React.FormEvent) => {
@@ -327,11 +318,6 @@ export const CheckoutPage: React.FC = () => {
           setPaymentError(t('checkout.mastercard_error'));
           return;
       }
-      if (formData.paymentMethod === 'amazon' && !canUseAmazon) {
-          setPaymentError(t('checkout.amazon_error'));
-          return;
-      }
-
       setIsProcessing(true);
       setPaymentError(null);
 
@@ -355,9 +341,7 @@ export const CheckoutPage: React.FC = () => {
                   ? visaUrl
                   : formData.paymentMethod === 'mastercard'
                     ? mastercardUrl
-                    : formData.paymentMethod === 'amazon'
-                      ? amazonUrl
-                      : '';
+                    : '';
               setRedirectCheckoutUrl(nextRedirectUrl);
               setIsSuccess(true);
               clearCart();
@@ -411,17 +395,17 @@ export const CheckoutPage: React.FC = () => {
                     <span className="font-bold text-primary">{finalTotal.toFixed(2)} {region.currency}</span>
                  </div>
               </div>
-              {formData.paymentMethod === 'visa' || formData.paymentMethod === 'mastercard' || formData.paymentMethod === 'amazon' ? (
+              {formData.paymentMethod === 'visa' || formData.paymentMethod === 'mastercard' ? (
                 <div className="mb-8 border border-primary bg-[#F8F9FA] p-6 text-left space-y-4">
                   <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-400">
-                    {formData.paymentMethod === 'visa' ? t('checkout.visa_title') : formData.paymentMethod === 'mastercard' ? t('checkout.mastercard_title') : t('checkout.amazon_title')}
+                    {formData.paymentMethod === 'visa' ? t('checkout.visa_title') : t('checkout.mastercard_title')}
                   </p>
                   <p className="text-sm text-gray-700 leading-relaxed">
-                    {formData.paymentMethod === 'visa' ? t('checkout.visa_success_note') : formData.paymentMethod === 'mastercard' ? t('checkout.mastercard_success_note') : t('checkout.amazon_success_note')}
+                    {formData.paymentMethod === 'visa' ? t('checkout.visa_success_note') : t('checkout.mastercard_success_note')}
                   </p>
                   {redirectCheckoutUrl ? (
                     <a href={redirectCheckoutUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center border border-primary bg-primary text-white px-6 py-4 text-xs uppercase tracking-[0.18em] font-bold hover:bg-accent transition-colors">
-                      {formData.paymentMethod === 'visa' ? t('checkout.visa_cta') : formData.paymentMethod === 'mastercard' ? t('checkout.mastercard_cta') : t('checkout.amazon_cta')}
+                      {formData.paymentMethod === 'visa' ? t('checkout.visa_cta') : t('checkout.mastercard_cta')}
                     </a>
                   ) : null}
                 </div>
@@ -640,7 +624,7 @@ export const CheckoutPage: React.FC = () => {
                    <div className="space-y-8 animate-fade-in">
                       
                       {/* Переключатель метода оплаты */}
-                      <div className={`grid grid-cols-1 ${canUseAmazon ? 'md:grid-cols-5' : 'md:grid-cols-4'} border border-primary`}>
+                      <div className="grid grid-cols-1 md:grid-cols-4 border border-primary">
                          <button 
                             type="button"
                             onClick={() => canUseVisa && setFormData({...formData, paymentMethod: 'visa'})}
@@ -657,16 +641,7 @@ export const CheckoutPage: React.FC = () => {
                          >
                             {t('checkout.mastercard')}
                          </button>
-                         {canUseAmazon ? (
-                           <button 
-                             type="button"
-                             onClick={() => setFormData({...formData, paymentMethod: 'amazon'})}
-                             className={`py-4 text-xs uppercase tracking-[0.2em] font-bold transition-colors border-b md:border-b-0 md:border-r border-primary ${formData.paymentMethod === 'amazon' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-400 hover:text-primary'}`}
-                           >
-                             {t('checkout.amazon')}
-                           </button>
-                         ) : null}
-                         <button 
+                         <button
                              type="button"
                              onClick={() => setFormData({...formData, paymentMethod: 'invoice'})}
                              className={`py-4 text-xs uppercase tracking-[0.2em] font-bold transition-colors border-b md:border-b-0 md:border-r border-primary ${formData.paymentMethod === 'invoice' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-400 hover:text-primary'}`}
@@ -682,20 +657,20 @@ export const CheckoutPage: React.FC = () => {
                          </button>
                       </div>
 
-                      {(formData.paymentMethod === 'visa' || formData.paymentMethod === 'mastercard' || formData.paymentMethod === 'amazon') && (
+                      {(formData.paymentMethod === 'visa' || formData.paymentMethod === 'mastercard') && (
                         <div className="bg-[#F8F9FA] border border-gray-200 p-10 md:p-12 animate-fade-in">
                           <div className="flex items-center justify-between gap-4 mb-6">
                             <p className="text-gray-500 font-mono text-sm">
-                              {formData.paymentMethod === 'visa' ? t('checkout.visa_desc') : formData.paymentMethod === 'mastercard' ? t('checkout.mastercard_desc') : t('checkout.amazon_desc')}
+                              {formData.paymentMethod === 'visa' ? t('checkout.visa_desc') : t('checkout.mastercard_desc')}
                             </p>
-                            {(formData.paymentMethod === 'visa' || formData.paymentMethod === 'mastercard') ? <CardLogos activeType={formData.paymentMethod === 'visa' ? 'visa' : 'mastercard'} /> : null}
+                            <CardLogos activeType={formData.paymentMethod === 'visa' ? 'visa' : 'mastercard'} />
                           </div>
-                          {((formData.paymentMethod === 'visa' && visaUrl) || (formData.paymentMethod === 'mastercard' && mastercardUrl) || (formData.paymentMethod === 'amazon' && amazonUrl)) ? (
-                            <a href={formData.paymentMethod === 'visa' ? visaUrl : formData.paymentMethod === 'mastercard' ? mastercardUrl : amazonUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center border border-primary bg-primary text-white px-6 py-4 text-xs uppercase tracking-[0.18em] font-bold hover:bg-accent transition-colors">
-                              {formData.paymentMethod === 'visa' ? t('checkout.visa_cta') : formData.paymentMethod === 'mastercard' ? t('checkout.mastercard_cta') : t('checkout.amazon_cta')}
+                          {((formData.paymentMethod === 'visa' && visaUrl) || (formData.paymentMethod === 'mastercard' && mastercardUrl)) ? (
+                            <a href={formData.paymentMethod === 'visa' ? visaUrl : mastercardUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center border border-primary bg-primary text-white px-6 py-4 text-xs uppercase tracking-[0.18em] font-bold hover:bg-accent transition-colors">
+                              {formData.paymentMethod === 'visa' ? t('checkout.visa_cta') : t('checkout.mastercard_cta')}
                             </a>
                           ) : (
-                            <p className="text-sm text-red-500">{formData.paymentMethod === 'visa' ? t('checkout.visa_error') : formData.paymentMethod === 'mastercard' ? t('checkout.mastercard_error') : t('checkout.amazon_error')}</p>
+                            <p className="text-sm text-red-500">{formData.paymentMethod === 'visa' ? t('checkout.visa_error') : t('checkout.mastercard_error')}</p>
                           )}
                         </div>
                       )}

@@ -79,8 +79,9 @@
       "featureImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/story-ambook-001-1783281981001.webp",
       "detailPageUrl": "https://munister.com.ua/ambook.html"
     },
-    "purchaseLinks": {
-      "amazon": ""
-    }
+    "purchaseLinks": [
+      { "id": "mnogoknig", "label": "Mnogoknig", "url": "" },
+      { "id": "mostik", "label": "Mostik.de", "url": "" }
+    ]
   }
 ]

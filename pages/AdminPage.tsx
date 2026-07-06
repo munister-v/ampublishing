@@ -132,11 +132,8 @@ const contentGroups: ContentGroup[] = [
       { key: 'static.our_authors.subtitle', label: 'Подзаголовок «Наши авторы»', type: 'textarea' },
       { key: 'static.our_authors.gallery_label', label: 'Подпись галереи', type: 'text' },
       { key: 'static.our_authors.gallery_title', label: 'Заголовок галереи', type: 'text' },
-      { key: 'static.media.title', label: 'Заголовок СМИ', type: 'text' },
-      { key: 'static.media.subtitle', label: 'Подзаголовок СМИ', type: 'textarea' },
-      { key: 'static.media.kit_desc', label: 'Текст пресс-кита', type: 'textarea' },
-      { key: 'static.media.review_desc', label: 'Текст рецензий', type: 'textarea' },
-      { key: 'static.media.interview_desc', label: 'Текст интервью', type: 'textarea' },
+      { key: 'static.media.title', label: 'Заголовок «Мероприятия»', type: 'text' },
+      { key: 'static.media.subtitle', label: 'Подзаголовок «Мероприятия»', type: 'textarea' },
       { key: 'footer.desc', label: 'Описание в футере', type: 'textarea' },
     ],
   },
@@ -190,9 +187,10 @@ const createBookTemplate = (language: Language): Book => ({
     featureImageUrl: '',
     detailPageUrl: '',
   },
-  purchaseLinks: {
-    amazon: '',
-  },
+  purchaseLinks: [
+    { id: 'mnogoknig', label: 'Mnogoknig', url: '' },
+    { id: 'mostik', label: 'Mostik.de', url: '' },
+  ],
 });
 
 const createNewsTemplate = (): NewsItem => ({
@@ -1603,7 +1601,7 @@ export const AdminPage: React.FC = () => {
           {[
             { id: 'copy', label: 'Тексты сайта', icon: <FileText size={16} /> },
             { id: 'books', label: 'Книги', icon: <BookOpen size={16} /> },
-            { id: 'news', label: 'Новости', icon: <Newspaper size={16} /> },
+            { id: 'news', label: 'Мероприятия', icon: <Newspaper size={16} /> },
             { id: 'authors', label: 'Наши авторы', icon: <Globe size={16} /> },
             { id: 'about', label: 'О нас', icon: <Info size={16} /> },
             { id: 'site', label: 'Сайт / Шапка / Подвал', icon: <Layout size={16} /> },
@@ -1727,7 +1725,7 @@ export const AdminPage: React.FC = () => {
                 <p className="mt-1 font-serif text-3xl">{totalBooks}</p>
               </div>
               <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Новости</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Мероприятия</p>
                 <p className="mt-1 font-serif text-3xl">{totalNews}</p>
               </div>
               <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
@@ -1986,8 +1984,49 @@ export const AdminPage: React.FC = () => {
                     <LF label="Жанры (через запятую)" className="md:col-span-2">
                       <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="проза, лирика, историческая" />
                     </LF>
-                    <LF label="Ссылка на Amazon" className="md:col-span-2">
-                      <input value={bookDraft.purchaseLinks?.amazon || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, purchaseLinks: { ...(prev.purchaseLinks || {}), amazon: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://amazon.de/dp/..." />
+                    <LF label="Ссылки на книгу (магазины)" className="md:col-span-2">
+                      <div className="space-y-3">
+                        {(Array.isArray(bookDraft.purchaseLinks) ? bookDraft.purchaseLinks : []).map((link, idx) => (
+                          <div key={link.id} className="flex flex-col sm:flex-row gap-2">
+                            <input
+                              value={link.label}
+                              onChange={e => setBookDraft(prev => {
+                                if (!prev) return prev;
+                                const list = [...(Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : [])];
+                                list[idx] = { ...list[idx], label: e.target.value };
+                                return { ...prev, purchaseLinks: list };
+                              })}
+                              className="sm:w-1/3 border border-gray-300 px-4 py-3 text-sm"
+                              placeholder="Название (напр. Mnogoknig)"
+                            />
+                            <input
+                              value={link.url}
+                              onChange={e => setBookDraft(prev => {
+                                if (!prev) return prev;
+                                const list = [...(Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : [])];
+                                list[idx] = { ...list[idx], url: e.target.value };
+                                return { ...prev, purchaseLinks: list };
+                              })}
+                              className="flex-1 border border-gray-300 px-4 py-3 font-mono text-sm"
+                              placeholder="https://..."
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setBookDraft(prev => prev ? { ...prev, purchaseLinks: (Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : []).filter((_, i) => i !== idx) } : prev)}
+                              className="px-4 py-3 border border-gray-300 text-gray-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors text-xs uppercase font-bold shrink-0"
+                            >
+                              Удалить
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setBookDraft(prev => prev ? { ...prev, purchaseLinks: [...(Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : []), { id: `pl-${Date.now()}`, label: '', url: '' }] } : prev)}
+                          className="text-xs uppercase font-bold tracking-widest text-primary border border-gray-300 px-4 py-2 hover:bg-gray-50"
+                        >
+                          + Добавить ссылку
+                        </button>
+                      </div>
                     </LF>
                   </div>
 
@@ -2132,7 +2171,7 @@ export const AdminPage: React.FC = () => {
           <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-8">
             <section className="bg-white border border-primary/10">
               <div className="p-6 border-b border-primary/10 flex items-center justify-between">
-                <h3 className="text-2xl font-serif">Новости</h3>
+                <h3 className="text-2xl font-serif">Мероприятия</h3>
                 <button
                   onClick={() => {
                     const next = createNewsTemplate();
@@ -2231,6 +2270,12 @@ export const AdminPage: React.FC = () => {
                       onChange={e => setNewsDraft(prev => prev ? { ...prev, preview: (e.target as HTMLTextAreaElement).value } : prev)}
                       countType="words"
                       className="border border-gray-300 px-4 py-3" rows={5} />
+                  </LF>
+                  <LF label="Текст мероприятия (полный)">
+                    <AutoTextarea value={newsDraft.body || ''}
+                      onChange={e => setNewsDraft(prev => prev ? { ...prev, body: (e.target as HTMLTextAreaElement).value } : prev)}
+                      countType="words"
+                      className="border border-gray-300 px-4 py-3" rows={10} />
                   </LF>
                 </div>
               ) : (

@@ -6,7 +6,7 @@ import { useApp } from '../AppContext';
 
 export const BrandLogo: React.FC<{ className?: string; white?: boolean }> = ({ className = "w-10 h-10", white }) => (
   <img
-    src={white ? '/logo-white.png' : '/logo-dark.png'}
+    src={white ? '/logo-white.svg' : '/logo-dark.svg'}
     alt="AM Publishing"
     className={className}
     draggable={false}
@@ -51,9 +51,9 @@ export const Header: React.FC = () => {
         <div className="w-full h-full flex items-stretch">
           
           {/* Logo */}
-          <Link to="/" className="w-[96px] md:w-[120px] border-r border-primary flex items-center justify-center group relative overflow-hidden flex-shrink-0">
+          <Link to="/" className="w-[130px] md:w-[200px] border-r border-primary flex items-center justify-center group relative overflow-hidden flex-shrink-0 px-3">
              <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-out-quart" />
-             <div className="relative z-10 w-14 h-14 md:w-[60px] md:h-[60px]">
+             <div className="relative z-10 w-full h-10 md:h-[52px]">
                 <BrandLogo className="w-full h-full object-contain absolute inset-0 transition-opacity duration-500 group-hover:opacity-0" />
                 <BrandLogo white className="w-full h-full object-contain absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
              </div>
