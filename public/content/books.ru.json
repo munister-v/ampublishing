@@ -10,7 +10,7 @@
     ],
     "type": "publisher",
     "isPreorder": false,
-    "stock": 0,
+    "stock": 500,
     "description": "Кому понравится: \n\nТем, кто любит глубокую психологическую прозу о сломанных судьбах, поздних шансах и людях, которые пытаются выбраться из внутренней пустоты.",
     "details": {
       "pages": 468,
@@ -32,7 +32,7 @@
         "format": "paperback",
         "language": "Русский",
         "price": 0,
-        "stock": 0,
+        "stock": 500,
         "isbn": "AM-BOOK-HC-001"
       }
     ],
