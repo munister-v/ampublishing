@@ -6,6 +6,7 @@ import { Minus, Plus, ArrowLeft, AlertCircle, ExternalLink } from 'lucide-react'
 import { ProductCard } from '../components/ProductCard';
 import { BookVariant, Format } from '../types';
 import { formatLabel } from '../utils/formatLabel';
+import { getActivePurchaseLinks, getShopifyPurchaseLink, isShopifyPurchaseLink } from '../utils/purchaseLinks';
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,6 +42,8 @@ export const ProductPage: React.FC = () => {
 
   if (!book) return <div className="pt-32 text-center font-mono uppercase">{t('product.not_found')}</div>;
 
+  const shopifyLink = getShopifyPurchaseLink(book);
+  const secondaryPurchaseLinks = getActivePurchaseLinks(book).filter(link => !isShopifyPurchaseLink(link));
   const availableFormats = Array.from(new Set(book.variants.map(v => v.format))) as Format[];
   
   // Get languages available for the currently selected format
@@ -63,15 +66,19 @@ export const ProductPage: React.FC = () => {
 
   const handleAddToCart = () => {
     if (currentVariant && currentVariant.stock > 0) {
+      if (shopifyLink) {
+        window.location.assign(shopifyLink.url);
+        return;
+      }
       addToCart(book, currentVariant, qty);
     }
   };
 
   return (
-    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
       
       {/* HEADER NAV */}
-      <div className="border-b border-primary px-4 py-2 flex justify-between items-center bg-white sticky top-[60px] md:top-[80px] z-20">
+      <div className="border-b border-primary px-4 py-2 flex justify-between items-center bg-white sticky top-[58px] md:top-[76px] z-20">
          <Link to="/catalog" className="flex items-center gap-2 text-[10px] uppercase font-bold hover:text-accent">
             <ArrowLeft size={12} /> {t('cart.back_to_catalog')}
          </Link>
@@ -160,13 +167,13 @@ export const ProductPage: React.FC = () => {
                   )}
                </div>
 
-               {Array.isArray(book.purchaseLinks) && book.purchaseLinks.filter(l => l?.url?.trim()).length > 0 ? (
+               {secondaryPurchaseLinks.length > 0 ? (
                  <section className="border-t border-primary py-8 md:py-10">
                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
                        {t('product.buy_elsewhere_title')}
                     </p>
                     <div className="flex flex-wrap gap-3">
-                       {book.purchaseLinks.filter(l => l?.url?.trim()).map(link => (
+                       {secondaryPurchaseLinks.map(link => (
                           <a
                             key={link.id}
                             href={link.url}
@@ -221,8 +228,8 @@ export const ProductPage: React.FC = () => {
                      >
                         {!currentVariant 
                            ? t('product.select_variant') 
-                           : currentVariant.stock > 0 
-                             ? t('product.add_to_cart') 
+                           : currentVariant.stock > 0
+                             ? (shopifyLink ? t('product.buy_on_shopify') : t('product.add_to_cart'))
                              : t('product.out_of_stock')
                         }
                      </button>

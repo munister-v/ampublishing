@@ -197,6 +197,7 @@ const bookByLanguage = (lang: Language): Book => {
     ],
     story: storyByLanguage[lang],
     purchaseLinks: [
+      { id: 'shopify', label: 'Shopify', url: '' },
       { id: 'mnogoknig', label: 'Mnogoknig', url: '' },
       { id: 'mostik', label: 'Mostik.de', url: '' },
     ],

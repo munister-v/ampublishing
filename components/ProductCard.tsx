@@ -7,6 +7,7 @@ import { ShoppingBag, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { FadeImage } from './FadeImage';
 import { analytics } from '../services/analytics';
 import { formatLabel } from '../utils/formatLabel';
+import { getShopifyPurchaseLink } from '../utils/purchaseLinks';
 
 interface ProductCardProps {
   book: Book;
@@ -21,6 +22,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
   const mainVariant = book.variants[0];
   const isLowStock = book.stock > 0 && book.stock < 5;
   const isSoldOut = book.stock === 0 && !book.isPreorder;
+  const shopifyLink = getShopifyPurchaseLink(book);
+  const actionLabel = shopifyLink ? t('product.buy_on_shopify') : (book.isPreorder ? t('product.make_preorder') : t('product.add_to_cart'));
 
   // Handler for Quick Add
   const handleQuickAdd = (e: React.MouseEvent) => {
@@ -28,6 +31,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
     e.stopPropagation();
     
     if (mainVariant && book.stock > 0) {
+      if (shopifyLink) {
+        analytics.addToCart(book, mainVariant, 1);
+        window.location.assign(shopifyLink.url);
+        return;
+      }
       addToCart(book, mainVariant, 1);
       analytics.addToCart(book, mainVariant, 1);
     }
@@ -88,7 +96,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
                       onClick={handleQuickAdd}
                       className="flex items-center gap-2 text-xs uppercase font-bold tracking-widest text-primary hover:text-accent transition-colors"
                     >
-                       <span>{book.isPreorder ? t('product.make_preorder') : t('product.add_to_cart')}</span>
+                       <span>{actionLabel}</span>
                        <ArrowUpRight size={14} />
                     </button>
                  )}
@@ -172,7 +180,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
                   className="w-full bg-primary text-white py-4 flex items-center justify-center gap-2 text-xs uppercase font-bold tracking-widest hover:bg-accent transition-colors border-t border-white/20"
                 >
                    <ShoppingBag size={14} />
-                   <span>{book.isPreorder ? t('product.make_preorder') : t('product.add_to_cart')}</span>
+                   <span>{actionLabel}</span>
                 </button>
              </div>
            )}

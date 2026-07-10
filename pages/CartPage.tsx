@@ -13,7 +13,7 @@ export const CartPage: React.FC = () => {
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
 
   return (
-    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
       <div className="border-b border-primary p-6 md:p-12 bg-white">
         <h1 className="text-6xl md:text-9xl font-serif uppercase leading-none text-primary break-words">
            {t('cart.title')} <span className="text-3xl align-top text-gray-400">({cart.length})</span>
@@ -77,7 +77,7 @@ export const CartPage: React.FC = () => {
            </div>
 
            {/* TOTALS SIDEBAR */}
-           <div className="w-full lg:w-[400px] bg-[#E8EDF2] p-8 lg:p-12 flex flex-col justify-between sticky top-[80px] h-fit">
+           <div className="w-full lg:w-[400px] bg-[#E8EDF2] p-8 lg:p-12 flex flex-col justify-between sticky top-[76px] h-fit">
               <div>
                  <h2 className="text-3xl font-serif mb-8">{t('cart.summary')}</h2>
                  <div className="space-y-4 font-mono text-sm uppercase">

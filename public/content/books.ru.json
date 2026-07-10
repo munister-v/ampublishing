@@ -82,6 +82,11 @@
     },
     "purchaseLinks": [
       {
+        "id": "shopify",
+        "label": "Shopify",
+        "url": ""
+      },
+      {
         "id": "mnogoknig",
         "label": "Mnogoknig",
         "url": ""

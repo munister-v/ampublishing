@@ -188,6 +188,7 @@ const createBookTemplate = (language: Language): Book => ({
     detailPageUrl: '',
   },
   purchaseLinks: [
+    { id: 'shopify', label: 'Shopify', url: '' },
     { id: 'mnogoknig', label: 'Mnogoknig', url: '' },
     { id: 'mostik', label: 'Mostik.de', url: '' },
   ],
@@ -1986,6 +1987,9 @@ export const AdminPage: React.FC = () => {
                     </LF>
                     <LF label="Ссылки на книгу (магазины)" className="md:col-span-2">
                       <div className="space-y-3">
+                        <p className="text-xs leading-relaxed text-gray-500">
+                          Shopify-ссылка становится основной кнопкой покупки на сайте. Остальные ссылки показываются ниже как дополнительные магазины.
+                        </p>
                         {(Array.isArray(bookDraft.purchaseLinks) ? bookDraft.purchaseLinks : []).map((link, idx) => (
                           <div key={link.id} className="flex flex-col sm:flex-row gap-2">
                             <input
@@ -2010,6 +2014,11 @@ export const AdminPage: React.FC = () => {
                               className="flex-1 border border-gray-300 px-4 py-3 font-mono text-sm"
                               placeholder="https://..."
                             />
+                            {`${link.id || ''} ${link.label || ''} ${link.url || ''}`.toLowerCase().includes('shopify') ? (
+                              <span className="sm:self-center text-[10px] uppercase font-bold tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-2">
+                                checkout
+                              </span>
+                            ) : null}
                             <button
                               type="button"
                               onClick={() => setBookDraft(prev => prev ? { ...prev, purchaseLinks: (Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : []).filter((_, i) => i !== idx) } : prev)}
@@ -2019,13 +2028,28 @@ export const AdminPage: React.FC = () => {
                             </button>
                           </div>
                         ))}
-                        <button
-                          type="button"
-                          onClick={() => setBookDraft(prev => prev ? { ...prev, purchaseLinks: [...(Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : []), { id: `pl-${Date.now()}`, label: '', url: '' }] } : prev)}
-                          className="text-xs uppercase font-bold tracking-widest text-primary border border-gray-300 px-4 py-2 hover:bg-gray-50"
-                        >
-                          + Добавить ссылку
-                        </button>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setBookDraft(prev => {
+                              if (!prev) return prev;
+                              const list = Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : [];
+                              const hasShopify = list.some(link => `${link.id} ${link.label} ${link.url}`.toLowerCase().includes('shopify'));
+                              if (hasShopify) return prev;
+                              return { ...prev, purchaseLinks: [{ id: 'shopify', label: 'Shopify', url: '' }, ...list] };
+                            })}
+                            className="text-xs uppercase font-bold tracking-widest text-white bg-primary border border-primary px-4 py-2 hover:bg-accent hover:border-accent transition-colors"
+                          >
+                            + Shopify checkout
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBookDraft(prev => prev ? { ...prev, purchaseLinks: [...(Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : []), { id: `pl-${Date.now()}`, label: '', url: '' }] } : prev)}
+                            className="text-xs uppercase font-bold tracking-widest text-primary border border-gray-300 px-4 py-2 hover:bg-gray-50"
+                          >
+                            + Добавить ссылку
+                          </button>
+                        </div>
                       </div>
                     </LF>
                   </div>

@@ -168,7 +168,7 @@ export const CatalogPage: React.FC = () => {
   const allFormats: Format[] = ['hardcover', 'paperback', 'digital', 'special_edition'];
 
   return (
-    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
       
       {/* 1. CATALOG HEADER */}
       <div className="border-b border-primary p-6 md:p-12 bg-white flex flex-col md:flex-row justify-between items-end gap-6 relative z-20">
@@ -244,7 +244,7 @@ export const CatalogPage: React.FC = () => {
         
         {/* 2. SIDEBAR FILTERS (Sticky) */}
         <aside className="hidden md:block w-[300px] xl:w-[360px] border-r border-primary bg-[#F4F4F0] flex-shrink-0 relative z-10">
-           <div className="sticky top-[80px] h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar p-8">
+           <div className="sticky top-[76px] h-[calc(100vh-76px)] overflow-y-auto custom-scrollbar p-8">
               
               {/* Removed Active Filters Block as requested */}
 
@@ -324,7 +324,7 @@ export const CatalogPage: React.FC = () => {
         </aside>
 
         {/* Mobile Filter Button */}
-        <div className="md:hidden border-b border-primary p-4 sticky top-[60px] bg-white z-30 flex justify-between items-center shadow-md">
+        <div className="md:hidden border-b border-primary p-4 sticky top-[58px] bg-white z-30 flex justify-between items-center shadow-md">
             <span className="font-mono text-xs font-bold">{t('catalog.results_count', { count: filteredBooks.length })}</span>
             <button onClick={() => setMobileFiltersOpen(true)} className="flex items-center gap-2 text-xs uppercase font-bold border border-primary px-4 py-3 bg-primary text-white">
                 {t('catalog.filters.title')} <Filter size={14}/>

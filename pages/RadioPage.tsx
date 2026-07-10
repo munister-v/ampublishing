@@ -1571,7 +1571,7 @@ export const RadioPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#F4F4F0] text-primary font-sans pt-[60px] md:pt-[80px] min-h-screen">
+    <div className="bg-[#F4F4F0] text-primary font-sans pt-[58px] md:pt-[76px] min-h-screen">
       <style>{`@keyframes eqBar{from{transform:scaleY(0.3)}to{transform:scaleY(1)}}`}</style>
 
       {/* ════ HERO ════ */}

@@ -375,7 +375,7 @@ export const CheckoutPage: React.FC = () => {
   // Экран успешного заказа
   if (isSuccess) {
      return (
-        <div className="bg-[#F4F4F0] pt-[80px] flex items-center justify-center p-6">
+        <div className="bg-[#F4F4F0] pt-[76px] flex items-center justify-center p-6">
            <div className="bg-white p-12 max-w-lg w-full border border-primary text-center shadow-[20px_20px_0px_0px_rgba(4,15,30,0.05)] animate-fade-up">
               <div className="flex justify-center mb-8">
                  <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center text-white">
@@ -444,12 +444,12 @@ export const CheckoutPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#F4F4F0] pt-[60px] md:pt-[80px]">
+    <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
        
        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-80px)]">
           
           {/* МОБИЛЬНОЕ РЕЗЮМЕ ЗАКАЗА (Sticky Header для мобильных) */}
-          <div className="lg:hidden border-b border-primary bg-[#E8EDF2] sticky top-[60px] z-20">
+          <div className="lg:hidden border-b border-primary bg-[#E8EDF2] sticky top-[58px] z-20">
              <button 
                 onClick={() => setMobileSummaryOpen(!mobileSummaryOpen)}
                 className="w-full flex justify-between items-center p-4"
@@ -750,7 +750,7 @@ export const CheckoutPage: React.FC = () => {
           </div>
 
           {/* ПРАВАЯ КОЛОНКА: ИТОГ ЗАКАЗА (Десктоп) */}
-          <div className="hidden lg:block lg:col-span-5 bg-[#F4F4F0] p-6 md:p-12 border-t lg:border-t-0 border-primary sticky top-[80px] h-fit">
+          <div className="hidden lg:block lg:col-span-5 bg-[#F4F4F0] p-6 md:p-12 border-t lg:border-t-0 border-primary sticky top-[76px] h-fit">
              <div className="mb-8 pb-4 border-b border-primary/20 flex justify-between items-end">
                 <h3 className="font-serif text-3xl">{t('cart.summary')}</h3>
                 <span className="font-mono text-xs text-gray-400">{t('catalog.items_count', { count: cart.length })}</span>

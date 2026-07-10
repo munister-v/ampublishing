@@ -47,13 +47,13 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-40 bg-[#F4F4F0] border-b border-primary text-primary h-[60px] md:h-[80px]">
+      <header className="fixed top-0 left-0 w-full z-40 bg-[#F4F4F0] border-b border-primary text-primary h-[58px] md:h-[76px]">
         <div className="w-full h-full flex items-stretch">
           
           {/* Logo */}
-          <Link to="/" className="w-[130px] md:w-[200px] border-r border-primary flex items-center justify-center group relative overflow-hidden flex-shrink-0 px-3">
+          <Link to="/" className="w-[118px] md:w-[190px] border-r border-primary flex items-center justify-center group relative overflow-hidden flex-shrink-0 px-3">
              <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-out-quart" />
-             <div className="relative z-10 w-full h-10 md:h-[52px]">
+             <div className="relative z-10 w-full h-9 md:h-12">
                 <BrandLogo className="w-full h-full object-contain absolute inset-0 transition-opacity duration-500 group-hover:opacity-0" />
                 <BrandLogo white className="w-full h-full object-contain absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
              </div>
@@ -91,7 +91,7 @@ export const Header: React.FC = () => {
           <div className="flex items-stretch">
              <button 
               onClick={() => setSearchOpen(!searchOpen)}
-              className={`w-[60px] md:w-[80px] border-r border-primary flex items-center justify-center transition-colors duration-500 relative group overflow-hidden ${searchOpen ? 'text-white' : ''}`}
+              className={`w-[56px] md:w-[76px] border-r border-primary flex items-center justify-center transition-colors duration-500 relative group overflow-hidden ${searchOpen ? 'text-white' : ''}`}
             >
               <div className={`absolute inset-0 bg-primary transition-transform duration-500 ease-out-quart ${searchOpen ? 'translate-y-0' : 'translate-y-full group-hover:translate-y-0'}`}></div>
               <div className="relative z-10 group-hover:text-white transition-colors duration-500">
@@ -113,7 +113,7 @@ export const Header: React.FC = () => {
 
             <button 
               onClick={() => setCartOpen(true)} 
-              className="w-[70px] md:w-[100px] flex items-center justify-center relative group overflow-hidden border-primary border-l md:border-l-0"
+              className="w-[64px] md:w-[94px] flex items-center justify-center relative group overflow-hidden border-primary border-l md:border-l-0"
             >
               <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out-quart"></div>
               <div className="relative z-10 flex items-center group-hover:text-white transition-colors duration-500">
@@ -124,7 +124,7 @@ export const Header: React.FC = () => {
 
              <button 
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden w-[60px] border-l border-primary flex items-center justify-center bg-primary text-white"
+              className="lg:hidden w-[56px] border-l border-primary flex items-center justify-center bg-primary text-white"
             >
               <Menu size={20} />
             </button>
@@ -134,7 +134,7 @@ export const Header: React.FC = () => {
 
       {/* Advanced Search Overlay */}
       {searchOpen && (
-        <div className="fixed top-[60px] md:top-[80px] left-0 w-full bg-primary text-white z-30 border-b border-white/20 animate-slide-down origin-top gpu-accelerated shadow-2xl">
+        <div className="fixed top-[58px] md:top-[76px] left-0 w-full bg-primary text-white z-30 border-b border-white/20 animate-slide-down origin-top gpu-accelerated shadow-2xl">
           <div className="container mx-auto grid grid-cols-1 md:grid-cols-12 min-h-[320px] md:min-h-[400px]">
             
             {/* Input Area */}
@@ -206,7 +206,7 @@ export const Header: React.FC = () => {
       {/* Mobile Menu (Existing) */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-primary text-white flex flex-col animate-fade-in gpu-accelerated">
-           <div className="h-[60px] border-b border-white/20 flex justify-end items-center px-4">
+           <div className="h-[58px] border-b border-white/20 flex justify-end items-center px-4">
              <button onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 text-xs uppercase tracking-widest">
                 {t('common.close')} <X size={20} />
              </button>
