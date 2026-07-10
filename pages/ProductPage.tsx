@@ -82,12 +82,12 @@ export const ProductPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 border-b border-primary">
          
          {/* LEFT: IMAGE (Sticky) */}
-         <div className="lg:border-r border-primary bg-[#E8EDF2] relative h-[52vh] sm:h-[60vh] lg:h-[calc(100vh-120px)] lg:sticky lg:top-[120px] flex items-center justify-center p-6 md:p-8 lg:p-20 overflow-hidden">
-             <div className="relative w-full h-full shadow-[20px_20px_0px_0px_rgba(4,15,30,0.1)] border border-primary bg-white animate-fade-in">
+         <div className="lg:border-r border-primary bg-[#E8EDF2] relative h-[58vh] sm:h-[64vh] lg:h-[calc(100vh-120px)] lg:sticky lg:top-[120px] flex items-center justify-center p-5 md:p-8 lg:p-20 overflow-hidden">
+             <div className="relative w-full h-full shadow-[20px_20px_0px_0px_rgba(4,15,30,0.1)] border border-primary bg-white animate-fade-in p-3 md:p-4">
                 <img 
                   src={book.coverUrl} 
                   alt={book.title}
-                  className="w-full h-full object-cover grayscale contrast-110"
+                  className="w-full h-full object-contain grayscale contrast-110"
                 />
              </div>
              {/* Badge */}
