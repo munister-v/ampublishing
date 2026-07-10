@@ -1,1 +1,104 @@
-[]
+[
+  {
+    "id": "ambook-001",
+    "aliases": [
+      "ambook-001-copy"
+    ],
+    "title": "Everything That Remains",
+    "author": "Sergey Kalinin",
+    "price": 0,
+    "coverUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/cover-ambook-001-copy-1783444144753.webp",
+    "badges": [
+      "preorder"
+    ],
+    "type": "publisher",
+    "isPreorder": false,
+    "stock": 500,
+    "description": "Who it is for:\n\nReaders who love deep psychological prose about broken lives, late chances, and people trying to find a way out of inner emptiness.",
+    "details": {
+      "pages": 468,
+      "year": 2026,
+      "publisher": "AM Publishing Berlin",
+      "weight": "SOFTCOVER",
+      "dimensions": "Small print run"
+    },
+    "genre": [
+      "Contemporary Prose",
+      "Psychological Fiction"
+    ],
+    "series": "AM Publishing",
+    "ageRating": "16+",
+    "releaseDate": "2026-10-01",
+    "variants": [
+      {
+        "id": "ambook-001-hc",
+        "format": "paperback",
+        "language": "Russian",
+        "price": 0,
+        "stock": 500,
+        "isbn": "AM-BOOK-HC-001"
+      }
+    ],
+    "story": {
+      "quote": "...how to answer that strange, unsettling question: what will remain after me?",
+      "quoteSource": "From the novel, chapter 49",
+      "about": [
+        "Synopsis:",
+        "Oleg has spent almost half his life in prison. Over the years he has lost everything: his family, his past, and himself. Once released, he wants to finish one last matter - a matter of honour. He will have to find the strength to repay debts to those who have long stopped waiting for him.",
+        "Dasha no longer believes her marriage can be saved. Routine, exhaustion, and a sense of inner emptiness have pushed joy out of her life. Beside her is a man who has long stopped striving for anything. And yet, somewhere deep inside, she still hopes that life can begin again.",
+        "Robert is used to keeping his life under control, but after an accident everything turns upside down. Now he has to return to the very beginning, and he has no right to weakness, because he is responsible not only for himself.",
+        "Three lives. Three people who have lost their footing.\nWhat happens when their stories cross?\nA novel about choice, inner strength, and the attempt to find oneself when everything seems lost."
+      ],
+      "excerpt": [
+        "As usual, he stopped about twenty metres before the entrance. He looked around carefully and pretended to search for something in a large black bag. From here he could not be seen from the windows of the old five-storey building, yet he had a clear view of everything. Once he was sure there was no reason to worry, he quickly pulled on a jacket with a large, obscure Rem-zhilstroy inscription, which he had picked up at a construction site about a month earlier. He slung a bag over his shoulder, found there as well, one that looked very much like the kind carried by repairmen and utility workers. Now he could be an electrician, a plumber, or almost anyone else. Caution and attentiveness had long become the basic principles of his life. Especially now, when everything looked almost too good, he did not want to scare off luck with careless haste or confidence."
+      ],
+      "authorBio": [
+        "Sergey Kalinin is a prose writer whose texts combine rare psychological precision with dense atmosphere. He writes about people at breaking points: when the familiar collapses and the new has not yet taken shape."
+      ],
+      "themes": [
+        {
+          "title": "Guilt and redemption",
+          "text": ""
+        },
+        {
+          "title": "Fatherhood and lost family",
+          "text": ""
+        },
+        {
+          "title": "A second chance",
+          "text": ""
+        },
+        {
+          "title": "Inner strength",
+          "text": ""
+        }
+      ],
+      "reviews": [
+        {
+          "quote": "This book left not just warmth in my soul, but real inspiration. After books like this, you want to move mountains.\n\nIt has been a long time since a literary character inspired me so deeply.\n\nThe story is filled with light and faith in the better. After it, you are left with the feeling that even after the hardest trials, one can find the strength to keep going.",
+          "author": "Maria Surkont, founder of the publishing house"
+        }
+      ],
+      "orderNote": "Softcover. Offset printing.",
+      "featureImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/story-ambook-001-copy-1783444164683.webp",
+      "detailPageUrl": "https://munister.com.ua/ambook.html"
+    },
+    "purchaseLinks": [
+      {
+        "id": "shopify",
+        "label": "Shopify",
+        "url": ""
+      },
+      {
+        "id": "mnogoknig",
+        "label": "Mnogoknig",
+        "url": ""
+      },
+      {
+        "id": "mostik",
+        "label": "Mostik.de",
+        "url": ""
+      }
+    ]
+  }
+]

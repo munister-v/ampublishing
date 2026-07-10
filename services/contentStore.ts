@@ -351,17 +351,21 @@ const ensureLoaded = async (): Promise<void> => {
       fetchContent<Partial<SiteSettings> | null>('site-settings.json', null),
     ]);
 
+    const ruBooks = keepFallbackWhenEmpty(bru, fallbackBooks('ru'));
+    const enBooks = keepFallbackWhenEmpty(ben, ruBooks);
+    const deBooks = keepFallbackWhenEmpty(bde, ruBooks);
+
     cache.database = {
       ru: normalizeLanguageData(
-        keepFallbackWhenEmpty(bru, fallbackBooks('ru')),
+        ruBooks,
         keepFallbackWhenEmpty(nru, fallbackNews('ru')),
       ),
       en: normalizeLanguageData(
-        keepFallbackWhenEmpty(ben, fallbackBooks('en')),
+        enBooks,
         keepFallbackWhenEmpty(nen, fallbackNews('en')),
       ),
       de: normalizeLanguageData(
-        keepFallbackWhenEmpty(bde, fallbackBooks('de')),
+        deBooks,
         keepFallbackWhenEmpty(nde, fallbackNews('de')),
       ),
     };

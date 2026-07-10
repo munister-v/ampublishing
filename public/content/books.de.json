@@ -1,1 +1,104 @@
-[]
+[
+  {
+    "id": "ambook-001",
+    "aliases": [
+      "ambook-001-copy"
+    ],
+    "title": "Alles, was bleibt",
+    "author": "Sergey Kalinin",
+    "price": 0,
+    "coverUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/cover-ambook-001-copy-1783444144753.webp",
+    "badges": [
+      "preorder"
+    ],
+    "type": "publisher",
+    "isPreorder": false,
+    "stock": 500,
+    "description": "Für wen dieses Buch ist:\n\nFür Leserinnen und Leser, die tiefgehende psychologische Prosa über zerbrochene Schicksale, späte Chancen und Menschen lieben, die versuchen, aus innerer Leere herauszufinden.",
+    "details": {
+      "pages": 468,
+      "year": 2026,
+      "publisher": "AM Publishing Berlin",
+      "weight": "SOFTCOVER",
+      "dimensions": "Small print run"
+    },
+    "genre": [
+      "Zeitgenössische Prosa",
+      "Psychologische Literatur"
+    ],
+    "series": "AM Publishing",
+    "ageRating": "16+",
+    "releaseDate": "2026-10-01",
+    "variants": [
+      {
+        "id": "ambook-001-hc",
+        "format": "paperback",
+        "language": "Russisch",
+        "price": 0,
+        "stock": 500,
+        "isbn": "AM-BOOK-HC-001"
+      }
+    ],
+    "story": {
+      "quote": "...wie man diese seltsame, beunruhigende Frage beantwortet: Was wird nach mir bleiben?",
+      "quoteSource": "Aus dem Roman, Kapitel 49",
+      "about": [
+        "Synopsis:",
+        "Oleg hat fast die Hälfte seines Lebens im Gefängnis verbracht. In diesen Jahren hat er alles verloren: seine Familie, seine Vergangenheit und sich selbst. Nach seiner Entlassung will er eine letzte Sache zu Ende bringen - eine Sache der Ehre. Er muss erneut die Kraft finden, seine Schulden bei denen zu begleichen, die längst aufgehört haben, auf ihn zu warten.",
+        "Dasha glaubt nicht mehr daran, dass ihre Ehe zu retten ist. Alltag, Müdigkeit und ein Gefühl innerer Leere haben die Freude aus ihrem Leben verdrängt. Neben ihr ist ein Mensch, der längst aufgehört hat, nach etwas zu streben. Und doch glimmt irgendwo tief in ihr noch die Hoffnung, dass das Leben neu beginnen kann.",
+        "Robert ist daran gewöhnt, sein Leben unter Kontrolle zu halten, doch nach einem Unfall wird alles auf den Kopf gestellt. Nun muss er ganz von vorn anfangen, und er hat kein Recht auf Schwäche, denn er ist nicht nur für sich selbst verantwortlich.",
+        "Drei Schicksale. Drei Menschen, die den Halt verloren haben.\nWas geschieht, wenn sich ihre Geschichten kreuzen?\nEin Roman über Entscheidung, innere Kraft und den Versuch, sich selbst zu finden, wenn alles verloren scheint."
+      ],
+      "excerpt": [
+        "Wie gewohnt blieb er etwa zwanzig Meter vor dem Hauseingang stehen. Er sah sich aufmerksam um und tat so, als suche er etwas in einer großen schwarzen Tasche. Von hier aus konnte man ihn aus den Fenstern des alten fünfstöckigen Hauses nicht sehen, zugleich hatte er einen ausgezeichneten Überblick. Als er sicher war, dass es keinen Grund zur Sorge gab, zog er schnell die Jacke mit der großen, unverständlichen Aufschrift Rem-zhilstroy über, die er vor etwa einem Monat auf einer Baustelle mitgenommen hatte. Er warf sich eine Tasche über die Schulter, ebenfalls von dort, die stark an die Taschen von Handwerkern und Versorgungsarbeitern erinnerte. Nun konnte er Elektriker, Klempner oder fast jeder andere sein. Vorsicht und Aufmerksamkeit waren längst zu seinen Grundprinzipien geworden. Besonders jetzt, wo alles fast zu gut aussah, wollte er das Glück nicht durch banale Eile oder Selbstsicherheit verscheuchen."
+      ],
+      "authorBio": [
+        "Sergey Kalinin ist ein Prosaautor, dessen Texte seltene psychologische Genauigkeit mit dichter Atmosphäre verbinden. Er schreibt über Menschen an Wendepunkten: wenn das Vertraute zerbricht und das Neue noch keine Form hat."
+      ],
+      "themes": [
+        {
+          "title": "Schuld und Erlösung",
+          "text": ""
+        },
+        {
+          "title": "Vaterschaft und verlorene Familie",
+          "text": ""
+        },
+        {
+          "title": "Eine zweite Chance",
+          "text": ""
+        },
+        {
+          "title": "Innere Stärke",
+          "text": ""
+        }
+      ],
+      "reviews": [
+        {
+          "quote": "Dieses Buch hat in meiner Seele nicht nur Wärme hinterlassen, sondern echte Ermutigung. Nach solchen Büchern möchte man Berge versetzen.\n\nSchon lange hat mich keine Romanfigur so sehr inspiriert.\n\nDiese Geschichte ist voller Licht und Glauben an das Gute. Danach bleibt das Gefühl, dass man selbst nach den schwersten Prüfungen die Kraft finden kann, weiterzugehen.",
+          "author": "Maria Surkont, Gründerin des Verlags"
+        }
+      ],
+      "orderNote": "Softcover. Offsetdruck.",
+      "featureImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/story-ambook-001-copy-1783444164683.webp",
+      "detailPageUrl": "https://munister.com.ua/ambook.html"
+    },
+    "purchaseLinks": [
+      {
+        "id": "shopify",
+        "label": "Shopify",
+        "url": ""
+      },
+      {
+        "id": "mnogoknig",
+        "label": "Mnogoknig",
+        "url": ""
+      },
+      {
+        "id": "mostik",
+        "label": "Mostik.de",
+        "url": ""
+      }
+    ]
+  }
+]
