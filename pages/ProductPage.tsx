@@ -259,7 +259,7 @@ export const ProductPage: React.FC = () => {
           {/* Feature image */}
           {book.story.featureImageUrl ? (
             <div className="border-b border-primary">
-              <img src={book.story.featureImageUrl} alt={book.title} className="w-full max-h-[70vh] object-cover" />
+              <img src={book.story.featureImageUrl} alt={book.title} className="w-full max-h-[70vh] object-cover" loading="lazy" />
             </div>
           ) : null}
 

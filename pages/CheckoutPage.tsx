@@ -126,11 +126,14 @@ interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 // Переиспользуемый компонент поля ввода с отображением ошибок и иконок
-const InputField: React.FC<InputFieldProps> = ({ label, error, icon, className = "", ...props }) => (
+const InputField: React.FC<InputFieldProps> = ({ label, error, icon, className = "", id, ...props }) => {
+  const generatedId = React.useId();
+  const inputId = id || generatedId;
+  return (
   <div className={`relative group ${className}`}>
     <div className="flex justify-between items-end mb-2">
        {/* Лейбл меняет цвет при фокусе, если нет ошибки */}
-       <label className={`text-[9px] uppercase tracking-[0.2em] font-bold transition-colors ${error ? 'text-red-500' : 'text-gray-400 group-focus-within:text-primary'}`}>
+       <label htmlFor={inputId} className={`text-[9px] uppercase tracking-[0.2em] font-bold transition-colors ${error ? 'text-red-500' : 'text-gray-400 group-focus-within:text-primary'}`}>
          {label}
        </label>
        {/* Анимация появления ошибки */}
@@ -142,6 +145,7 @@ const InputField: React.FC<InputFieldProps> = ({ label, error, icon, className =
     </div>
     <div className="relative">
        <input
+         id={inputId}
          {...props}
          className={`
             w-full bg-[#F8F9FA] border-b-2 p-3 font-mono text-base rounded-none
@@ -159,7 +163,8 @@ const InputField: React.FC<InputFieldProps> = ({ label, error, icon, className =
        )}
     </div>
   </div>
-);
+  );
+};
 
 // Компонент логотипов карт (затухают, если тип карты не совпадает)
 const CardLogos = ({ activeType }: { activeType: 'visa' | 'mastercard' | null }) => (
@@ -516,6 +521,7 @@ export const CheckoutPage: React.FC = () => {
                             value={formData.firstName}
                             onChange={e => setFormData({...formData, firstName: e.target.value})}
                             required
+                            autoComplete="given-name"
                             placeholder="John"
                             icon={<User size={14} />}
                          />
@@ -524,6 +530,7 @@ export const CheckoutPage: React.FC = () => {
                             value={formData.lastName}
                             onChange={e => setFormData({...formData, lastName: e.target.value})}
                             required
+                            autoComplete="family-name"
                             placeholder="Doe"
                          />
                       </div>
@@ -534,6 +541,7 @@ export const CheckoutPage: React.FC = () => {
                          value={formData.email}
                          onChange={e => setFormData({...formData, email: e.target.value})}
                          required
+                         autoComplete="email"
                          placeholder="john@example.com"
                       />
 
@@ -542,6 +550,7 @@ export const CheckoutPage: React.FC = () => {
                          type="tel"
                          value={formData.phone}
                          onChange={e => setFormData({...formData, phone: e.target.value})}
+                         autoComplete="tel"
                          placeholder="+49 ..."
                       />
 
@@ -550,6 +559,7 @@ export const CheckoutPage: React.FC = () => {
                          value={formData.address}
                          onChange={e => setFormData({...formData, address: e.target.value})}
                          required
+                         autoComplete="shipping street-address"
                          placeholder="Street, House No."
                          icon={<MapPin size={14} />}
                       />
@@ -561,6 +571,7 @@ export const CheckoutPage: React.FC = () => {
                                 value={formData.city}
                                 onChange={e => setFormData({...formData, city: e.target.value})}
                                 required
+                                autoComplete="shipping address-level2"
                                 placeholder="Berlin"
                             />
                          </div>
@@ -570,6 +581,7 @@ export const CheckoutPage: React.FC = () => {
                                 value={formData.zip}
                                 onChange={e => setFormData({...formData, zip: e.target.value})}
                                 required
+                                autoComplete="shipping postal-code"
                                 placeholder="10115"
                             />
                          </div>
@@ -579,6 +591,7 @@ export const CheckoutPage: React.FC = () => {
                                 value={formData.country}
                                 onChange={e => setFormData({...formData, country: e.target.value})}
                                 required
+                                autoComplete="shipping country-name"
                                 placeholder="Germany"
                             />
                          </div>

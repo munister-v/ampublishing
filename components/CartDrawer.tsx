@@ -28,7 +28,7 @@ export const CartDrawer: React.FC = () => {
           
           <div className="p-6 border-b border-primary flex items-center justify-between bg-white">
             <h2 className="text-xl uppercase tracking-widest font-bold">{t('cart.your_order')}</h2>
-            <button onClick={() => setCartOpen(false)} className="hover:rotate-90 transition-transform duration-700 ease-out-quart">
+            <button onClick={() => setCartOpen(false)} aria-label="Close cart" className="hover:rotate-90 transition-transform duration-700 ease-out-quart">
               <X size={24} />
             </button>
           </div>

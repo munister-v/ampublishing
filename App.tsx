@@ -47,7 +47,7 @@ const AppContent: React.FC = () => {
   const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname.startsWith('/radio/admin');
 
   return (
-    <div className="flex flex-col min-h-screen font-sans text-primary">
+    <div className="flex flex-col min-h-dvh font-sans text-primary">
       <SEO />
       {!isAdminRoute && <Preloader />}
       {!isAdminRoute && <Header />}

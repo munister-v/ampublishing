@@ -91,6 +91,7 @@ export const Header: React.FC = () => {
           <div className="flex items-stretch">
              <button 
               onClick={() => setSearchOpen(!searchOpen)}
+              aria-label="Toggle Search"
               className={`w-[56px] md:w-[76px] border-r border-primary flex items-center justify-center transition-colors duration-500 relative group overflow-hidden ${searchOpen ? 'text-white' : ''}`}
             >
               <div className={`absolute inset-0 bg-primary transition-transform duration-500 ease-out-quart ${searchOpen ? 'translate-y-0' : 'translate-y-full group-hover:translate-y-0'}`}></div>
@@ -113,6 +114,7 @@ export const Header: React.FC = () => {
 
             <button 
               onClick={() => setCartOpen(true)} 
+              aria-label="Open Cart"
               className="w-[64px] md:w-[94px] flex items-center justify-center relative group overflow-hidden border-primary border-l md:border-l-0"
             >
               <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out-quart"></div>
@@ -124,6 +126,7 @@ export const Header: React.FC = () => {
 
              <button 
               onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open Menu"
               className="lg:hidden w-[56px] border-l border-primary flex items-center justify-center bg-primary text-white"
             >
               <Menu size={20} />
@@ -207,7 +210,7 @@ export const Header: React.FC = () => {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-primary text-white flex flex-col animate-fade-in gpu-accelerated">
            <div className="h-[58px] border-b border-white/20 flex justify-end items-center px-4">
-             <button onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 text-xs uppercase tracking-widest">
+             <button onClick={() => setMobileMenuOpen(false)} aria-label="Close Menu" className="flex items-center gap-2 text-xs uppercase tracking-widest">
                 {t('common.close')} <X size={20} />
              </button>
            </div>

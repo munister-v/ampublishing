@@ -40,7 +40,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F4F0] flex items-center justify-center p-6">
+    <div className="min-h-dvh bg-[#F4F4F0] flex items-center justify-center p-6">
       <div className="bg-white border border-primary p-12 max-w-md w-full shadow-2xl relative overflow-hidden">
 
         <div className="absolute top-0 right-0 p-4 opacity-10">
