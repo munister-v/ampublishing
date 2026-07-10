@@ -1,6 +1,9 @@
 [
   {
     "id": "ambook-001",
+    "aliases": [
+      "ambook-001-copy"
+    ],
     "title": "Всё, что останется",
     "author": "Сергей Калинин",
     "price": 0,

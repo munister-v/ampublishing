@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { Minus, Plus, ArrowLeft, AlertCircle, ExternalLink } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
@@ -8,11 +8,12 @@ import { BookVariant, Format, PurchaseLink } from '../types';
 import { formatLabel } from '../utils/formatLabel';
 import { getActivePurchaseLinks, getShopifyPurchaseLink, isShopifyPurchaseLink } from '../utils/purchaseLinks';
 import { toGenitiveRu } from '../utils/declension';
+import { findBookByRouteId, getBookPath, isAliasRoute } from '../utils/bookRoutes';
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { addToCart, region, t, addRecentlyViewed, books, language } = useApp();
-  const book = books.find(b => b.id === id);
+  const book = findBookByRouteId(books, id);
   const [qty, setQty] = useState(1);
   const relatedBooks = book ? books.filter(b => b.genre[0] === book.genre[0] && b.id !== book.id).slice(0, 4) : [];
   
@@ -42,6 +43,7 @@ export const ProductPage: React.FC = () => {
   }, [selectedFormat, selectedLanguage, book]);
 
   if (!book) return <div className="pt-32 text-center font-mono uppercase">{t('product.not_found')}</div>;
+  if (isAliasRoute(book, id)) return <Navigate to={getBookPath(book)} replace />;
 
   const shopifyLink = getShopifyPurchaseLink(book);
   const secondaryPurchaseLinks = getActivePurchaseLinks(book).filter((link): link is PurchaseLink => !isShopifyPurchaseLink(link));

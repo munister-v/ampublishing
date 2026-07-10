@@ -13,6 +13,7 @@ import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAu
 import { translations } from '../translations';
 import { toGenitiveRu } from '../utils/declension';
 import { getShopifyPurchaseLink } from '../utils/purchaseLinks';
+import { getBookPath } from '../utils/bookRoutes';
 import { Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
@@ -163,6 +164,7 @@ const contentGroups: ContentGroup[] = [
 
 const createBookTemplate = (language: Language): Book => ({
   id: `book-${Date.now()}`,
+  aliases: [],
   title: '',
   author: '',
   price: 0,
@@ -272,8 +274,6 @@ const createCopySlug = (book: Book) => {
   return `${base}-${Date.now().toString(36).slice(-5)}`;
 };
 
-const publicBookPath = (bookId: string) => `/product/${encodeURIComponent(bookId)}`;
-
 const isValidHttpUrl = (value: string) => {
   if (!value.trim()) return true;
   try {
@@ -283,6 +283,12 @@ const isValidHttpUrl = (value: string) => {
     return false;
   }
 };
+
+const parseAliases = (value: string) =>
+  value
+    .split(/[\n,]+/)
+    .map(item => slugify(item.trim()))
+    .filter(Boolean);
 
 const getAdminDraftState = (): AdminDraftState => {
   if (typeof window === 'undefined') return {};
@@ -1314,6 +1320,10 @@ export const AdminPage: React.FC = () => {
     if (!bookDraft.id.trim()) issues.push('ID / slug missing');
     if (bookDraft.id.trim() && !isSafeBookSlug(bookDraft.id)) issues.push('ID должен содержать только латиницу, цифры и дефисы');
     if (/-copy(?:-|$)/.test(bookDraft.id)) issues.push('ID с -copy запрещён: задайте нормальный публичный slug');
+    (bookDraft.aliases || []).forEach(alias => {
+      if (!isSafeBookSlug(alias)) issues.push(`Alias «${alias}» содержит недопустимые символы`);
+      if (alias === bookDraft.id) issues.push(`Alias «${alias}» совпадает с основным ID`);
+    });
     if (!bookDraft.title.trim()) issues.push('Title missing');
     if (!bookDraft.author.trim()) issues.push('Author missing');
     if (!bookDraft.coverUrl.trim()) issues.push('Cover image missing');
@@ -1344,7 +1354,7 @@ export const AdminPage: React.FC = () => {
     [selectedNewsId, database, selectedLanguage],
   );
   const activeShopifyLink = bookDraft ? getShopifyPurchaseLink(bookDraft) : null;
-  const currentBookPublicPath = bookDraft ? publicBookPath(bookDraft.id) : '';
+  const currentBookPublicPath = bookDraft ? getBookPath(bookDraft) : '';
   const currentBookPublicUrl = currentBookPublicPath && typeof window !== 'undefined'
     ? `${window.location.origin}${currentBookPublicPath}`
     : currentBookPublicPath;
@@ -2097,6 +2107,23 @@ export const AdminPage: React.FC = () => {
                           <Clipboard size={11} /> Copy URL
                         </button>
                       </div>
+                    </LF>
+                    <LF label="Старые URL / aliases" hint="По одному alias в строке. Старые ссылки будут вести на основной URL книги.">
+                      <AutoTextarea
+                        value={(bookDraft.aliases || []).join('\n')}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, aliases: parseAliases((e.target as HTMLTextAreaElement).value) } : prev)}
+                        rows={3}
+                        className="border border-gray-300 px-4 py-3 font-mono text-sm"
+                      />
+                      {(bookDraft.aliases || []).length ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {(bookDraft.aliases || []).map(alias => (
+                            <span key={alias} className="text-[10px] uppercase tracking-widest border border-gray-200 bg-gray-50 px-2 py-1 font-mono">
+                              {`/product/${alias} -> ${currentBookPublicPath}`}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
                     </LF>
                     <LF label="Дата выхода">
                       <input type="date" value={bookDraft.releaseDate} onChange={e => setBookDraft(prev => prev ? { ...prev, releaseDate: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />

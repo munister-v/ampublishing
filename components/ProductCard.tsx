@@ -8,6 +8,7 @@ import { FadeImage } from './FadeImage';
 import { analytics } from '../services/analytics';
 import { formatLabel } from '../utils/formatLabel';
 import { getShopifyPurchaseLink } from '../utils/purchaseLinks';
+import { getBookPath } from '../utils/bookRoutes';
 
 interface ProductCardProps {
   book: Book;
@@ -49,7 +50,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
   if (viewMode === 'list') {
     return (
       <Link 
-        to={`/product/${book.id}`}
+        to={getBookPath(book)}
         onClick={handleCardClick}
         className="group relative block w-full bg-white border-b border-primary hover:bg-gray-50 transition-colors"
       >
@@ -122,7 +123,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
   // DEFAULT GRID VIEW
   return (
     <Link 
-      to={`/product/${book.id}`} 
+      to={getBookPath(book)}
       onClick={handleCardClick}
       className="group relative block h-full w-full bg-white border-r border-b border-primary transition-all duration-300 hover:z-20 hover:shadow-[8px_8px_0px_0px_#040F1E] hover:-translate-y-1 hover:-translate-x-1"
     >

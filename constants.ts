@@ -160,6 +160,7 @@ const bookByLanguage = (lang: Language): Book => {
 
   return {
     id: 'ambook-001',
+    aliases: ['ambook-001-copy'],
     title: localizedTitle,
     author: localizedAuthor,
     price: 24,

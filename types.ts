@@ -37,6 +37,7 @@ export interface BookStory {
 
 export interface Book {
   id: string;
+  aliases?: string[];
   title: string;
   author: string;
   // Optional manual genitive form of the author for the "от …" byline (RU).
