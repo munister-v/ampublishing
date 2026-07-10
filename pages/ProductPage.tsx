@@ -4,9 +4,10 @@ import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { Minus, Plus, ArrowLeft, AlertCircle, ExternalLink } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
-import { BookVariant, Format } from '../types';
+import { BookVariant, Format, PurchaseLink } from '../types';
 import { formatLabel } from '../utils/formatLabel';
 import { getActivePurchaseLinks, getShopifyPurchaseLink, isShopifyPurchaseLink } from '../utils/purchaseLinks';
+import { toGenitiveRu } from '../utils/declension';
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,7 +44,7 @@ export const ProductPage: React.FC = () => {
   if (!book) return <div className="pt-32 text-center font-mono uppercase">{t('product.not_found')}</div>;
 
   const shopifyLink = getShopifyPurchaseLink(book);
-  const secondaryPurchaseLinks = getActivePurchaseLinks(book).filter(link => !isShopifyPurchaseLink(link));
+  const secondaryPurchaseLinks = getActivePurchaseLinks(book).filter((link): link is PurchaseLink => !isShopifyPurchaseLink(link));
   const availableFormats = Array.from(new Set(book.variants.map(v => v.format))) as Format[];
   
   // Get languages available for the currently selected format
@@ -155,7 +156,7 @@ export const ProductPage: React.FC = () => {
                     {book.title}
                   </h1>
                   <p className="text-lg md:text-xl font-serif italic text-gray-500 border-l-2 border-accent pl-6">
-                    {t('product.by_author')} {book.author}
+                    {t('product.by_author')} {language === 'ru' ? toGenitiveRu(book.author) : book.author}
                   </p>
                </div>
 

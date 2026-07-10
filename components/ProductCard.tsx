@@ -22,6 +22,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
   const mainVariant = book.variants[0];
   const isLowStock = book.stock > 0 && book.stock < 5;
   const isSoldOut = book.stock === 0 && !book.isPreorder;
+  const isPurchasable = book.price > 0;
   const shopifyLink = getShopifyPurchaseLink(book);
   const actionLabel = shopifyLink ? t('product.buy_on_shopify') : (book.isPreorder ? t('product.make_preorder') : t('product.add_to_cart'));
 
@@ -75,7 +76,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
                        <h3 className="text-2xl font-serif text-primary group-hover:text-accent transition-colors">{book.title}</h3>
                        <p className="font-mono text-xs text-gray-500 uppercase tracking-wider">{book.author}</p>
                     </div>
-                    <span className="font-mono text-xl font-bold">{book.price.toFixed(2)} {region.currency}</span>
+                    <span className={`font-mono font-bold ${isPurchasable ? 'text-xl' : 'text-xs uppercase tracking-wider text-gray-500 whitespace-nowrap'}`}>
+                       {isPurchasable ? `${book.price.toFixed(2)} ${region.currency}` : t('product.price_on_request')}
+                    </span>
                  </div>
                  <p className="text-sm text-gray-600 line-clamp-2 max-w-2xl font-light leading-relaxed mt-2">
                     {book.description}
@@ -91,14 +94,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
                     <span className="hidden sm:inline">{book.details.year}</span>
                  </div>
                  
-                 {!isSoldOut && (
-                    <button 
+                 {!isSoldOut && isPurchasable && (
+                    <button
                       onClick={handleQuickAdd}
                       className="flex items-center gap-2 text-xs uppercase font-bold tracking-widest text-primary hover:text-accent transition-colors"
                     >
                        <span>{actionLabel}</span>
                        <ArrowUpRight size={14} />
                     </button>
+                 )}
+                 {!isSoldOut && !isPurchasable && (
+                    <span className="flex items-center gap-2 text-xs uppercase font-bold tracking-widest text-primary">
+                       <span>{t('product.open_card')}</span>
+                       <ArrowUpRight size={14} />
+                    </span>
                  )}
                  {isSoldOut && (
                     <span className="text-xs uppercase font-bold text-gray-400">{t('common.sold_out')}</span>
@@ -173,15 +182,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
            )}
 
            {/* INTERACTION OVERLAY (Quick Add) */}
-           {!isSoldOut && (
+           {!isSoldOut && isPurchasable && (
              <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out-quart z-20">
-                <button 
+                <button
                   onClick={handleQuickAdd}
                   className="w-full bg-primary text-white py-4 flex items-center justify-center gap-2 text-xs uppercase font-bold tracking-widest hover:bg-accent transition-colors border-t border-white/20"
                 >
                    <ShoppingBag size={14} />
                    <span>{actionLabel}</span>
                 </button>
+             </div>
+           )}
+           {!isSoldOut && !isPurchasable && (
+             <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out-quart z-20">
+                <span className="w-full bg-primary text-white py-4 flex items-center justify-center gap-2 text-xs uppercase font-bold tracking-widest border-t border-white/20">
+                   <ArrowUpRight size={14} />
+                   <span>{t('product.open_card')}</span>
+                </span>
              </div>
            )}
         </div>
@@ -210,13 +227,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
            {/* --- FOOTER: PRICE & STOCK --- */}
            <div className="pt-4 border-t border-gray-100 flex items-end justify-between">
               <div>
-                 {book.oldPrice && (
+                 {isPurchasable && book.oldPrice ? (
                     <span className="block text-xs text-gray-400 line-through decoration-red-500 decoration-1 mb-0.5">
                        {book.oldPrice.toFixed(2)} {region.currency}
                     </span>
-                 )}
-                 <span className="font-serif text-xl font-medium block leading-none">
-                    {book.price.toFixed(2)} {region.currency}
+                 ) : null}
+                 <span className={`block leading-none ${isPurchasable ? 'font-serif text-xl font-medium' : 'font-mono text-xs uppercase tracking-wider text-gray-500'}`}>
+                    {isPurchasable ? `${book.price.toFixed(2)} ${region.currency}` : t('product.price_on_request')}
                  </span>
               </div>
 
