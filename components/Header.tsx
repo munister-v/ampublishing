@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Search, Menu, X, ArrowRight, Clock, Trash2 } from 'lucide-react';
 import { useApp } from '../AppContext';
+import { setDocumentScrollLock } from '../utils/scrollLock';
 
 export const BrandLogo: React.FC<{ className?: string; white?: boolean }> = ({ className = "w-10 h-10", white }) => (
   <img
@@ -30,6 +31,12 @@ export const Header: React.FC = () => {
     }
   }, [searchOpen]);
 
+  useEffect(() => {
+    const shouldLock = mobileMenuOpen || searchOpen;
+    setDocumentScrollLock(shouldLock);
+    return () => setDocumentScrollLock(false);
+  }, [mobileMenuOpen, searchOpen]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -51,7 +58,7 @@ export const Header: React.FC = () => {
         <div className="w-full h-full flex items-stretch">
           
           {/* Logo */}
-          <Link to="/" className="w-[118px] md:w-[190px] border-r border-primary flex items-center justify-center group relative overflow-hidden flex-shrink-0 px-3">
+          <Link to="/" className="w-[118px] md:w-[190px] border-r border-primary flex items-center justify-center group relative overflow-hidden flex-shrink-0 px-3 pressable">
              <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-out-quart" />
              <div className="relative z-10 w-full h-9 md:h-12">
                 <BrandLogo className="w-full h-full object-contain absolute inset-0 transition-opacity duration-500 group-hover:opacity-0" />
@@ -137,7 +144,7 @@ export const Header: React.FC = () => {
 
       {/* Advanced Search Overlay */}
       {searchOpen && (
-        <div className="fixed top-[58px] md:top-[76px] left-0 w-full bg-primary text-white z-30 border-b border-white/20 animate-slide-down origin-top gpu-accelerated shadow-2xl">
+        <div className="fixed top-[58px] md:top-[76px] left-0 w-full max-h-[calc(100dvh-var(--header-offset))] overflow-y-auto scroll-panel bg-primary text-white z-30 border-b border-white/20 animate-slide-down origin-top gpu-accelerated shadow-2xl">
           <div className="container mx-auto grid grid-cols-1 md:grid-cols-12 min-h-[320px] md:min-h-[400px]">
             
             {/* Input Area */}
@@ -214,7 +221,7 @@ export const Header: React.FC = () => {
                 {t('common.close')} <X size={20} />
              </button>
            </div>
-           <nav className="flex-1 min-h-0 flex flex-col p-5 overflow-y-auto">
+           <nav className="flex-1 min-h-0 flex flex-col p-5 overflow-y-auto scroll-panel pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
               {headerNav.map((item, i) => (
                 <Link
                   key={item.id}

@@ -52,7 +52,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
       <Link 
         to={getBookPath(book)}
         onClick={handleCardClick}
-        className="group relative block w-full bg-white border-b border-primary hover:bg-gray-50 transition-colors"
+        className="group relative block w-full bg-white border-b border-primary hover:bg-gray-50 transition-colors pressable"
       >
         <div className="flex items-stretch min-h-[180px]">
            {/* Image */}
@@ -125,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
     <Link 
       to={getBookPath(book)}
       onClick={handleCardClick}
-      className="group relative block h-full w-full bg-white border-r border-b border-primary transition-all duration-300 hover:z-20 hover:shadow-[8px_8px_0px_0px_#040F1E] hover:-translate-y-1 hover:-translate-x-1"
+      className="group relative block h-full w-full bg-white border-r border-b border-primary transition-all duration-300 hover:z-20 md:desktop-lift pressable"
     >
       <div className="flex flex-col h-full">
         

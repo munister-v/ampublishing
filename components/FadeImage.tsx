@@ -18,6 +18,8 @@ export const FadeImage: React.FC<FadeImageProps> = ({ className, containerClassN
       <img
         {...props}
         alt={alt}
+        decoding={props.decoding || 'async'}
+        loading={props.loading || 'lazy'}
         className={`${className} transition-opacity duration-1000 ease-out-quart ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         onLoad={() => setIsLoaded(true)}
       />

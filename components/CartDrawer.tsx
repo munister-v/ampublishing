@@ -1,16 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { X, Trash2, ArrowRight } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { ConfirmRemoveModal } from './Modals';
 import { formatLabel } from '../utils/formatLabel';
+import { setDocumentScrollLock } from '../utils/scrollLock';
 
 export const CartDrawer: React.FC = () => {
   const { cart, cartOpen, setCartOpen, removeFromCart, updateQuantity, region, t, books, language } = useApp();
   const [itemToRemove, setItemToRemove] = useState<{id: string, name: string} | null>(null);
 
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
+
+  useEffect(() => {
+    setDocumentScrollLock(cartOpen);
+    return () => setDocumentScrollLock(false);
+  }, [cartOpen]);
   
   if (!cartOpen) return null;
 
@@ -24,7 +30,7 @@ export const CartDrawer: React.FC = () => {
         ></div>
 
         {/* Drawer Slide - strictly transform */}
-        <div className="relative w-full max-w-md bg-[#F4F4F0] border-l border-primary shadow-2xl h-full flex flex-col animate-slide-in-right gpu-accelerated">
+        <div className="relative w-full max-w-md bg-[#F4F4F0] border-l border-primary shadow-2xl h-dvh flex flex-col animate-slide-in-right gpu-accelerated">
           
           <div className="p-6 border-b border-primary flex items-center justify-between bg-white">
             <h2 className="text-xl uppercase tracking-widest font-bold">{t('cart.your_order')}</h2>
@@ -33,7 +39,7 @@ export const CartDrawer: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 min-h-0 overflow-y-auto scroll-panel p-6 space-y-6">
             {cart.length === 0 ? (
               <div className="text-center py-20 opacity-50 uppercase animate-fade-up">
                 [ {t('cart.empty')} ]
@@ -65,10 +71,10 @@ export const CartDrawer: React.FC = () => {
                         </div>
                         
                         <div className="flex justify-between items-end mt-4">
-                          <div className="flex border border-primary h-8">
-                              <button onClick={() => item.quantity > 1 ? updateQuantity(item.variantId, -1) : setItemToRemove({id: item.variantId, name: displayTitle})} className="px-2 hover:bg-primary hover:text-white transition-colors">-</button>
+                          <div className="flex border border-primary min-h-11">
+                              <button onClick={() => item.quantity > 1 ? updateQuantity(item.variantId, -1) : setItemToRemove({id: item.variantId, name: displayTitle})} className="px-3 hover:bg-primary hover:text-white transition-colors pressable">-</button>
                               <span className="px-3 flex items-center bg-gray-100">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.variantId, 1)} className="px-2 hover:bg-primary hover:text-white transition-colors">+</button>
+                              <button onClick={() => updateQuantity(item.variantId, 1)} className="px-3 hover:bg-primary hover:text-white transition-colors pressable">+</button>
                           </div>
                           <button onClick={() => setItemToRemove({id: item.variantId, name: displayTitle})} className="text-xs uppercase underline hover:text-red-600 transition-colors">{t('cart.delete')}</button>
                         </div>

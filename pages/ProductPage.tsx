@@ -126,6 +126,8 @@ export const ProductPage: React.FC = () => {
                 <img
                   src={book.coverUrl}
                   alt={book.title}
+                  fetchPriority="high"
+                  decoding="async"
                   className="w-full h-full object-contain"
                 />
              </div>
