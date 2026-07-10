@@ -156,7 +156,7 @@ export const ProductPage: React.FC = () => {
                     {book.title}
                   </h1>
                   <p className="text-lg md:text-xl font-serif italic text-gray-500 border-l-2 border-accent pl-6">
-                    {t('product.by_author')} {language === 'ru' ? toGenitiveRu(book.author) : book.author}
+                    {t('product.by_author')} {language === 'ru' ? (book.authorGenitive?.trim() || toGenitiveRu(book.author)) : book.author}
                   </p>
                </div>
 

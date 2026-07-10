@@ -39,6 +39,9 @@ export interface Book {
   id: string;
   title: string;
   author: string;
+  // Optional manual genitive form of the author for the "от …" byline (RU).
+  // Overrides automatic declension when set. Leave empty to auto-decline.
+  authorGenitive?: string;
   // Base price for catalog display
   price: number;
   oldPrice?: number;

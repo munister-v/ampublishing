@@ -11,6 +11,7 @@ import { RadioConfigForm } from './RadioConfigForm';
 import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
+import { toGenitiveRu } from '../utils/declension';
 import { Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
@@ -1955,6 +1956,17 @@ export const AdminPage: React.FC = () => {
                     </LF>
                     <LF label="Автор">
                       <input value={bookDraft.author} onChange={e => setBookDraft(prev => prev ? { ...prev, author: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Автор — родительный падеж (для «от …»)">
+                      <input
+                        value={bookDraft.authorGenitive ?? ''}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, authorGenitive: e.target.value } : prev)}
+                        className="w-full border border-gray-300 px-4 py-3"
+                        placeholder={bookDraft.author ? `Авто: ${toGenitiveRu(bookDraft.author)}` : 'Оставьте пустым — склонится автоматически'}
+                      />
+                      <p className="mt-1.5 text-[11px] text-gray-400 leading-snug">
+                        Заполняйте только если автосклонение неверно (напр. «Лев Толстой» → «Льва Толстого»). Пусто = склоняется само.
+                      </p>
                     </LF>
                     <LF label="Цена (€)">
                       <input type="number" min={0} step={0.01} value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
