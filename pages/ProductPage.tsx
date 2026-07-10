@@ -74,6 +74,35 @@ export const ProductPage: React.FC = () => {
     }
   };
 
+  // Pricing / availability
+  const effectivePrice = currentVariant ? currentVariant.price : book.price;
+  const isPurchasable = effectivePrice > 0;
+  const effectiveStock = currentVariant ? currentVariant.stock : book.stock;
+  const inStock = effectiveStock > 0;
+
+  // Build a compact, data-driven spec list (only real values are shown)
+  const specs: { label: string; value: string }[] = [
+    { label: t('product.details.year'), value: String(book.details.year || '') },
+    { label: t('product.details.pages'), value: book.details.pages ? String(book.details.pages) : '' },
+    { label: t('product.format'), value: currentVariant ? formatLabel(currentVariant.format, language) : '' },
+    { label: t('product.language'), value: currentVariant ? currentVariant.language.toUpperCase() : '' },
+    { label: t('product.details.publisher'), value: book.details.publisher || '' },
+    { label: t('product.details.dimensions'), value: book.details.dimensions || '' },
+    { label: t('product.details.weight'), value: book.details.weight || '' },
+    { label: t('product.details.isbn'), value: currentVariant ? currentVariant.isbn : (book.variants[0]?.isbn || '') },
+  ].filter(s => s.value.trim() !== '');
+
+  const scrollToBuy = () => {
+    document.getElementById('buy-elsewhere')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  // Drop stray editorial label lines like "Аннотация:" — the section already has its own heading
+  const isLabelLine = (s: string) => {
+    const t = s.trim();
+    return t.length > 0 && t.length <= 30 && t.endsWith(':') && !t.includes('. ');
+  };
+  const aboutParas = (book.story?.about ?? []).filter(p => p.trim() !== '' && !isLabelLine(p));
+
   return (
     <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
       
@@ -91,10 +120,10 @@ export const ProductPage: React.FC = () => {
          {/* LEFT: IMAGE (Sticky) */}
          <div className="lg:border-r border-primary bg-[#E8EDF2] relative h-[58vh] sm:h-[64vh] lg:h-[calc(100vh-120px)] lg:sticky lg:top-[120px] flex items-center justify-center p-5 md:p-8 lg:p-20 overflow-hidden">
              <div className="relative w-full h-full shadow-[20px_20px_0px_0px_rgba(4,15,30,0.1)] border border-primary bg-white animate-fade-in p-3 md:p-4">
-                <img 
-                  src={book.coverUrl} 
+                <img
+                  src={book.coverUrl}
                   alt={book.title}
-                  className="w-full h-full object-contain grayscale contrast-110"
+                  className="w-full h-full object-contain"
                 />
              </div>
              {/* Badge */}
@@ -107,27 +136,40 @@ export const ProductPage: React.FC = () => {
          <div className="bg-white flex flex-col lg:min-h-[calc(100vh-120px)] border-t lg:border-t-0 border-primary">
             
             <div className="p-6 md:p-16 flex-1">
-               <div className="mb-12">
-                  <span className="block text-accent font-mono text-xs mb-4 uppercase tracking-widest">{book.genre[0]}</span>
-                  <h1 className="text-4xl sm:text-5xl md:text-8xl font-serif leading-[0.85] text-primary mb-6 -ml-1 break-words">
+               <div className="mb-10">
+                  <div className="flex flex-wrap items-center gap-3 mb-5">
+                     <span className="text-accent font-mono text-xs uppercase tracking-widest">{book.genre[0]}</span>
+                     {inStock ? (
+                       <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-primary/70">
+                         <span className="w-1.5 h-1.5 rounded-full bg-green-600 inline-block" />
+                         {t('product.in_stock_label')}
+                       </span>
+                     ) : (
+                       <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-gray-400">
+                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" />
+                         {t('product.out_of_stock')}
+                       </span>
+                     )}
+                  </div>
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif leading-[0.9] text-primary mb-6 break-words hyphens-auto">
                     {book.title}
                   </h1>
-                  <p className="text-xl md:text-2xl font-serif italic text-gray-500 border-l-2 border-accent pl-6">
+                  <p className="text-lg md:text-xl font-serif italic text-gray-500 border-l-2 border-accent pl-6">
                     {t('product.by_author')} {book.author}
                   </p>
                </div>
 
-               <div className="grid grid-cols-2 border-y border-primary">
-                  <div className="border-r border-primary p-6">
-                     <span className="block text-[10px] uppercase text-gray-400 mb-2">{t('product.details.year')}</span>
-                     <span className="font-mono text-lg">{book.details.year}</span>
-                  </div>
-                  <div className="p-6">
-                     <span className="block text-[10px] uppercase text-gray-400 mb-2">{t('product.details.pages')}</span>
-                     <span className="font-mono text-lg">{book.details.pages}</span>
-                  </div>
-               </div>
-               
+               {specs.length > 0 && (
+                 <dl className="grid grid-cols-2 sm:grid-cols-3 border-t border-l border-primary">
+                    {specs.map((s, i) => (
+                      <div key={i} className="border-r border-b border-primary p-5">
+                         <dt className="block text-[10px] uppercase text-gray-400 mb-2 tracking-widest">{s.label}</dt>
+                         <dd className="font-mono text-base leading-tight">{s.value}</dd>
+                      </div>
+                    ))}
+                 </dl>
+               )}
+
                {/* VARIANTS SELECTOR */}
                <div className="py-8 border-b border-primary">
                   <div className="mb-6">
@@ -168,7 +210,7 @@ export const ProductPage: React.FC = () => {
                </div>
 
                {secondaryPurchaseLinks.length > 0 ? (
-                 <section className="border-t border-primary py-8 md:py-10">
+                 <section id="buy-elsewhere" className="border-t border-primary py-8 md:py-10 scroll-mt-32">
                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-4">
                        {t('product.buy_elsewhere_title')}
                     </p>
@@ -205,35 +247,47 @@ export const ProductPage: React.FC = () => {
             <div className="border-t border-primary bg-[#F4F4F0] p-6 md:p-8 md:sticky md:bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
                <div className="flex flex-col gap-4">
                   <div className="flex justify-between items-baseline">
-                     <span className="font-mono text-xs uppercase">{t('cart.total')}</span>
+                     <span className="font-mono text-xs uppercase">{isPurchasable ? t('cart.total') : t('product.availability')}</span>
                      <span className="text-4xl font-serif">
-                       {currentVariant ? currentVariant.price.toFixed(2) : book.price.toFixed(2)} {region.currency}
+                       {isPurchasable
+                          ? `${(currentVariant ? currentVariant.price : book.price).toFixed(2)} ${region.currency}`
+                          : t('product.price_on_request')}
                      </span>
                   </div>
-                  
-                  <div className="flex border border-primary bg-white h-14 md:h-14">
-                     <button onClick={() => setQty(Math.max(1, qty-1))} className="w-14 border-r border-primary hover:bg-primary hover:text-white flex items-center justify-center transition-colors">
-                        <Minus size={16} />
-                     </button>
-                     <div className="flex-1 flex items-center justify-center font-mono text-lg border-r border-primary">
-                        {qty}
-                     </div>
-                     <button onClick={() => setQty(qty+1)} className="w-14 border-r border-primary hover:bg-primary hover:text-white flex items-center justify-center transition-colors">
-                        <Plus size={16} />
-                     </button>
-                     <button 
-                        onClick={handleAddToCart}
-                        className="flex-[2] bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest disabled:bg-gray-300 disabled:cursor-not-allowed"
-                        disabled={!currentVariant || currentVariant.stock === 0}
-                     >
-                        {!currentVariant 
-                           ? t('product.select_variant') 
-                           : currentVariant.stock > 0
-                             ? (shopifyLink ? t('product.buy_on_shopify') : t('product.add_to_cart'))
-                             : t('product.out_of_stock')
-                        }
-                     </button>
-                  </div>
+
+                  {isPurchasable ? (
+                    <div className="flex border border-primary bg-white h-14 md:h-14">
+                       <button onClick={() => setQty(Math.max(1, qty-1))} className="w-14 border-r border-primary hover:bg-primary hover:text-white flex items-center justify-center transition-colors">
+                          <Minus size={16} />
+                       </button>
+                       <div className="flex-1 flex items-center justify-center font-mono text-lg border-r border-primary">
+                          {qty}
+                       </div>
+                       <button onClick={() => setQty(qty+1)} className="w-14 border-r border-primary hover:bg-primary hover:text-white flex items-center justify-center transition-colors">
+                          <Plus size={16} />
+                       </button>
+                       <button
+                          onClick={handleAddToCart}
+                          className="flex-[2] bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest disabled:bg-gray-300 disabled:cursor-not-allowed"
+                          disabled={!currentVariant || currentVariant.stock === 0}
+                       >
+                          {!currentVariant
+                             ? t('product.select_variant')
+                             : currentVariant.stock > 0
+                               ? (shopifyLink ? t('product.buy_on_shopify') : t('product.add_to_cart'))
+                               : t('product.out_of_stock')
+                          }
+                       </button>
+                    </div>
+                  ) : (
+                    <button
+                       onClick={secondaryPurchaseLinks.length > 0 ? scrollToBuy : undefined}
+                       disabled={secondaryPurchaseLinks.length === 0}
+                       className="w-full h-14 bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
+                    >
+                       {secondaryPurchaseLinks.length > 0 ? t('product.where_to_buy') : t('product.price_on_request')}
+                    </button>
+                  )}
                </div>
             </div>
 
@@ -246,13 +300,16 @@ export const ProductPage: React.FC = () => {
 
           {/* Opening quote */}
           {book.story.quote ? (
-            <div className="border-b border-primary px-6 md:px-24 py-16 md:py-24 max-w-4xl">
-              <blockquote className="text-3xl md:text-5xl font-serif italic leading-snug text-primary">
-                «{book.story.quote}»
-              </blockquote>
-              {book.story.quoteSource ? (
-                <p className="mt-6 font-mono text-xs uppercase tracking-widest text-gray-400">{book.story.quoteSource}</p>
-              ) : null}
+            <div className="border-b border-primary px-6 md:px-24 py-16 md:py-28">
+              <div className="max-w-4xl mx-auto text-center">
+                <span className="block font-serif text-6xl md:text-8xl leading-none text-accent mb-4 select-none">“</span>
+                <blockquote className="text-3xl md:text-5xl font-serif italic leading-snug text-primary">
+                  {book.story.quote}
+                </blockquote>
+                {book.story.quoteSource ? (
+                  <p className="mt-8 font-mono text-xs uppercase tracking-[0.24em] text-gray-400">— {book.story.quoteSource}</p>
+                ) : null}
+              </div>
             </div>
           ) : null}
 
@@ -264,13 +321,13 @@ export const ProductPage: React.FC = () => {
           ) : null}
 
           {/* About */}
-          {(book.story.about?.length ?? 0) > 0 ? (
+          {aboutParas.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] border-b border-primary">
               <div className="p-8 border-b md:border-b-0 md:border-r border-primary bg-[#F4F4F0] flex items-start">
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400 writing-vertical md:writing-vertical">{t('product.about_book')}</span>
               </div>
               <div className="p-8 md:p-16 space-y-6">
-                {book.story.about.map((para, i) => (
+                {aboutParas.map((para, i) => (
                   <p key={i} className="text-lg leading-relaxed text-gray-700">{para}</p>
                 ))}
               </div>
@@ -326,19 +383,34 @@ export const ProductPage: React.FC = () => {
 
           {/* Reviews */}
           {(book.story.reviews?.length ?? 0) > 0 ? (
-            <div className="border-b border-primary">
-              <div className="p-8 border-b border-primary">
-                <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.reviews')}</h2>
-              </div>
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${book.story.reviews!.length >= 3 ? 'xl:grid-cols-3' : ''}`}>
-                {book.story.reviews!.map((review, i) => (
-                  <div key={i} className="p-8 md:p-10 border-b sm:border-r border-primary last:border-r-0">
-                    <p className="text-xl font-serif italic leading-relaxed mb-6">«{review.quote}»</p>
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-gray-400">— {review.author}</p>
+            (() => {
+              const reviews = book.story!.reviews!;
+              const single = reviews.length === 1;
+              return (
+                <div className="border-b border-primary">
+                  <div className="p-8 border-b border-primary">
+                    <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.reviews')}</h2>
                   </div>
-                ))}
-              </div>
-            </div>
+                  {single ? (
+                    <div className="p-8 md:p-16">
+                      <div className="max-w-3xl mx-auto text-center">
+                        <p className="text-2xl md:text-3xl font-serif italic leading-relaxed mb-6 text-primary">«{reviews[0].quote}»</p>
+                        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">— {reviews[0].author}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${reviews.length >= 3 ? 'xl:grid-cols-3' : ''}`}>
+                      {reviews.map((review, i) => (
+                        <div key={i} className="p-8 md:p-10 border-b sm:border-r border-primary last:border-r-0">
+                          <p className="text-xl font-serif italic leading-relaxed mb-6">«{review.quote}»</p>
+                          <p className="font-mono text-[10px] uppercase tracking-widest text-gray-400">— {review.author}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()
           ) : null}
 
           {/* Order note */}

@@ -118,6 +118,10 @@ export const translations: Record<Language, TranslationTree> = {
       payment_info_text: "Оплата подтверждается вручную. При оплате по счету или переводу мы присылаем реквизиты после оформления заказа.",
       read_full_story: "Читать полную историю книги",
       full_story_note: "Полная история книги, отрывки и расширенное описание открываются на отдельной странице.",
+      price_on_request: "Цена по запросу",
+      where_to_buy: "Где купить",
+      in_stock_label: "В наличии",
+      availability: "Наличие",
     },
     cart: {
       title: "Ваша корзина",
@@ -649,6 +653,10 @@ export const translations: Record<Language, TranslationTree> = {
         payment_info_text: "Payments are confirmed manually. If you choose invoice or transfer, we send the payment details after checkout.",
         read_full_story: "Read the full book story",
         full_story_note: "The complete book story, excerpts, and extended background open on a separate page.",
+        price_on_request: "Price on request",
+        where_to_buy: "Where to buy",
+        in_stock_label: "In stock",
+        availability: "Availability",
       },
     home: {
       hero_title_1: "Prose that slows time",
@@ -1132,6 +1140,10 @@ export const translations: Record<Language, TranslationTree> = {
         payment_info_text: "Zahlungen werden manuell bestätigt. Bei Rechnung oder Überweisung senden wir die Zahlungsdaten nach dem Checkout.",
         read_full_story: "Die ganze Buchgeschichte lesen",
         full_story_note: "Die vollständige Buchgeschichte, Auszüge und der erweiterte Hintergrund öffnen sich auf einer separaten Seite.",
+        price_on_request: "Preis auf Anfrage",
+        where_to_buy: "Wo kaufen",
+        in_stock_label: "Auf Lager",
+        availability: "Verfügbarkeit",
       },
     home: {
       hero_title_1: "Bücher für unterwegs",
