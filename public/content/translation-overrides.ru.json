@@ -110,5 +110,6 @@
   "home.global_desc": "Мы доставляем книги по всему миру",
   "home.stats_delivery": "Доставка",
   "home.stats_countries_value": "59",
-  "home.stats_delivery_value": "48 - 120 h"
+  "home.stats_delivery_value": "48 - 120 h",
+  "home.feature_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1784021756096.webp"
 }
