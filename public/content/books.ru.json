@@ -213,19 +213,10 @@
       "Современная проза",
       "Психологическая литература"
     ],
-    "series": "AM Publishing",
+    "series": "Сложные люди",
     "ageRating": "16+",
     "releaseDate": "2026-10-01",
-    "variants": [
-      {
-        "id": "ambook-001-hc",
-        "format": "paperback",
-        "language": "Русский",
-        "price": 0,
-        "stock": 500,
-        "isbn": "AM-BOOK-HC-001"
-      }
-    ],
+    "variants": [],
     "story": {
       "quote": "...как ответить на этот странный, но не дающий покоя вопрос: «А что же останется после меня?»",
       "quoteSource": "Из романа, глава 49",
