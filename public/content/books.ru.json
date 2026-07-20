@@ -60,7 +60,12 @@
           "text": ""
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "quote": "Пронзительная, трогательная и одновременно немного пугающая история взросления женщины, которая тысячу раз ошибалась — и наконец нашла себя",
+          "author": "Надя Хедвиг писательница, филолог-литературовед, литературный консультант и преподаватель литмастерства."
+        }
+      ],
       "orderNote": "",
       "featureImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/story-v-tantse-delyuziy-1784554345656.webp",
       "detailPageUrl": ""
