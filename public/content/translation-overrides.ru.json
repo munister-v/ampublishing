@@ -103,5 +103,14 @@
   "static.authors.p1": "AM Publishing специализируется на художественной прозе и автофикшне.",
   "static.our_authors.subtitle": "Голоса современной русскоязычной литературы",
   "footer.desc": "Независимое русскоязычное издательство из Берлина. Наши истории созданы для дороги, поездок, перелётов, утреннего метро и тихих домашних вечеров.",
-  "static.impressum.text": "Impressum\nAngaben gemäß § 5 DDG\n\nAM PUBLISHING\nInhaberin: Maryia Surkant\n\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nTelefon: +49 176 40444853\nE-Mail: info@ampublishing.org\n\nUmsatzsteuer-Identifikationsnummer gemäß § 27a UStG:\nDE461941530\n\nVerantwortlich für den Inhalt nach § 18 Abs. 2 MStV\n\nMaryia Surkant\nMehrower Allee 71\n12687 Berlin\nDeutschland"
+  "static.impressum.text": "Impressum\nAngaben gemäß § 5 DDG\n\nAM PUBLISHING\nInhaberin: Maryia Surkant\n\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nTelefon: +49 176 40444853\nE-Mail: info@ampublishing.org\n\nUmsatzsteuer-Identifikationsnummer gemäß § 27a UStG:\nDE461941530\n\nVerantwortlich für den Inhalt nach § 18 Abs. 2 MStV\n\nMaryia Surkant\nMehrower Allee 71\n12687 Berlin\nDeutschland",
+  "home.feature_kicker": "Анонс",
+  "home.feature_title": "этой недели",
+  "home.global_reach": "Без границ",
+  "home.global_desc": "Мы доставляем книги по всему миру.",
+  "home.stats_delivery": "партнёр",
+  "home.stats_countries_value": "Европа",
+  "home.stats_delivery_value": "DHL",
+  "home.feature_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1784555775446.webp",
+  "home.stats_countries": "основной регион"
 }

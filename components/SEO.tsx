@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { Book } from '../types';
+import { findBookByRouteId, getBookPath } from '../utils/bookRoutes';
 
 const SITE_URL = 'https://ampublishing.org';
 const SITE_NAME = 'AM Publishing Berlin';
@@ -204,7 +205,7 @@ const buildBookSchema = (book: Book) => ({
     price: book.price,
     priceCurrency: 'EUR',
     availability: book.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-    url: `${SITE_URL}/product/${book.id}`,
+    url: `${SITE_URL}${getBookPath(book)}`,
   },
 });
 
@@ -226,7 +227,7 @@ export const SEO: React.FC = () => {
   useEffect(() => {
     const pathname = location.pathname;
     const productMatch = pathname.match(/^\/product\/([^/]+)/);
-    const product = productMatch ? books.find(book => book.id === decodeURIComponent(productMatch[1])) : undefined;
+    const product = productMatch ? findBookByRouteId(books, productMatch[1]) : undefined;
     const route = product
       ? {
           title: `${product.title} by ${product.author} | AM Publishing Berlin`,
@@ -237,7 +238,7 @@ export const SEO: React.FC = () => {
       : routeSeo[pathname] || routeSeo['/'];
     const hasIndexableQuery = location.search && !pathname.startsWith('/product/');
     const robots = hasIndexableQuery ? 'noindex,follow' : route.robots || 'index,follow,max-image-preview:large';
-    const canonicalPath = pathname === '/shop' ? '/catalog' : pathname;
+    const canonicalPath = product ? getBookPath(product) : (pathname === '/shop' ? '/catalog' : pathname);
     const canonical = `${SITE_URL}${canonicalPath === '/' ? '/' : canonicalPath}`;
     const image = absoluteUrl(route.image || DEFAULT_IMAGE);
 

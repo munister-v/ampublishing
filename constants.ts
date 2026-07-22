@@ -26,8 +26,8 @@ const mkVariant = (
   isbn,
 });
 
-const coverUrl = asset('images/ambook-cover.jpg');
-const featureImageUrl = asset('images/ambook-object.jpg');
+const coverUrl = 'https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/cover-ambook-001-copy-1783444144753.webp';
+const featureImageUrl = 'https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/story-ambook-001-copy-1783444164683.webp';
 const detailPageUrl = 'https://munister.com.ua/ambook.html';
 
 const baseThemes = [
@@ -84,7 +84,7 @@ const storyByLanguage: Record<Language, BookStory> = {
     ],
     themes: baseThemes,
     reviews: baseReviews,
-    orderNote: 'Малый тираж. Твёрдая обложка. Офсетная печать. Доставка в 59 стран мира.',
+    orderNote: 'Мягкая обложка. Офсетная печать.',
     featureImageUrl,
     detailPageUrl,
   },
@@ -116,7 +116,7 @@ const storyByLanguage: Record<Language, BookStory> = {
       { quote: '“The novel holds you not by plot, but by atmosphere.”', author: 'Reader from Berlin' },
       { quote: '“It hurts to return. It hurts even more not to.”', author: 'Reader from Tel Aviv' },
     ],
-    orderNote: 'Limited print run. Hardcover edition. Offset printing. Shipping to 59 countries.',
+    orderNote: 'Softcover. Offset printing.',
     featureImageUrl,
     detailPageUrl,
   },
@@ -148,7 +148,7 @@ const storyByLanguage: Record<Language, BookStory> = {
       { quote: '„Der Roman hält dich mit Atmosphäre fest, nicht mit Plot.“', author: 'Leser aus Berlin' },
       { quote: '„Es tut weh zurückzukehren. Noch mehr tut es weh, es nicht zu tun.“', author: 'Leser aus Tel Aviv' },
     ],
-    orderNote: 'Kleine Auflage. Hardcover. Offsetdruck. Versand in 59 Länder.',
+    orderNote: 'Softcover. Offsetdruck.',
     featureImageUrl,
     detailPageUrl,
   },
@@ -160,25 +160,26 @@ const bookByLanguage = (lang: Language): Book => {
 
   return {
     id: 'ambook-001',
+    aliases: ['ambook-001-copy'],
     title: localizedTitle,
     author: localizedAuthor,
-    price: 24,
+    price: 0,
     coverUrl,
-    badges: ['new'],
+    badges: ['preorder'],
     type: 'publisher',
     isPreorder: false,
-    stock: 24,
+    stock: 500,
     description:
       lang === 'ru'
-        ? 'Роман о возвращении, памяти и том, что прошлое может ждать нас дольше, чем мы готовы признать.'
+        ? 'Кому понравится:\n\nТем, кто любит глубокую психологическую прозу о сломанных судьбах, поздних шансах и людях, которые пытаются выбраться из внутренней пустоты.'
         : lang === 'en'
-          ? 'A novel about return, memory, and the way the past can wait longer than we are willing to admit.'
-          : 'Ein Roman über Rückkehr, Erinnerung und darüber, wie lange die Vergangenheit auf uns warten kann.',
+          ? 'Who it is for:\n\nReaders who love deep psychological prose about broken lives, late chances, and people trying to find a way out of inner emptiness.'
+          : 'Für wen dieses Buch ist:\n\nFür Leserinnen und Leser, die tiefgehende psychologische Prosa über zerbrochene Schicksale, späte Chancen und Menschen lieben, die versuchen, aus innerer Leere herauszufinden.',
     details: {
-      pages: 368,
+      pages: 468,
       year: 2026,
       publisher: 'AM Publishing Berlin',
-      weight: 'Hardcover',
+      weight: 'SOFTCOVER',
       dimensions: 'Small print run',
     },
     genre:
@@ -189,11 +190,9 @@ const bookByLanguage = (lang: Language): Book => {
           : ['Zeitgenössische Prosa', 'Psychologische Literatur'],
     series: 'AM Publishing',
     ageRating: '16+',
-    releaseDate: '2026-05-01',
+    releaseDate: '2026-10-01',
     variants: [
-      mkVariant('ambook-001-hc', 'hardcover', lang === 'ru' ? 'Русский' : lang === 'en' ? 'Russian' : 'Russisch', 24, 24, 'AM-BOOK-HC-001'),
-      mkVariant('ambook-001-se', 'special_edition', lang === 'ru' ? 'Русский' : lang === 'en' ? 'Russian' : 'Russisch', 39, 8, 'AM-BOOK-GIFT-001'),
-      mkVariant('ambook-001-dg', 'digital', lang === 'ru' ? 'Русский' : lang === 'en' ? 'Russian' : 'Russisch', 0, 999, 'AM-BOOK-EXCERPT-001'),
+      mkVariant('ambook-001-hc', 'paperback', lang === 'ru' ? 'Русский' : lang === 'en' ? 'Russian' : 'Russisch', 0, 500, 'AM-BOOK-HC-001'),
     ],
     story: storyByLanguage[lang],
     purchaseLinks: [

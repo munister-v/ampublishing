@@ -56,12 +56,14 @@ export const HomePage: React.FC = () => {
                 <img 
                    src={heroImageUrl}
                    alt="Всё, что останется - обложка книги"
+                   fetchPriority="high"
+                   decoding="async"
                    className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-[2000ms] ease-out-quart mix-blend-luminosity group-hover:scale-105 gpu-accelerated"
                 />
               </div>
               {/* Vertical Marquee */}
               <div className="absolute inset-y-0 right-0 w-12 border-l border-white/20 overflow-hidden flex justify-center py-4 bg-black/20 backdrop-blur-sm">
-                 <div className="writing-vertical text-xs font-mono text-white animate-marquee uppercase tracking-widest whitespace-nowrap gpu-accelerated" style={{ height: '200%' }}>
+                 <div className="writing-vertical text-xs font-mono text-white motion-safe:animate-marquee uppercase tracking-widest whitespace-nowrap gpu-accelerated" style={{ height: '200%' }}>
                     {marqueeContent.join('')}
                  </div>
                  <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/40 to-transparent"></div>
@@ -74,7 +76,7 @@ export const HomePage: React.FC = () => {
       {/* 2. TICKER TAPE (Horizontal) */}
       <div className="relative border-b border-primary bg-accent text-primary py-3 overflow-hidden">
          {/* Container width must be large enough to hold double content for smooth loop */}
-         <div className="flex whitespace-nowrap animate-marquee gpu-accelerated w-max">
+         <div className="flex whitespace-nowrap motion-safe:animate-marquee gpu-accelerated w-max">
             {tickerContent.map((text, i) => (
                <span key={i} className="mx-8 text-2xl font-serif italic">
                   {text}
@@ -138,6 +140,8 @@ export const HomePage: React.FC = () => {
                <img 
                   src={featureImageUrl}
                   alt="Всё, что останется - предметное фото книги"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-[2000ms] ease-out-quart gpu-accelerated"
                />
             </div>

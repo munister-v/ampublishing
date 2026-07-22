@@ -53,7 +53,7 @@ const AppContent: React.FC = () => {
       {!isAdminRoute && <Header />}
       <CartDrawer />
       
-      <main className="flex-1 relative z-10">
+      <main key={location.pathname} className="flex-1 relative z-10 page-enter">
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />

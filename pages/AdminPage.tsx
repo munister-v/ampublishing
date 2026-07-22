@@ -11,6 +11,9 @@ import { RadioConfigForm } from './RadioConfigForm';
 import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
+import { toGenitiveRu } from '../utils/declension';
+import { getShopifyPurchaseLink } from '../utils/purchaseLinks';
+import { getBookPath } from '../utils/bookRoutes';
 import { Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
@@ -72,6 +75,13 @@ type AdminDraftState = {
   newsDraft?: NewsItem;
   bookJsonDrafts?: { variants: string; themes: string; reviews: string };
   language?: Language;
+};
+
+type PublishProbe = {
+  status: 'idle' | 'checking' | 'live' | 'pending' | 'error';
+  message: string;
+  checkedAt?: string;
+  details?: string[];
 };
 
 const ADMIN_DRAFTS_KEY = 'am-admin-drafts-v2';
@@ -154,6 +164,7 @@ const contentGroups: ContentGroup[] = [
 
 const createBookTemplate = (language: Language): Book => ({
   id: `book-${Date.now()}`,
+  aliases: [],
   title: '',
   author: '',
   price: 0,
@@ -255,6 +266,29 @@ const TRANSLIT: Record<string, string> = {
 const slugify = (str: string) =>
   str.toLowerCase().split('').map(c => TRANSLIT[c] ?? c).join('')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || `book-${Date.now()}`;
+
+const isSafeBookSlug = (value: string) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
+
+const createCopySlug = (book: Book) => {
+  const base = slugify(book.title || book.id).replace(/-copy$/, '') || 'book';
+  return `${base}-${Date.now().toString(36).slice(-5)}`;
+};
+
+const isValidHttpUrl = (value: string) => {
+  if (!value.trim()) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const parseAliases = (value: string) =>
+  value
+    .split(/[\n,]+/)
+    .map(item => slugify(item.trim()))
+    .filter(Boolean);
 
 const getAdminDraftState = (): AdminDraftState => {
   if (typeof window === 'undefined') return {};
@@ -981,6 +1015,10 @@ export const AdminPage: React.FC = () => {
   const [bookSort, setBookSort] = useState<'default' | 'alpha' | 'stock'>('default');
   const [saveOpPhase, setSaveOpPhase] = useState('');
   const [savedFlash, setSavedFlash] = useState('');
+  const [bookPublishProbe, setBookPublishProbe] = useState<PublishProbe>({
+    status: 'idle',
+    message: '',
+  });
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // ── Radio section state ──────────────────────────────────────────────────
@@ -1279,9 +1317,22 @@ export const AdminPage: React.FC = () => {
   const bookRequiredErrors = useMemo(() => {
     if (!bookDraft) return [];
     const issues: string[] = [];
+    if (!bookDraft.id.trim()) issues.push('ID / slug missing');
+    if (bookDraft.id.trim() && !isSafeBookSlug(bookDraft.id)) issues.push('ID должен содержать только латиницу, цифры и дефисы');
+    if (/-copy(?:-|$)/.test(bookDraft.id)) issues.push('ID с -copy запрещён: задайте нормальный публичный slug');
+    (bookDraft.aliases || []).forEach(alias => {
+      if (!isSafeBookSlug(alias)) issues.push(`Alias «${alias}» содержит недопустимые символы`);
+      if (alias === bookDraft.id) issues.push(`Alias «${alias}» совпадает с основным ID`);
+    });
     if (!bookDraft.title.trim()) issues.push('Title missing');
     if (!bookDraft.author.trim()) issues.push('Author missing');
     if (!bookDraft.coverUrl.trim()) issues.push('Cover image missing');
+    if (bookDraft.coverUrl && !isValidHttpUrl(bookDraft.coverUrl)) issues.push('Cover image URL должен начинаться с http:// или https://');
+    if (bookDraft.story?.featureImageUrl && !isValidHttpUrl(bookDraft.story.featureImageUrl)) issues.push('Story image URL должен начинаться с http:// или https://');
+    if (bookDraft.story?.detailPageUrl && !isValidHttpUrl(bookDraft.story.detailPageUrl)) issues.push('Detail page URL должен начинаться с http:// или https://');
+    (bookDraft.purchaseLinks || []).forEach(link => {
+      if (link.url && !isValidHttpUrl(link.url)) issues.push(`Ссылка «${link.label || link.id}» должна начинаться с http:// или https://`);
+    });
     return issues;
   }, [bookDraft]);
 
@@ -1302,6 +1353,72 @@ export const AdminPage: React.FC = () => {
     !!selectedNewsId && !!database && !database[selectedLanguage].news.find(n => n.id === selectedNewsId),
     [selectedNewsId, database, selectedLanguage],
   );
+  const activeShopifyLink = bookDraft ? getShopifyPurchaseLink(bookDraft) : null;
+  const currentBookPublicPath = bookDraft ? getBookPath(bookDraft) : '';
+  const currentBookPublicUrl = currentBookPublicPath && typeof window !== 'undefined'
+    ? `${window.location.origin}${currentBookPublicPath}`
+    : currentBookPublicPath;
+
+  useEffect(() => {
+    setBookPublishProbe({ status: 'idle', message: '' });
+  }, [selectedBookId, selectedLanguage]);
+
+  const probePublishedBook = useCallback(async (book: Book, lang: Language) => {
+    const checkedAt = new Date().toLocaleTimeString();
+    setBookPublishProbe({
+      status: 'checking',
+      message: 'Проверяю live JSON на сайте...',
+      checkedAt,
+    });
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(`/content/books.${lang}.json?probe=${Date.now()}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const liveBooks = (await res.json()) as Book[];
+      const liveBook = liveBooks.find(item => item.id === book.id);
+
+      if (!liveBook) {
+        setBookPublishProbe({
+          status: 'pending',
+          checkedAt,
+          message: 'GitHub сохранил, но live-сайт пока не видит эту книгу. Обычно Pages догоняет за 30-90 секунд.',
+          details: [`Жду ID: ${book.id}`],
+        });
+        return;
+      }
+
+      const mismatches = [
+        liveBook.title !== book.title ? 'Название на live ещё старое' : '',
+        liveBook.coverUrl !== book.coverUrl ? 'Обложка на live ещё старая' : '',
+        liveBook.description !== book.description ? 'Описание на live ещё старое' : '',
+        JSON.stringify(liveBook.purchaseLinks || []) !== JSON.stringify(book.purchaseLinks || []) ? 'Ссылки покупки на live ещё старые' : '',
+      ].filter(Boolean);
+
+      setBookPublishProbe({
+        status: mismatches.length ? 'pending' : 'live',
+        checkedAt,
+        message: mismatches.length
+          ? 'Сохранение прошло, но GitHub Pages/CDN пока отдаёт старую версию.'
+          : 'Live-сайт уже отдаёт эту версию книги.',
+        details: mismatches,
+      });
+    } catch (err) {
+      setBookPublishProbe({
+        status: 'error',
+        checkedAt,
+        message: err instanceof Error && err.name === 'AbortError'
+          ? 'Live-проверка не ответила за 8 секунд. Сохранение могло пройти, проверьте статус Pages.'
+          : 'Не удалось проверить live-сайт после сохранения.',
+      });
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }, []);
 
   const handleSaveTranslationField = async (field: ContentField) => {
     const rawValue = copyDrafts[field.key] ?? '';
@@ -1336,6 +1453,10 @@ export const AdminPage: React.FC = () => {
   const handleSaveBook = useCallback(async () => {
     if (!bookDraft) return;
     try {
+      if (bookRequiredErrors.length || Object.keys(bookJsonErrors).length) {
+        showToast('Исправьте ошибки в карточке книги перед сохранением', 'error');
+        return;
+      }
       const parsedVariants = parseJsonField(bookJsonDrafts.variants);
       const parsedThemes = parseJsonField(bookJsonDrafts.themes);
       const parsedReviews = parseJsonField(bookJsonDrafts.reviews);
@@ -1355,13 +1476,15 @@ export const AdminPage: React.FC = () => {
       advancePhase('Обновление контента…');
       await reloadContent();
       await loadAdminData();
+      advancePhase('Проверка live-сайта...');
+      await probePublishedBook(nextBook, selectedLanguage);
       setBookDirty(false);
       finishSave('Книга «' + (bookDraft.title || bookDraft.id) + '» сохранена' + (selectedLanguage === 'ru' ? ' · EN/DE запустится автоматически' : ''));
     } catch {
       failSave();
       showToast('Не удалось сохранить книгу', 'error');
     }
-  }, [bookDraft, bookJsonDrafts, selectedLanguage]);
+  }, [bookDraft, bookJsonDrafts, bookJsonErrors, bookRequiredErrors, selectedLanguage, probePublishedBook, showToast]);
 
   useEffect(() => { handleSaveBookRef.current = handleSaveBook; }, [handleSaveBook]);
 
@@ -1900,7 +2023,7 @@ export const AdminPage: React.FC = () => {
                       ) : (
                         <>
                           {!isNewBook && (
-                            <a href={`/catalog/${bookDraft.id}`} target="_blank" rel="noopener noreferrer"
+                            <a href={currentBookPublicPath} target="_blank" rel="noopener noreferrer"
                               className="px-4 py-3 border border-gray-300 hover:bg-gray-50 flex items-center gap-2 text-xs uppercase tracking-widest">
                               <ExternalLink size={14} />
                               Открыть
@@ -1912,7 +2035,7 @@ export const AdminPage: React.FC = () => {
                           </button>
                           <button onClick={() => {
                             const dup = cloneBook(bookDraft);
-                            dup.id = `${bookDraft.id}-copy`;
+                            dup.id = createCopySlug(bookDraft);
                             skipBookDirtyRef.current = true;
                             setSelectedBookId(dup.id);
                             setBookDraft(dup);
@@ -1929,9 +2052,36 @@ export const AdminPage: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  {(!isNewBook && bookRequiredErrors.length) || Object.keys(bookJsonErrors).length ? (
+                  {bookPublishProbe.status !== 'idle' ? (
+                    <div className={`border p-4 text-sm ${
+                      bookPublishProbe.status === 'live'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                        : bookPublishProbe.status === 'checking'
+                          ? 'border-blue-200 bg-blue-50 text-blue-800'
+                          : bookPublishProbe.status === 'pending'
+                            ? 'border-amber-200 bg-amber-50 text-amber-800'
+                            : 'border-red-200 bg-red-50 text-red-700'
+                    }`}>
+                      <div className="flex items-start gap-3">
+                        {bookPublishProbe.status === 'checking' ? <Loader2 size={16} className="animate-spin mt-0.5 flex-shrink-0" /> : null}
+                        {bookPublishProbe.status === 'live' ? <CheckCircle size={16} className="mt-0.5 flex-shrink-0" /> : null}
+                        {bookPublishProbe.status === 'pending' || bookPublishProbe.status === 'error' ? <AlertCircle size={16} className="mt-0.5 flex-shrink-0" /> : null}
+                        <div>
+                          <p className="font-bold">{bookPublishProbe.message}</p>
+                          {bookPublishProbe.checkedAt ? <p className="text-xs opacity-70 mt-1">Проверено: {bookPublishProbe.checkedAt}</p> : null}
+                          {bookPublishProbe.details?.length ? (
+                            <ul className="mt-2 space-y-1 text-xs">
+                              {bookPublishProbe.details.map(item => <li key={item}>- {item}</li>)}
+                            </ul>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {bookRequiredErrors.length || Object.keys(bookJsonErrors).length ? (
                     <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                      {[...(!isNewBook ? bookRequiredErrors : []), ...Object.values(bookJsonErrors)].map(item => (
+                      {[...bookRequiredErrors, ...Object.values(bookJsonErrors)].map(item => (
                         <div key={item}>{item}</div>
                       ))}
                     </div>
@@ -1939,7 +2089,41 @@ export const AdminPage: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <LF label="ID (slug)" hint="Создаётся автоматически — менять не нужно">
-                      <input value={bookDraft.id} onChange={e => setBookDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
+                      <input
+                        value={bookDraft.id}
+                        disabled={!isNewBook}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, id: slugify(e.target.value) } : prev)}
+                        className={`w-full border px-4 py-3 font-mono text-sm ${!isNewBook ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed' : 'border-gray-300'}`}
+                      />
+                      <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2 text-[11px]">
+                        <a href={currentBookPublicPath} target="_blank" rel="noopener noreferrer" className="font-mono text-primary hover:text-accent break-all">
+                          {currentBookPublicUrl}
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard?.writeText(currentBookPublicUrl).then(() => showToast('Ссылка скопирована'))}
+                          className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest text-gray-500 hover:text-primary"
+                        >
+                          <Clipboard size={11} /> Copy URL
+                        </button>
+                      </div>
+                    </LF>
+                    <LF label="Старые URL / aliases" hint="По одному alias в строке. Старые ссылки будут вести на основной URL книги.">
+                      <AutoTextarea
+                        value={(bookDraft.aliases || []).join('\n')}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, aliases: parseAliases((e.target as HTMLTextAreaElement).value) } : prev)}
+                        rows={3}
+                        className="border border-gray-300 px-4 py-3 font-mono text-sm"
+                      />
+                      {(bookDraft.aliases || []).length ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {(bookDraft.aliases || []).map(alias => (
+                            <span key={alias} className="text-[10px] uppercase tracking-widest border border-gray-200 bg-gray-50 px-2 py-1 font-mono">
+                              {`/product/${alias} -> ${currentBookPublicPath}`}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
                     </LF>
                     <LF label="Дата выхода">
                       <input type="date" value={bookDraft.releaseDate} onChange={e => setBookDraft(prev => prev ? { ...prev, releaseDate: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
@@ -1955,6 +2139,17 @@ export const AdminPage: React.FC = () => {
                     </LF>
                     <LF label="Автор">
                       <input value={bookDraft.author} onChange={e => setBookDraft(prev => prev ? { ...prev, author: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                    </LF>
+                    <LF label="Автор — родительный падеж (для «от …»)">
+                      <input
+                        value={bookDraft.authorGenitive ?? ''}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, authorGenitive: e.target.value } : prev)}
+                        className="w-full border border-gray-300 px-4 py-3"
+                        placeholder={bookDraft.author ? `Авто: ${toGenitiveRu(bookDraft.author)}` : 'Оставьте пустым — склонится автоматически'}
+                      />
+                      <p className="mt-1.5 text-[11px] text-gray-400 leading-snug">
+                        Заполняйте только если автосклонение неверно (напр. «Лев Толстой» → «Льва Толстого»). Пусто = склоняется само.
+                      </p>
                     </LF>
                     <LF label="Цена (€)">
                       <input type="number" min={0} step={0.01} value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
@@ -1990,6 +2185,35 @@ export const AdminPage: React.FC = () => {
                         <p className="text-xs leading-relaxed text-gray-500">
                           Shopify-ссылка становится основной кнопкой покупки на сайте. Остальные ссылки показываются ниже как дополнительные магазины.
                         </p>
+                        <div className={`border p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 ${
+                          activeShopifyLink ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'
+                        }`}>
+                          <div>
+                            <p className={`text-[10px] uppercase tracking-[0.2em] font-bold ${activeShopifyLink ? 'text-emerald-700' : 'text-amber-700'}`}>
+                              {activeShopifyLink ? 'Shopify checkout active' : 'Shopify checkout inactive'}
+                            </p>
+                            <p className="text-sm text-gray-700 mt-1">
+                              {activeShopifyLink
+                                ? 'Основная кнопка покупки на сайте ведёт в Shopify.'
+                                : 'Добавьте или заполните Shopify URL, чтобы основная кнопка покупки вела во внешний checkout.'}
+                            </p>
+                            {activeShopifyLink ? (
+                              <a href={activeShopifyLink.url} target="_blank" rel="noopener noreferrer" className="block mt-2 text-xs font-mono text-primary hover:text-accent break-all">
+                                {activeShopifyLink.url}
+                              </a>
+                            ) : null}
+                          </div>
+                          {activeShopifyLink ? (
+                            <a
+                              href={activeShopifyLink.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center gap-2 px-4 py-3 border border-emerald-300 text-emerald-800 hover:bg-white text-xs uppercase tracking-widest font-bold"
+                            >
+                              <ExternalLink size={13} /> Test checkout
+                            </a>
+                          ) : null}
+                        </div>
                         {(Array.isArray(bookDraft.purchaseLinks) ? bookDraft.purchaseLinks : []).map((link, idx) => (
                           <div key={link.id} className="flex flex-col sm:flex-row gap-2">
                             <input
@@ -2087,6 +2311,41 @@ export const AdminPage: React.FC = () => {
                     onChange={value => setBookDraft(prev => prev ? { ...prev, coverUrl: value } : prev)}
                     filenamePrefix={`cover-${bookDraft.id || 'book'}`}
                   />
+
+                  <section className="border border-primary/10 bg-[#F8F8F5] p-4 md:p-5">
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Preview</p>
+                        <h4 className="font-serif text-2xl leading-tight">Как выглядит карточка</h4>
+                      </div>
+                      <a href={currentBookPublicPath} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-widest font-bold text-primary hover:text-accent inline-flex items-center gap-1">
+                        Page <ExternalLink size={11} />
+                      </a>
+                    </div>
+                    <div className="max-w-[280px] bg-white border border-primary shadow-[8px_8px_0_rgba(4,15,30,0.08)]">
+                      <div className="aspect-[3/4] border-b border-primary bg-[#E8EDF2] p-3">
+                        {bookDraft.coverUrl ? (
+                          <img src={bookDraft.coverUrl} alt={bookDraft.title || 'Book cover preview'} className="w-full h-full object-contain grayscale contrast-110" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs font-mono text-gray-400">NO COVER</div>
+                        )}
+                      </div>
+                      <div className="p-4 space-y-3">
+                        <div>
+                          <h5 className="font-serif text-2xl leading-none line-clamp-2">{bookDraft.title || 'Название книги'}</h5>
+                          <p className="mt-2 text-[10px] uppercase tracking-[0.15em] text-gray-400">
+                            от <span className="text-primary font-bold">{bookDraft.author || 'Автор'}</span>
+                          </p>
+                        </div>
+                        <div className="flex items-end justify-between gap-3 border-t border-gray-100 pt-3">
+                          <span className="font-serif text-xl leading-none">{bookDraft.price.toFixed(2)} EUR</span>
+                          <span className={`text-[9px] uppercase tracking-widest font-bold px-2 py-1 ${activeShopifyLink ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
+                            {activeShopifyLink ? 'Shopify' : 'Cart'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
 
                   <LF label="Краткое описание">
                     <AutoTextarea value={bookDraft.description}
