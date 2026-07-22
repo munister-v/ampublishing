@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Globe } from 'lucide-react';
+import { ArrowRight, Globe } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useApp } from '../AppContext';
 
 export const HomePage: React.FC = () => {
-  const { t, books, news, showToast } = useApp();
+  const { t, books, news } = useApp();
   const newBooks = books.filter(b => b.badges.includes('new')).slice(0, 4);
   const heroLine2 = t('home.hero_title_2');
   const heroImageUrl = t('home.hero_image') as string;
@@ -27,7 +27,6 @@ export const HomePage: React.FC = () => {
            <div className="lg:col-span-8 p-6 md:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-primary relative">
               <div className="flex justify-between items-start animate-fade-in gpu-accelerated">
                  <span className="font-mono text-xs uppercase border border-primary px-2 py-1 rounded-none">Est. 2026 Berlin</span>
-                 <Star className="text-primary animate-spin-slow" size={40} strokeWidth={1} />
               </div>
 
               <div className="z-10 mt-12 md:mt-0 overflow-hidden">
@@ -65,13 +64,15 @@ export const HomePage: React.FC = () => {
                  <div className="writing-vertical text-xs font-mono text-white animate-marquee uppercase tracking-widest whitespace-nowrap gpu-accelerated" style={{ height: '200%' }}>
                     {marqueeContent.join('')}
                  </div>
+                 <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/40 to-transparent"></div>
+                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/40 to-transparent"></div>
               </div>
            </div>
         </div>
       </section>
 
       {/* 2. TICKER TAPE (Horizontal) */}
-      <div className="border-b border-primary bg-accent text-primary py-3 overflow-hidden">
+      <div className="relative border-b border-primary bg-accent text-primary py-3 overflow-hidden">
          {/* Container width must be large enough to hold double content for smooth loop */}
          <div className="flex whitespace-nowrap animate-marquee gpu-accelerated w-max">
             {tickerContent.map((text, i) => (
@@ -81,6 +82,8 @@ export const HomePage: React.FC = () => {
             ))}
             {/* Duplicate content visually if needed for perfect loop, but here array is long enough */}
          </div>
+         <div className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-28 bg-gradient-to-r from-accent to-transparent"></div>
+         <div className="pointer-events-none absolute inset-y-0 right-0 w-16 md:w-28 bg-gradient-to-l from-accent to-transparent"></div>
       </div>
 
       {/* 3. CATALOG GRID */}
@@ -130,7 +133,7 @@ export const HomePage: React.FC = () => {
                </div>
             </div>
          </div>
-         <div className="relative group overflow-hidden">
+         <div className="relative group overflow-hidden min-h-[420px] md:min-h-0">
             <div className="w-full h-full overflow-hidden">
                <img 
                   src={featureImageUrl}
@@ -139,7 +142,7 @@ export const HomePage: React.FC = () => {
                />
             </div>
             <div className="absolute inset-0 bg-primary/20 mix-blend-multiply transition-opacity duration-700 group-hover:opacity-0"></div>
-            <div className="absolute bottom-0 left-0 bg-white border-t border-r border-primary p-6 transition-transform duration-700 ease-out-quart group-hover:-translate-y-2">
+            <div className="absolute bottom-0 left-0 bg-white/90 backdrop-blur-sm border-t border-r border-primary p-6 shadow-[0_-4px_24px_rgba(0,0,0,0.12)] transition-transform duration-700 ease-out-quart group-hover:-translate-y-2">
                <span className="font-mono text-xs block mb-2">{t('home.feature_kicker')}</span>
                <span className="font-serif text-2xl">{t('home.feature_title')}</span>
             </div>
@@ -149,19 +152,19 @@ export const HomePage: React.FC = () => {
       {/* 5. JOURNAL LIST */}
       {news.length > 0 && <section className="bg-white">
          {news.map((n, idx) => (
-            <div 
-               key={n.id} 
-               onClick={() => showToast("Access Restricted: Archive 2026", 'info')} 
+            <Link
+               key={n.id}
+               to={`/news/${n.id}`}
                className="block group cursor-pointer"
             >
-               <div className="border-b border-primary p-8 md:p-12 flex flex-col md:flex-row items-baseline gap-6 hover:bg-primary hover:text-white transition-colors duration-500 ease-out">
-                  <span className="font-mono text-xs w-32 shrink-0">0{idx+1} / {n.date}</span>
+               <div className="border-b border-primary p-8 md:p-12 flex flex-col md:flex-row items-baseline gap-6 transition-colors duration-500 ease-out group-hover:bg-primary/[0.03]">
+                  <span className="font-mono text-xs w-32 shrink-0 text-primary/50 group-hover:text-accent transition-colors duration-500">0{idx+1} / {n.date}</span>
                   <div className="flex-1">
-                     <h3 className="text-4xl md:text-6xl font-serif mb-2 transition-all duration-300">{n.title}</h3>
+                     <h3 className="text-4xl md:text-6xl font-serif mb-2 transition-all duration-300 group-hover:translate-x-2">{n.title}</h3>
                   </div>
-                  <ArrowRight className="hidden md:block transform group-hover:translate-x-4 transition-transform duration-500 ease-out-quart" />
+                  <ArrowRight className="hidden md:block text-primary/40 transform group-hover:translate-x-4 group-hover:text-accent transition-all duration-500 ease-out-quart" />
                </div>
-            </div>
+            </Link>
          ))}
       </section>}
 

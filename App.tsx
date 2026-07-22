@@ -18,7 +18,7 @@ import { ProductPage } from './pages/ProductPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { ServiceOrderPage } from './pages/ServiceOrderPage';
-import { AuthorsPage, AboutPage, MediaPage, PrivacyPage, ImpressumPage, TermsPage, OurAuthorsPage } from './pages/StaticPages';
+import { AuthorsPage, AboutPage, MediaPage, PrivacyPage, ImpressumPage, TermsPage, OurAuthorsPage, NewsPage } from './pages/StaticPages';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminPage } from './pages/AdminPage';
@@ -73,6 +73,7 @@ const AppContent: React.FC = () => {
           <Route path="/our-authors" element={<OurAuthorsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/media" element={<MediaPage />} />
+          <Route path="/news/:id" element={<NewsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/impressum" element={<ImpressumPage />} />
           <Route path="/terms" element={<TermsPage />} />

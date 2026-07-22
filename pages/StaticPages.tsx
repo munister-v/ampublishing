@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Mail, Download, PenTool, BookOpen, Send, User, Clock } from 'lucide-react';
+import { Mail, Download, PenTool, BookOpen, Send, User, Clock, ArrowLeft } from 'lucide-react';
 import { useApp } from '../AppContext';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getAuthorShowcaseContent } from '../services/authorShowcase';
 
 // --- Components ---
@@ -486,6 +486,48 @@ export const MediaPage: React.FC = () => {
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+// --- News / Journal Detail Page ---
+export const NewsPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const { news, language } = useApp();
+  const item = news.find(n => n.id === id);
+
+  const L = {
+    ru: { back: 'На главную', notFound: 'Материал не найден' },
+    en: { back: 'Back to home', notFound: 'Article not found' },
+    de: { back: 'Zur Startseite', notFound: 'Beitrag nicht gefunden' },
+  }[language] ?? { back: 'Back to home', notFound: 'Article not found' };
+
+  if (!item) {
+    return (
+      <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px] min-h-[70vh] flex flex-col items-center justify-center px-6 text-center">
+        <p className="font-mono text-xs uppercase tracking-widest text-gray-500 mb-6">404</p>
+        <h1 className="font-serif text-3xl md:text-4xl text-primary mb-8">{L.notFound}</h1>
+        <Link to="/" className="inline-flex items-center gap-2 border border-primary px-8 py-3 uppercase text-xs font-bold tracking-widest hover:bg-primary hover:text-white transition-colors">
+          <ArrowLeft size={16} /> {L.back}
+        </Link>
+      </div>
+    );
+  }
+
+  const body = (item.body && item.body.trim()) ? item.body : item.preview;
+
+  return (
+    <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
+      <article className="container mx-auto px-6 py-16 md:py-24 max-w-3xl">
+        <Link to="/" className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-gray-500 hover:text-accent transition-colors mb-10">
+          <ArrowLeft size={14} /> {L.back}
+        </Link>
+        <p className="font-mono text-xs uppercase tracking-widest text-gray-500 mb-4">{item.date}</p>
+        <h1 className="font-serif text-4xl md:text-6xl leading-[1.05] text-primary mb-10 break-words">{item.title}</h1>
+        <div className="whitespace-pre-wrap font-serif text-lg md:text-xl leading-relaxed text-primary/90">
+          {body}
+        </div>
+      </article>
     </div>
   );
 };
