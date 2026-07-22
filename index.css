@@ -19,7 +19,6 @@
     scroll-behavior: smooth;
     scroll-padding-top: calc(var(--header-offset) + 16px);
     overflow-x: clip;
-    overscroll-behavior-y: none;
   }
 
   body {
@@ -31,7 +30,6 @@
     position: relative;
     -webkit-tap-highlight-color: transparent;
     text-rendering: optimizeLegibility;
-    overscroll-behavior-y: none;
   }
 
   #root {
