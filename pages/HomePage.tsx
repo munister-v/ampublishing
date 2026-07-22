@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Globe } from 'lucide-react';
+import { ArrowRight, Globe, Sparkles } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useApp } from '../AppContext';
 
@@ -146,9 +146,9 @@ export const HomePage: React.FC = () => {
                />
             </div>
             <div className="absolute inset-0 bg-primary/20 mix-blend-multiply transition-opacity duration-700 group-hover:opacity-0"></div>
-            <div className="absolute bottom-0 left-0 bg-white/90 backdrop-blur-sm border-t border-r border-primary p-6 shadow-[0_-4px_24px_rgba(0,0,0,0.12)] transition-transform duration-700 ease-out-quart group-hover:-translate-y-2">
-               <span className="font-mono text-xs block mb-2">{t('home.feature_kicker')}</span>
-               <span className="font-serif text-2xl">{t('home.feature_title')}</span>
+            <div className="absolute top-16 right-4 flex items-center gap-2 bg-white/90 backdrop-blur-sm border border-primary px-4 py-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.12)] transition-transform duration-700 ease-out-quart group-hover:-translate-y-1">
+               <Sparkles size={14} className="text-accent shrink-0" strokeWidth={1.5} />
+               <span className="font-mono text-xs uppercase tracking-wide whitespace-nowrap">{t('home.feature_kicker')}</span>
             </div>
          </div>
       </section>
