@@ -177,7 +177,12 @@ const fetchContent = async <T,>(filename: string, fallback: T): Promise<T> => {
     const res = await fetch(`${CONTENT_BASE}${filename}`, { cache: 'no-cache' });
     if (!res.ok) return fallback;
     return (await res.json()) as T;
-  } catch {
+  } catch (e) {
+    // A malformed JSON file (e.g. an auto-translate pipeline emitting an
+    // unescaped quote) used to fail silently here, quietly dropping every
+    // override/entry for that language back to the fallback. Surface it so
+    // a broken translate run doesn't look like "this language has no data".
+    console.error(`[contentStore] Failed to load/parse ${filename} — falling back.`, e);
     return fallback;
   }
 };
