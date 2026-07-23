@@ -88,11 +88,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
 
               <div className="flex justify-between items-end mt-4">
                  <div className="flex gap-4 text-[10px] uppercase text-gray-400 font-mono">
-                    <span>{mainVariant ? formatLabel(mainVariant.format, language) : ''}</span>
-                    <span className="hidden sm:inline">|</span>
-                    <span className="hidden sm:inline">{mainVariant?.isbn}</span>
-                    <span className="hidden sm:inline">|</span>
-                    <span className="hidden sm:inline">{book.details.year}</span>
+                    {mainVariant && <span>{formatLabel(mainVariant.format, language)}</span>}
+                    {mainVariant?.isbn && <span className="hidden sm:inline">| {mainVariant.isbn}</span>}
+                    <span className="hidden sm:inline">{mainVariant ? '| ' : ''}{book.details.year}</span>
                  </div>
                  
                  {!isSoldOut && isPurchasable && (
@@ -132,9 +130,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
         {/* --- TECHNICAL HEADER (Meta Data) --- */}
         <div className="flex justify-between items-center px-4 py-3 border-b border-primary bg-white text-[9px] font-mono uppercase tracking-wider text-gray-500">
            <div className="flex gap-3">
-              <span className="text-primary font-bold">{mainVariant?.isbn || 'N/A'}</span>
-              <span className="hidden sm:inline text-primary/20">|</span>
-              <span className="hidden sm:inline">{book.details.year}</span>
+              {mainVariant?.isbn && <span className="text-primary font-bold">{mainVariant.isbn}</span>}
+              {mainVariant?.isbn && <span className="hidden sm:inline text-primary/20">|</span>}
+              <span className={mainVariant?.isbn ? 'hidden sm:inline' : ''}>{book.details.year}</span>
            </div>
            <div className="flex gap-2">
              <span className={`${book.variants.length > 1 ? 'text-accent' : ''}`}>

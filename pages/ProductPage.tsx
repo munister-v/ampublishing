@@ -9,6 +9,7 @@ import { formatLabel } from '../utils/formatLabel';
 import { getActivePurchaseLinks, getShopifyPurchaseLink, isShopifyPurchaseLink } from '../utils/purchaseLinks';
 import { toGenitiveRu } from '../utils/declension';
 import { findBookByRouteId, getBookPath, isAliasRoute } from '../utils/bookRoutes';
+import { figureNumber } from '../utils/figureNumber';
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -133,7 +134,7 @@ export const ProductPage: React.FC = () => {
              </div>
              {/* Badge */}
              <div className="absolute top-8 left-8 bg-primary text-white px-3 py-1 font-mono text-xs">
-                FIG. {book.id}
+                FIG. {figureNumber(book.id)}
              </div>
          </div>
 
