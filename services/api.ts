@@ -13,7 +13,7 @@ import {
   SiteSettings,
   TranslationOverrides,
 } from '../types';
-import { contentStore, verifyPAT } from './contentStore';
+import { contentStore, verifyPAT, computeMetadata } from './contentStore';
 import { notifyOrderChannels } from './orderNotifications';
 import { decryptPAT, encryptPAT, type AdminAuthConfig } from './adminAuth';
 
@@ -68,6 +68,25 @@ const writeLoginState = (state: LoginState) => {
   }
 };
 
+// The catalog is edited per-language (each admin "upsert" only touches the
+// selected language's books.<lang>.json), so a book added in RU but never
+// translated used to simply vanish from the EN/DE catalog. Russian is the
+// canonical/source language (books are always created there first — see git
+// history), so every other language falls back to the RU entry for any book
+// it hasn't translated yet. This keeps the same set of titles visible in
+// every language instead of a thinner catalog on EN/DE.
+const mergeBooksWithFallback = (db: Record<Language, LocalizedCatalogData>, lang: Language): Book[] => {
+  if (lang === 'ru') return db.ru.books;
+  const ruBooks = db.ru.books;
+  const langBooks = db[lang].books;
+  const byId = new Map(langBooks.map((b) => [b.id, b]));
+  const merged = ruBooks.map((rb) => byId.get(rb.id) ?? rb);
+  // Books that exist only in this language (no RU counterpart) still show up.
+  const ruIds = new Set(ruBooks.map((b) => b.id));
+  const langOnly = langBooks.filter((b) => !ruIds.has(b.id));
+  return [...merged, ...langOnly];
+};
+
 export const api = {
   healthCheck: async (): Promise<boolean> => true,
 
@@ -75,7 +94,7 @@ export const api = {
 
   getBooks: async (lang: Language): Promise<Book[]> => {
     const db = await contentStore.getDatabase();
-    return db[lang].books;
+    return mergeBooksWithFallback(db, lang);
   },
 
   getNews: async (lang: Language): Promise<NewsItem[]> => {
@@ -85,11 +104,7 @@ export const api = {
 
   getMetadata: async (lang: Language) => {
     const db = await contentStore.getDatabase();
-    return {
-      genres: db[lang].genres,
-      authors: db[lang].authors,
-      series: db[lang].series,
-    };
+    return computeMetadata(mergeBooksWithFallback(db, lang));
   },
 
   getContentDatabase: async (): Promise<Record<Language, LocalizedCatalogData>> => {

@@ -293,7 +293,7 @@ const mergeSiteSettings = (incoming: Partial<SiteSettings> | null | undefined): 
   };
 };
 
-const computeMetadata = (books: Book[]) => ({
+export const computeMetadata = (books: Book[]) => ({
   genres: Array.from(new Set(books.flatMap(book => book.genre))).filter(Boolean).sort(),
   authors: Array.from(new Set(books.map(book => book.author))).filter(Boolean).sort(),
   series: Array.from(new Set(books.map(book => book.series).filter(Boolean) as string[])).sort(),

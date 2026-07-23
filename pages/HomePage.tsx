@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Globe, Sparkles } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
+import { EuropeGlyph, DHLBadge } from '../components/BrandGlyphs';
 import { useApp } from '../AppContext';
 
 export const HomePage: React.FC = () => {
@@ -11,6 +12,16 @@ export const HomePage: React.FC = () => {
   const heroLine2 = t('home.hero_title_2');
   const heroImageUrl = t('home.hero_image') as string;
   const featureImageUrl = t('home.feature_image') as string;
+
+  // The "region" / "delivery partner" tiles can be repurposed via admin
+  // translation overrides (e.g. RU currently reads "Европа" / "DHL" instead
+  // of the default numeric stats). When that's the case, pair the value with
+  // a small glyph instead of plain bold text; any other override (or the
+  // default numbers) keeps rendering as plain text.
+  const countriesValue = String(t('home.stats_countries_value') ?? '').trim();
+  const deliveryValue = String(t('home.stats_delivery_value') ?? '').trim();
+  const isEuropeTile = /^(европа|europe|europa)$/i.test(countriesValue);
+  const isDHLTile = /^dhl$/i.test(deliveryValue);
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));
@@ -125,12 +136,13 @@ export const HomePage: React.FC = () => {
                {t('home.global_desc')}
             </p>
             <div className="grid grid-cols-2 gap-px bg-primary border border-primary">
-               <div className="bg-[#E8EDF2] p-4 text-center hover:bg-white transition-colors duration-500">
-                  <span className="block text-3xl font-bold">{t('home.stats_countries_value')}</span>
+               <div className="bg-[#E8EDF2] p-4 flex flex-col items-center justify-center gap-1.5 text-center hover:bg-white transition-colors duration-500">
+                  {isEuropeTile && <EuropeGlyph className="w-7 h-7 text-primary" />}
+                  <span className="block text-3xl font-bold">{countriesValue}</span>
                   <span className="text-[9px] uppercase">{t('home.stats_countries')}</span>
                </div>
-               <div className="bg-[#E8EDF2] p-4 text-center hover:bg-white transition-colors duration-500">
-                  <span className="block text-3xl font-bold">{t('home.stats_delivery_value')}</span>
+               <div className="bg-[#E8EDF2] p-4 flex flex-col items-center justify-center gap-1.5 text-center hover:bg-white transition-colors duration-500">
+                  {isDHLTile ? <DHLBadge className="text-2xl" /> : <span className="block text-3xl font-bold">{deliveryValue}</span>}
                   <span className="text-[9px] uppercase">{t('home.stats_delivery')}</span>
                </div>
             </div>
