@@ -68,23 +68,30 @@ const writeLoginState = (state: LoginState) => {
   }
 };
 
-// The catalog is edited per-language (each admin "upsert" only touches the
-// selected language's books.<lang>.json), so a book added in RU but never
-// translated used to simply vanish from the EN/DE catalog. Russian is the
-// canonical/source language (books are always created there first — see git
-// history), so every other language falls back to the RU entry for any book
-// it hasn't translated yet. This keeps the same set of titles visible in
-// every language instead of a thinner catalog on EN/DE.
+// Catalog content (books, news) is edited per-language — each admin action
+// only touches the selected language's own JSON file — so an entry added in
+// RU but never translated used to simply vanish from the EN/DE list. Russian
+// is the canonical/source language (entries are always created there first —
+// see git history), so every other language falls back to the RU entry for
+// anything it hasn't translated yet. This keeps the same set of items visible
+// in every language instead of a thinner EN/DE list.
+const mergeWithRuFallback = <T extends { id: string }>(ruItems: T[], langItems: T[]): T[] => {
+  const byId = new Map(langItems.map((item) => [item.id, item]));
+  const merged = ruItems.map((ri) => byId.get(ri.id) ?? ri);
+  // Items that exist only in this language (no RU counterpart) still show up.
+  const ruIds = new Set(ruItems.map((item) => item.id));
+  const langOnly = langItems.filter((item) => !ruIds.has(item.id));
+  return [...merged, ...langOnly];
+};
+
 const mergeBooksWithFallback = (db: Record<Language, LocalizedCatalogData>, lang: Language): Book[] => {
   if (lang === 'ru') return db.ru.books;
-  const ruBooks = db.ru.books;
-  const langBooks = db[lang].books;
-  const byId = new Map(langBooks.map((b) => [b.id, b]));
-  const merged = ruBooks.map((rb) => byId.get(rb.id) ?? rb);
-  // Books that exist only in this language (no RU counterpart) still show up.
-  const ruIds = new Set(ruBooks.map((b) => b.id));
-  const langOnly = langBooks.filter((b) => !ruIds.has(b.id));
-  return [...merged, ...langOnly];
+  return mergeWithRuFallback(db.ru.books, db[lang].books);
+};
+
+const mergeNewsWithFallback = (db: Record<Language, LocalizedCatalogData>, lang: Language): NewsItem[] => {
+  if (lang === 'ru') return db.ru.news;
+  return mergeWithRuFallback(db.ru.news, db[lang].news);
 };
 
 export const api = {
@@ -99,7 +106,7 @@ export const api = {
 
   getNews: async (lang: Language): Promise<NewsItem[]> => {
     const db = await contentStore.getDatabase();
-    return db[lang].news;
+    return mergeNewsWithFallback(db, lang);
   },
 
   getMetadata: async (lang: Language) => {
