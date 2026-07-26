@@ -5,7 +5,7 @@ import { useApp } from '../AppContext';
 import { Send } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const { t, isAdmin } = useApp();
+  const { t } = useApp();
 
   return (
     <footer className="bg-primary text-white border-t border-white/20">
@@ -54,13 +54,12 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Copyright strip — mobile */}
-        <div className="px-6 py-4 flex flex-col gap-2.5 text-[9px] font-mono uppercase tracking-[0.18em] opacity-45">
+        <div className="px-6 py-4 flex flex-col items-center text-center gap-2.5 text-[9px] font-mono uppercase tracking-[0.18em] opacity-45">
           <span>© 2026 AM Publishing Berlin</span>
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
             <Link to="/impressum" className="hover:opacity-100 transition-opacity">{t('footer.links.impressum')}</Link>
             <Link to="/privacy" className="hover:opacity-100 transition-opacity">{t('footer.links.privacy')}</Link>
             <Link to="/terms" className="hover:opacity-100 transition-opacity">{t('footer.links.terms')}</Link>
-            <Link to={isAdmin ? '/admin' : '/login'} className="hover:text-accent hover:opacity-100 transition-opacity opacity-60">{isAdmin ? 'Admin' : 'Admin'}</Link>
           </div>
         </div>
       </div>
@@ -136,7 +135,6 @@ export const Footer: React.FC = () => {
           <Link to="/impressum" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.impressum')}</Link>
           <Link to="/privacy" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.privacy')}</Link>
           <Link to="/terms" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.terms')}</Link>
-          <Link to={isAdmin ? '/admin' : '/login'} className="hover:text-accent hover:opacity-100 transition-opacity">{isAdmin ? 'Admin Panel' : 'Admin'}</Link>
         </div>
       </div>
     </footer>
