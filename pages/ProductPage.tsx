@@ -358,16 +358,23 @@ export const ProductPage: React.FC = () => {
             </div>
           ) : null}
 
-          {/* Excerpt */}
+          {/* Excerpt — same label-bar + breathing room as Reviews below, since both
+              present quoted words from/about the book rather than editorial copy.
+              Left-aligned and measure-constrained (not centred like the pull-quote):
+              this is running prose, often several paragraphs, and centring or
+              cramping that into a narrow sidebar column is what read as a dense
+              wall of text before. */}
           {(book.story.excerpt?.length ?? 0) > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] border-b border-primary">
-              <div className="p-8 border-b md:border-b-0 md:border-r border-primary bg-[#F4F4F0] flex items-start">
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.excerpt')}</span>
+            <div className="border-b border-primary">
+              <div className="p-8 border-b border-primary">
+                <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.excerpt')}</h2>
               </div>
-              <div className="p-8 md:p-16 bg-[#F4F4F0] space-y-6 border-l-4 border-primary/20">
-                {book.story.excerpt.map((para, i) => (
-                  <p key={i} className="text-lg font-serif leading-relaxed text-primary/80 italic">{para}</p>
-                ))}
+              <div className="p-8 md:p-16 bg-[#F4F4F0]">
+                <div className="max-w-2xl mx-auto space-y-6">
+                  {book.story.excerpt.map((para, i) => (
+                    <p key={i} className="text-lg md:text-xl font-serif leading-relaxed text-primary/80 italic">{para}</p>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}
