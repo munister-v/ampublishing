@@ -1039,6 +1039,7 @@ export const AdminPage: React.FC = () => {
   const [orderPaymentFilter, setOrderPaymentFilter] = useState<string>('all');
   const [bookSearch, setBookSearch] = useState('');
   const [newsSearch, setNewsSearch] = useState('');
+  const [newsPreviewDevice, setNewsPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [bookSort, setBookSort] = useState<'default' | 'alpha' | 'stock'>('default');
   const [saveOpPhase, setSaveOpPhase] = useState('');
   const [savedFlash, setSavedFlash] = useState('');
@@ -1374,6 +1375,18 @@ export const AdminPage: React.FC = () => {
     if (!newsDraft.title.trim()) issues.push('News title missing');
     if (!newsDraft.preview.trim()) issues.push('News preview missing');
     return issues;
+  }, [newsDraft]);
+
+  const newsEditorialChecks = useMemo(() => {
+    if (!newsDraft) return [];
+    const words = (newsDraft.body || '').trim().split(/\s+/).filter(Boolean).length;
+    return [
+      { label: 'Заголовок', ok: Boolean(newsDraft.title.trim()) },
+      { label: 'Анонс', ok: Boolean(newsDraft.preview.trim()) },
+      { label: 'Обложка', ok: Boolean(newsDraft.imageUrl?.trim()) },
+      { label: words ? `${words} слов в тексте` : 'Текст', ok: words >= 30 },
+      { label: 'Alt-подпись', ok: !newsDraft.imageUrl || Boolean(newsDraft.imageAlt?.trim()) },
+    ];
   }, [newsDraft]);
 
   // True when the selected item exists in local state but hasn't been saved to DB yet
@@ -2533,8 +2546,13 @@ export const AdminPage: React.FC = () => {
                     onClick={() => setSelectedNewsId(item.id)}
                     className={`w-full text-left p-4 hover:bg-gray-50 ${selectedNewsId === item.id ? 'bg-[#F4F4F0]' : ''}`}
                   >
-                    <p className="font-serif text-xl leading-none mb-2">{item.title || item.id}</p>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-gray-400">{item.date}</p>
+                    <div className="flex gap-3">
+                      {item.imageUrl ? <img src={item.imageUrl} alt="" className="h-12 w-12 shrink-0 border border-primary/10 object-cover" /> : <span className="flex h-12 w-12 shrink-0 items-center justify-center border border-dashed border-primary/20 bg-[#F8F8F5] font-mono text-[9px] text-gray-400">NO IMG</span>}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-serif text-xl leading-none mb-2 line-clamp-2">{item.title || item.id}</p>
+                        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-gray-400">{item.category || 'Новости'} · {item.date}{item.featured ? ' · ★' : ''}</p>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -2640,15 +2658,18 @@ export const AdminPage: React.FC = () => {
                     </div>
 
                     <aside className="space-y-5 2xl:sticky 2xl:top-24 2xl:self-start">
-                      <section className="overflow-hidden border border-primary bg-white shadow-[10px_10px_0_rgba(4,15,30,0.08)]">
+                      <section className={`overflow-hidden border border-primary bg-white shadow-[10px_10px_0_rgba(4,15,30,0.08)] transition-[max-width] duration-300 ${newsPreviewDevice === 'mobile' ? 'mx-auto max-w-[360px]' : ''}`}>
                         <div className="flex items-center justify-between border-b border-primary/10 px-4 py-3">
                           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary/55">Живой предпросмотр</span>
-                          <span className="font-mono text-[10px] uppercase tracking-widest text-green-700">● desktop</span>
+                          <span className="flex border border-primary/15 bg-white p-0.5">
+                            <button type="button" onClick={() => setNewsPreviewDevice('desktop')} className={`px-2 py-1 font-mono text-[9px] uppercase tracking-widest ${newsPreviewDevice === 'desktop' ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100'}`}>Desktop</button>
+                            <button type="button" onClick={() => setNewsPreviewDevice('mobile')} className={`px-2 py-1 font-mono text-[9px] uppercase tracking-widest ${newsPreviewDevice === 'mobile' ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100'}`}>Mobile</button>
+                          </span>
                         </div>
                         {newsDraft.imageUrl ? <img src={newsDraft.imageUrl} alt="" className="aspect-[16/9] w-full object-cover" /> : <div className="flex aspect-[16/9] items-center justify-center bg-[#E8EDF2] font-mono text-[10px] uppercase tracking-widest text-gray-400">Обложка не добавлена</div>}
                         <article className="p-5 md:p-6">
                           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">{newsDraft.category || 'Новости'} · {newsDraft.date || 'дата'}</p>
-                          <h4 className="mt-4 font-serif text-3xl leading-[.95] text-primary">{newsDraft.title || 'Заголовок материала'}</h4>
+                          <h4 className={`mt-4 font-serif leading-[.95] text-primary ${newsPreviewDevice === 'mobile' ? 'text-3xl' : 'text-4xl'}`}>{newsDraft.title || 'Заголовок материала'}</h4>
                           <p className="mt-4 font-serif text-lg italic leading-relaxed text-primary/70">{newsDraft.preview || 'Короткий анонс появится здесь.'}</p>
                           <div className="mt-5 border-t border-primary/10 pt-5 font-serif text-base leading-relaxed text-primary/90 whitespace-pre-line line-clamp-8">{newsDraft.body || 'Полный текст материала появится здесь.'}</div>
                         </article>
@@ -2669,6 +2690,12 @@ export const AdminPage: React.FC = () => {
                           <input type="checkbox" checked={Boolean(newsDraft.featured)} onChange={e => setNewsDraft(prev => prev ? { ...prev, featured: e.target.checked } : prev)} className="mt-0.5 h-4 w-4 accent-primary" />
                           <span><b className="block text-xs uppercase tracking-widest">Выделить материал</b><small className="mt-1 block text-xs leading-relaxed text-gray-500">Метка готова для витринных блоков; сам материал остаётся доступен по отдельной ссылке.</small></span>
                         </label>
+                        <div className="border border-primary/10 bg-white p-3">
+                          <p className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-primary/45">Готовность материала</p>
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+                            {newsEditorialChecks.map(check => <span key={check.label} className={`flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wide ${check.ok ? 'text-green-700' : 'text-amber-700'}`}><i className={`h-1.5 w-1.5 rounded-full ${check.ok ? 'bg-green-600' : 'bg-amber-500'}`} />{check.label}</span>)}
+                          </div>
+                        </div>
                         <a href={`/news/${newsDraft.id}`} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 border border-primary bg-white px-4 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white"><ExternalLink size={13} /> Открыть страницу</a>
                       </section>
                     </aside>
