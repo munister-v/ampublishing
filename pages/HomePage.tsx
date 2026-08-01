@@ -69,7 +69,7 @@ export const HomePage: React.FC = () => {
                    alt="Всё, что останется - обложка книги"
                    fetchPriority="high"
                    decoding="async"
-                   className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-[2000ms] ease-out-quart mix-blend-luminosity group-hover:scale-105 gpu-accelerated"
+                   className="w-full h-full object-cover opacity-85 saturate-100 transition-transform duration-[1200ms] ease-out-quart group-hover:scale-105 gpu-accelerated"
                 />
               </div>
               {/* Vertical Marquee */}
@@ -154,7 +154,7 @@ export const HomePage: React.FC = () => {
                   alt="Всё, что останется - предметное фото книги"
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-[2000ms] ease-out-quart gpu-accelerated"
+                  className="w-full h-full object-cover saturate-100 contrast-110 group-hover:scale-105 transition-transform duration-[1200ms] ease-out-quart gpu-accelerated"
                />
             </div>
             <div className="absolute inset-0 bg-primary/20 mix-blend-multiply transition-opacity duration-700 group-hover:opacity-0"></div>

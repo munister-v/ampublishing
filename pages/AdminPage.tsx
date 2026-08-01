@@ -2371,7 +2371,7 @@ export const AdminPage: React.FC = () => {
                     <div className="max-w-[280px] bg-white border border-primary shadow-[8px_8px_0_rgba(4,15,30,0.08)]">
                       <div className="aspect-[3/4] border-b border-primary bg-[#E8EDF2] p-3">
                         {bookDraft.coverUrl ? (
-                          <img src={bookDraft.coverUrl} alt={bookDraft.title || 'Book cover preview'} className="w-full h-full object-contain grayscale contrast-110" />
+                          <img src={bookDraft.coverUrl} alt={bookDraft.title || 'Book cover preview'} className="w-full h-full object-contain" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-xs font-mono text-gray-400">NO COVER</div>
                         )}

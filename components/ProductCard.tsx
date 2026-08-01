@@ -60,7 +60,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
               <FadeImage 
                  src={book.coverUrl} 
                  alt={book.title}
-                 className={`w-full h-full object-cover transition-all duration-[1000ms] ${isSoldOut ? 'opacity-50 grayscale' : 'grayscale group-hover:grayscale-0'}`}
+                 className={`w-full h-full object-cover transition-all duration-[700ms] ${isSoldOut ? 'opacity-50 saturate-50' : 'saturate-100 group-hover:saturate-110'}`}
               />
               {book.isPreorder && (
                 <span className="absolute top-2 left-2 bg-accent text-white px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest">
@@ -167,7 +167,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
              <FadeImage 
                src={book.coverUrl} 
                alt={book.title}
-               className={`w-full h-full object-cover transition-all duration-[1000ms] ease-out-quart ${isSoldOut ? 'opacity-50 grayscale' : 'grayscale group-hover:grayscale-0'}`}
+               className={`w-full h-full object-cover transition-all duration-[700ms] ease-out-quart ${isSoldOut ? 'opacity-50 saturate-50' : 'saturate-100 group-hover:saturate-110'}`}
              />
            </div>
 

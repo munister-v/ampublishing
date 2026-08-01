@@ -71,6 +71,12 @@ const STATUS_LABEL: Record<LeadStatus, string> = {
   archived: 'В архиве',
 };
 
+const normalizeApiBase = (value: string): string => value.trim().replace(/\/+$/, '');
+const endpointFromBase = (base: string): string => {
+  const clean = normalizeApiBase(base);
+  return clean ? `${clean}/leads` : '';
+};
+
 export const IntegrationsPanel: React.FC<{
   language: Language;
   orders: Order[];
@@ -126,6 +132,20 @@ export const IntegrationsPanel: React.FC<{
     });
     setDirty(true);
   };
+
+  /** Keep the public form and the private admin inbox on one address unless
+   * the editor deliberately switched the form to an external webhook. */
+  const setLeadApiBase = (value: string) => patch(next => {
+    const previousBase = normalizeApiBase(next.leads.apiBaseUrl);
+    const previousEndpoint = endpointFromBase(previousBase);
+    const nextBase = normalizeApiBase(value);
+    const usesInternalEndpoint = !next.leads.endpointUrl || normalizeApiBase(next.leads.endpointUrl) === previousEndpoint;
+    next.leads.apiBaseUrl = nextBase;
+    if (usesInternalEndpoint) {
+      next.leads.endpointUrl = endpointFromBase(nextBase);
+      next.leads.mode = 'form';
+    }
+  });
 
   const save = async () => {
     if (!draft) return;
@@ -296,6 +316,23 @@ export const IntegrationsPanel: React.FC<{
             hint="Кнопка «Купить» на карточке книги ведёт в корзину вашего магазина Shopify с уже добавленным товаром."
           />
 
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <Toggle
+              checked={draft.shopify.redirectToShopifyCheckout}
+              onChange={value => patch(next => { next.shopify.redirectToShopifyCheckout = value; })}
+              label="Оформление в Shopify"
+              hint="Покупатель переходит в безопасную корзину Shopify, а оплату и заказы ведёт сам магазин."
+            />
+            <div className="border border-primary/10 bg-[#F8F8F5] p-4 flex flex-col justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/50">Операционный маршрут</p>
+                <h4 className="mt-1 font-serif text-2xl leading-tight">Каталог → Shopify → заказ</h4>
+                <p className="mt-1 text-xs leading-relaxed text-gray-600">Книги остаются красиво описанными на AM Publishing; остатки, оплата и доставка — в Shopify без дублирования данных.</p>
+              </div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-primary/60">{coverage.linked}/{coverage.total} книг привязано</span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-px border border-primary/10 bg-primary/10 md:grid-cols-4">
             {shopifyReadiness.map(item => (
               <div key={item.label} className="bg-[#F8F8F5] px-4 py-3">
@@ -308,7 +345,7 @@ export const IntegrationsPanel: React.FC<{
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field label="Домен магазина" hint="Например ampublishing.myshopify.com или shop.ampublishing.org">
+            <Field label="Публичный адрес витрины Shopify" hint="Укажите подключённый домен магазина: свой, например shop.ampublishing.org, или технический *.myshopify.com.">
               <input className={inputCls} value={draft.shopify.domain} placeholder="ampublishing.myshopify.com"
                 onChange={e => patch(next => { next.shopify.domain = e.target.value; })} />
             </Field>
@@ -694,12 +731,24 @@ export const IntegrationsPanel: React.FC<{
             hint="Форма на /services/order отправляет заявку на указанный ниже адрес приёма."
           />
 
+          <div className="border border-primary bg-[#F8F8F5] p-4 md:p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/55">AM Inbox · свой VPS</p>
+              <h4 className="mt-1 font-serif text-2xl leading-tight">Заявки из услуг — в одной очереди</h4>
+              <p className="mt-1 max-w-2xl text-xs leading-relaxed text-gray-600">Форма сайта, статусы, экспорт и уведомления работают через один собственный сервис. Внешний webhook нужен только если вы сознательно подключаете Make, n8n или CRM.</p>
+            </div>
+            <span className={`inline-flex w-fit items-center gap-2 border px-3 py-2 text-[10px] font-bold uppercase tracking-widest ${draft.leads.enabled ? 'border-green-200 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-500'}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${draft.leads.enabled ? 'bg-green-600' : 'bg-gray-400'}`} />
+              {draft.leads.enabled ? 'Приём включён' : 'Приём выключен'}
+            </span>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field label="Свой сервис заявок (VPS)" className="md:col-span-2"
-              hint="Базовый адрес ampublishing-leads. Заявки хранятся у нас, а не у стороннего сервиса.">
+            <Field label="Адрес AM Inbox на VPS" className="md:col-span-2"
+              hint="Это единственный базовый адрес: от него автоматически строится приём формы. Для нового домена рекомендуем https://leads.munister.com.ua/api после переноса DNS и nginx.">
               <input className={`${inputCls} font-mono text-xs`} value={draft.leads.apiBaseUrl}
-                placeholder="https://radio-api.helpushelpua.com/leads/api"
-                onChange={e => patch(next => { next.leads.apiBaseUrl = e.target.value; })} />
+                placeholder="https://leads.munister.com.ua/api"
+                onChange={e => setLeadApiBase(e.target.value)} />
             </Field>
             <Field label="Токен доступа к заявкам" className="md:col-span-2"
               hint="Хранится только в этом браузере и никогда не попадает в репозиторий. Нужен, чтобы видеть список заявок.">
@@ -734,9 +783,9 @@ export const IntegrationsPanel: React.FC<{
                 </button>
               </div>
             </Field>
-            <Field label="Адрес приёма заявок" hint="Куда форма шлёт заявку. По умолчанию — свой сервис; можно заменить на Formspree/Make." className="md:col-span-2">
+            <Field label="Адрес приёма формы" hint="Автоматически совпадает с AM Inbox. Меняйте только если форма должна идти во внешний webhook (Make/n8n/CRM)." className="md:col-span-2">
               <input className={`${inputCls} font-mono text-xs`} value={draft.leads.endpointUrl}
-                placeholder="https://formspree.io/f/xxxxxxx"
+                placeholder="https://leads.munister.com.ua/api/leads"
                 onChange={e => patch(next => { next.leads.endpointUrl = e.target.value; })} />
             </Field>
             <Field label="Режим отправки" hint="«Форма» читает ответ сервиса; «webhook» — для мостов без CORS.">
@@ -770,7 +819,7 @@ export const IntegrationsPanel: React.FC<{
                 </h4>
                 <p className="text-xs text-gray-500 mt-1">
                   {fromServer
-                    ? 'Список с сервера на VPS — видно из любого браузера и с телефона.'
+                    ? 'Список из AM Inbox на VPS — виден с любого устройства после входа с токеном.'
                     : 'Локальный журнал этого браузера. Введите токен выше, чтобы видеть заявки с сервера.'}
                   {leadsError ? <span className="block text-red-600 mt-1">{leadsError}</span> : null}
                 </p>

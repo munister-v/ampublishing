@@ -6,8 +6,9 @@
 ## Где живёт
 - VPS `173.242.49.73`, каталог `/opt/ampublishing-leads`, порт `5062` (только localhost).
 - systemd: `ampublishing-leads.service` (`systemctl restart ampublishing-leads`).
-- nginx: `https://radio-api.helpushelpua.com/leads/…` → `127.0.0.1:5062`
-  (домен переиспользован от радио — своего DNS у API пока нет).
+- nginx: текущий адрес `https://radio-api.helpushelpua.com/leads/…` → `127.0.0.1:5062`.
+  Целевой понятный адрес: `https://leads.munister.com.ua/api/…` → `127.0.0.1:5062`.
+  Готовый nginx-шаблон лежит рядом: `nginx-leads.munister.com.ua.conf`.
 - База: `/opt/ampublishing-leads/database/leads.db`, ежедневный бэкап в
   `/opt/backups/ampublishing-leads` (cron `/etc/cron.d/ampublishing-leads-backup`, 7 копий).
 
@@ -36,3 +37,22 @@
 ## Обновление
     scp server/leads/app.py root@173.242.49.73:/opt/ampublishing-leads/app.py
     ssh root@173.242.49.73 systemctl restart ampublishing-leads
+
+## Перенос на домен Munister
+
+Для замены технического `radio-api…` на понятный адрес не нужен новый API или
+перенос базы: это тот же сервис за новым HTTPS reverse proxy.
+
+1. В DNS создать `A`-запись `leads.munister.com.ua` → `173.242.49.73`.
+2. На VPS скопировать `nginx-leads.munister.com.ua.conf` в
+   `/etc/nginx/sites-available/`, включить симлинком в `sites-enabled/`.
+3. Выпустить сертификат: `certbot --nginx -d leads.munister.com.ua` и выполнить
+   `nginx -t && systemctl reload nginx`.
+4. В `/opt/ampublishing-leads/.env` добавить оба домена в `CORS_ORIGINS`:
+   `https://ampublishing.org,https://www.ampublishing.org`.
+5. В админке AM изменить только базовый адрес на
+   `https://leads.munister.com.ua/api`; поле адреса формы синхронизируется
+   автоматически с `/leads`.
+
+После этого заявки, статусы, CSV и Telegram продолжают работать с той же SQLite
+базой, а админка показывает их в разделе «Заявки».
