@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { Mail, Download, PenTool, BookOpen, Send, User, Clock, ArrowLeft } from 'lucide-react';
+import { Mail, Download, PenTool, BookOpen, Send, User, Clock, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { Link, useParams } from 'react-router-dom';
 import { getAuthorShowcaseContent } from '../services/authorShowcase';
-import type { NewsBlock } from '../types';
+import type { AboutLayoutSettings, NewsBlock } from '../types';
 
 // --- Components ---
 const SectionHeader: React.FC<{ title: string; subtitle?: string; bgClass?: string }> = ({ title, subtitle, bgClass = 'bg-primary' }) => (
@@ -393,65 +393,163 @@ export const OurAuthorsPage: React.FC = () => {
 
 // --- About Page ---
 export const AboutPage: React.FC = () => {
-  const { t } = useApp();
+  const { t, language, siteSettings } = useApp();
+  const fallbackCopy: Record<string, Record<'ru' | 'en' | 'de', string>> = {
+    eyebrow: { ru: 'Независимое издательство · Берлин', en: 'Independent publishing house · Berlin', de: 'Unabhängiger Verlag · Berlin' },
+    quote: { ru: 'Книги, в которых форма становится частью смысла.', en: 'Books where form becomes part of the meaning.', de: 'Bücher, in denen Form zum Teil der Bedeutung wird.' },
+    stat1_value: { ru: '300–1000+', en: '300–1000+', de: '300–1000+' },
+    stat1_text: { ru: 'экземпляров в тираже', en: 'copies per edition', de: 'Exemplare pro Auflage' },
+    stat2_value: { ru: '360°', en: '360°', de: '360°' },
+    stat2_text: { ru: 'сопровождение проекта', en: 'project support', de: 'Projektbegleitung' },
+    principles: { ru: 'Как мы работаем', en: 'How we work', de: 'Wie wir arbeiten' },
+    principle1: { ru: 'Редакторская точность', en: 'Editorial precision', de: 'Redaktionelle Präzision' },
+    principle2: { ru: 'Выразительный дизайн', en: 'Distinctive design', de: 'Eigenständiges Design' },
+    principle3: { ru: 'Ответственное производство', en: 'Responsible production', de: 'Verantwortungsvolle Produktion' },
+    cta_title: { ru: 'Есть идея для книги?', en: 'Have an idea for a book?', de: 'Eine Idee für ein Buch?' },
+    cta_text: { ru: 'Расскажите о проекте — мы поможем найти точную форму, собрать команду и довести издание до читателя.', en: 'Tell us about your project. We will help shape it, assemble the right team and bring the publication to its readers.', de: 'Erzählen Sie uns von Ihrem Projekt. Wir helfen bei Form, Team und dem Weg zu den Leser:innen.' },
+    cta_button: { ru: 'Обсудить проект', en: 'Discuss a project', de: 'Projekt besprechen' },
+  };
+  const copy = (key: string, fallbackKey: string) => {
+    const translated = t(`static.about.${key}`) as string;
+    return translated && translated !== `static.about.${key}` ? translated : fallbackCopy[fallbackKey][language];
+  };
+  const fallbackLayout: AboutLayoutSettings = {
+    sections: [
+      { id: 'hero', enabled: true }, { id: 'story', enabled: true }, { id: 'principles', enabled: true },
+      { id: 'team', enabled: true }, { id: 'contact', enabled: true },
+    ],
+    heroImageUrl: '/images/about-hero.jpg',
+    missionImageUrl: '/images/about-hero.jpg',
+    missionImageSide: 'right',
+    team: ['role1', 'role2', 'role3'].map(id => ({ id, imageUrl: '', enabled: true })),
+  };
+  const layout = siteSettings?.aboutLayout || fallbackLayout;
+  const legacyMissionImage = t('static.about.mission_image') as string;
+  const missionImage = layout.missionImageUrl || (legacyMissionImage !== 'static.about.mission_image' ? legacyMissionImage : '');
+  const team = layout.team.filter(member => member.enabled);
 
-  return (
-    <div className="bg-white pt-[58px] md:pt-[76px]">
-      <SectionHeader 
-        title={t('static.about.title')}
-        subtitle={t('static.about.subtitle')}
-      />
-      <div className="container mx-auto px-4 py-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-24 items-center mb-32">
-          <div className="order-2 md:order-1">
-            <h2 className="text-3xl font-serif text-primary mb-8">{t('static.about.mission')}</h2>
-            <p className="text-gray-600 leading-relaxed mb-6 font-light text-lg drop-cap">
-              {t('static.about.p1')}
-            </p>
-            <p className="text-gray-600 leading-relaxed font-light text-lg">
-              {t('static.about.p2')}
-            </p>
-            <div className="flex gap-12 mt-12 border-t border-gray-100 pt-8">
-               <div>
-                 <span className="block text-4xl font-serif text-primary mb-2">300-1000+</span>
-                 <span className="text-[10px] uppercase tracking-widest text-gray-400">{t('static.about.stat1')}</span>
-               </div>
-               <div>
-                 <span className="block text-4xl font-serif text-primary mb-2">✓</span>
-                 <span className="text-[10px] uppercase tracking-widest text-gray-400">{t('static.about.stat2')}</span>
-               </div>
+  const sections: Record<string, React.ReactNode> = {
+    hero: (
+      <section className="relative min-h-[620px] md:min-h-[720px] bg-primary text-white overflow-hidden flex items-end">
+        {layout.heroImageUrl && (
+          <img src={layout.heroImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" fetchPriority="high" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/55 to-primary/10" />
+        <div className="container mx-auto px-5 md:px-8 pb-16 md:pb-24 relative z-10">
+          <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.28em] text-accent mb-7">{copy('eyebrow', 'eyebrow')}</p>
+          <h1 className="font-serif text-5xl sm:text-6xl md:text-8xl lg:text-[7.5rem] leading-[0.9] tracking-tight max-w-5xl">{t('static.about.title')}</h1>
+          <p className="mt-8 md:mt-10 max-w-2xl text-base md:text-xl leading-relaxed text-white/75 font-light">{t('static.about.subtitle')}</p>
+        </div>
+      </section>
+    ),
+    story: (
+      <section className="bg-[#F4F1EA] py-20 md:py-32">
+        <div className="container mx-auto px-5 md:px-8">
+          <div className={`grid lg:grid-cols-12 gap-10 lg:gap-16 items-center ${layout.missionImageSide === 'left' ? '' : 'lg:[&>*:first-child]:order-2'}`}>
+            <div className="lg:col-span-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-5">AM Publishing · 01</p>
+              <h2 className="font-serif text-4xl md:text-6xl leading-[1.03] text-primary mb-8">{t('static.about.mission')}</h2>
+              <p className="text-primary/75 leading-relaxed text-lg md:text-xl font-light mb-6 drop-cap">{t('static.about.p1')}</p>
+              <p className="text-primary/65 leading-relaxed text-base md:text-lg font-light">{t('static.about.p2')}</p>
+            </div>
+            <div className="lg:col-span-6">
+              {missionImage ? (
+                <div className="aspect-[4/5] md:aspect-[5/4] overflow-hidden bg-primary/5">
+                  <img src={missionImage} alt={t('static.about.mission') as string} loading="lazy" className="h-full w-full object-cover" />
+                </div>
+              ) : (
+                <blockquote className="aspect-[4/5] md:aspect-[5/4] bg-primary text-white p-10 md:p-14 flex items-end font-serif text-3xl md:text-5xl leading-tight">
+                  {copy('quote', 'quote')}
+                </blockquote>
+              )}
             </div>
           </div>
-          <div className="order-1 md:order-2 bg-gray-100 aspect-square md:aspect-[4/3] relative overflow-hidden group">
-             <img
-              src={t('static.about.mission_image') as string || '/images/about-hero.jpg'}
-              alt={t('static.about.mission') as string || 'AM Publishing'}
-              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
-            />
-            <div className="absolute inset-0 bg-primary/5 mix-blend-multiply pointer-events-none"></div>
+        </div>
+      </section>
+    ),
+    principles: (
+      <section className="bg-white py-20 md:py-28 border-y border-primary/10">
+        <div className="container mx-auto px-5 md:px-8">
+          <div className="grid lg:grid-cols-12 gap-12">
+            <div className="lg:col-span-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-5">AM Publishing · 02</p>
+              <h2 className="font-serif text-4xl md:text-6xl leading-tight text-primary">{copy('principles', 'principles')}</h2>
+              <p className="mt-8 font-serif text-2xl md:text-3xl italic text-primary/70 leading-snug">“{copy('quote', 'quote')}”</p>
+            </div>
+            <div className="lg:col-span-7">
+              <div className="grid sm:grid-cols-2 border-t border-l border-primary/15">
+                {[
+                  [copy('stat1_value', 'stat1_value'), copy('stat1_text', 'stat1_text')],
+                  [copy('stat2_value', 'stat2_value'), copy('stat2_text', 'stat2_text')],
+                ].map(([value, label]) => (
+                  <div key={label} className="border-r border-b border-primary/15 p-7 md:p-10 min-h-40">
+                    <strong className="block font-serif text-4xl md:text-5xl text-primary font-normal">{value}</strong>
+                    <span className="block mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-primary/45">{label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-10 grid sm:grid-cols-3 gap-4">
+                {['principle1', 'principle2', 'principle3'].map((item, index) => (
+                  <div key={item} className="flex sm:block gap-4 items-center border-t border-primary/15 pt-5">
+                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent text-accent"><Check size={15} /></span>
+                    <p className="sm:mt-5 font-serif text-xl text-primary">{copy(item, item)}</p>
+                    <span className="hidden sm:block mt-3 font-mono text-[9px] text-primary/35">0{index + 1}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="bg-bg py-24 -mx-4 px-4 md:mx-0 rounded-sm">
-           <div className="text-center mb-16">
-             <h2 className="text-4xl font-serif text-primary mb-4">{t('static.about.team')}</h2>
-             <div className="w-12 h-[1px] bg-accent mx-auto"></div>
-           </div>
-           
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-             {[
-               { role: "role1" },
-               { role: "role2" },
-               { role: "role3" }
-             ].map((member, i) => (
-               <div key={i} className="group text-center border border-gray-100 bg-white p-10 shadow-sm">
-                 <h4 className="font-serif text-2xl text-primary">{t(`static.about.${member.role}`)}</h4>
-                 <p className="text-[10px] uppercase tracking-[0.15em] text-accent mt-4 font-bold">AM Publishing</p>
-               </div>
-             ))}
-           </div>
+      </section>
+    ),
+    team: (
+      <section className="bg-[#F4F1EA] py-20 md:py-28">
+        <div className="container mx-auto px-5 md:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 md:mb-16">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-5">AM Publishing · 03</p>
+              <h2 className="font-serif text-4xl md:text-6xl text-primary">{t('static.about.team')}</h2>
+            </div>
+            <p className="max-w-sm text-primary/55 font-light leading-relaxed">{copy('quote', 'quote')}</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-primary/15 border border-primary/15">
+            {team.map((member, index) => (
+              <article key={member.id} className="bg-white min-h-[360px] flex flex-col">
+                {member.imageUrl ? (
+                  <div className="aspect-[4/3] overflow-hidden bg-primary/5"><img src={member.imageUrl} alt={t(`static.about.${member.id}`) as string} loading="lazy" className="h-full w-full object-cover" /></div>
+                ) : (
+                  <div className="aspect-[4/3] bg-primary flex items-center justify-center text-white/15 font-serif text-8xl" aria-hidden="true">{String(index + 1).padStart(2, '0')}</div>
+                )}
+                <div className="p-7 md:p-9 mt-auto">
+                  <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-accent mb-3">AM Publishing</p>
+                  <h3 className="font-serif text-2xl md:text-3xl text-primary">{t(`static.about.${member.id}`)}</h3>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
+    ),
+    contact: (
+      <section className="bg-primary text-white py-20 md:py-28">
+        <div className="container mx-auto px-5 md:px-8 flex flex-col lg:flex-row lg:items-end justify-between gap-12">
+          <div className="max-w-3xl">
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent mb-6">AM Publishing · Berlin</p>
+            <h2 className="font-serif text-4xl md:text-7xl leading-[1.02]">{copy('cta_title', 'cta_title')}</h2>
+            <p className="mt-7 text-white/60 text-lg leading-relaxed max-w-2xl">{copy('cta_text', 'cta_text')}</p>
+          </div>
+          <Link to="/services" className="min-h-12 inline-flex items-center justify-center gap-4 border border-white/30 px-7 py-4 font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-white hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent transition-colors">
+            {copy('cta_button', 'cta_button')} <ArrowRight size={16} />
+          </Link>
+        </div>
+      </section>
+    ),
+  };
+
+  return (
+    <div className="bg-white pt-[58px] md:pt-[76px] overflow-x-hidden">
+      {!layout.sections.some(section => section.id === 'hero' && section.enabled) && <h1 className="sr-only">{t('static.about.title')}</h1>}
+      {layout.sections.filter(section => section.enabled).map(section => <React.Fragment key={section.id}>{sections[section.id]}</React.Fragment>)}
     </div>
   );
 };

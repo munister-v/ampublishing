@@ -312,6 +312,23 @@ const DEFAULT_SITE_SETTINGS: SiteSettings = {
     name: 'AM Publishing',
     short: 'AM Pub.',
   },
+  aboutLayout: {
+    sections: [
+      { id: 'hero', enabled: true },
+      { id: 'story', enabled: true },
+      { id: 'principles', enabled: true },
+      { id: 'team', enabled: true },
+      { id: 'contact', enabled: true },
+    ],
+    heroImageUrl: '/images/about-hero.jpg',
+    missionImageUrl: '/images/about-hero.jpg',
+    missionImageSide: 'right',
+    team: [
+      { id: 'role1', imageUrl: '', enabled: true },
+      { id: 'role2', imageUrl: '', enabled: true },
+      { id: 'role3', imageUrl: '', enabled: true },
+    ],
+  },
 };
 
 const mergeSiteSettings = (incoming: Partial<SiteSettings> | null | undefined): SiteSettings => {
@@ -330,6 +347,21 @@ const mergeSiteSettings = (incoming: Partial<SiteSettings> | null | undefined): 
       : clone(DEFAULT_SITE_SETTINGS.footerLegal),
     showNewsletter: typeof incoming.showNewsletter === 'boolean' ? incoming.showNewsletter : DEFAULT_SITE_SETTINGS.showNewsletter,
     brand: { ...DEFAULT_SITE_SETTINGS.brand, ...(incoming.brand || {}) },
+    aboutLayout: {
+      ...DEFAULT_SITE_SETTINGS.aboutLayout,
+      ...(incoming.aboutLayout || {}),
+      sections: Array.isArray(incoming.aboutLayout?.sections) && incoming.aboutLayout.sections.length
+        ? incoming.aboutLayout.sections
+            .filter(section => DEFAULT_SITE_SETTINGS.aboutLayout.sections.some(item => item.id === section.id))
+            .map(section => ({ id: section.id, enabled: section.enabled !== false }))
+        : clone(DEFAULT_SITE_SETTINGS.aboutLayout.sections),
+      team: Array.isArray(incoming.aboutLayout?.team) && incoming.aboutLayout.team.length
+        ? DEFAULT_SITE_SETTINGS.aboutLayout.team.map(member => ({
+            ...member,
+            ...(incoming.aboutLayout!.team.find(item => item.id === member.id) || {}),
+          }))
+        : clone(DEFAULT_SITE_SETTINGS.aboutLayout.team),
+    },
   };
 };
 

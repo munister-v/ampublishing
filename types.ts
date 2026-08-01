@@ -231,6 +231,16 @@ export interface NavLinkConfig {
   enabled?: boolean;
 }
 
+export type AboutSectionId = 'hero' | 'story' | 'principles' | 'team' | 'contact';
+
+export interface AboutLayoutSettings {
+  sections: Array<{ id: AboutSectionId; enabled: boolean }>;
+  heroImageUrl: string;
+  missionImageUrl: string;
+  missionImageSide: 'left' | 'right';
+  team: Array<{ id: string; imageUrl: string; enabled: boolean }>;
+}
+
 export interface SiteSettings {
   social: {
     telegramUrl: string;
@@ -253,6 +263,7 @@ export interface SiteSettings {
     name: string;       // long brand name (footer)
     short: string;      // short brand label (header)
   };
+  aboutLayout: AboutLayoutSettings;
 }
 
 // --- INTEGRATIONS (Shopify / DHL / заявки / аналитика) ---

@@ -124,5 +124,22 @@
   "brand": {
     "name": "AM Publishing",
     "short": "AM Pub."
+  },
+  "aboutLayout": {
+    "sections": [
+      { "id": "hero", "enabled": true },
+      { "id": "story", "enabled": true },
+      { "id": "principles", "enabled": true },
+      { "id": "team", "enabled": true },
+      { "id": "contact", "enabled": true }
+    ],
+    "heroImageUrl": "/images/about-hero.jpg",
+    "missionImageUrl": "/images/about-hero.jpg",
+    "missionImageSide": "right",
+    "team": [
+      { "id": "role1", "imageUrl": "", "enabled": true },
+      { "id": "role2", "imageUrl": "", "enabled": true },
+      { "id": "role3", "imageUrl": "", "enabled": true }
+    ]
   }
 }

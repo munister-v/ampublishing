@@ -18,7 +18,7 @@ import { translations } from '../translations';
 import { toGenitiveRu } from '../utils/declension';
 import { getShopifyPurchaseLink } from '../utils/purchaseLinks';
 import { getBookPath } from '../utils/bookRoutes';
-import { Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsBlock, NewsBlockType, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
+import { AboutLayoutSettings, AboutSectionId, Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsBlock, NewsBlockType, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
   AlertCircle,
@@ -142,16 +142,25 @@ const contentGroups: ContentGroup[] = [
       { key: 'static.authors.p2', label: 'Текст «Авторам» 2', type: 'textarea' },
       { key: 'static.about.title', label: 'О нас — заголовок', type: 'text' },
       { key: 'static.about.subtitle', label: 'О нас — подзаголовок', type: 'textarea' },
+      { key: 'static.about.eyebrow', label: 'О нас — надзаголовок', type: 'text' },
       { key: 'static.about.mission', label: 'О нас — заголовок миссии', type: 'text' },
       { key: 'static.about.p1', label: 'О нас — текст 1', type: 'textarea' },
       { key: 'static.about.p2', label: 'О нас — текст 2', type: 'textarea' },
+      { key: 'static.about.quote', label: 'О нас — редакционная цитата', type: 'textarea' },
       { key: 'static.about.stat1', label: 'О нас — подпись стат. 1', type: 'text' },
       { key: 'static.about.stat2', label: 'О нас — подпись стат. 2', type: 'text' },
+      { key: 'static.about.stat1_value', label: 'О нас — значение стат. 1', type: 'text' },
+      { key: 'static.about.stat1_text', label: 'О нас — пояснение стат. 1', type: 'text' },
+      { key: 'static.about.stat2_value', label: 'О нас — значение стат. 2', type: 'text' },
+      { key: 'static.about.stat2_text', label: 'О нас — пояснение стат. 2', type: 'text' },
       { key: 'static.about.mission_image', label: 'О нас — фото', type: 'text' },
       { key: 'static.about.team', label: 'О нас — заголовок команды', type: 'text' },
       { key: 'static.about.role1', label: 'О нас — роль 1', type: 'text' },
       { key: 'static.about.role2', label: 'О нас — роль 2', type: 'text' },
       { key: 'static.about.role3', label: 'О нас — роль 3', type: 'text' },
+      { key: 'static.about.cta_title', label: 'О нас — заголовок CTA', type: 'text' },
+      { key: 'static.about.cta_text', label: 'О нас — текст CTA', type: 'textarea' },
+      { key: 'static.about.cta_button', label: 'О нас — кнопка CTA', type: 'text' },
       { key: 'nav.our_authors', label: 'Пункт меню «Наши авторы»', type: 'text' },
       { key: 'static.our_authors.title', label: 'Заголовок «Наши авторы»', type: 'text' },
       { key: 'static.our_authors.subtitle', label: 'Подзаголовок «Наши авторы»', type: 'textarea' },
@@ -1678,6 +1687,10 @@ export const AdminPage: React.FC = () => {
     });
   };
 
+  const updateAboutLayout = (updater: (layout: AboutLayoutSettings) => AboutLayoutSettings) => {
+    setSiteDraft(prev => prev ? { ...prev, aboutLayout: updater(prev.aboutLayout) } : prev);
+  };
+
   const handleSavePaymentSettings = async () => {
     try {
       startSave('payment-settings', 'Настройки оплаты…');
@@ -2956,10 +2969,18 @@ export const AdminPage: React.FC = () => {
         ) : null}
 
         {database && activeTab === 'about' ? (() => {
+          const sectionLabels: Record<AboutSectionId, string> = {
+            hero: 'Обложка / Hero',
+            story: 'История и миссия',
+            principles: 'Принципы и цифры',
+            team: 'Команда',
+            contact: 'Финальный призыв',
+          };
           const aboutSections: { label: string; fields: ContentField[] }[] = [
             {
               label: 'Шапка страницы',
               fields: [
+                { key: 'static.about.eyebrow', label: 'Надзаголовок', type: 'text' },
                 { key: 'static.about.title', label: 'Заголовок страницы', type: 'text' },
                 { key: 'static.about.subtitle', label: 'Подзаголовок страницы', type: 'textarea' },
               ],
@@ -2970,14 +2991,16 @@ export const AdminPage: React.FC = () => {
                 { key: 'static.about.mission', label: 'Заголовок миссии', type: 'text' },
                 { key: 'static.about.p1', label: 'Текст абзац 1', type: 'textarea' },
                 { key: 'static.about.p2', label: 'Текст абзац 2', type: 'textarea' },
-                { key: 'static.about.mission_image', label: 'Фото миссии', type: 'text' },
+                { key: 'static.about.quote', label: 'Редакционная цитата', type: 'textarea' },
               ],
             },
             {
               label: 'Статистика',
               fields: [
-                { key: 'static.about.stat1', label: 'Подпись стат. 1', type: 'text' },
-                { key: 'static.about.stat2', label: 'Подпись стат. 2', type: 'text' },
+                { key: 'static.about.stat1_value', label: 'Значение 1', type: 'text' },
+                { key: 'static.about.stat1_text', label: 'Пояснение 1', type: 'text' },
+                { key: 'static.about.stat2_value', label: 'Значение 2', type: 'text' },
+                { key: 'static.about.stat2_text', label: 'Пояснение 2', type: 'text' },
               ],
             },
             {
@@ -2989,12 +3012,38 @@ export const AdminPage: React.FC = () => {
                 { key: 'static.about.role3', label: 'Роль 3', type: 'text' },
               ],
             },
+            {
+              label: 'Финальный призыв',
+              fields: [
+                { key: 'static.about.cta_title', label: 'Заголовок', type: 'text' },
+                { key: 'static.about.cta_text', label: 'Описание', type: 'textarea' },
+                { key: 'static.about.cta_button', label: 'Текст кнопки', type: 'text' },
+              ],
+            },
           ];
           const allAboutFields = aboutSections.flatMap(s => s.fields);
+          const moveAboutSection = (index: number, direction: -1 | 1) => {
+            updateAboutLayout(layout => {
+              const target = index + direction;
+              if (target < 0 || target >= layout.sections.length) return layout;
+              const sections = [...layout.sections];
+              [sections[index], sections[target]] = [sections[target], sections[index]];
+              return { ...layout, sections };
+            });
+          };
           const handleSaveAll = async () => {
-            startSave('about:all', `Сохранение (1 / ${allAboutFields.length})…`);
+            startSave('about:all', `Сохранение структуры и текстов…`);
             const errors: string[] = [];
             let lastOverrides: TranslationOverrides | null = null;
+            if (siteDraft) {
+              try {
+                const next = await api.saveSiteSettings(siteDraft);
+                setSiteDraft(next);
+                setGlobalSiteSettings(next);
+              } catch {
+                errors.push('Структура и фото');
+              }
+            }
             for (let i = 0; i < allAboutFields.length; i++) {
               const field = allAboutFields[i];
               advancePhase(`${field.label} (${i + 1} / ${allAboutFields.length})`);
@@ -3012,7 +3061,7 @@ export const AdminPage: React.FC = () => {
               await reloadContent();
             }
             if (errors.length === 0) {
-              finishSave(`«О нас» сохранено — ${allAboutFields.length} полей` + (selectedLanguage === 'ru' ? ' · EN/DE запустится автоматически' : ''));
+              finishSave(`«О нас» сохранено — структура, фото и ${allAboutFields.length} полей` + (selectedLanguage === 'ru' ? ' · EN/DE запустится автоматически' : ''));
             } else {
               failSave();
               showToast(`Ошибки при сохранении: ${errors.join(', ')}`, 'error');
@@ -3038,6 +3087,77 @@ export const AdminPage: React.FC = () => {
                   </button>
                 </div>
               </div>
+
+              {siteDraft && (
+                <section className="bg-white border border-primary/10 shadow-sm overflow-hidden">
+                  <div className="px-6 py-5 border-b border-primary/10 bg-primary text-white flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Конструктор страницы</p>
+                      <h3 className="font-serif text-2xl mt-1">Структура, видимость и изображения</h3>
+                    </div>
+                    <p className="text-xs text-white/55 max-w-md">Порядок меняется стрелками. Любой блок можно скрыть без удаления контента.</p>
+                  </div>
+                  <div className="p-5 md:p-6 space-y-6">
+                    <div className="border border-primary/10">
+                      {siteDraft.aboutLayout.sections.map((section, index) => (
+                        <div key={section.id} className="min-h-16 px-4 py-3 border-b last:border-b-0 border-primary/10 flex items-center gap-3 bg-[#FAFAF8]">
+                          <span className="font-mono text-[10px] text-gray-400 w-6">{String(index + 1).padStart(2, '0')}</span>
+                          <label className="flex-1 min-w-0 flex items-center gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={section.enabled}
+                              onChange={e => updateAboutLayout(layout => ({ ...layout, sections: layout.sections.map(item => item.id === section.id ? { ...item, enabled: e.target.checked } : item) }))}
+                              className="h-5 w-5 accent-[#0b1623]"
+                            />
+                            <span className={`text-sm font-medium ${section.enabled ? 'text-primary' : 'text-gray-400 line-through'}`}>{sectionLabels[section.id]}</span>
+                          </label>
+                          <div className="flex gap-1">
+                            <button type="button" onClick={() => moveAboutSection(index, -1)} disabled={index === 0} aria-label={`Поднять секцию ${sectionLabels[section.id]}`} className="h-11 w-11 inline-flex items-center justify-center border border-primary/15 hover:bg-white disabled:opacity-25 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"><ArrowUp size={15} /></button>
+                            <button type="button" onClick={() => moveAboutSection(index, 1)} disabled={index === siteDraft.aboutLayout.sections.length - 1} aria-label={`Опустить секцию ${sectionLabels[section.id]}`} className="h-11 w-11 inline-flex items-center justify-center border border-primary/15 hover:bg-white disabled:opacity-25 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"><ArrowDown size={15} /></button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <details className="border border-primary/10 bg-[#FAFAF8]" open>
+                      <summary className="cursor-pointer select-none px-5 py-4 font-mono text-xs uppercase tracking-[0.18em] font-bold">Обложка и история</summary>
+                      <div className="p-5 pt-2 grid lg:grid-cols-2 gap-6">
+                        <ImageField label="Фото Hero" value={siteDraft.aboutLayout.heroImageUrl} onChange={value => updateAboutLayout(layout => ({ ...layout, heroImageUrl: value }))} filenamePrefix="about-hero" hint="Широкий кадр, оптимально 1800 × 1200 px." />
+                        <div className="space-y-5">
+                          <ImageField label="Фото миссии" value={siteDraft.aboutLayout.missionImageUrl} onChange={value => updateAboutLayout(layout => ({ ...layout, missionImageUrl: value }))} filenamePrefix="about-mission" hint="Вертикальный или горизонтальный кадр — сайт обрежет адаптивно." />
+                          <LF label="Положение фото миссии">
+                            <select value={siteDraft.aboutLayout.missionImageSide} onChange={e => updateAboutLayout(layout => ({ ...layout, missionImageSide: e.target.value as 'left' | 'right' }))} className="w-full min-h-12 border border-gray-300 px-4 bg-white">
+                              <option value="left">Слева от текста</option>
+                              <option value="right">Справа от текста</option>
+                            </select>
+                          </LF>
+                        </div>
+                      </div>
+                    </details>
+
+                    <details className="border border-primary/10 bg-[#FAFAF8]">
+                      <summary className="cursor-pointer select-none px-5 py-4 font-mono text-xs uppercase tracking-[0.18em] font-bold">Фотографии команды</summary>
+                      <div className="p-5 pt-2 grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                        {siteDraft.aboutLayout.team.map(member => (
+                          <div key={member.id} className="p-4 bg-white border border-primary/10 space-y-4">
+                            <label className="min-h-11 flex items-center gap-3 cursor-pointer">
+                              <input type="checkbox" checked={member.enabled} onChange={e => updateAboutLayout(layout => ({ ...layout, team: layout.team.map(item => item.id === member.id ? { ...item, enabled: e.target.checked } : item) }))} className="h-5 w-5 accent-[#0b1623]" />
+                              <span className="text-sm font-bold">{copyDrafts[`static.about.${member.id}`] || member.id}</span>
+                            </label>
+                            <ImageField label="Фото" value={member.imageUrl} onChange={value => updateAboutLayout(layout => ({ ...layout, team: layout.team.map(item => item.id === member.id ? { ...item, imageUrl: value } : item) }))} filenamePrefix={`about-${member.id}`} />
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+
+                    <div className="flex justify-end">
+                      <button type="button" onClick={handleSaveSiteSettings} className="min-h-12 px-5 bg-primary text-white hover:bg-accent hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent flex items-center gap-2 text-xs uppercase tracking-[0.18em]">
+                        <Save size={14} /> Сохранить структуру
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               {aboutSections.map(section => (
                 <section key={section.label} className="bg-white border border-primary/10 shadow-sm">
@@ -3068,14 +3188,7 @@ export const AdminPage: React.FC = () => {
                             </button>
                           </div>
                         </div>
-                        {field.key === 'static.about.mission_image' ? (
-                          <ImageField
-                            label={field.label}
-                            value={copyDrafts[field.key] || ''}
-                            onChange={value => setCopyDrafts(prev => ({ ...prev, [field.key]: value }))}
-                            filenamePrefix="about-photo"
-                          />
-                        ) : field.type === 'textarea' ? (
+                        {field.type === 'textarea' ? (
                           <AutoTextarea
                             value={copyDrafts[field.key] || ''}
                             onChange={e => setCopyDrafts(prev => ({ ...prev, [field.key]: (e.target as HTMLTextAreaElement).value }))}
