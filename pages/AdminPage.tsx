@@ -59,9 +59,14 @@ import {
   CreditCard,
   CircleCheck,
   AlertTriangle,
+  Sparkles,
+  ArrowRight,
+  Target,
+  TrendingUp,
+  CalendarDays,
 } from 'lucide-react';
 
-type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'payments' | 'integrations' | 'orders' | 'status' | 'radio';
+type AdminTab = 'command' | 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'payments' | 'integrations' | 'orders' | 'status' | 'radio';
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -1019,7 +1024,7 @@ const StatusPanel: React.FC = () => {
 
 export const AdminPage: React.FC = () => {
   const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast, setSiteSettings: setGlobalSiteSettings, setLanguage, reloadIntegrations, integrations } = useApp();
-  const [activeTab, setActiveTab] = useState<AdminTab>('copy');
+  const [activeTab, setActiveTab] = useState<AdminTab>('command');
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('ru');
   const [database, setDatabase] = useState<Record<Language, LocalizedCatalogData> | null>(null);
   const [overrides, setOverrides] = useState<TranslationOverrides>({ ru: {}, en: {}, de: {} });
@@ -1795,6 +1800,7 @@ export const AdminPage: React.FC = () => {
 
         <nav className="p-6 space-y-3">
           {[
+            { id: 'command', label: 'Издательский пульт', icon: <Sparkles size={16} /> },
             { id: 'copy', label: 'Тексты сайта', icon: <FileText size={16} /> },
             { id: 'books', label: 'Книги', icon: <BookOpen size={16} /> },
             { id: 'news', label: 'Мероприятия', icon: <Newspaper size={16} /> },
@@ -1947,6 +1953,129 @@ export const AdminPage: React.FC = () => {
                 <p className="mt-1 font-serif text-xl truncate">{lastPublishedAt || '—'}</p>
               </div>
             </div>
+          );
+        })() : null}
+
+        {database && activeTab === 'command' ? (() => {
+          const catalog = database[selectedLanguage];
+          const now = Date.now();
+          const draftNews = catalog.news.filter(item => item.draft).length;
+          const scheduledNews = catalog.news.filter(item => item.publishAt && new Date(item.publishAt).getTime() > now).length;
+          const liveNews = Math.max(0, catalog.news.length - draftNews - scheduledNews);
+          const lowStock = catalog.books.filter(book => Number(book.stock || 0) <= 2);
+          const paidOrders = orders.filter(order => order.paymentStatus === 'paid');
+          const pendingOrders = orders.filter(order => order.paymentStatus === 'pending');
+          const deliveredOrders = orders.filter(order => order.status === 'delivered');
+          const revenue = paidOrders.reduce((sum, order) => sum + order.total, 0);
+          const readiness = Math.min(100,
+            (catalog.books.length ? 24 : 0) +
+            (catalog.news.length ? 16 : 0) +
+            (catalog.books.every(book => Boolean(book.coverUrl && book.description)) ? 22 : 8) +
+            (lowStock.length === 0 ? 14 : 6) +
+            (pendingOrders.length === 0 ? 12 : 7) +
+            (lastPublishedAt ? 12 : 4)
+          );
+          const countryCounts = orders.reduce<Record<string, number>>((acc, order) => {
+            const country = order.customer.country || order.diagnostics?.ipCountry || order.customer.location?.split(',').pop()?.trim() || '—';
+            acc[country] = (acc[country] || 0) + 1;
+            return acc;
+          }, {});
+          const topCountry = Object.entries(countryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Нет данных';
+          const nextAction = pendingOrders.length
+            ? { title: `Проверить ${pendingOrders.length} ожидающих оплат`, detail: 'Заказы уже сформированы и требуют подтверждения.', tab: 'orders' as AdminTab, label: 'Открыть заказы' }
+            : newLeadsCount
+              ? { title: `Ответить на ${newLeadsCount} новых заявок`, detail: 'Горячие обращения из раздела услуг ждут обработки.', tab: 'integrations' as AdminTab, label: 'Открыть заявки' }
+              : lowStock.length
+                ? { title: `Обновить остатки: ${lowStock.length} позиций`, detail: 'Карточки с критическим остатком могут потерять продажи.', tab: 'books' as AdminTab, label: 'Проверить книги' }
+                : { title: 'Запланировать следующий материал', detail: 'Коммерческий контур спокоен — можно усилить редакционный ритм.', tab: 'news' as AdminTab, label: 'Создать материал' };
+          const recentOrders = [...orders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
+
+          return (
+            <section className="space-y-6 pb-12">
+              <div className="relative overflow-hidden bg-primary text-white border border-primary min-h-[360px]">
+                <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle at 82% 18%, rgba(205,242,79,.42), transparent 31%), radial-gradient(circle at 62% 84%, rgba(255,255,255,.14), transparent 34%)' }} />
+                <div className="relative grid lg:grid-cols-[1.35fr_.65fr] min-h-[360px]">
+                  <div className="p-7 md:p-10 lg:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/15">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-3 text-[10px] uppercase tracking-[0.24em] font-mono text-white/55">
+                        <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-accent animate-pulse" /> Publishing intelligence</span>
+                        <span>Live workspace</span>
+                      </div>
+                      <h1 className="font-serif text-5xl md:text-7xl leading-[.92] mt-8 max-w-3xl">Издательство<br /><span className="text-accent italic">в одном кадре.</span></h1>
+                      <p className="mt-7 max-w-xl text-sm md:text-base text-white/65 leading-relaxed">Контент, продажи, заявки и готовность сайта собраны в одном редакционном ритме. Здесь видно не просто цифры — здесь видно, что делать дальше.</p>
+                    </div>
+                    <button onClick={() => setActiveTab(nextAction.tab)} className="mt-9 min-h-12 w-fit inline-flex items-center gap-3 bg-accent text-primary px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] hover:bg-white focus:outline-none focus:ring-4 focus:ring-accent/30 transition-colors">
+                      {nextAction.label}<ArrowRight size={16} />
+                    </button>
+                  </div>
+                  <div className="p-7 md:p-10 flex flex-col justify-between bg-white/[.035]">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.22em] font-mono text-white/50">Publishing readiness</p>
+                      <div className="flex items-end gap-3 mt-5"><span className="font-serif text-8xl leading-none text-accent">{readiness}</span><span className="pb-2 text-xl text-white/40">/100</span></div>
+                      <div className="h-1.5 bg-white/10 mt-6 overflow-hidden"><div className="h-full bg-accent transition-all duration-500" style={{ width: `${readiness}%` }} /></div>
+                      <p className="mt-4 text-sm leading-relaxed text-white/60">{readiness >= 85 ? 'Контур готов к активному продвижению.' : readiness >= 65 ? 'Хорошая база. Осталось закрыть несколько операционных точек.' : 'Есть критические элементы, требующие внимания.'}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-px bg-white/10 border border-white/10 mt-8">
+                      <div className="bg-primary/80 p-4"><p className="text-[9px] uppercase tracking-widest text-white/40">Рынок</p><p className="mt-2 font-serif text-xl">{topCountry}</p></div>
+                      <div className="bg-primary/80 p-4"><p className="text-[9px] uppercase tracking-widest text-white/40">Выручка</p><p className="mt-2 font-serif text-xl">€{revenue.toFixed(0)}</p></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid xl:grid-cols-[1.25fr_.75fr] gap-6">
+                <div className="bg-white border border-primary/10">
+                  <div className="p-6 md:p-8 border-b border-primary/10 flex items-start justify-between gap-4">
+                    <div><p className="text-[10px] uppercase tracking-[0.2em] font-mono text-gray-400">Editorial pulse</p><h2 className="font-serif text-3xl mt-2">Редакционный конвейер</h2></div>
+                    <CalendarDays size={22} className="text-gray-300" />
+                  </div>
+                  <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-primary/10">
+                    {[['Черновики', draftNews, 'Требуют редакторского решения'], ['Запланировано', scheduledNews, 'Ждут момента публикации'], ['Опубликовано', liveNews, 'Работают на аудиторию']].map(([label, value, detail], index) => (
+                      <button key={String(label)} onClick={() => setActiveTab('news')} className="min-h-[180px] p-6 text-left hover:bg-[#F8F8F4] focus:outline-none focus:ring-4 focus:ring-inset focus:ring-accent/40 transition-colors group">
+                        <span className="font-mono text-[10px] text-gray-400">0{index + 1}</span>
+                        <p className="font-serif text-5xl mt-6">{value}</p>
+                        <p className="font-bold text-sm mt-4">{label}</p>
+                        <p className="text-xs text-gray-400 mt-1 leading-relaxed">{detail}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-[#E9D9B7] border border-primary/10 p-6 md:p-8 flex flex-col justify-between">
+                  <div className="flex items-center justify-between"><span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-mono"><Target size={14} /> Следующее действие</span><span className="text-[10px] font-mono uppercase tracking-widest opacity-50">Priority 01</span></div>
+                  <div className="py-10"><h2 className="font-serif text-4xl leading-tight">{nextAction.title}</h2><p className="mt-4 text-sm leading-relaxed text-primary/60">{nextAction.detail}</p></div>
+                  <button onClick={() => setActiveTab(nextAction.tab)} className="min-h-12 border-t border-primary/20 pt-4 flex items-center justify-between text-xs uppercase font-bold tracking-[0.16em] hover:text-white focus:outline-none focus:ring-4 focus:ring-primary/15">{nextAction.label}<ArrowRight size={16} /></button>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-px bg-primary/10 border border-primary/10">
+                {[
+                  { label: 'Оплаченные заказы', value: paidOrders.length, sub: `${deliveredOrders.length} доставлено`, icon: <ShoppingBag size={17} />, tab: 'orders' as AdminTab },
+                  { label: 'Новые заявки', value: newLeadsCount, sub: 'из формы услуг', icon: <TrendingUp size={17} />, tab: 'integrations' as AdminTab },
+                  { label: 'Критический остаток', value: lowStock.length, sub: lowStock[0]?.title || 'всё в норме', icon: <AlertTriangle size={17} />, tab: 'books' as AdminTab },
+                  { label: 'Каталог', value: catalog.books.length, sub: `${catalog.news.length} материалов`, icon: <BookOpen size={17} />, tab: 'books' as AdminTab },
+                ].map(item => (
+                  <button key={item.label} onClick={() => setActiveTab(item.tab)} className="min-h-[150px] bg-white p-6 text-left hover:bg-[#F8F8F4] focus:outline-none focus:ring-4 focus:ring-inset focus:ring-accent/40 transition-colors">
+                    <div className="flex items-center justify-between text-gray-400"><span className="text-[10px] uppercase tracking-[0.18em]">{item.label}</span>{item.icon}</div>
+                    <p className="font-serif text-5xl mt-5">{item.value}</p><p className="text-xs text-gray-400 mt-2 truncate">{item.sub}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="bg-white border border-primary/10">
+                <div className="p-6 md:p-8 border-b border-primary/10 flex flex-wrap items-end justify-between gap-4"><div><p className="text-[10px] uppercase tracking-[0.2em] font-mono text-gray-400">Commerce signal</p><h2 className="font-serif text-3xl mt-2">Последние заказы</h2></div><button onClick={() => setActiveTab('orders')} className="min-h-11 px-4 border border-primary/20 text-[10px] uppercase tracking-[0.18em] font-bold hover:bg-primary hover:text-white">Все заказы</button></div>
+                <div className="divide-y divide-primary/10">
+                  {recentOrders.length ? recentOrders.map(order => (
+                    <button key={order.id} onClick={() => setActiveTab('orders')} className="w-full min-h-[76px] px-6 md:px-8 py-4 grid grid-cols-[1fr_auto] md:grid-cols-[1.2fr_.8fr_.6fr_auto] items-center gap-4 text-left hover:bg-[#F8F8F4] focus:outline-none focus:ring-4 focus:ring-inset focus:ring-accent/35">
+                      <div><p className="font-bold text-sm">{order.customer.name}</p><p className="text-xs text-gray-400 mt-1">{order.items.map(item => item.bookTitle).join(', ')}</p></div>
+                      <p className="hidden md:block text-xs text-gray-500">{order.customer.location}</p>
+                      <span className={`hidden md:inline-flex w-fit px-2 py-1 text-[9px] uppercase tracking-widest ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>{order.paymentStatus}</span>
+                      <p className="font-serif text-xl">{order.currency === 'EUR' ? '€' : order.currency}{order.total.toFixed(0)}</p>
+                    </button>
+                  )) : <div className="p-8 text-sm text-gray-400">Заказов пока нет. Пульт начнёт показывать коммерческие сигналы после первой покупки.</div>}
+                </div>
+              </div>
+            </section>
           );
         })() : null}
 
