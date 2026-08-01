@@ -19,7 +19,7 @@ const ServiceBlock: React.FC<{
   ctaLabel: string;
   formLabel: string;
 }> = ({ item, index, email, subjectTemplate, ctaLabel, formLabel }) => (
-  <article className="bg-white border border-primary/15 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+  <article id={item.id} className="scroll-mt-24 bg-white border border-primary/15 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
     {/* Левая колонка: номер + название */}
     <div className="p-8 lg:p-12 border-b md:border-b-0 md:border-r border-primary/15 bg-[#F8F8F5] flex flex-col justify-between gap-8">
       <div>
@@ -85,6 +85,58 @@ export const ServicesPage: React.FC = () => {
     if (services) analytics.viewServices(language);
   }, [services, language]);
 
+  // Разметка для поиска: перечень услуг + блок вопросов и ответов.
+  useEffect(() => {
+    if (!services) return;
+    const enabled = (services.items || []).filter(item => item.enabled !== false);
+    const faq = (services.faq || []).filter(item => item.question && item.answer);
+
+    const write = (id: string, value: unknown) => {
+      let script = document.head.querySelector<HTMLScriptElement>(`script#${id}`);
+      if (!script) {
+        script = document.createElement('script');
+        script.id = id;
+        script.type = 'application/ld+json';
+        document.head.appendChild(script);
+      }
+      script.textContent = JSON.stringify(value);
+    };
+
+    write('services-jsonld', {
+      '@context': 'https://schema.org',
+      '@type': 'OfferCatalog',
+      name: services.title,
+      description: services.subtitle,
+      itemListElement: enabled.map((item, index) => ({
+        '@type': 'Offer',
+        position: index + 1,
+        itemOffered: {
+          '@type': 'Service',
+          name: item.title,
+          description: [item.summary, ...item.includes].filter(Boolean).join('. '),
+          provider: { '@type': 'Organization', name: 'AM Publishing' },
+        },
+      })),
+    });
+
+    if (faq.length) {
+      write('services-faq-jsonld', {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faq.map(item => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: { '@type': 'Answer', text: item.answer },
+        })),
+      });
+    }
+
+    return () => {
+      document.head.querySelector('script#services-jsonld')?.remove();
+      document.head.querySelector('script#services-faq-jsonld')?.remove();
+    };
+  }, [services]);
+
   const copyEmail = async () => {
     if (!services?.contactEmail) return;
     try {
@@ -140,6 +192,24 @@ export const ServicesPage: React.FC = () => {
             />
           ))}
         </div>
+
+        {/* ЧАСТЫЕ ВОПРОСЫ */}
+        {services.faq?.filter(item => item.question && item.answer).length ? (
+          <section className="bg-white border border-primary/15">
+            <h2 className="font-serif text-3xl p-8 lg:p-12 pb-0">{services.faqTitle}</h2>
+            <div className="divide-y divide-primary/10 mt-6">
+              {services.faq.filter(item => item.question && item.answer).map(item => (
+                <details key={item.id} className="group p-8 lg:px-12">
+                  <summary className="flex items-start justify-between gap-6 cursor-pointer list-none">
+                    <span className="font-serif text-xl leading-snug">{item.question}</span>
+                    <span className="mt-1 font-mono text-lg shrink-0 transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p className="mt-4 text-[17px] leading-relaxed text-gray-600 max-w-3xl">{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* КАК ЗАКАЗАТЬ */}
         <section className="bg-primary text-white border border-primary grid grid-cols-1 lg:grid-cols-2">

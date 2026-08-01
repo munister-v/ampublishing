@@ -261,6 +261,13 @@ const mergeServices = (lang: Language, incoming: Partial<ServicesContent> | null
     ...base,
     ...incoming,
     orderChecklist: Array.isArray(incoming.orderChecklist) ? incoming.orderChecklist : base.orderChecklist,
+    faq: Array.isArray(incoming.faq)
+      ? incoming.faq.map((item, index) => ({
+          id: item?.id || `faq-${index + 1}`,
+          question: item?.question || '',
+          answer: item?.answer || '',
+        }))
+      : base.faq,
     items: Array.isArray(incoming.items) ? incoming.items.map(normalizeServiceItem) : base.items,
   };
 };

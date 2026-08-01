@@ -30,7 +30,11 @@ export type LeadDraft = {
 /** Заявка отклонена как спам (не уходит на эндпоинт и не попадает в журнал). */
 export class SpamRejection extends Error {}
 
+/** Такая же заявка уже отправлена несколько минут назад. */
+export class DuplicateRejection extends Error {}
+
 const MIN_FILL_MS = 2500;
+const DUPLICATE_WINDOW_MS = 10 * 60 * 1000;
 
 export type LeadResult = {
   lead: Lead;
@@ -182,6 +186,15 @@ export const submitLead = async (draft: LeadDraft): Promise<LeadResult> => {
   if (typeof draft.elapsedMs === 'number' && draft.elapsedMs < MIN_FILL_MS) {
     throw new SpamRejection('spam: submitted too fast');
   }
+
+  // Двойной клик или повторная отправка той же формы — не плодим заявки.
+  const duplicate = readLog().find(
+    entry =>
+      entry.email.toLowerCase() === draft.email.trim().toLowerCase() &&
+      entry.service === draft.service &&
+      Date.now() - new Date(entry.createdAt).getTime() < DUPLICATE_WINDOW_MS,
+  );
+  if (duplicate) throw new DuplicateRejection(duplicate.id);
 
   const settings = (await getIntegrations()).leads;
 

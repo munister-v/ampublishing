@@ -7,6 +7,14 @@ type TranslationTree = {
 
 export const translations: Record<Language, TranslationTree> = {
   ru: {
+    tracking: {
+      title: "Отследить посылку",
+      subtitle: "Введите номер, который мы прислали вам после отправки заказа — откроется страница отслеживания DHL.",
+      field: "Номер посылки",
+      submit: "Отследить в DHL",
+      invalid: "Похоже, номер введён не полностью — обычно это 12–20 символов без пробелов.",
+      help: "Не нашли номер или посылка не отслеживается — напишите нам:",
+    },
     common: {
         est: "Осн.",
         close: "Закрыть",
@@ -268,6 +276,7 @@ export const translations: Record<Language, TranslationTree> = {
             3: "Контракт и начало производства"
         },
         form: {
+          duplicate_hint: "Такая заявка уже отправлена несколько минут назад — мы её получили и скоро ответим.",
           consent: "Я согласен(а) на обработку персональных данных согласно",
           spam_hint: "Форма отправлена слишком быстро — проверьте поля и попробуйте ещё раз.",
           phone: "Телефон (необязательно)",
@@ -506,6 +515,14 @@ export const translations: Record<Language, TranslationTree> = {
     }
   },
   en: {
+    tracking: {
+      title: "Track your parcel",
+      subtitle: "Enter the number we sent you when your order was dispatched — the DHL tracking page will open.",
+      field: "Tracking number",
+      submit: "Track with DHL",
+      invalid: "The number looks incomplete — it is usually 12–20 characters without spaces.",
+      help: "Can’t find the number, or the parcel is not tracked? Write to us:",
+    },
     common: {
         est: "Est.",
         close: "Close",
@@ -827,6 +844,7 @@ export const translations: Record<Language, TranslationTree> = {
         3: "Contract & Production Start"
       },
       form: {
+          duplicate_hint: "You already sent this enquiry a few minutes ago — we have it and will reply soon.",
           consent: "I agree to the processing of my personal data according to the",
           spam_hint: "The form was submitted too quickly — please check the fields and try again.",
           phone: "Phone (optional)",
@@ -1010,6 +1028,14 @@ export const translations: Record<Language, TranslationTree> = {
     }
   },
   de: {
+    tracking: {
+      title: "Sendung verfolgen",
+      subtitle: "Geben Sie die Nummer ein, die wir Ihnen beim Versand geschickt haben — die DHL-Sendungsverfolgung öffnet sich.",
+      field: "Sendungsnummer",
+      submit: "Mit DHL verfolgen",
+      invalid: "Die Nummer scheint unvollständig zu sein — sie hat meist 12–20 Zeichen ohne Leerzeichen.",
+      help: "Nummer nicht gefunden oder Sendung nicht verfolgbar? Schreiben Sie uns:",
+    },
     common: {
         est: "Gegr.",
         close: "Schließen",
@@ -1331,6 +1357,7 @@ export const translations: Record<Language, TranslationTree> = {
         3: "Vertrag & Produktionsbeginn"
       },
       form: {
+          duplicate_hint: "Diese Anfrage haben Sie vor wenigen Minuten bereits gesendet — sie ist bei uns eingegangen.",
           consent: "Ich stimme der Verarbeitung meiner personenbezogenen Daten gemäß der",
           spam_hint: "Das Formular wurde zu schnell abgeschickt — bitte prüfen Sie die Felder und versuchen Sie es erneut.",
           phone: "Telefon (optional)",

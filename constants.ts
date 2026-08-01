@@ -380,6 +380,13 @@ export const DEFAULT_SERVICES: Record<Language, ServicesContent> = {
     emailSubject: 'Заявка на услугу: {service}',
     ctaLabel: 'Написать нам',
     outro: 'Отвечаем в течение нескольких рабочих дней.',
+    faqTitle: 'Частые вопросы',
+    faq: [
+      { id: 'price', question: 'Почему нет фиксированных цен?', answer: 'Стоимость зависит от объёма рукописи, состояния текста, тиража и сроков. Мы смотрим материал и присылаем расчёт по конкретному проекту — так честнее, чем усреднённый прайс.' },
+      { id: 'rights', question: 'Кому принадлежат права на книгу?', answer: 'Права остаются у автора. Мы фиксируем в договоре, что именно делает издательство и на каких условиях книга распространяется.' },
+      { id: 'timeline', question: 'Сколько времени занимает издание?', answer: 'Обычно от нескольких недель для отдельной услуги до нескольких месяцев для полного цикла. Точные сроки называем после знакомства с рукописью.' },
+      { id: 'manuscript', question: 'Нужно ли присылать всю рукопись сразу?', answer: 'Нет. Для первой оценки достаточно фрагмента и краткого описания: жанр, объём, готовность текста.' },
+    ],
   },
   en: {
     title: 'Services',
@@ -471,6 +478,13 @@ export const DEFAULT_SERVICES: Record<Language, ServicesContent> = {
     emailSubject: 'Service enquiry: {service}',
     ctaLabel: 'Write to us',
     outro: 'We usually reply within a few working days.',
+    faqTitle: 'Frequently asked questions',
+    faq: [
+      { id: 'price', question: 'Why are there no fixed prices?', answer: 'The cost depends on the length of the manuscript, the state of the text, the print run and the timeline. We look at the material and send a quote for your specific project — that is fairer than an averaged price list.' },
+      { id: 'rights', question: 'Who owns the rights to the book?', answer: 'The rights stay with the author. The contract states exactly what the publisher does and on what terms the book is distributed.' },
+      { id: 'timeline', question: 'How long does publishing take?', answer: 'Usually from a few weeks for a single service to a few months for the full cycle. We give exact dates once we have seen the manuscript.' },
+      { id: 'manuscript', question: 'Do I need to send the whole manuscript?', answer: 'No. For a first assessment an excerpt and a short description are enough: genre, length and how finished the text is.' },
+    ],
   },
   de: {
     title: 'Dienstleistungen',
@@ -562,5 +576,12 @@ export const DEFAULT_SERVICES: Record<Language, ServicesContent> = {
     emailSubject: 'Anfrage zur Leistung: {service}',
     ctaLabel: 'Schreiben Sie uns',
     outro: 'Wir antworten in der Regel innerhalb weniger Werktage.',
+    faqTitle: 'Häufige Fragen',
+    faq: [
+      { id: 'price', question: 'Warum gibt es keine festen Preise?', answer: 'Die Kosten hängen vom Umfang des Manuskripts, vom Zustand des Textes, von der Auflage und vom Zeitplan ab. Wir sehen uns das Material an und senden eine Kalkulation für Ihr konkretes Projekt — das ist fairer als eine pauschale Preisliste.' },
+      { id: 'rights', question: 'Wem gehören die Rechte am Buch?', answer: 'Die Rechte bleiben beim Autor. Im Vertrag steht genau, was der Verlag übernimmt und zu welchen Bedingungen das Buch vertrieben wird.' },
+      { id: 'timeline', question: 'Wie lange dauert die Produktion?', answer: 'In der Regel von einigen Wochen für eine einzelne Leistung bis zu mehreren Monaten für das Komplettpaket. Genaue Termine nennen wir nach Sichtung des Manuskripts.' },
+      { id: 'manuscript', question: 'Muss ich das ganze Manuskript einsenden?', answer: 'Nein. Für eine erste Einschätzung genügen eine Leseprobe und eine kurze Beschreibung: Genre, Umfang und Fertigstellungsgrad.' },
+    ],
   },
 };

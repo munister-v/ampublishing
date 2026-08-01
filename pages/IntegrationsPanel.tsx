@@ -733,6 +733,15 @@ export const IntegrationsPanel: React.FC<{
                   className="px-3 py-2 border border-gray-300 text-[10px] uppercase tracking-widest hover:bg-gray-50 inline-flex items-center gap-2">
                   <RefreshCw size={12} /> Обновить
                 </button>
+                <button
+                  onClick={() => downloadFile(
+                    `analytics-${new Date().toISOString().slice(0, 10)}.csv`,
+                    ['Дата;Событие;Параметры', ...analyticsLog.map(entry =>
+                      `${new Date(entry.ts).toLocaleString()};${entry.name};"${JSON.stringify(entry.params).replace(/"/g, '""')}"`)].join('\n'),
+                  )}
+                  className="px-3 py-2 border border-gray-300 text-[10px] uppercase tracking-widest hover:bg-gray-50 inline-flex items-center gap-2">
+                  <Download size={12} /> CSV
+                </button>
                 <button onClick={() => { analytics.clearLog(); setAnalyticsLog([]); }}
                   className="px-3 py-2 border border-red-200 text-red-600 text-[10px] uppercase tracking-widest hover:bg-red-50 inline-flex items-center gap-2">
                   <Trash2 size={12} /> Очистить

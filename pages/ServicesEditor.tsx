@@ -225,6 +225,7 @@ export const ServicesEditor: React.FC<{
       const cleaned: ServicesContent = {
         ...content,
         orderChecklist: content.orderChecklist.map(l => l.trim()).filter(Boolean),
+        faq: (content.faq || []).filter(item => item.question.trim() && item.answer.trim()),
         items: content.items.map(item => ({
           ...item,
           id: item.id || slugify(item.title),
@@ -401,12 +402,75 @@ export const ServicesEditor: React.FC<{
                 addLabel="Добавить пункт"
               />
             </Field>
+            <Field label="Заголовок блока вопросов">
+              <input className={inputCls} value={content.faqTitle || ''}
+                onChange={e => patch(d => { d.faqTitle = e.target.value; })} />
+            </Field>
             <Field label="Заключительная строка" className="md:col-span-2">
               <input className={inputCls} value={content.outro}
                 onChange={e => patch(d => { d.outro = e.target.value; })} />
             </Field>
           </div>
         ) : null}
+      </section>
+
+      {/* ── Частые вопросы ── */}
+      <section className="bg-white border border-primary/10">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h4 className="text-xl font-serif">{content.faqTitle || 'Частые вопросы'}</h4>
+            <p className="text-xs text-gray-500 mt-1">
+              Показываются на странице и попадают в разметку для поиска — Google умеет выводить их прямо в выдаче.
+            </p>
+          </div>
+          <button
+            onClick={() => patch(d => {
+              d.faq = [...(d.faq || []), { id: `faq-${Date.now().toString(36).slice(-4)}`, question: '', answer: '' }];
+            })}
+            className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary inline-flex items-center gap-2">
+            <Plus size={12} /> Вопрос
+          </button>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {(content.faq || []).map((item, index) => (
+            <div key={item.id} className="p-5 space-y-3">
+              <div className="flex items-start gap-2">
+                <input
+                  className={`${inputCls} font-serif text-lg`}
+                  placeholder="Вопрос"
+                  value={item.question}
+                  onChange={e => patch(d => { d.faq![index].question = e.target.value; })}
+                />
+                <div className="flex flex-col gap-1">
+                  <button onClick={() => patch(d => {
+                    const list = d.faq!; const target = index - 1;
+                    if (target < 0) return;
+                    [list[index], list[target]] = [list[target], list[index]];
+                  })} disabled={index === 0}
+                    className="p-2 border border-gray-200 hover:bg-gray-50 disabled:opacity-30"><ArrowUp size={11} /></button>
+                  <button onClick={() => patch(d => {
+                    const list = d.faq!; const target = index + 1;
+                    if (target >= list.length) return;
+                    [list[index], list[target]] = [list[target], list[index]];
+                  })} disabled={index === (content.faq || []).length - 1}
+                    className="p-2 border border-gray-200 hover:bg-gray-50 disabled:opacity-30"><ArrowDown size={11} /></button>
+                </div>
+                <button onClick={() => patch(d => { d.faq!.splice(index, 1); })}
+                  className="p-2 border border-red-200 text-red-600 hover:bg-red-50"><Trash2 size={12} /></button>
+              </div>
+              <textarea
+                rows={3}
+                className={inputCls}
+                placeholder="Ответ"
+                value={item.answer}
+                onChange={e => patch(d => { d.faq![index].answer = e.target.value; })}
+              />
+            </div>
+          ))}
+          {!(content.faq || []).length ? (
+            <p className="p-6 text-sm text-gray-400">Вопросов пока нет — блок на странице не показывается.</p>
+          ) : null}
+        </div>
       </section>
 
       {/* ── Список услуг + редактор ── */}

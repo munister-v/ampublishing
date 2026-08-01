@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Send, AlertTriangle, Loader2, Mail } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { Link, useSearchParams } from 'react-router-dom';
-import { submitLead, SpamRejection, type LeadResult } from '../services/leads';
+import { submitLead, SpamRejection, DuplicateRejection, type LeadResult } from '../services/leads';
 import { captureAttribution } from '../utils/attribution';
 import { analytics } from '../services/analytics';
 
@@ -75,7 +75,9 @@ export const ServiceOrderPage: React.FC = () => {
     } catch (e: any) {
       // Спам отклоняем молча для бота, но человеку показываем понятный текст
       // (сюда попадает и случай «отправил за пару секунд»).
-      setError(e instanceof SpamRejection ? (t('services.form.spam_hint') as string) : (e?.message || String(e)));
+      if (e instanceof DuplicateRejection) setError(t('services.form.duplicate_hint') as string);
+      else if (e instanceof SpamRejection) setError(t('services.form.spam_hint') as string);
+      else setError(e?.message || String(e));
     } finally {
       setSending(false);
     }

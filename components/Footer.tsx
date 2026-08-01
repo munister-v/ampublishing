@@ -92,6 +92,7 @@ export const Footer: React.FC = () => {
             <li><Link to="/our-authors" className="hover:text-accent transition-all">{t('nav.our_authors')}</Link></li>
             <li><Link to="/authors" className="hover:text-accent transition-all">{t('nav.authors')}</Link></li>
             <li><Link to="/services" className="hover:text-accent transition-all">{t('nav.services')}</Link></li>
+            <li><Link to="/tracking" className="hover:text-accent transition-all">{t('tracking.title')}</Link></li>
             <li><Link to="/about" className="hover:text-accent transition-all">{t('nav.about')}</Link></li>
             <li><Link to="/media" className="hover:text-accent transition-all">{t('nav.media')}</Link></li>
           </ul>

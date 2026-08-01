@@ -63,6 +63,11 @@ const routeSeo: Record<string, SeoConfig> = {
     description:
       'Editorial, publishing, book design, and author project services from AM Publishing Berlin.',
   },
+  '/tracking': {
+    title: 'Track Your Parcel | AM Publishing Berlin',
+    description: 'Track a parcel sent by AM Publishing Berlin via DHL.',
+    robots: 'noindex,follow',
+  },
   '/services/order': {
     title: 'Request Publishing Services | AM Publishing Berlin',
     description:

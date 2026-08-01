@@ -129,6 +129,12 @@ export interface ServiceItem {
   enabled?: boolean;
 }
 
+export interface ServiceFaqItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
 export interface ServicesContent {
   title: string;
   subtitle: string;
@@ -144,6 +150,9 @@ export interface ServicesContent {
   emailSubject: string;
   ctaLabel: string;
   outro: string;
+  /** Частые вопросы под списком услуг (попадают в разметку FAQPage). */
+  faqTitle?: string;
+  faq?: ServiceFaqItem[];
 }
 
 export interface LocalizedCatalogData {
