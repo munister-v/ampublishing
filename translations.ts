@@ -125,6 +125,9 @@ export const translations: Record<Language, TranslationTree> = {
       availability: "Наличие",
     },
     cart: {
+      checkout_shopify: "Оформить в Shopify",
+      free_shipping_progress: "До бесплатной доставки {amount}",
+      free_shipping_reached: "Доставка бесплатно",
       title: "Ваша корзина",
       your_order: "Ваш заказ",
       empty: "Корзина пуста",
@@ -265,6 +268,8 @@ export const translations: Record<Language, TranslationTree> = {
             3: "Контракт и начало производства"
         },
         form: {
+          consent: "Я согласен(а) на обработку персональных данных согласно",
+          spam_hint: "Форма отправлена слишком быстро — проверьте поля и попробуйте ещё раз.",
           phone: "Телефон (необязательно)",
           or_email: "Или просто напишите нам:",
           fallback_title: "Почти готово",
@@ -782,6 +787,9 @@ export const translations: Record<Language, TranslationTree> = {
       },
     },
     cart: {
+      checkout_shopify: "Check out with Shopify",
+      free_shipping_progress: "{amount} to free shipping",
+      free_shipping_reached: "Free shipping unlocked",
       title: "Your Cart",
       your_order: "Your Order",
       empty: "Cart is empty",
@@ -819,6 +827,8 @@ export const translations: Record<Language, TranslationTree> = {
         3: "Contract & Production Start"
       },
       form: {
+          consent: "I agree to the processing of my personal data according to the",
+          spam_hint: "The form was submitted too quickly — please check the fields and try again.",
           phone: "Phone (optional)",
           or_email: "Or simply write to us:",
           fallback_title: "Almost there",
@@ -1281,6 +1291,9 @@ export const translations: Record<Language, TranslationTree> = {
       },
     },
     cart: {
+      checkout_shopify: "Mit Shopify bezahlen",
+      free_shipping_progress: "Noch {amount} bis zum kostenlosen Versand",
+      free_shipping_reached: "Versand kostenlos",
       title: "Ihr Warenkorb",
       your_order: "Ihre Bestellung",
       empty: "Warenkorb ist leer",
@@ -1318,6 +1331,8 @@ export const translations: Record<Language, TranslationTree> = {
         3: "Vertrag & Produktionsbeginn"
       },
       form: {
+          consent: "Ich stimme der Verarbeitung meiner personenbezogenen Daten gemäß der",
+          spam_hint: "Das Formular wurde zu schnell abgeschickt — bitte prüfen Sie die Felder und versuchen Sie es erneut.",
           phone: "Telefon (optional)",
           or_email: "Oder schreiben Sie uns einfach:",
           fallback_title: "Fast geschafft",

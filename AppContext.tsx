@@ -6,6 +6,7 @@ import { REGIONS } from './constants';
 import { translations } from './translations';
 import { api } from './services/api';
 import { contentStore } from './services/contentStore';
+import { analytics } from './services/analytics';
 import { getIntegrations } from './services/integrations';
 import { ToastMessage } from './components/Toast';
 
@@ -367,11 +368,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           quantity: qty 
         }];
       });
+      analytics.addToCart(book, variant, qty);
       showToast(t('common.toast_added', { title: book.title }));
     });
   };
 
   const removeFromCart = (variantId: string) => {
+    const removed = cart.find(item => item.variantId === variantId);
+    if (removed) {
+      analytics.track('remove_from_cart', {
+        currency: 'EUR',
+        value: removed.variant.price * removed.quantity,
+        items: [{ item_id: removed.variantId, item_name: removed.title, quantity: removed.quantity }],
+      });
+    }
     setCart(prev => prev.filter(item => item.variantId !== variantId));
   };
 
@@ -393,6 +403,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const addRecentlyViewed = (book: Book) => {
+    analytics.viewItem(book);
     setRecentlyViewed(prev => {
       const filtered = prev.filter(b => b.id !== book.id);
       return [book, ...filtered].slice(0, 4);
@@ -400,6 +411,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const addSearchHistory = (term: string) => {
+    analytics.track('search', { search_term: term });
     setSearchHistory(prev => {
       const newHist = [term, ...prev.filter(t => t !== term)].slice(0, 5);
       localStorage.setItem('search-history', JSON.stringify(newHist));

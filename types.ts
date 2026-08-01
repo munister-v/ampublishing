@@ -335,6 +335,16 @@ export interface Lead {
   status: LeadStatus;
   /** Ушла ли заявка на эндпоинт (false = только локально/почтой). */
   delivered: boolean;
+  /** Согласие на обработку персональных данных (DSGVO). */
+  consent?: boolean;
+  /** Откуда пришёл посетитель: utm-метки и реферер. */
+  attribution?: {
+    source?: string;
+    medium?: string;
+    campaign?: string;
+    referrer?: string;
+    landingPage?: string;
+  };
 }
 
 // --- ADMIN & ORDER TYPES ---

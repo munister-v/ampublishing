@@ -1,5 +1,6 @@
 import type { Language, Lead, LeadsIntegration, LeadStatus } from '../types';
 import { getIntegrations } from './integrations';
+import { getAttribution } from '../utils/attribution';
 
 /**
  * Заявки на услуги. Сайт статический, поэтому заявка уходит на внешний
@@ -19,7 +20,17 @@ export type LeadDraft = {
   serviceTitle?: string;
   message: string;
   language: Language;
+  consent?: boolean;
+  /** Скрытое поле-приманка: заполнено — значит это бот. */
+  honeypot?: string;
+  /** Сколько миллисекунд человек провёл на форме. */
+  elapsedMs?: number;
 };
+
+/** Заявка отклонена как спам (не уходит на эндпоинт и не попадает в журнал). */
+export class SpamRejection extends Error {}
+
+const MIN_FILL_MS = 2500;
 
 export type LeadResult = {
   lead: Lead;
@@ -66,7 +77,7 @@ export const clearLeadLog = (): Lead[] => {
 };
 
 export const leadsToCsv = (leads: Lead[]): string => {
-  const header = ['ID', 'Дата', 'Имя', 'Email', 'Телефон', 'Услуга', 'Язык', 'Статус', 'Доставлена', 'Сообщение'];
+  const header = ['ID', 'Дата', 'Имя', 'Email', 'Телефон', 'Услуга', 'Язык', 'Статус', 'Доставлена', 'Согласие', 'Источник', 'Кампания', 'Сообщение'];
   const escape = (value: unknown) => {
     const text = String(value ?? '');
     return /[";\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
@@ -81,6 +92,9 @@ export const leadsToCsv = (leads: Lead[]): string => {
     lead.language,
     lead.status,
     lead.delivered ? 'да' : 'нет',
+    lead.consent ? 'да' : 'нет',
+    lead.attribution?.source || '',
+    lead.attribution?.campaign || '',
     lead.message,
   ]);
   return [header, ...rows].map(row => row.map(escape).join(';')).join('\n');
@@ -162,6 +176,13 @@ const notifyBridge = async (lead: Lead, url: string) => {
 };
 
 export const submitLead = async (draft: LeadDraft): Promise<LeadResult> => {
+  // Антиспам без капчи: поле-приманка, которое видит только бот,
+  // и минимальное время заполнения — боты отправляют форму мгновенно.
+  if (draft.honeypot) throw new SpamRejection('spam: honeypot filled');
+  if (typeof draft.elapsedMs === 'number' && draft.elapsedMs < MIN_FILL_MS) {
+    throw new SpamRejection('spam: submitted too fast');
+  }
+
   const settings = (await getIntegrations()).leads;
 
   const lead: Lead = {
@@ -177,6 +198,8 @@ export const submitLead = async (draft: LeadDraft): Promise<LeadResult> => {
     pageUrl: typeof window !== 'undefined' ? window.location.href : '',
     status: 'new',
     delivered: false,
+    consent: draft.consent,
+    attribution: getAttribution(),
   };
 
   let error: string | undefined;

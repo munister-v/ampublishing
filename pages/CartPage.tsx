@@ -1,16 +1,47 @@
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { ConfirmRemoveModal } from '../components/Modals';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Truck, ShoppingBag } from 'lucide-react';
 import { formatLabel } from '../utils/formatLabel';
+import { calculateShipping, estimateWeightGrams } from '../utils/dhl';
+import { buildShopifyCartUrlForItems, getShopifyLinkForBook } from '../utils/shopify';
+import { analytics } from '../services/analytics';
 
 export const CartPage: React.FC = () => {
-  const { cart, removeFromCart, updateQuantity, region, t, language } = useApp();
+  const { cart, removeFromCart, updateQuantity, region, t, language, integrations } = useApp();
   const [itemToRemove, setItemToRemove] = useState<{id: string, name: string} | null>(null);
 
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
+
+  // Предварительный расчёт доставки DHL — чтобы стоимость была видна
+  // до перехода в оформление, а не «уточняется на следующем шаге».
+  const dhl = integrations?.dhl;
+  const parcelWeightGrams = useMemo(
+    () => (dhl ? estimateWeightGrams(dhl, cart.map(item => ({ quantity: item.quantity }))) : 0),
+    [dhl, cart],
+  );
+  const dhlQuote = useMemo(
+    () => (dhl?.enabled && cart.length ? calculateShipping(dhl, region.id === 'de' ? 'DE' : '', parcelWeightGrams, total) : null),
+    [dhl, region.id, parcelWeightGrams, total, cart.length],
+  );
+  const freeFrom = dhl?.freeShippingThreshold || 0;
+  const missingForFree = freeFrom > 0 ? Math.max(0, freeFrom - total) : 0;
+
+  // Если книги привязаны к товарам Shopify — можно оформить всю корзину там.
+  const shopify = integrations?.shopify;
+  const shopifyCheckoutUrl = useMemo(() => {
+    if (!shopify?.enabled) return null;
+    const items = cart
+      .map(item => {
+        const link = getShopifyLinkForBook(shopify, item.bookId);
+        return link ? { variantId: link.variantId, quantity: item.quantity } : null;
+      })
+      .filter(Boolean) as { variantId: string; quantity: number }[];
+    if (items.length !== cart.length || !items.length) return null; // только если вся корзина покрыта
+    return buildShopifyCartUrlForItems(shopify, items);
+  }, [shopify, cart]);
 
   return (
     <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
@@ -87,16 +118,52 @@ export const CartPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between border-b border-primary/20 pb-2">
                        <span>{t('cart.delivery')}</span>
-                       <span>{t('cart.delivery_next_step')}</span>
+                       <span className="text-right">
+                          {dhlQuote?.rate
+                            ? <>
+                                {dhlQuote.free ? '0.00' : dhlQuote.price.toFixed(2)} {region.currency}
+                                <span className="block text-[9px] normal-case tracking-normal text-gray-500">
+                                  {dhlQuote.rate.product} · {(parcelWeightGrams / 1000).toFixed(2)} кг
+                                </span>
+                              </>
+                            : t('cart.delivery_next_step')}
+                       </span>
                     </div>
                     <div className="flex justify-between text-xl font-bold pt-4">
                        <span>{t('cart.total')}</span>
-                       <span>{total.toFixed(2)} {region.currency}</span>
+                       <span>{(total + (dhlQuote && !dhlQuote.free ? dhlQuote.price : 0)).toFixed(2)} {region.currency}</span>
                     </div>
                  </div>
               </div>
               
-              <Link to="/checkout" className="block w-full text-center bg-primary text-white py-6 mt-12 uppercase font-bold tracking-[0.2em] text-sm hover:bg-accent transition-colors shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none border border-primary">
+              {dhl?.enabled && freeFrom > 0 ? (
+                <div className="mt-8">
+                   <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                      <Truck size={12} />
+                      {missingForFree > 0
+                        ? t('cart.free_shipping_progress', { amount: `${missingForFree.toFixed(2)} ${region.currency}` })
+                        : t('cart.free_shipping_reached')}
+                   </div>
+                   <div className="h-1.5 bg-primary/10">
+                      <div
+                        className="h-full bg-accent transition-all duration-500"
+                        style={{ width: `${Math.min(100, freeFrom ? (total / freeFrom) * 100 : 0)}%` }}
+                      />
+                   </div>
+                </div>
+              ) : null}
+
+              {shopifyCheckoutUrl ? (
+                <a
+                  href={shopifyCheckoutUrl}
+                  onClick={() => analytics.track('shopify_buy_click', { source: 'cart', items: cart.length })}
+                  className="mt-8 flex items-center justify-center gap-3 w-full text-center border border-primary py-4 uppercase font-bold tracking-[0.2em] text-xs hover:bg-primary hover:text-white transition-colors"
+                >
+                  <ShoppingBag size={14} /> {t('cart.checkout_shopify')}
+                </a>
+              ) : null}
+
+              <Link to="/checkout" className="block w-full text-center bg-primary text-white py-6 mt-6 uppercase font-bold tracking-[0.2em] text-sm hover:bg-accent transition-colors shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none border border-primary">
                  {t('cart.checkout')}
               </Link>
            </div>

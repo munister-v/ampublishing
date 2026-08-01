@@ -71,7 +71,9 @@ export const IntegrationsPanel: React.FC<{
   orders: Order[];
   onToast: (message: string, type?: 'success' | 'error') => void;
   onReload?: () => void;
-}> = ({ language, orders, onToast, onReload }) => {
+  /** Массовое сохранение трек-номеров: id заказа → номер. */
+  onBulkTracking?: (pairs: { orderId: string; tracking: string }[]) => Promise<void>;
+}> = ({ language, orders, onToast, onReload, onBulkTracking }) => {
   const [section, setSection] = useState<Section>('shopify');
   const [draft, setDraft] = useState<IntegrationSettings | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
@@ -82,6 +84,8 @@ export const IntegrationsPanel: React.FC<{
   const [leadFilter, setLeadFilter] = useState<'all' | LeadStatus>('all');
   const [testing, setTesting] = useState(false);
   const [analyticsLog, setAnalyticsLog] = useState(analytics.getLog());
+  const [bulkTracking, setBulkTracking] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -466,6 +470,53 @@ export const IntegrationsPanel: React.FC<{
               </a>
             </div>
 
+            {/* Массовая вставка трек-номеров: портал DHL отдаёт список
+                «номер заказа; трек-номер» — вставляем его целиком. */}
+            <div className="border border-dashed border-primary/40 bg-[#F8F8F5] p-4 space-y-3">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                Вставить трек-номера списком
+              </p>
+              <textarea
+                value={bulkTracking}
+                onChange={e => setBulkTracking(e.target.value)}
+                rows={4}
+                placeholder={'AM-0001; 00340434161094042557\nAM-0002, 00340434161094042558'}
+                className="w-full border border-gray-300 px-3 py-2 font-mono text-xs bg-white"
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  disabled={bulkBusy || !bulkTracking.trim()}
+                  onClick={async () => {
+                    const pairs = bulkTracking
+                      .split('\n')
+                      .map(line => line.split(/[;,\t]+/).map(part => part.trim()))
+                      .filter(parts => parts.length >= 2 && parts[0] && parts[1])
+                      .map(parts => ({ orderId: parts[0], tracking: parts[1] }));
+                    const known = pairs.filter(pair => orders.some(order => order.id === pair.orderId));
+                    if (!known.length) {
+                      onToast('Ни один номер заказа не совпал со списком заказов', 'error');
+                      return;
+                    }
+                    setBulkBusy(true);
+                    try {
+                      await onBulkTracking?.(known);
+                      onToast(`Сохранено трек-номеров: ${known.length}${known.length < pairs.length ? ` (пропущено ${pairs.length - known.length})` : ''}`);
+                      setBulkTracking('');
+                    } catch (e: any) {
+                      onToast(`Не удалось сохранить: ${e?.message || e}`, 'error');
+                    } finally {
+                      setBulkBusy(false);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-[10px] uppercase tracking-widest hover:bg-accent hover:text-primary disabled:opacity-50">
+                  {bulkBusy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Сохранить номера
+                </button>
+                <span className="text-[10px] text-gray-500">
+                  По строке на заказ: номер заказа, затем трек-номер через запятую, точку с запятой или табуляцию.
+                </span>
+              </div>
+            </div>
+
             {orders.some(order => order.trackingNumber) ? (
               <div className="border border-primary/10">
                 <p className="px-4 py-2 bg-[#F8F8F5] text-[10px] uppercase tracking-widest text-gray-500">Отслеживание</p>
@@ -597,6 +648,13 @@ export const IntegrationsPanel: React.FC<{
                     {lead.phone ? ` · ${lead.phone}` : ''}
                   </p>
                   <p className="text-sm text-gray-600 whitespace-pre-wrap">{lead.message}</p>
+                  {lead.attribution?.source ? (
+                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-gray-400">
+                      источник: {lead.attribution.source}
+                      {lead.attribution.campaign ? ` · ${lead.attribution.campaign}` : ''}
+                      {lead.attribution.landingPage ? ` · ${lead.attribution.landingPage}` : ''}
+                    </p>
+                  ) : null}
                 </div>
               ))}
               {!filteredLeads.length ? (

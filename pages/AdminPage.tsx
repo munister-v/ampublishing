@@ -11,6 +11,7 @@ import { RadioConfigForm } from './RadioConfigForm';
 import { ServicesEditor } from './ServicesEditor';
 import { IntegrationsPanel } from './IntegrationsPanel';
 import { buildDhlTrackingUrl } from '../utils/dhl';
+import { getLeadLog } from '../services/leads';
 import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
@@ -1025,6 +1026,11 @@ export const AdminPage: React.FC = () => {
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // ── Radio section state ──────────────────────────────────────────────────
+  const [newLeadsCount, setNewLeadsCount] = useState(0);
+  useEffect(() => {
+    setNewLeadsCount(getLeadLog().filter(lead => lead.status === 'new').length);
+  }, [activeTab]);
+
   const [radioAuthed, setRadioAuthed] = useState(!!getRadioAdminToken());
   const [radioPassword, setRadioPassword] = useState('');
   const [radioLoginErr, setRadioLoginErr] = useState('');
@@ -1749,7 +1755,7 @@ export const AdminPage: React.FC = () => {
             { id: 'services', label: 'Услуги', icon: <Clipboard size={16} /> },
             { id: 'site', label: 'Сайт / Шапка / Подвал', icon: <Layout size={16} /> },
             { id: 'payments', label: 'Оплата', icon: <Gavel size={16} /> },
-            { id: 'integrations', label: 'Интеграции', icon: <GitBranch size={16} /> },
+            { id: 'integrations', label: 'Интеграции', icon: <GitBranch size={16} />, badge: newLeadsCount },
             { id: 'orders', label: 'Заказы', icon: <ShoppingBag size={16} />, badge: orders.filter(o => o.paymentStatus === 'pending').length },
             { id: 'status', label: 'Статус системы', icon: <Activity size={16} />, badge: 0 },
             { id: 'radio', label: 'Радио', icon: <Wifi size={16} /> },
@@ -2824,6 +2830,12 @@ export const AdminPage: React.FC = () => {
             orders={orders}
             onToast={showToast}
             onReload={reloadIntegrations}
+            onBulkTracking={async pairs => {
+              for (const pair of pairs) {
+                await api.updateOrderTracking(pair.orderId, pair.tracking);
+              }
+              await refreshOrders();
+            }}
           />
         ) : null}
 

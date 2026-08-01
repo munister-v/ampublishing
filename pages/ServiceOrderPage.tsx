@@ -1,9 +1,10 @@
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Send, AlertTriangle, Loader2, Mail } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { Link, useSearchParams } from 'react-router-dom';
-import { submitLead, type LeadResult } from '../services/leads';
+import { submitLead, SpamRejection, type LeadResult } from '../services/leads';
+import { captureAttribution } from '../utils/attribution';
 import { analytics } from '../services/analytics';
 
 export const ServiceOrderPage: React.FC = () => {
@@ -32,7 +33,13 @@ export const ServiceOrderPage: React.FC = () => {
     phone: '',
     type: '',
     description: '',
+    consent: false,
+    // Скрытое поле-приманка для ботов: человек его не видит и не заполняет.
+    company: '',
   });
+  const openedAtRef = useRef(Date.now());
+
+  useEffect(() => { captureAttribution(); }, []);
 
   // Предвыбор услуги из ссылки /services/order?service=<id>
   useEffect(() => {
@@ -56,6 +63,9 @@ export const ServiceOrderPage: React.FC = () => {
         serviceTitle: selected?.title,
         message: form.description,
         language,
+        consent: form.consent,
+        honeypot: form.company,
+        elapsedMs: Date.now() - openedAtRef.current,
       });
       analytics.leadSubmit(form.type, submitted.delivered);
       setResult(submitted);
@@ -63,7 +73,9 @@ export const ServiceOrderPage: React.FC = () => {
         setError(submitted.error || t('services.form.fallback_hint'));
       }
     } catch (e: any) {
-      setError(e?.message || String(e));
+      // Спам отклоняем молча для бота, но человеку показываем понятный текст
+      // (сюда попадает и случай «отправил за пару секунд»).
+      setError(e instanceof SpamRejection ? (t('services.form.spam_hint') as string) : (e?.message || String(e)));
     } finally {
       setSending(false);
     }
@@ -229,11 +241,39 @@ export const ServiceOrderPage: React.FC = () => {
                    ></textarea>
                </div>
 
+               {/* honeypot: скрыт от людей, виден ботам */}
+               <input
+                 type="text"
+                 tabIndex={-1}
+                 autoComplete="off"
+                 value={form.company}
+                 onChange={e => setForm({ ...form, company: e.target.value })}
+                 aria-hidden="true"
+                 className="hidden"
+               />
+
+               <label className="flex items-start gap-3 cursor-pointer">
+                 <span className={`mt-0.5 w-5 h-5 border border-primary flex items-center justify-center shrink-0 ${form.consent ? 'bg-primary' : ''}`}>
+                   {form.consent ? <span className="w-2 h-2 bg-white" /> : null}
+                 </span>
+                 <input
+                   type="checkbox"
+                   required
+                   checked={form.consent}
+                   onChange={e => setForm({ ...form, consent: e.target.checked })}
+                   className="hidden"
+                 />
+                 <span className="text-xs text-gray-600 leading-relaxed">
+                   {t('services.form.consent')}{' '}
+                   <Link to="/privacy" className="underline hover:text-primary">{t('footer.links.privacy')}</Link>
+                 </span>
+               </label>
+
                {error ? (
                  <p className="border border-amber-300 bg-amber-50 text-amber-800 p-4 text-sm">{error}</p>
                ) : null}
 
-               <button type="submit" disabled={sending} className="w-full bg-primary text-white py-5 text-sm uppercase font-bold tracking-[0.2em] hover:bg-accent hover:text-white transition-all flex items-center justify-center gap-4 group disabled:opacity-60">
+               <button type="submit" disabled={sending || !form.consent} className="w-full bg-primary text-white py-5 text-sm uppercase font-bold tracking-[0.2em] hover:bg-accent hover:text-white transition-all flex items-center justify-center gap-4 group disabled:opacity-60">
                   {sending ? <Loader2 size={16} className="animate-spin" /> : null}
                   {t('services.form.submit')}
                   {!sending ? <Send size={16} className="group-hover:translate-x-1 transition-transform" /> : null}

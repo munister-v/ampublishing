@@ -6,6 +6,7 @@ import { CheckoutFormData, OrderDiagnostics, PaymentSettings } from '../types';
 import { api } from '../services/api';
 import { formatLabel } from '../utils/formatLabel';
 import { calculateShipping, estimateWeightGrams } from '../utils/dhl';
+import { analytics } from '../services/analytics';
 
 const collectOrderDiagnostics = async (regionId: string, storeLanguage: string): Promise<OrderDiagnostics> => {
   const base: OrderDiagnostics = {
@@ -322,6 +323,7 @@ export const CheckoutPage: React.FC = () => {
      }
 
      if (currentStep === 'details') {
+        analytics.beginCheckout(total, cart.reduce((sum, item) => sum + item.quantity, 0));
         setCurrentStep('shipping');
      } else if (currentStep === 'shipping') {
         setCurrentStep('payment');
@@ -358,6 +360,7 @@ export const CheckoutPage: React.FC = () => {
 
           if (response.success && response.data) {
               setOrderId(response.data.orderId);
+              analytics.purchase(response.data.orderId, finalTotal, region.currency);
               const nextRedirectUrl =
                 formData.paymentMethod === 'visa'
                   ? visaUrl
