@@ -18,6 +18,7 @@ import { ProductPage } from './pages/ProductPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { ServiceOrderPage } from './pages/ServiceOrderPage';
+import { ServicesPage } from './pages/ServicesPage';
 import { AuthorsPage, AboutPage, MediaPage, PrivacyPage, ImpressumPage, TermsPage, OurAuthorsPage, NewsPage } from './pages/StaticPages';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
@@ -63,7 +64,7 @@ const AppContent: React.FC = () => {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           
-          <Route path="/services" element={<ServiceOrderPage />} />
+          <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/order" element={<ServiceOrderPage />} />
 
           <Route path="/radio" element={<RadioPage />} />

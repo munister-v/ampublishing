@@ -8,6 +8,7 @@ import {
   type RadioMessage, type AnnouncePayload,
 } from '../services/radioApi';
 import { RadioConfigForm } from './RadioConfigForm';
+import { ServicesEditor } from './ServicesEditor';
 import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
@@ -51,7 +52,7 @@ import {
   SortAsc,
 } from 'lucide-react';
 
-type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'site' | 'payments' | 'orders' | 'status' | 'radio';
+type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'payments' | 'orders' | 'status' | 'radio';
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -1728,6 +1729,7 @@ export const AdminPage: React.FC = () => {
             { id: 'news', label: 'Мероприятия', icon: <Newspaper size={16} /> },
             { id: 'authors', label: 'Наши авторы', icon: <Globe size={16} /> },
             { id: 'about', label: 'О нас', icon: <Info size={16} /> },
+            { id: 'services', label: 'Услуги', icon: <Clipboard size={16} /> },
             { id: 'site', label: 'Сайт / Шапка / Подвал', icon: <Layout size={16} /> },
             { id: 'payments', label: 'Оплата', icon: <Gavel size={16} /> },
             { id: 'orders', label: 'Заказы', icon: <ShoppingBag size={16} />, badge: orders.filter(o => o.paymentStatus === 'pending').length },
@@ -2797,6 +2799,10 @@ export const AdminPage: React.FC = () => {
             </div>
           );
         })() : null}
+
+        {activeTab === 'services' ? (
+          <ServicesEditor language={selectedLanguage} onToast={showToast} />
+        ) : null}
 
         {activeTab === 'site' && siteDraft ? (
           <section className="bg-white border border-primary/10 p-6 md:p-8 space-y-10">

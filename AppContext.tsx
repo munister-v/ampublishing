@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Book, BookVariant, CartItem, Region, Language, NewsItem, Order, OrderStatus, SiteSettings, TranslationOverrides } from './types';
+import { Book, BookVariant, CartItem, Region, Language, NewsItem, Order, OrderStatus, ServicesContent, SiteSettings, TranslationOverrides } from './types';
 import { REGIONS } from './constants';
 import { translations } from './translations';
 import { api } from './services/api';
@@ -67,6 +67,10 @@ interface AppContextType {
   // Site settings (header/footer/menu/contacts)
   siteSettings: SiteSettings | null;
   setSiteSettings: (s: SiteSettings) => void;
+
+  // Services («Услуги») for the current language
+  services: ServicesContent | null;
+  setServices: (s: ServicesContent) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -107,6 +111,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [orders, setOrders] = useState<Order[]>([]);
   const [translationOverrides, setTranslationOverrides] = useState<TranslationOverrides>({ ru: {}, en: {}, de: {} });
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const [services, setServices] = useState<ServicesContent | null>(null);
 
   // --- CART STATE ---
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -157,12 +162,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setIsBackendLive(true);
 
       try {
-        const [b, n, m, ov, site] = await Promise.all([
+        const [b, n, m, ov, site, svc] = await Promise.all([
           api.getBooks(language),
           api.getNews(language),
           api.getMetadata(language),
           api.getTranslationOverrides(),
           api.getSiteSettings(),
+          api.getServices(language),
         ]);
         booksData = b; newsData = n; metaData = m; overrides = ov;
         setBooks(booksData);
@@ -171,6 +177,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setAuthors(uniqueSorted([...metaData.authors, ...booksData.map(book => book.author)]));
         setTranslationOverrides(overrides);
         setSiteSettings(site);
+        setServices(svc);
       } catch (e) {
         showToast(t('common.toast_load_error'), "error");
         setBooks([]);
@@ -445,6 +452,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       toasts, showToast, removeToast,
       showRegionModal, setShowRegionModal,
       siteSettings, setSiteSettings,
+      services, setServices,
     }}>
       {children}
     </AppContext.Provider>

@@ -1,0 +1,91 @@
+{
+  "title": "Services",
+  "subtitle": "Publishing support for authors — from manuscript to finished book.",
+  "intro": "We work with every author individually and shape the collaboration around the specific text, length and goal. The price of each service is calculated personally once we have seen the manuscript.",
+  "items": [
+    {
+      "id": "publishing",
+      "title": "Full-cycle book publishing",
+      "summary": "Everything from manuscript to printed copies.",
+      "includes": [
+        "Manuscript assessment and publishing plan",
+        "Editing, proofreading, typesetting",
+        "Cover design and print-ready layout",
+        "ISBN and imprint details",
+        "Print run and delivery to the author"
+      ],
+      "note": "Timelines depend on the length of the manuscript — we agree on them at the start.",
+      "priceNote": "Individual quote",
+      "enabled": true
+    },
+    {
+      "id": "editing",
+      "title": "Editing and proofreading",
+      "summary": "Working with the text without changing the author’s voice.",
+      "includes": [
+        "Literary editing",
+        "Proofreading — spelling, punctuation, consistency",
+        "Editor’s notes on the structure of the text",
+        "One round of revisions after approval"
+      ],
+      "note": "",
+      "priceNote": "Individual quote",
+      "enabled": true
+    },
+    {
+      "id": "design",
+      "title": "Cover design and typesetting",
+      "summary": "The visual identity of your book.",
+      "includes": [
+        "Cover concept and sketches",
+        "Final cover in print and digital formats",
+        "Interior typesetting",
+        "Print-ready file preparation"
+      ],
+      "note": "",
+      "priceNote": "Individual quote",
+      "enabled": true
+    },
+    {
+      "id": "printing",
+      "title": "Printing",
+      "summary": "Print runs of any size.",
+      "includes": [
+        "Choice of paper, binding and format",
+        "Digital or offset printing",
+        "Quality control of the print run",
+        "Shipping and delivery"
+      ],
+      "note": "",
+      "priceNote": "Individual quote",
+      "enabled": true
+    },
+    {
+      "id": "promotion",
+      "title": "Promotion and distribution",
+      "summary": "So the book is seen and bought.",
+      "includes": [
+        "Your book in the publisher’s catalogue",
+        "Book presentations and events",
+        "Announcements on social media and the publisher’s radio",
+        "Support in reaching retail platforms"
+      ],
+      "note": "",
+      "priceNote": "Individual quote",
+      "enabled": true
+    }
+  ],
+  "orderTitle": "How to order",
+  "orderIntro": "Send us an email — we will reply with a preliminary quote and a work plan.",
+  "orderChecklist": [
+    "The name of the service you are interested in",
+    "Your name and how to reach you",
+    "A short description of the manuscript: genre, length, how finished it is",
+    "Preferred timeline and print run, if you already know them",
+    "The manuscript or an excerpt — if you are ready to share it"
+  ],
+  "contactEmail": "info@ampublishing.org",
+  "emailSubject": "Service enquiry: {service}",
+  "ctaLabel": "Write to us",
+  "outro": "We usually reply within a few working days."
+}

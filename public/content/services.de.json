@@ -1,0 +1,91 @@
+{
+  "title": "Dienstleistungen",
+  "subtitle": "Verlagsbegleitung für Autorinnen und Autoren — vom Manuskript bis zum fertigen Buch.",
+  "intro": "Wir arbeiten mit jedem Autor individuell und richten die Zusammenarbeit am konkreten Text, Umfang und Ziel aus. Der Preis jeder Leistung wird persönlich kalkuliert, nachdem wir das Manuskript gesehen haben.",
+  "items": [
+    {
+      "id": "publishing",
+      "title": "Buchproduktion — Komplettpaket",
+      "summary": "Alles vom Manuskript bis zur gedruckten Auflage.",
+      "includes": [
+        "Manuskriptbewertung und Verlagsplan",
+        "Lektorat, Korrektorat, Satz",
+        "Covergestaltung und druckfertiges Layout",
+        "ISBN und Impressum",
+        "Druck der Auflage und Übergabe an den Autor"
+      ],
+      "note": "Die Zeitplanung hängt vom Umfang des Manuskripts ab — wir stimmen sie zu Beginn ab.",
+      "priceNote": "Individuelle Kalkulation",
+      "enabled": true
+    },
+    {
+      "id": "editing",
+      "title": "Lektorat und Korrektorat",
+      "summary": "Arbeit am Text, ohne die Stimme des Autors zu verändern.",
+      "includes": [
+        "Literarisches Lektorat",
+        "Korrektorat — Rechtschreibung, Zeichensetzung, Einheitlichkeit",
+        "Anmerkungen der Redaktion zur Textstruktur",
+        "Eine Korrekturrunde nach Abstimmung"
+      ],
+      "note": "",
+      "priceNote": "Individuelle Kalkulation",
+      "enabled": true
+    },
+    {
+      "id": "design",
+      "title": "Covergestaltung und Satz",
+      "summary": "Die visuelle Gestalt Ihres Buches.",
+      "includes": [
+        "Coverkonzept und Entwürfe",
+        "Finales Cover für Druck und digitale Ausgabe",
+        "Satz des Innenteils",
+        "Druckfertige Dateien für die Druckerei"
+      ],
+      "note": "",
+      "priceNote": "Individuelle Kalkulation",
+      "enabled": true
+    },
+    {
+      "id": "printing",
+      "title": "Druck der Auflage",
+      "summary": "Auflagen in jeder Größe.",
+      "includes": [
+        "Auswahl von Papier, Bindung und Format",
+        "Digital- oder Offsetdruck",
+        "Qualitätskontrolle der Auflage",
+        "Versand und Lieferung"
+      ],
+      "note": "",
+      "priceNote": "Individuelle Kalkulation",
+      "enabled": true
+    },
+    {
+      "id": "promotion",
+      "title": "Promotion und Vertrieb",
+      "summary": "Damit das Buch gesehen und gekauft wird.",
+      "includes": [
+        "Ihr Buch im Katalog des Verlags",
+        "Buchpräsentationen und Veranstaltungen",
+        "Ankündigungen in den sozialen Medien und im Verlagsradio",
+        "Unterstützung beim Zugang zu Verkaufsplattformen"
+      ],
+      "note": "",
+      "priceNote": "Individuelle Kalkulation",
+      "enabled": true
+    }
+  ],
+  "orderTitle": "So bestellen Sie",
+  "orderIntro": "Schreiben Sie uns eine E-Mail — wir antworten mit einer ersten Kalkulation und einem Arbeitsplan.",
+  "orderChecklist": [
+    "Die gewünschte Leistung",
+    "Ihr Name und wie wir Sie erreichen",
+    "Kurz zum Manuskript: Genre, Umfang, Fertigstellungsgrad",
+    "Wunschtermin und Auflagenhöhe, sofern schon bekannt",
+    "Das Manuskript oder eine Leseprobe — falls Sie sie teilen möchten"
+  ],
+  "contactEmail": "info@ampublishing.org",
+  "emailSubject": "Anfrage zur Leistung: {service}",
+  "ctaLabel": "Schreiben Sie uns",
+  "outro": "Wir antworten in der Regel innerhalb weniger Werktage."
+}

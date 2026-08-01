@@ -183,11 +183,27 @@ async function syncOverrides() {
   }
 }
 
+// Services page: a single object (not a collection). Same merge rule —
+// anything already translated by hand in EN/DE wins over DeepL output.
+async function syncServices() {
+  const ru = await loadJson('services.ru.json');
+  if (!ru || typeof ru !== 'object') return;
+
+  for (const lang of ['en', 'de']) {
+    const existing = (await loadJson(`services.${lang}.json`)) || {};
+    const translated = await translateTree(ru, lang, null);
+    const merged = mergeKeepingManual(translated, existing);
+    await saveJson(`services.${lang}.json`, merged);
+    console.log(`✔ services.${lang}.json (${(merged.items || []).length} services)`);
+  }
+}
+
 async function main() {
   console.log(`DeepL endpoint: ${DEEPL_ENDPOINT}`);
   await syncCollection('books');
   await syncCollection('news');
   await syncOverrides();
+  await syncServices();
   console.log('Translation pass complete.');
 }
 

@@ -10,6 +10,7 @@ import {
   LocalizedCatalogData,
   PaymentSettings,
   PaymentStatus,
+  ServicesContent,
   SiteSettings,
   TranslationOverrides,
 } from '../types';
@@ -147,6 +148,13 @@ export const api = {
 
   savePaymentSettings: async (settings: PaymentSettings): Promise<PaymentSettings> =>
     contentStore.savePaymentSettings(settings),
+
+  getServices: async (lang: Language): Promise<ServicesContent> => contentStore.getServices(lang),
+
+  getAllServices: async (): Promise<Record<Language, ServicesContent>> => contentStore.getAllServices(),
+
+  saveServices: async (lang: Language, content: ServicesContent): Promise<ServicesContent> =>
+    contentStore.saveServices(lang, content),
 
   getSiteSettings: async (): Promise<SiteSettings> => contentStore.getSiteSettings(),
 

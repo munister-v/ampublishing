@@ -112,6 +112,40 @@ export interface NewsItem {
   body?: string; // full event text ("Мероприятия" feed)
 }
 
+// --- SERVICES (раздел «Услуги», редактируется в админке) ---
+
+export interface ServiceItem {
+  id: string;
+  /** Название услуги */
+  title: string;
+  /** Короткий подзаголовок / для кого услуга */
+  summary?: string;
+  /** Что входит в услугу — список строк */
+  includes: string[];
+  /** Примечание под списком (сроки, формат работы и т.п.) */
+  note?: string;
+  /** Подпись вместо цены, напр. «Расчёт индивидуальный» */
+  priceNote?: string;
+  enabled?: boolean;
+}
+
+export interface ServicesContent {
+  title: string;
+  subtitle: string;
+  intro: string;
+  items: ServiceItem[];
+  /** Блок «как заказать» */
+  orderTitle: string;
+  orderIntro: string;
+  /** Что нужно указать в письме — список пунктов */
+  orderChecklist: string[];
+  contactEmail: string;
+  /** Шаблон темы письма; {service} подставляется названием услуги */
+  emailSubject: string;
+  ctaLabel: string;
+  outro: string;
+}
+
 export interface LocalizedCatalogData {
   books: Book[];
   news: NewsItem[];

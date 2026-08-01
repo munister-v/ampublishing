@@ -1,5 +1,5 @@
-import { Book, Language, LocalizedCatalogData, NewsItem, Order, OrderPayload, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
-import { DATABASE, MOCK_ORDERS } from '../constants';
+import { Book, Language, LocalizedCatalogData, NewsItem, Order, OrderPayload, PaymentSettings, PaymentStatus, ServicesContent, ServiceItem, SiteSettings, TranslationOverrides } from '../types';
+import { DATABASE, DEFAULT_SERVICES, MOCK_ORDERS } from '../constants';
 
 const GH_OWNER = 'munister-v';
 const GH_REPO = 'ampublishing';
@@ -226,6 +226,7 @@ type CacheState = {
   overrides: TranslationOverrides | null;
   paymentSettings: PaymentSettings | null;
   siteSettings: SiteSettings | null;
+  services: Record<Language, ServicesContent> | null;
   loaded: boolean;
   loadingPromise: Promise<void> | null;
 };
@@ -235,8 +236,33 @@ const cache: CacheState = {
   overrides: null,
   paymentSettings: null,
   siteSettings: null,
+  services: null,
   loaded: false,
   loadingPromise: null,
+};
+
+// ----------------- Services («Услуги») -----------------
+
+const normalizeServiceItem = (item: Partial<ServiceItem>, index: number): ServiceItem => ({
+  id: item.id || `service-${index + 1}`,
+  title: item.title || '',
+  summary: item.summary || '',
+  includes: Array.isArray(item.includes) ? item.includes.filter(line => typeof line === 'string') : [],
+  note: item.note || '',
+  priceNote: item.priceNote || '',
+  enabled: item.enabled !== false,
+});
+
+/** Merge a stored services.<lang>.json over the built-in defaults for that language. */
+const mergeServices = (lang: Language, incoming: Partial<ServicesContent> | null | undefined): ServicesContent => {
+  const base = clone(DEFAULT_SERVICES[lang]);
+  if (!incoming) return base;
+  return {
+    ...base,
+    ...incoming,
+    orderChecklist: Array.isArray(incoming.orderChecklist) ? incoming.orderChecklist : base.orderChecklist,
+    items: Array.isArray(incoming.items) ? incoming.items.map(normalizeServiceItem) : base.items,
+  };
 };
 
 const DEFAULT_SITE_SETTINGS: SiteSettings = {
@@ -257,6 +283,7 @@ const DEFAULT_SITE_SETTINGS: SiteSettings = {
     { id: 'h-catalog', labelKey: 'nav.catalog', path: '/catalog', enabled: true },
     { id: 'h-our-authors', labelKey: 'nav.our_authors', path: '/our-authors', enabled: true },
     { id: 'h-authors', labelKey: 'nav.authors', path: '/authors', enabled: true },
+    { id: 'h-services', labelKey: 'nav.services', path: '/services', enabled: true },
     { id: 'h-about', labelKey: 'nav.about', path: '/about', enabled: true },
     { id: 'h-media', labelKey: 'nav.media', path: '/media', enabled: true },
   ],
@@ -264,6 +291,7 @@ const DEFAULT_SITE_SETTINGS: SiteSettings = {
     { id: 'f-catalog', labelKey: 'nav.catalog', path: '/catalog', enabled: true },
     { id: 'f-our-authors', labelKey: 'nav.our_authors', path: '/our-authors', enabled: true },
     { id: 'f-authors', labelKey: 'nav.authors', path: '/authors', enabled: true },
+    { id: 'f-services', labelKey: 'nav.services', path: '/services', enabled: true },
     { id: 'f-about', labelKey: 'nav.about', path: '/about', enabled: true },
     { id: 'f-media', labelKey: 'nav.media', path: '/media', enabled: true },
   ],
@@ -342,7 +370,7 @@ const ensureLoaded = async (): Promise<void> => {
     const fallbackBooks = (lang: Language): Book[] => clone(DATABASE[lang].books);
     const fallbackNews = (lang: Language): NewsItem[] => clone(DATABASE[lang].news);
 
-    const [bru, ben, bde, nru, nen, nde, oru, oen, ode, pay, site] = await Promise.all([
+    const [bru, ben, bde, nru, nen, nde, oru, oen, ode, pay, site, svcRu, svcEn, svcDe] = await Promise.all([
       fetchContent<Book[]>('books.ru.json', fallbackBooks('ru')),
       fetchContent<Book[]>('books.en.json', fallbackBooks('en')),
       fetchContent<Book[]>('books.de.json', fallbackBooks('de')),
@@ -354,6 +382,9 @@ const ensureLoaded = async (): Promise<void> => {
       fetchContent<Record<string, any>>('translation-overrides.de.json', {}),
       fetchContent<PaymentSettings>('payment-settings.json', DEFAULT_PAYMENT_SETTINGS),
       fetchContent<Partial<SiteSettings> | null>('site-settings.json', null),
+      fetchContent<Partial<ServicesContent> | null>('services.ru.json', null),
+      fetchContent<Partial<ServicesContent> | null>('services.en.json', null),
+      fetchContent<Partial<ServicesContent> | null>('services.de.json', null),
     ]);
 
     const ruBooks = keepFallbackWhenEmpty(bru, fallbackBooks('ru'));
@@ -383,6 +414,11 @@ const ensureLoaded = async (): Promise<void> => {
     };
     cache.paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS, ...(pay || {}) };
     cache.siteSettings = mergeSiteSettings(site);
+    cache.services = {
+      ru: mergeServices('ru', svcRu),
+      en: mergeServices('en', svcEn),
+      de: mergeServices('de', svcDe),
+    };
     cache.loaded = true;
   })();
 
@@ -614,6 +650,29 @@ export const contentStore = {
     return clone(cache.siteSettings);
   },
 
+  /** Услуги для одного языка (дефолты + сохранённые правки). */
+  async getServices(language: Language): Promise<ServicesContent> {
+    await ensureLoaded();
+    return clone(cache.services![language]);
+  },
+
+  /** Услуги для всех трёх языков — для админки. */
+  async getAllServices(): Promise<Record<Language, ServicesContent>> {
+    await ensureLoaded();
+    return clone(cache.services!);
+  },
+
+  async saveServices(language: Language, content: ServicesContent): Promise<ServicesContent> {
+    await ensureLoaded();
+    cache.services![language] = mergeServices(language, content);
+    await ghWriteFile(
+      `public/content/services.${language}.json`,
+      cache.services![language],
+      `admin: update services (${language})`,
+    );
+    return clone(cache.services![language]);
+  },
+
   async getPaymentSettings(): Promise<PaymentSettings> {
     await ensureLoaded();
     return clone(cache.paymentSettings!);
@@ -638,8 +697,9 @@ export const contentStore = {
       orders: getOrdersStorage(),
       paymentSettings: clone(cache.paymentSettings!),
       siteSettings: clone(cache.siteSettings!),
+      services: clone(cache.services!),
       exportedAt: new Date().toISOString(),
-      version: 4,
+      version: 5,
     };
   },
 
@@ -649,6 +709,7 @@ export const contentStore = {
     orders?: Order[];
     paymentSettings?: PaymentSettings;
     siteSettings?: SiteSettings;
+    services?: Record<Language, ServicesContent>;
   }) {
     await ensureLoaded();
     const commits: Promise<void>[] = [];
@@ -687,6 +748,16 @@ export const contentStore = {
           `admin: import payment settings`,
         ),
       );
+    }
+    if (payload.services) {
+      for (const lang of ['ru', 'en', 'de'] as Language[]) {
+        const data = payload.services[lang];
+        if (!data) continue;
+        cache.services![lang] = mergeServices(lang, data);
+        commits.push(
+          ghWriteFile(`public/content/services.${lang}.json`, cache.services![lang], `admin: import services (${lang})`),
+        );
+      }
     }
     if (payload.siteSettings) {
       cache.siteSettings = mergeSiteSettings(payload.siteSettings);

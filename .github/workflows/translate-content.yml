@@ -8,6 +8,7 @@ on:
       - 'public/content/books.ru.json'
       - 'public/content/news.ru.json'
       - 'public/content/translation-overrides.ru.json'
+      - 'public/content/services.ru.json'
   workflow_dispatch:
 
 permissions:
@@ -42,7 +43,8 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add public/content/books.en.json public/content/books.de.json \
                   public/content/news.en.json public/content/news.de.json \
-                  public/content/translation-overrides.en.json public/content/translation-overrides.de.json
+                  public/content/translation-overrides.en.json public/content/translation-overrides.de.json \
+                  public/content/services.en.json public/content/services.de.json
           if git diff --staged --quiet; then
             echo "No translation changes."
           else
