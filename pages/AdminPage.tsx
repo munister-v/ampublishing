@@ -3047,11 +3047,11 @@ export const AdminPage: React.FC = () => {
           const paidOrders = orders.filter(order => order.paymentStatus === 'paid');
           const pendingOrders = orders.filter(order => order.paymentStatus === 'pending');
           const paidRevenue = paidOrders.reduce((sum, order) => sum + order.total, 0);
-          const shopifyUrl = asSafeExternalUrl(paymentSettings.shopifyStoreUrl);
-          const adminUrl = asSafeExternalUrl(paymentSettings.shopifyAdminUrl);
-          const analyticsUrl = asSafeExternalUrl(paymentSettings.shopifyAnalyticsUrl);
-          const supportUrl = asSafeExternalUrl(paymentSettings.shopifySupportUrl);
-          const configured = [shopifyUrl, adminUrl, paymentSettings.gaMeasurementId.trim()].filter(Boolean).length;
+          const configured = [
+            integrations?.shopify.enabled,
+            Boolean(integrations?.shopify.domain),
+            integrations?.analytics.enabled,
+          ].filter(Boolean).length;
           const cardInput = 'w-full min-h-11 border border-primary/15 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10';
           return <section className="space-y-6">
             <div className="border border-primary bg-primary px-6 py-7 text-white md:px-8 md:py-8">
@@ -3059,7 +3059,8 @@ export const AdminPage: React.FC = () => {
                 <div className="max-w-2xl">
                   <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.24em] text-white/60"><Store size={14} /> Commerce control room</div>
                   <h3 className="font-serif text-3xl leading-none md:text-4xl">Shopify, payments &amp; growth</h3>
-                  <p className="mt-3 text-sm leading-6 text-white/70">Основной путь покупки — Shopify. Здесь сохраняются ссылки команды, резервные способы оплаты и Google Analytics 4.</p>
+                  <p className="mt-3 text-sm leading-6 text-white/70">Основной путь покупки — Shopify. Ручные реквизиты остаются резервным вариантом; магазин, live‑цены и аналитика настраиваются в едином контуре интеграций.</p>
+                  <button onClick={() => setActiveTab('integrations')} className="mt-4 inline-flex min-h-11 items-center gap-2 border border-white/35 px-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white hover:text-primary"><GitBranch size={14} />Открыть интеграции Shopify</button>
                 </div>
                 <button onClick={handleSavePaymentSettings} disabled={savingKey === 'payment-settings'} className="inline-flex min-h-11 items-center justify-center gap-2 border border-white bg-white px-4 py-3 text-xs font-bold uppercase tracking-widest text-primary transition hover:bg-accent disabled:cursor-wait disabled:opacity-70">
                   {savingKey === 'payment-settings' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -3083,33 +3084,21 @@ export const AdminPage: React.FC = () => {
 
             <div className="grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
               <div className="border border-primary/15 bg-white p-5 md:p-7">
-                <div className="mb-6 flex items-start gap-3"><Store size={18} className="mt-1" /><div><h4 className="font-serif text-2xl">Shopify — главный контур</h4><p className="mt-1 text-sm text-gray-500">Добавьте рабочие URL: в карточках книг уже используются отдельные Shopify‑ссылки.</p></div></div>
-                <div className="grid gap-5 md:grid-cols-2">
-                  <LF label="Витрина Shopify">
-                    <input value={paymentSettings.shopifyStoreUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, shopifyStoreUrl: e.target.value }))} className={cardInput} placeholder="https://store.myshopify.com" inputMode="url" />
-                  </LF>
-                  <LF label="Shopify Admin">
-                    <input value={paymentSettings.shopifyAdminUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, shopifyAdminUrl: e.target.value }))} className={cardInput} placeholder="https://admin.shopify.com/store/..." inputMode="url" />
-                  </LF>
-                  <LF label="Shopify Analytics / Reports">
-                    <input value={paymentSettings.shopifyAnalyticsUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, shopifyAnalyticsUrl: e.target.value }))} className={cardInput} placeholder="https://admin.shopify.com/store/.../analytics" inputMode="url" />
-                  </LF>
-                  <LF label="Shopify Inbox / support">
-                    <input value={paymentSettings.shopifySupportUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, shopifySupportUrl: e.target.value }))} className={cardInput} placeholder="https://admin.shopify.com/store/.../inbox" inputMode="url" />
-                  </LF>
+                <div className="mb-6 flex items-start gap-3"><Store size={18} className="mt-1" /><div><h4 className="font-serif text-2xl">Shopify — главный контур</h4><p className="mt-1 text-sm text-gray-500">Для магазина используются привязки книг, домен и Storefront API из раздела «Интеграции».</p></div></div>
+                <div className="grid gap-px border border-primary/15 bg-primary/15 sm:grid-cols-3">
+                  {[
+                    ['Каталог', 'Привяжите variant ID каждой книги — кнопка покупки ведёт в Shopify checkout.'],
+                    ['Live‑цены', 'Подключите Storefront token, чтобы цена и наличие синхронизировались автоматически.'],
+                    ['Аналитика', 'GA4, Plausible, Umami и Meta Pixel настраиваются с cookie‑согласием.'],
+                  ].map(([title, text]) => <div key={title} className="bg-white p-4"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary/55">{title}</p><p className="mt-3 text-sm leading-5 text-gray-600">{text}</p></div>)}
                 </div>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {[[shopifyUrl, 'Открыть витрину'], [adminUrl, 'Открыть Shopify Admin'], [analyticsUrl, 'Отчёты Shopify'], [supportUrl, 'Shopify Inbox']].map(([url, label]) => url ? <a key={label as string} href={url as string} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-primary/20 px-3 text-xs font-bold uppercase tracking-wider transition hover:bg-primary hover:text-white"><ExternalLink size={13} />{label as string}</a> : null)}
-                  {!shopifyUrl && !adminUrl && !analyticsUrl && !supportUrl ? <p className="text-sm text-gray-400">Ссылки появятся здесь сразу после сохранения.</p> : null}
-                </div>
+                <button onClick={() => setActiveTab('integrations')} className="mt-5 inline-flex min-h-11 items-center gap-2 border border-primary px-3 text-xs font-bold uppercase tracking-wider transition hover:bg-primary hover:text-white"><ExternalLink size={13} />Настроить Shopify</button>
               </div>
 
               <aside className="border border-primary/15 bg-[#F8F8F5] p-5 md:p-7">
                 <div className="flex items-start gap-3"><BarChart3 size={18} className="mt-1" /><div><h4 className="font-serif text-2xl">Analytics</h4><p className="mt-1 text-sm leading-5 text-gray-500">GA4 получает события просмотра, корзины и начала заказа.</p></div></div>
-                <div className="mt-6"><LF label="Google Analytics 4 Measurement ID"><input value={paymentSettings.gaMeasurementId} onChange={e => setPaymentSettings(prev => ({ ...prev, gaMeasurementId: e.target.value.trim().toUpperCase() }))} className={`${cardInput} font-mono`} placeholder="G-XXXXXXXXXX" /></LF></div>
-                <div className="mt-5 border-t border-primary/10 pt-4 text-xs leading-5 text-gray-600">
-                  {paymentSettings.gaMeasurementId.trim() ? <p className="flex gap-2"><CircleCheck size={15} className="mt-0.5 shrink-0 text-green-700" />После сохранения тег GA4 подключится на публичном сайте. Проверяйте live‑данные в GA4.</p> : <p className="flex gap-2"><AlertTriangle size={15} className="mt-0.5 shrink-0 text-amber-700" />Введите Measurement ID из Google Analytics → Admin → Data streams. Пока поле пустое, трекинг не загружается.</p>}
-                </div>
+                <div className="mt-6 border-t border-primary/10 pt-4 text-xs leading-5 text-gray-600"><p className="flex gap-2"><CircleCheck size={15} className="mt-0.5 shrink-0 text-green-700" />События просмотра, книги, корзины и оформления уже предусмотрены. В «Интеграциях» добавьте GA4 Measurement ID и включите consent‑режим.</p></div>
+                <button onClick={() => setActiveTab('integrations')} className="mt-5 inline-flex min-h-11 items-center gap-2 border border-primary px-3 text-xs font-bold uppercase tracking-wider transition hover:bg-primary hover:text-white"><BarChart3 size={13} />Настроить аналитику</button>
               </aside>
             </div>
 

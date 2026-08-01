@@ -147,6 +147,12 @@ export const IntegrationsPanel: React.FC<{
     () => (draft ? shopifyCoverage(draft.shopify, books) : { linked: 0, total: 0 }),
     [draft, books],
   );
+  const shopifyReadiness = [
+    { label: 'Магазин включён', ready: draft?.shopify.enabled },
+    { label: 'Домен указан', ready: Boolean(normalizeShopifyDomain(draft?.shopify.domain || '')) },
+    { label: 'Книги привязаны', ready: coverage.total > 0 && coverage.linked === coverage.total },
+    { label: 'Live‑каталог', ready: Boolean(draft?.shopify.storefrontToken.trim()) },
+  ];
 
   // Сервер — источник правды; локальный журнал остаётся запасным.
   const activeLeads = serverLeads ?? leads;
@@ -290,6 +296,17 @@ export const IntegrationsPanel: React.FC<{
             hint="Кнопка «Купить» на карточке книги ведёт в корзину вашего магазина Shopify с уже добавленным товаром."
           />
 
+          <div className="grid grid-cols-2 gap-px border border-primary/10 bg-primary/10 md:grid-cols-4">
+            {shopifyReadiness.map(item => (
+              <div key={item.label} className="bg-[#F8F8F5] px-4 py-3">
+                <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${item.ready ? 'text-green-700' : 'text-amber-700'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${item.ready ? 'bg-green-600' : 'bg-amber-500'}`} />{item.ready ? 'Готово' : 'Нужно'}
+                </span>
+                <p className="mt-2 text-sm leading-5 text-primary">{item.label}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Field label="Домен магазина" hint="Например ampublishing.myshopify.com или shop.ampublishing.org">
               <input className={inputCls} value={draft.shopify.domain} placeholder="ampublishing.myshopify.com"
@@ -309,6 +326,10 @@ export const IntegrationsPanel: React.FC<{
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {normalizeShopifyDomain(draft.shopify.domain) ? <a href={`https://${normalizeShopifyDomain(draft.shopify.domain)}`} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest hover:bg-gray-50"><ExternalLink size={14} /> Открыть витрину</a> : null}
+            <a href="https://admin.shopify.com" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest hover:bg-gray-50"><ShoppingBag size={14} /> Shopify Admin</a>
             <button
               onClick={async () => {
                 setShopPing({ status: 'busy', message: '' });
