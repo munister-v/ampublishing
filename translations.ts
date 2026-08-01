@@ -266,6 +266,7 @@ export const translations: Record<Language, TranslationTree> = {
       age_yes: "Да, мне есть 18",
     },
     services: {
+        print: "Распечатать / PDF",
         form_link: "Заполнить форму",
         title: "Заявка на публикацию",
         subtitle: "Заполните форму ниже для расчета стоимости издания или рассмотрения рукописи.",
@@ -834,6 +835,7 @@ export const translations: Record<Language, TranslationTree> = {
       delivery_next_step: "Calc. next step",
     },
     services: {
+      print: "Print / PDF",
       form_link: "Fill in the form",
       title: "Publishing Application",
       subtitle: "Fill out the form below for a publishing cost estimate or manuscript review.",
@@ -1347,6 +1349,7 @@ export const translations: Record<Language, TranslationTree> = {
       delivery_next_step: "Im nächsten Schritt",
     },
     services: {
+      print: "Drucken / PDF",
       form_link: "Formular ausfüllen",
       title: "Publikationsantrag",
       subtitle: "Füllen Sie das untenstehende Formular für einen Kostenvoranschlag oder eine Manuskriptprüfung aus.",

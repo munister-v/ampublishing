@@ -204,3 +204,48 @@
     }
   }
 }
+
+/* Печать раздела «Услуги»: клиент отправляет прайс письмом или сохраняет в PDF.
+   Убираем навигацию, баннеры и тёмные заливки — на бумаге нужен только текст. */
+@media print {
+  header,
+  footer,
+  .print-hide {
+    display: none !important;
+  }
+
+  .print-page {
+    padding-top: 0 !important;
+    background: #fff !important;
+  }
+
+  .print-page * {
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  .print-page .print-invert {
+    background: #fff !important;
+    color: #040f1e !important;
+    border: 1px solid #040f1e !important;
+  }
+
+  .print-page .print-invert * {
+    color: #040f1e !important;
+  }
+
+  .print-page article,
+  .print-page section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-page details {
+    display: block;
+  }
+
+  .print-page details > div,
+  .print-page details p {
+    display: block !important;
+  }
+}

@@ -8,6 +8,7 @@ import { BookVariant, Format, PurchaseLink } from '../types';
 import { formatLabel } from '../utils/formatLabel';
 import { getActivePurchaseLinks, getShopifyPurchaseLink, isShopifyPurchaseLink } from '../utils/purchaseLinks';
 import { buildShopifyCartUrl, getShopifyLinkForBook } from '../utils/shopify';
+import { fetchVariantStates, isStorefrontConfigured, type VariantState } from '../services/shopifyStorefront';
 import { analytics } from '../services/analytics';
 import { toGenitiveRu } from '../utils/declension';
 import { findBookByRouteId, getBookPath, isAliasRoute } from '../utils/bookRoutes';
@@ -23,6 +24,8 @@ export const ProductPage: React.FC = () => {
   const [selectedFormat, setSelectedFormat] = useState<Format | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [currentVariant, setCurrentVariant] = useState<BookVariant | null>(null);
+  // Живые цена и наличие из Shopify (если подключён Storefront API).
+  const [shopifyState, setShopifyState] = useState<VariantState | null>(null);
 
   useEffect(() => {
     if (book) {
@@ -43,6 +46,20 @@ export const ProductPage: React.FC = () => {
       setCurrentVariant(v || null);
     }
   }, [selectedFormat, selectedLanguage, book]);
+
+  useEffect(() => {
+    const shopify = integrations?.shopify;
+    const link = book ? getShopifyLinkForBook(shopify, book.id) : null;
+    if (!shopify || !link || !isStorefrontConfigured(shopify)) {
+      setShopifyState(null);
+      return;
+    }
+    let alive = true;
+    fetchVariantStates(shopify, [link.variantId])
+      .then(states => { if (alive) setShopifyState(states[link.variantId.replace(/\D/g, '')] || null); })
+      .catch(error => { console.warn('[shopify] не удалось получить цену', error); });
+    return () => { alive = false; };
+  }, [integrations, book?.id]);
 
   if (!book) return <div className="pt-32 text-center font-mono uppercase">{t('product.not_found')}</div>;
   if (isAliasRoute(book, id)) return <Navigate to={getBookPath(book)} replace />;
@@ -260,10 +277,17 @@ export const ProductPage: React.FC = () => {
                <div className="flex flex-col gap-4">
                   <div className="flex justify-between items-baseline">
                      <span className="font-mono text-xs uppercase">{isPurchasable ? t('cart.total') : t('product.availability')}</span>
-                     <span className="text-4xl font-serif">
+                     <span className="text-4xl font-serif text-right">
                        {isPurchasable
-                          ? `${(currentVariant ? currentVariant.price : book.price).toFixed(2)} ${region.currency}`
+                          ? shopifyState?.price != null
+                            ? `${shopifyState.price.toFixed(2)} ${shopifyState.currency === 'EUR' ? '€' : shopifyState.currency}`
+                            : `${(currentVariant ? currentVariant.price : book.price).toFixed(2)} ${region.currency}`
                           : t('product.price_on_request')}
+                       {shopifyState?.available === false ? (
+                         <span className="block text-[10px] font-mono uppercase tracking-widest text-amber-600">
+                           {t('product.out_of_stock')}
+                         </span>
+                       ) : null}
                      </span>
                   </div>
 
@@ -281,7 +305,7 @@ export const ProductPage: React.FC = () => {
                        <button
                           onClick={handleAddToCart}
                           className="flex-[2] bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest disabled:bg-gray-300 disabled:cursor-not-allowed"
-                          disabled={!currentVariant || currentVariant.stock === 0}
+                          disabled={!currentVariant || currentVariant.stock === 0 || shopifyState?.available === false}
                        >
                           {!currentVariant
                              ? t('product.select_variant')

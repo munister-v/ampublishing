@@ -10,6 +10,7 @@ import {
   getLeadLog, updateLeadStatus, deleteLead, clearLeadLog, leadsToCsv, buildLeadMailto,
 } from '../services/leads';
 import { buildShopifyCartUrl, buildShopifyProductUrl, normalizeShopifyDomain, shopifyCoverage } from '../utils/shopify';
+import { fetchVariantStates, isStorefrontConfigured, pingStorefront, clearStorefrontCache, type VariantState } from '../services/shopifyStorefront';
 import { buildDhlTrackingUrl, estimateWeightGrams, ordersToDhlCsv } from '../utils/dhl';
 import type {
   Book, IntegrationSettings, Language, Lead, LeadStatus, Order,
@@ -85,6 +86,8 @@ export const IntegrationsPanel: React.FC<{
   const [testing, setTesting] = useState(false);
   const [analyticsLog, setAnalyticsLog] = useState(analytics.getLog());
   const [bulkTracking, setBulkTracking] = useState('');
+  const [shopPing, setShopPing] = useState<{ status: 'idle' | 'busy' | 'ok' | 'error'; message: string }>({ status: 'idle', message: '' });
+  const [variantStates, setVariantStates] = useState<Record<string, VariantState>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = async () => {
@@ -185,6 +188,26 @@ export const IntegrationsPanel: React.FC<{
     return acc;
   }, {});
 
+  // Воронка магазина: сколько людей дошло от карточки книги до заказа.
+  const funnelSteps = [
+    { key: 'view_item', label: 'Смотрели книгу' },
+    { key: 'add_to_cart', label: 'В корзину' },
+    { key: 'begin_checkout', label: 'Начали оформление' },
+    { key: 'purchase', label: 'Заказ' },
+  ].map(step => ({ ...step, count: eventCounts[step.key] || 0 }));
+  const funnelTop = funnelSteps[0].count || 1;
+
+  // Активность по дням (последние 14 дней с событиями).
+  const byDay = analyticsLog.reduce<Record<string, number>>((acc, entry) => {
+    const day = new Date(entry.ts).toISOString().slice(0, 10);
+    acc[day] = (acc[day] || 0) + 1;
+    return acc;
+  }, {});
+  const days: [string, number][] = (Object.entries(byDay) as [string, number][])
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-14);
+  const dayMax = Math.max(1, ...days.map(([, count]) => count));
+
   return (
     <div className="space-y-6">
       {/* Шапка */}
@@ -248,10 +271,56 @@ export const IntegrationsPanel: React.FC<{
               <input className={inputCls} value={draft.shopify.refTag}
                 onChange={e => patch(next => { next.shopify.refTag = e.target.value; })} />
             </Field>
-            <Field label="Storefront access token" hint="Пока не обязателен — понадобится, если позже подключим Buy Button SDK." className="md:col-span-2">
+            <Field label="Storefront access token"
+              hint="Shopify → Настройки → Приложения → Develop apps → Storefront API. С ним сайт показывает живые цену и наличие из магазина."
+              className="md:col-span-2">
               <input className={`${inputCls} font-mono text-xs`} value={draft.shopify.storefrontToken}
+                placeholder="shpat_… / публичный storefront-токен"
                 onChange={e => patch(next => { next.shopify.storefrontToken = e.target.value; })} />
             </Field>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={async () => {
+                setShopPing({ status: 'busy', message: '' });
+                try {
+                  const shopName = await pingStorefront(draft.shopify);
+                  setShopPing({ status: 'ok', message: `Соединение есть: ${shopName}` });
+                } catch (e: any) {
+                  setShopPing({ status: 'error', message: e?.message || String(e) });
+                }
+              }}
+              disabled={shopPing.status === 'busy'}
+              className="inline-flex items-center gap-2 px-4 py-3 border border-primary text-xs uppercase tracking-widest hover:bg-primary hover:text-white disabled:opacity-50">
+              {shopPing.status === 'busy' ? <Loader2 size={14} className="animate-spin" /> : <Link2 size={14} />} Проверить магазин
+            </button>
+
+            <button
+              onClick={async () => {
+                clearStorefrontCache();
+                try {
+                  const states = await fetchVariantStates(
+                    draft.shopify,
+                    draft.shopify.products.map(product => product.variantId),
+                  );
+                  setVariantStates(states);
+                  const found = Object.keys(states).length;
+                  onToast(found ? `Получены данные по ${found} вариантам` : 'Shopify не вернул ни одного варианта — проверьте ID', found ? 'success' : 'error');
+                } catch (e: any) {
+                  onToast(`Не удалось получить цены: ${e?.message || e}`, 'error');
+                }
+              }}
+              disabled={!isStorefrontConfigured(draft.shopify)}
+              className="inline-flex items-center gap-2 px-4 py-3 border border-gray-300 text-xs uppercase tracking-widest hover:bg-gray-50 disabled:opacity-50">
+              <RefreshCw size={14} /> Подтянуть цены и наличие
+            </button>
+
+            {shopPing.message ? (
+              <span className={`text-xs ${shopPing.status === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
+                {shopPing.message}
+              </span>
+            ) : null}
           </div>
 
           <div className="border-t border-gray-100 pt-6">
@@ -280,6 +349,7 @@ export const IntegrationsPanel: React.FC<{
                     <th className="text-left px-3 py-2">Книга</th>
                     <th className="text-left px-3 py-2">ID варианта</th>
                     <th className="text-left px-3 py-2">Handle товара</th>
+                    <th className="text-left px-3 py-2">В Shopify</th>
                     <th className="text-left px-3 py-2">Проверка</th>
                     <th className="px-3 py-2" />
                   </tr>
@@ -312,6 +382,20 @@ export const IntegrationsPanel: React.FC<{
                             value={product.handle || ''} placeholder="vse-chto-ostanetsya"
                             onChange={e => patch(next => { next.shopify.products[index].handle = e.target.value; })} />
                         </td>
+                        <td className="px-3 py-2 text-xs">
+                          {(() => {
+                            const state = variantStates[product.variantId.replace(/\D/g, '')];
+                            if (!state) return <span className="text-gray-400">—</span>;
+                            return (
+                              <span className="font-mono">
+                                {state.price != null ? `${state.price.toFixed(2)} ${state.currency}` : '—'}
+                                <span className={`block text-[10px] uppercase tracking-widest ${state.available ? 'text-green-700' : 'text-amber-600'}`}>
+                                  {state.available ? 'в наличии' : 'нет в наличии'}
+                                </span>
+                              </span>
+                            );
+                          })()}
+                        </td>
                         <td className="px-3 py-2 space-y-1">
                           {cartUrl ? (
                             <a href={cartUrl} target="_blank" rel="noopener noreferrer"
@@ -332,7 +416,7 @@ export const IntegrationsPanel: React.FC<{
                     );
                   })}
                   {!draft.shopify.products.length ? (
-                    <tr><td colSpan={5} className="px-3 py-6 text-sm text-gray-400">Пока ничего не привязано.</td></tr>
+                    <tr><td colSpan={6} className="px-3 py-6 text-sm text-gray-400">Пока ничего не привязано.</td></tr>
                   ) : null}
                 </tbody>
               </table>
@@ -748,6 +832,49 @@ export const IntegrationsPanel: React.FC<{
                 </button>
               </div>
             </div>
+
+            {/* Воронка */}
+            <div className="border border-primary/10 mb-6">
+              <p className="px-4 py-2 bg-[#F8F8F5] text-[10px] uppercase tracking-widest text-gray-500">Воронка магазина</p>
+              <div className="p-4 space-y-3">
+                {funnelSteps.map((step, index) => {
+                  const share = Math.round((step.count / funnelTop) * 100);
+                  const prev = index > 0 ? funnelSteps[index - 1].count : null;
+                  const conversion = prev ? (prev ? Math.round((step.count / prev) * 100) : 0) : null;
+                  return (
+                    <div key={step.key}>
+                      <div className="flex justify-between text-[11px] font-mono uppercase tracking-widest mb-1">
+                        <span>{step.label}</span>
+                        <span>
+                          {step.count}
+                          {conversion !== null ? <span className="text-gray-400"> · {conversion}% от пред.</span> : null}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-primary/10">
+                        <div className="h-full bg-primary" style={{ width: `${Math.min(100, share)}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+                {!analyticsLog.length ? <p className="text-sm text-gray-400">Данных пока нет.</p> : null}
+              </div>
+            </div>
+
+            {/* Активность по дням */}
+            {days.length ? (
+              <div className="border border-primary/10 mb-6">
+                <p className="px-4 py-2 bg-[#F8F8F5] text-[10px] uppercase tracking-widest text-gray-500">События по дням</p>
+                <div className="p-4 flex items-end gap-2 h-32">
+                  {days.map(([day, count]) => (
+                    <div key={day} className="flex-1 flex flex-col items-center justify-end gap-1" title={`${day}: ${count}`}>
+                      <span className="font-mono text-[9px] text-gray-400">{count}</span>
+                      <div className="w-full bg-accent" style={{ height: `${(count / dayMax) * 100}%` }} />
+                      <span className="font-mono text-[8px] text-gray-400">{day.slice(5)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
               {Object.entries(eventCounts).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 8).map(([name, count]) => (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Mail, Check, Copy, ArrowRight, FileText } from 'lucide-react';
+import { Mail, Check, Copy, ArrowRight, FileText, Printer } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { analytics } from '../services/analytics';
@@ -67,7 +67,7 @@ const ServiceBlock: React.FC<{
         <Link
           to={`/services/order?service=${encodeURIComponent(item.id)}`}
           onClick={() => analytics.serviceEnquiryClick(item.id, item.title)}
-          className="inline-flex items-center gap-2 px-4 py-3 text-[10px] uppercase tracking-[0.22em] text-gray-500 hover:text-primary transition-colors"
+          className="print-hide inline-flex items-center gap-2 px-4 py-3 text-[10px] uppercase tracking-[0.22em] text-gray-500 hover:text-primary transition-colors"
           title="Заполнить форму вместо письма"
         >
           <FileText size={13} /> {formLabel}
@@ -80,6 +80,18 @@ const ServiceBlock: React.FC<{
 export const ServicesPage: React.FC = () => {
   const { services, isLoadingData, language, t } = useApp();
   const [copied, setCopied] = useState(false);
+  // При печати раскрываем все вопросы — свёрнутый аккордеон на бумаге бесполезен.
+  const [printing, setPrinting] = useState(false);
+  useEffect(() => {
+    const before = () => setPrinting(true);
+    const after = () => setPrinting(false);
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
+  }, []);
 
   useEffect(() => {
     if (services) analytics.viewServices(language);
@@ -162,9 +174,9 @@ export const ServicesPage: React.FC = () => {
   const checklist = (services.orderChecklist || []).filter(Boolean);
 
   return (
-    <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
+    <div className="print-page bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
       {/* HERO */}
-      <header className="bg-primary text-white py-20 md:py-28 px-6 relative overflow-hidden">
+      <header className="print-invert bg-primary text-white py-20 md:py-28 px-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3 pointer-events-none" />
         <div className="container mx-auto relative z-10 max-w-5xl">
           <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-[0.95]">{services.title}</h1>
@@ -199,7 +211,7 @@ export const ServicesPage: React.FC = () => {
             <h2 className="font-serif text-3xl p-8 lg:p-12 pb-0">{services.faqTitle}</h2>
             <div className="divide-y divide-primary/10 mt-6">
               {services.faq.filter(item => item.question && item.answer).map(item => (
-                <details key={item.id} className="group p-8 lg:px-12">
+                <details key={item.id} open={printing} className="group p-8 lg:px-12">
                   <summary className="flex items-start justify-between gap-6 cursor-pointer list-none">
                     <span className="font-serif text-xl leading-snug">{item.question}</span>
                     <span className="mt-1 font-mono text-lg shrink-0 transition-transform group-open:rotate-45">+</span>
@@ -212,7 +224,7 @@ export const ServicesPage: React.FC = () => {
         ) : null}
 
         {/* КАК ЗАКАЗАТЬ */}
-        <section className="bg-primary text-white border border-primary grid grid-cols-1 lg:grid-cols-2">
+        <section className="print-invert bg-primary text-white border border-primary grid grid-cols-1 lg:grid-cols-2">
           <div className="p-8 lg:p-14 border-b lg:border-b-0 lg:border-r border-white/15">
             <span className="block font-mono text-[10px] uppercase tracking-[0.28em] text-accent mb-6">
               {services.orderTitle}
@@ -244,6 +256,12 @@ export const ServicesPage: React.FC = () => {
               {services.contactEmail}
             </a>
             <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => window.print()}
+                className="print-hide inline-flex items-center gap-3 border border-white/30 px-6 py-3 text-[10px] uppercase tracking-[0.22em] font-bold hover:bg-white hover:text-primary transition-colors"
+              >
+                <Printer size={14} /> {t('services.print')}
+              </button>
               <a
                 href={`mailto:${services.contactEmail}`}
                 className="inline-flex items-center gap-3 bg-accent text-primary px-6 py-3 text-[10px] uppercase tracking-[0.22em] font-bold hover:bg-white transition-colors"
