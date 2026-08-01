@@ -18,7 +18,7 @@ import { translations } from '../translations';
 import { toGenitiveRu } from '../utils/declension';
 import { getShopifyPurchaseLink } from '../utils/purchaseLinks';
 import { getBookPath } from '../utils/bookRoutes';
-import { Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
+import { Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsBlock, NewsBlockType, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
   AlertCircle,
@@ -223,7 +223,18 @@ const createNewsTemplate = (): NewsItem => ({
   category: 'Новости',
   imageAlt: '',
   featured: false,
+  blocks: [],
 });
+
+const createNewsBlock = (type: NewsBlockType): NewsBlock => ({
+  id: `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+  type,
+  content: type === 'heading' ? 'Новый раздел' : type === 'quote' ? 'Цитата или важное наблюдение.' : type === 'image' ? '' : 'Новый абзац.',
+  caption: '',
+});
+
+const blocksFromLegacyBody = (body: string): NewsBlock[] => body.split(/\n{2,}/).map(part => part.trim()).filter(Boolean)
+  .map(content => ({ ...createNewsBlock('text'), content }));
 
 const createPaymentSettingsTemplate = (): PaymentSettings => ({
   shopifyStoreUrl: '',
@@ -1379,7 +1390,8 @@ export const AdminPage: React.FC = () => {
 
   const newsEditorialChecks = useMemo(() => {
     if (!newsDraft) return [];
-    const words = (newsDraft.body || '').trim().split(/\s+/).filter(Boolean).length;
+    const source = newsDraft.blocks?.length ? newsDraft.blocks.map(block => block.content).join(' ') : (newsDraft.body || '');
+    const words = source.trim().split(/\s+/).filter(Boolean).length;
     return [
       { label: 'Заголовок', ok: Boolean(newsDraft.title.trim()) },
       { label: 'Анонс', ok: Boolean(newsDraft.preview.trim()) },
@@ -2622,9 +2634,10 @@ export const AdminPage: React.FC = () => {
                             <h4 className="mt-1 font-serif text-2xl">Содержание материала</h4>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, body: `${prev.body || ''}${prev.body ? '\n\n' : ''}НОВЫЙ РАЗДЕЛ\n` } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Заголовок</button>
-                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, body: `${prev.body || ''}${prev.body ? '\n\n' : ''}«Цитата или важное наблюдение»` } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Цитата</button>
-                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, body: `${prev.body || ''}${prev.body ? '\n\n' : ''}Новый абзац.` } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Текст</button>
+                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, blocks: [...(prev.blocks?.length ? prev.blocks : blocksFromLegacyBody(prev.body || '')), createNewsBlock('heading')] } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Заголовок</button>
+                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, blocks: [...(prev.blocks?.length ? prev.blocks : blocksFromLegacyBody(prev.body || '')), createNewsBlock('quote')] } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Цитата</button>
+                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, blocks: [...(prev.blocks?.length ? prev.blocks : blocksFromLegacyBody(prev.body || '')), createNewsBlock('text')] } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Текст</button>
+                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, blocks: [...(prev.blocks?.length ? prev.blocks : blocksFromLegacyBody(prev.body || '')), createNewsBlock('image')] } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Фото</button>
                           </div>
                         </div>
                         <LF label="Заголовок">
@@ -2639,12 +2652,24 @@ export const AdminPage: React.FC = () => {
                           </LF>
                         </div>
                         <div className="mt-5">
-                          <LF label="Полный текст · абзацы разделяются пустой строкой">
-                            <AutoTextarea value={newsDraft.body || ''}
-                              onChange={e => setNewsDraft(prev => prev ? { ...prev, body: (e.target as HTMLTextAreaElement).value } : prev)}
-                              countType="words"
-                              className="min-h-[360px] border border-gray-300 bg-white px-4 py-4 font-serif text-lg leading-relaxed" rows={14} />
-                          </LF>
+                          {newsDraft.blocks?.length ? (
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between gap-3"><span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/55">Блоки материала · {newsDraft.blocks.length}</span><button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, blocks: [], body: prev.blocks?.map(block => block.content).filter(Boolean).join('\n\n') } : prev)} className="text-[10px] uppercase tracking-widest text-gray-500 underline hover:text-primary">В обычный текст</button></div>
+                              {newsDraft.blocks.map((block, index) => (
+                                <div key={block.id} className="border border-primary/15 bg-white p-3 md:p-4">
+                                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><select value={block.type} onChange={e => setNewsDraft(prev => prev ? { ...prev, blocks: prev.blocks?.map(item => item.id === block.id ? { ...item, type: e.target.value as NewsBlockType } : item) } : prev)} className="border border-gray-300 bg-[#F8F8F5] px-2 py-1.5 font-mono text-[10px] uppercase tracking-widest"><option value="text">Текст</option><option value="heading">Заголовок</option><option value="quote">Цитата</option><option value="image">Фото</option></select><div className="flex gap-1"><button type="button" disabled={index === 0} onClick={() => setNewsDraft(prev => { if (!prev?.blocks) return prev; const blocks = [...prev.blocks]; [blocks[index - 1], blocks[index]] = [blocks[index], blocks[index - 1]]; return { ...prev, blocks }; })} className="border border-gray-200 px-2 py-1 text-xs disabled:opacity-30">↑</button><button type="button" disabled={index === (newsDraft.blocks?.length || 0) - 1} onClick={() => setNewsDraft(prev => { if (!prev?.blocks) return prev; const blocks = [...prev.blocks]; [blocks[index + 1], blocks[index]] = [blocks[index], blocks[index + 1]]; return { ...prev, blocks }; })} className="border border-gray-200 px-2 py-1 text-xs disabled:opacity-30">↓</button><button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, blocks: prev.blocks?.filter(item => item.id !== block.id) } : prev)} className="border border-red-200 px-2 py-1 text-xs text-red-600">×</button></div></div>
+                                  {block.type === 'image' ? <><input value={block.content} onChange={e => setNewsDraft(prev => prev ? { ...prev, blocks: prev.blocks?.map(item => item.id === block.id ? { ...item, content: e.target.value } : item) } : prev)} className="w-full border border-gray-300 px-3 py-2 text-xs font-mono" placeholder="URL изображения" /><input value={block.caption || ''} onChange={e => setNewsDraft(prev => prev ? { ...prev, blocks: prev.blocks?.map(item => item.id === block.id ? { ...item, caption: e.target.value } : item) } : prev)} className="mt-2 w-full border border-gray-300 px-3 py-2 text-xs" placeholder="Подпись к изображению" /></> : <AutoTextarea value={block.content} onChange={e => setNewsDraft(prev => prev ? { ...prev, blocks: prev.blocks?.map(item => item.id === block.id ? { ...item, content: (e.target as HTMLTextAreaElement).value } : item) } : prev)} className="border border-gray-300 px-3 py-2 font-serif text-base" rows={block.type === 'heading' ? 2 : 4} countType="words" />}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <LF label="Полный текст · можно конвертировать в блоки">
+                              <AutoTextarea value={newsDraft.body || ''}
+                                onChange={e => setNewsDraft(prev => prev ? { ...prev, body: (e.target as HTMLTextAreaElement).value } : prev)}
+                                countType="words"
+                                className="min-h-[300px] border border-gray-300 bg-white px-4 py-4 font-serif text-lg leading-relaxed" rows={12} />
+                            </LF>
+                          )}
                         </div>
                       </div>
 
@@ -2671,7 +2696,7 @@ export const AdminPage: React.FC = () => {
                           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">{newsDraft.category || 'Новости'} · {newsDraft.date || 'дата'}</p>
                           <h4 className={`mt-4 font-serif leading-[.95] text-primary ${newsPreviewDevice === 'mobile' ? 'text-3xl' : 'text-4xl'}`}>{newsDraft.title || 'Заголовок материала'}</h4>
                           <p className="mt-4 font-serif text-lg italic leading-relaxed text-primary/70">{newsDraft.preview || 'Короткий анонс появится здесь.'}</p>
-                          <div className="mt-5 border-t border-primary/10 pt-5 font-serif text-base leading-relaxed text-primary/90 whitespace-pre-line line-clamp-8">{newsDraft.body || 'Полный текст материала появится здесь.'}</div>
+                          <div className="mt-5 border-t border-primary/10 pt-5 font-serif text-base leading-relaxed text-primary/90 whitespace-pre-line line-clamp-8">{newsDraft.blocks?.length ? newsDraft.blocks.map(block => block.content).filter(Boolean).join('\n\n') : (newsDraft.body || 'Полный текст материала появится здесь.')}</div>
                         </article>
                       </section>
 
@@ -2690,6 +2715,13 @@ export const AdminPage: React.FC = () => {
                           <input type="checkbox" checked={Boolean(newsDraft.featured)} onChange={e => setNewsDraft(prev => prev ? { ...prev, featured: e.target.checked } : prev)} className="mt-0.5 h-4 w-4 accent-primary" />
                           <span><b className="block text-xs uppercase tracking-widest">Выделить материал</b><small className="mt-1 block text-xs leading-relaxed text-gray-500">Метка готова для витринных блоков; сам материал остаётся доступен по отдельной ссылке.</small></span>
                         </label>
+                        <label className="flex cursor-pointer items-start gap-3 border border-primary/10 bg-white p-3 text-sm hover:border-primary/30">
+                          <input type="checkbox" checked={Boolean(newsDraft.draft)} onChange={e => setNewsDraft(prev => prev ? { ...prev, draft: e.target.checked } : prev)} className="mt-0.5 h-4 w-4 accent-primary" />
+                          <span><b className="block text-xs uppercase tracking-widest">Черновик</b><small className="mt-1 block text-xs leading-relaxed text-gray-500">Сохранится в редакции, но не будет виден на публичном сайте.</small></span>
+                        </label>
+                        <LF label="Отложить публикацию">
+                          <input type="datetime-local" value={newsDraft.publishAt ? newsDraft.publishAt.slice(0, 16) : ''} onChange={e => setNewsDraft(prev => prev ? { ...prev, publishAt: e.target.value ? new Date(e.target.value).toISOString() : undefined } : prev)} className="w-full border border-gray-300 bg-white px-3 py-2 text-sm" />
+                        </LF>
                         <div className="border border-primary/10 bg-white p-3">
                           <p className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-primary/45">Готовность материала</p>
                           <div className="grid grid-cols-2 gap-x-3 gap-y-2">

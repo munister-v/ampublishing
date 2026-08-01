@@ -104,6 +104,15 @@ export interface Region {
   currency: string;
 }
 
+export type NewsBlockType = 'text' | 'heading' | 'quote' | 'image';
+
+export interface NewsBlock {
+  id: string;
+  type: NewsBlockType;
+  content: string;
+  caption?: string;
+}
+
 export interface NewsItem {
   id: string;
   date: string;
@@ -115,6 +124,9 @@ export interface NewsItem {
   imageAlt?: string;
   category?: string;
   featured?: boolean;
+  blocks?: NewsBlock[];
+  draft?: boolean;
+  publishAt?: string;
 }
 
 // --- SERVICES (раздел «Услуги», редактируется в админке) ---

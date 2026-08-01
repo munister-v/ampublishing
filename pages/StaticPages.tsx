@@ -4,6 +4,7 @@ import { Mail, Download, PenTool, BookOpen, Send, User, Clock, ArrowLeft } from 
 import { useApp } from '../AppContext';
 import { Link, useParams } from 'react-router-dom';
 import { getAuthorShowcaseContent } from '../services/authorShowcase';
+import type { NewsBlock } from '../types';
 
 // --- Components ---
 const SectionHeader: React.FC<{ title: string; subtitle?: string; bgClass?: string }> = ({ title, subtitle, bgClass = 'bg-primary' }) => (
@@ -493,6 +494,17 @@ export const MediaPage: React.FC = () => {
   );
 };
 
+const NewsBlocks: React.FC<{ blocks: NewsBlock[] }> = ({ blocks }) => (
+  <div className="space-y-6 font-serif text-lg md:text-xl leading-relaxed text-primary/90">
+    {blocks.map(block => {
+      if (block.type === 'heading') return <h2 key={block.id} className="pt-4 text-3xl md:text-4xl leading-tight text-primary">{block.content}</h2>;
+      if (block.type === 'quote') return <blockquote key={block.id} className="border-l-2 border-accent py-1 pl-5 text-2xl italic leading-relaxed text-primary">{block.content}</blockquote>;
+      if (block.type === 'image') return block.content ? <figure key={block.id}><img src={block.content} alt={block.caption || ''} className="w-full border border-primary/10" />{block.caption ? <figcaption className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">{block.caption}</figcaption> : null}</figure> : null;
+      return <p key={block.id} className="whitespace-pre-wrap">{block.content}</p>;
+    })}
+  </div>
+);
+
 // --- News / Journal Detail Page ---
 export const NewsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -533,9 +545,7 @@ export const NewsPage: React.FC = () => {
             {item.imageAlt ? <figcaption className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">{item.imageAlt}</figcaption> : null}
           </figure>
         ) : null}
-        <div className="whitespace-pre-wrap font-serif text-lg md:text-xl leading-relaxed text-primary/90">
-          {body}
-        </div>
+        {item.blocks?.length ? <NewsBlocks blocks={item.blocks} /> : <div className="whitespace-pre-wrap font-serif text-lg md:text-xl leading-relaxed text-primary/90">{body}</div>}
       </article>
     </div>
   );

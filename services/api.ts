@@ -95,6 +95,11 @@ const mergeNewsWithFallback = (db: Record<Language, LocalizedCatalogData>, lang:
   return mergeWithRuFallback(db.ru.news, db[lang].news);
 };
 
+const isPublicNews = (item: NewsItem): boolean => {
+  if (item.draft) return false;
+  return !item.publishAt || Date.parse(item.publishAt) <= Date.now();
+};
+
 export const api = {
   healthCheck: async (): Promise<boolean> => true,
 
@@ -107,7 +112,7 @@ export const api = {
 
   getNews: async (lang: Language): Promise<NewsItem[]> => {
     const db = await contentStore.getDatabase();
-    return mergeNewsWithFallback(db, lang);
+    return mergeNewsWithFallback(db, lang).filter(isPublicNews);
   },
 
   getMetadata: async (lang: Language) => {
