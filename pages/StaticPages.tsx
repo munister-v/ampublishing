@@ -471,6 +471,9 @@ export const MediaPage: React.FC = () => {
             <div className="space-y-12 md:space-y-16">
               {news.map((item) => (
                 <article key={item.id} className="border-b border-primary/15 pb-12 last:border-b-0">
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.imageAlt || item.title} loading="lazy" className="mb-7 aspect-[16/8] w-full border border-primary/10 object-cover" />
+                  ) : null}
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-accent mb-4">{item.date}</p>
                   <h2 className="text-3xl md:text-5xl font-serif text-primary leading-tight mb-5">{item.title}</h2>
                   <div className="text-lg text-gray-600 leading-relaxed font-light whitespace-pre-line">
@@ -524,6 +527,12 @@ export const NewsPage: React.FC = () => {
         </Link>
         <p className="font-mono text-xs uppercase tracking-widest text-gray-500 mb-4">{item.date}</p>
         <h1 className="font-serif text-4xl md:text-6xl leading-[1.05] text-primary mb-10 break-words">{item.title}</h1>
+        {item.imageUrl ? (
+          <figure className="mb-10">
+            <img src={item.imageUrl} alt={item.imageAlt || item.title} className="aspect-[16/9] w-full border border-primary/10 object-cover" />
+            {item.imageAlt ? <figcaption className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">{item.imageAlt}</figcaption> : null}
+          </figure>
+        ) : null}
         <div className="whitespace-pre-wrap font-serif text-lg md:text-xl leading-relaxed text-primary/90">
           {body}
         </div>

@@ -110,6 +110,11 @@ export interface NewsItem {
   title: string;
   preview: string;
   body?: string; // full event text ("Мероприятия" feed)
+  /** Editorial presentation fields. Optional so older posts remain valid. */
+  imageUrl?: string;
+  imageAlt?: string;
+  category?: string;
+  featured?: boolean;
 }
 
 // --- SERVICES (раздел «Услуги», редактируется в админке) ---

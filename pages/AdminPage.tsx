@@ -220,6 +220,9 @@ const createNewsTemplate = (): NewsItem => ({
   date: new Date().toISOString().slice(0, 10),
   title: '',
   preview: '',
+  category: 'Новости',
+  imageAlt: '',
+  featured: false,
 });
 
 const createPaymentSettingsTemplate = (): PaymentSettings => ({
@@ -2583,29 +2586,93 @@ export const AdminPage: React.FC = () => {
                       {newsRequiredErrors.map(item => <div key={item}>{item}</div>)}
                     </div>
                   ) : null}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <LF label="ID (slug)">
-                      <input value={newsDraft.id} onChange={e => setNewsDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
-                    </LF>
-                    <LF label="Дата">
-                      <input type="date" value={newsDraft.date} onChange={e => setNewsDraft(prev => prev ? { ...prev, date: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
-                    </LF>
+                  <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1fr)_380px]">
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        <LF label="ID (slug)">
+                          <input value={newsDraft.id} onChange={e => setNewsDraft(prev => prev ? { ...prev, id: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
+                        </LF>
+                        <LF label="Дата публикации">
+                          <input type="date" value={newsDraft.date} onChange={e => setNewsDraft(prev => prev ? { ...prev, date: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
+                        </LF>
+                      </div>
+
+                      <div className="border border-primary/10 bg-[#F8F8F5] p-4 md:p-5">
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/45">Editorial canvas</p>
+                            <h4 className="mt-1 font-serif text-2xl">Содержание материала</h4>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, body: `${prev.body || ''}${prev.body ? '\n\n' : ''}НОВЫЙ РАЗДЕЛ\n` } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Заголовок</button>
+                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, body: `${prev.body || ''}${prev.body ? '\n\n' : ''}«Цитата или важное наблюдение»` } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Цитата</button>
+                            <button type="button" onClick={() => setNewsDraft(prev => prev ? { ...prev, body: `${prev.body || ''}${prev.body ? '\n\n' : ''}Новый абзац.` } : prev)} className="border border-primary/20 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">+ Текст</button>
+                          </div>
+                        </div>
+                        <LF label="Заголовок">
+                          <input value={newsDraft.title} onChange={e => setNewsDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 bg-white px-4 py-3 text-lg font-serif" placeholder="Название, которое хочется открыть" />
+                        </LF>
+                        <div className="mt-5">
+                          <LF label="Краткий анонс">
+                            <AutoTextarea value={newsDraft.preview}
+                              onChange={e => setNewsDraft(prev => prev ? { ...prev, preview: (e.target as HTMLTextAreaElement).value } : prev)}
+                              countType="words"
+                              className="border border-gray-300 bg-white px-4 py-3" rows={4} />
+                          </LF>
+                        </div>
+                        <div className="mt-5">
+                          <LF label="Полный текст · абзацы разделяются пустой строкой">
+                            <AutoTextarea value={newsDraft.body || ''}
+                              onChange={e => setNewsDraft(prev => prev ? { ...prev, body: (e.target as HTMLTextAreaElement).value } : prev)}
+                              countType="words"
+                              className="min-h-[360px] border border-gray-300 bg-white px-4 py-4 font-serif text-lg leading-relaxed" rows={14} />
+                          </LF>
+                        </div>
+                      </div>
+
+                      <ImageField
+                        label="Обложка материала"
+                        hint="Загрузите, вставьте из буфера или укажите URL. На сайте она появляется в самом материале и в разделе «Медиа»."
+                        value={newsDraft.imageUrl || ''}
+                        onChange={value => setNewsDraft(prev => prev ? { ...prev, imageUrl: value } : prev)}
+                        filenamePrefix={`news-${newsDraft.id || 'story'}`}
+                      />
+                    </div>
+
+                    <aside className="space-y-5 2xl:sticky 2xl:top-24 2xl:self-start">
+                      <section className="overflow-hidden border border-primary bg-white shadow-[10px_10px_0_rgba(4,15,30,0.08)]">
+                        <div className="flex items-center justify-between border-b border-primary/10 px-4 py-3">
+                          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary/55">Живой предпросмотр</span>
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-green-700">● desktop</span>
+                        </div>
+                        {newsDraft.imageUrl ? <img src={newsDraft.imageUrl} alt="" className="aspect-[16/9] w-full object-cover" /> : <div className="flex aspect-[16/9] items-center justify-center bg-[#E8EDF2] font-mono text-[10px] uppercase tracking-widest text-gray-400">Обложка не добавлена</div>}
+                        <article className="p-5 md:p-6">
+                          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">{newsDraft.category || 'Новости'} · {newsDraft.date || 'дата'}</p>
+                          <h4 className="mt-4 font-serif text-3xl leading-[.95] text-primary">{newsDraft.title || 'Заголовок материала'}</h4>
+                          <p className="mt-4 font-serif text-lg italic leading-relaxed text-primary/70">{newsDraft.preview || 'Короткий анонс появится здесь.'}</p>
+                          <div className="mt-5 border-t border-primary/10 pt-5 font-serif text-base leading-relaxed text-primary/90 whitespace-pre-line line-clamp-8">{newsDraft.body || 'Полный текст материала появится здесь.'}</div>
+                        </article>
+                      </section>
+
+                      <section className="border border-primary/10 bg-[#F8F8F5] p-5 space-y-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/45">Настройки публикации</p>
+                          <h4 className="mt-1 font-serif text-2xl">Карточка и SEO</h4>
+                        </div>
+                        <LF label="Рубрика">
+                          <input value={newsDraft.category || ''} onChange={e => setNewsDraft(prev => prev ? { ...prev, category: e.target.value } : prev)} className="w-full border border-gray-300 bg-white px-3 py-2 text-sm" placeholder="Новости, анонс, событие…" />
+                        </LF>
+                        <LF label="Подпись к обложке / alt">
+                          <AutoTextarea value={newsDraft.imageAlt || ''} onChange={e => setNewsDraft(prev => prev ? { ...prev, imageAlt: (e.target as HTMLTextAreaElement).value } : prev)} className="border border-gray-300 bg-white px-3 py-2 text-sm" rows={3} countType="chars" placeholder="Коротко опишите изображение для доступности и поиска" />
+                        </LF>
+                        <label className="flex cursor-pointer items-start gap-3 border border-primary/10 bg-white p-3 text-sm hover:border-primary/30">
+                          <input type="checkbox" checked={Boolean(newsDraft.featured)} onChange={e => setNewsDraft(prev => prev ? { ...prev, featured: e.target.checked } : prev)} className="mt-0.5 h-4 w-4 accent-primary" />
+                          <span><b className="block text-xs uppercase tracking-widest">Выделить материал</b><small className="mt-1 block text-xs leading-relaxed text-gray-500">Метка готова для витринных блоков; сам материал остаётся доступен по отдельной ссылке.</small></span>
+                        </label>
+                        <a href={`/news/${newsDraft.id}`} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 border border-primary bg-white px-4 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white"><ExternalLink size={13} /> Открыть страницу</a>
+                      </section>
+                    </aside>
                   </div>
-                  <LF label="Заголовок">
-                    <input value={newsDraft.title} onChange={e => setNewsDraft(prev => prev ? { ...prev, title: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" />
-                  </LF>
-                  <LF label="Краткий анонс">
-                    <AutoTextarea value={newsDraft.preview}
-                      onChange={e => setNewsDraft(prev => prev ? { ...prev, preview: (e.target as HTMLTextAreaElement).value } : prev)}
-                      countType="words"
-                      className="border border-gray-300 px-4 py-3" rows={5} />
-                  </LF>
-                  <LF label="Текст мероприятия (полный)">
-                    <AutoTextarea value={newsDraft.body || ''}
-                      onChange={e => setNewsDraft(prev => prev ? { ...prev, body: (e.target as HTMLTextAreaElement).value } : prev)}
-                      countType="words"
-                      className="border border-gray-300 px-4 py-3" rows={10} />
-                  </LF>
                 </div>
               ) : (
                 <div className="text-gray-400">Select a news item or create a new one.</div>
