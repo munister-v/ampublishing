@@ -9,6 +9,8 @@ import {
 } from '../services/radioApi';
 import { RadioConfigForm } from './RadioConfigForm';
 import { ServicesEditor } from './ServicesEditor';
+import { IntegrationsPanel } from './IntegrationsPanel';
+import { buildDhlTrackingUrl } from '../utils/dhl';
 import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
@@ -52,7 +54,7 @@ import {
   SortAsc,
 } from 'lucide-react';
 
-type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'payments' | 'orders' | 'status' | 'radio';
+type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'payments' | 'integrations' | 'orders' | 'status' | 'radio';
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -981,7 +983,7 @@ const StatusPanel: React.FC = () => {
 };
 
 export const AdminPage: React.FC = () => {
-  const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast, setSiteSettings: setGlobalSiteSettings, setLanguage } = useApp();
+  const { logout, orders, refreshOrders, updateOrderStatus, reloadContent, showToast, setSiteSettings: setGlobalSiteSettings, setLanguage, reloadIntegrations, integrations } = useApp();
   const [activeTab, setActiveTab] = useState<AdminTab>('copy');
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('ru');
   const [database, setDatabase] = useState<Record<Language, LocalizedCatalogData> | null>(null);
@@ -1637,6 +1639,21 @@ export const AdminPage: React.FC = () => {
     setSaveOpPhase('');
   };
 
+  const handleTrackingSave = async (orderId: string, trackingNumber: string) => {
+    try {
+      setSavingKey(`tracking:${orderId}`);
+      setSaveOpPhase('Номер посылки…');
+      await api.updateOrderTracking(orderId, trackingNumber.trim());
+      await refreshOrders();
+      showToast(trackingNumber.trim() ? `Трек-номер для ${orderId} сохранён` : `Трек-номер для ${orderId} убран`);
+    } catch {
+      showToast('Не удалось сохранить трек-номер', 'error');
+    } finally {
+      setSavingKey(null);
+      setSaveOpPhase('');
+    }
+  };
+
   const handlePaymentStatusChange = async (orderId: string, paymentStatus: PaymentStatus) => {
     try {
       setSavingKey(`payment:${orderId}`);
@@ -1732,6 +1749,7 @@ export const AdminPage: React.FC = () => {
             { id: 'services', label: 'Услуги', icon: <Clipboard size={16} /> },
             { id: 'site', label: 'Сайт / Шапка / Подвал', icon: <Layout size={16} /> },
             { id: 'payments', label: 'Оплата', icon: <Gavel size={16} /> },
+            { id: 'integrations', label: 'Интеграции', icon: <GitBranch size={16} /> },
             { id: 'orders', label: 'Заказы', icon: <ShoppingBag size={16} />, badge: orders.filter(o => o.paymentStatus === 'pending').length },
             { id: 'status', label: 'Статус системы', icon: <Activity size={16} />, badge: 0 },
             { id: 'radio', label: 'Радио', icon: <Wifi size={16} /> },
@@ -2800,6 +2818,15 @@ export const AdminPage: React.FC = () => {
           );
         })() : null}
 
+        {activeTab === 'integrations' ? (
+          <IntegrationsPanel
+            language={selectedLanguage}
+            orders={orders}
+            onToast={showToast}
+            onReload={reloadIntegrations}
+          />
+        ) : null}
+
         {activeTab === 'services' ? (
           <ServicesEditor language={selectedLanguage} onToast={showToast} />
         ) : null}
@@ -3300,7 +3327,35 @@ export const AdminPage: React.FC = () => {
                             <option value="failed">Отклонён</option>
                             <option value="refunded">Возврат</option>
                           </select>
-                          {(savingKey === `order:${order.id}` || savingKey === `payment:${order.id}`) && <Loader2 size={14} className="animate-spin" />}
+                          <div className="w-full">
+                            <label className="block text-[9px] uppercase tracking-widest text-gray-400 mb-1">Трек-номер DHL</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                defaultValue={order.trackingNumber || ''}
+                                placeholder="00340434…"
+                                onBlur={e => {
+                                  const value = e.target.value.trim();
+                                  if (value !== (order.trackingNumber || '')) handleTrackingSave(order.id, value);
+                                }}
+                                className="w-40 border border-gray-300 px-2 py-1.5 font-mono text-[11px]"
+                              />
+                              {order.trackingNumber ? (
+                                <a
+                                  href={buildDhlTrackingUrl(
+                                    integrations?.dhl || { trackingUrlTemplate: '' } as any,
+                                    order.trackingNumber,
+                                  ) || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 border border-gray-200 hover:bg-gray-50"
+                                  title="Отследить в DHL"
+                                >
+                                  <ExternalLink size={12} />
+                                </a>
+                              ) : null}
+                            </div>
+                          </div>
+                          {(savingKey === `order:${order.id}` || savingKey === `payment:${order.id}` || savingKey === `tracking:${order.id}`) && <Loader2 size={14} className="animate-spin" />}
                         </div>
                       </td>
                     </tr>

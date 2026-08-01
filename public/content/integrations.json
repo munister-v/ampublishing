@@ -1,0 +1,98 @@
+{
+  "shopify": {
+    "enabled": false,
+    "domain": "",
+    "storefrontToken": "",
+    "redirectToShopifyCheckout": true,
+    "refTag": "ampublishing-site",
+    "products": []
+  },
+  "dhl": {
+    "enabled": false,
+    "accountNumber": "",
+    "senderName": "AM Publishing",
+    "senderStreet": "Mehrower Allee 71",
+    "senderZip": "12687",
+    "senderCity": "Berlin",
+    "senderCountry": "DE",
+    "defaultItemWeightGrams": 450,
+    "packagingWeightGrams": 120,
+    "freeShippingThreshold": 50,
+    "expressSurcharge": 9.9,
+    "trackingUrlTemplate": "https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?piececode={tracking}",
+    "rates": [
+      {
+        "id": "de-2000",
+        "label": "Германия",
+        "countries": "DE",
+        "maxWeightGrams": 2000,
+        "price": 4.99,
+        "product": "DHL Paket",
+        "deliveryDays": "1–2"
+      },
+      {
+        "id": "de-5000",
+        "label": "Германия",
+        "countries": "DE",
+        "maxWeightGrams": 5000,
+        "price": 6.99,
+        "product": "DHL Paket",
+        "deliveryDays": "1–2"
+      },
+      {
+        "id": "eu-2000",
+        "label": "Европейский Союз",
+        "countries": "AT,BE,CZ,DK,EE,FI,FR,GR,HU,IE,IT,LT,LU,LV,NL,PL,PT,RO,SE,SI,SK,ES,BG,HR,CY,MT",
+        "maxWeightGrams": 2000,
+        "price": 12.99,
+        "product": "DHL Paket International",
+        "deliveryDays": "3–6"
+      },
+      {
+        "id": "eu-5000",
+        "label": "Европейский Союз",
+        "countries": "AT,BE,CZ,DK,EE,FI,FR,GR,HU,IE,IT,LT,LU,LV,NL,PL,PT,RO,SE,SI,SK,ES,BG,HR,CY,MT",
+        "maxWeightGrams": 5000,
+        "price": 18.99,
+        "product": "DHL Paket International",
+        "deliveryDays": "3–6"
+      },
+      {
+        "id": "world-2000",
+        "label": "Весь мир",
+        "countries": "",
+        "maxWeightGrams": 2000,
+        "price": 21.99,
+        "product": "DHL Paket International",
+        "deliveryDays": "5–14"
+      },
+      {
+        "id": "world-5000",
+        "label": "Весь мир",
+        "countries": "",
+        "maxWeightGrams": 5000,
+        "price": 34.99,
+        "product": "DHL Paket International",
+        "deliveryDays": "5–14"
+      }
+    ]
+  },
+  "leads": {
+    "enabled": true,
+    "endpointUrl": "",
+    "mode": "form",
+    "fallbackEmail": "info@ampublishing.org",
+    "notifyWebhookUrl": "",
+    "successMessage": ""
+  },
+  "analytics": {
+    "enabled": false,
+    "requireConsent": true,
+    "ga4MeasurementId": "",
+    "plausibleDomain": "",
+    "umamiWebsiteId": "",
+    "umamiScriptUrl": "",
+    "metaPixelId": "",
+    "keepLocalLog": true
+  }
+}

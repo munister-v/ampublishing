@@ -7,12 +7,14 @@ import { ProductCard } from '../components/ProductCard';
 import { BookVariant, Format, PurchaseLink } from '../types';
 import { formatLabel } from '../utils/formatLabel';
 import { getActivePurchaseLinks, getShopifyPurchaseLink, isShopifyPurchaseLink } from '../utils/purchaseLinks';
+import { buildShopifyCartUrl, getShopifyLinkForBook } from '../utils/shopify';
+import { analytics } from '../services/analytics';
 import { toGenitiveRu } from '../utils/declension';
 import { findBookByRouteId, getBookPath, isAliasRoute } from '../utils/bookRoutes';
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { addToCart, region, t, addRecentlyViewed, books, language } = useApp();
+  const { addToCart, region, t, addRecentlyViewed, books, language, integrations } = useApp();
   const book = findBookByRouteId(books, id);
   const [qty, setQty] = useState(1);
   const relatedBooks = book ? books.filter(b => b.genre[0] === book.genre[0] && b.id !== book.id).slice(0, 4) : [];
@@ -45,7 +47,15 @@ export const ProductPage: React.FC = () => {
   if (!book) return <div className="pt-32 text-center font-mono uppercase">{t('product.not_found')}</div>;
   if (isAliasRoute(book, id)) return <Navigate to={getBookPath(book)} replace />;
 
-  const shopifyLink = getShopifyPurchaseLink(book);
+  // Shopify: сначала прямая привязка книги к варианту товара (админка →
+  // Интеграции → Shopify), затем — старая ручная ссылка в purchaseLinks.
+  const shopifyProduct = getShopifyLinkForBook(integrations?.shopify, book.id);
+  const shopifyCartUrl = shopifyProduct && integrations
+    ? buildShopifyCartUrl(integrations.shopify, shopifyProduct.variantId, qty)
+    : null;
+  const shopifyLink = shopifyCartUrl
+    ? { id: 'shopify', label: 'Shopify', url: shopifyCartUrl }
+    : getShopifyPurchaseLink(book);
   const secondaryPurchaseLinks = getActivePurchaseLinks(book).filter((link): link is PurchaseLink => !isShopifyPurchaseLink(link));
   const availableFormats = Array.from(new Set(book.variants.map(v => v.format))) as Format[];
   
@@ -70,6 +80,7 @@ export const ProductPage: React.FC = () => {
   const handleAddToCart = () => {
     if (currentVariant && currentVariant.stock > 0) {
       if (shopifyLink) {
+        analytics.shopifyBuyClick(book.id, shopifyProduct?.variantId || shopifyLink.url);
         window.location.assign(shopifyLink.url);
         return;
       }

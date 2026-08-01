@@ -5,6 +5,7 @@ import { useApp } from '../AppContext';
 import { CheckoutFormData, OrderDiagnostics, PaymentSettings } from '../types';
 import { api } from '../services/api';
 import { formatLabel } from '../utils/formatLabel';
+import { calculateShipping, estimateWeightGrams } from '../utils/dhl';
 
 const collectOrderDiagnostics = async (regionId: string, storeLanguage: string): Promise<OrderDiagnostics> => {
   const base: OrderDiagnostics = {
@@ -213,7 +214,7 @@ const digitsOnly = (value: string) => value.replace(/\D/g, '');
 
 export const CheckoutPage: React.FC = () => {
   // Хуки приложения
-  const { cart, region, t, clearCart, language } = useApp();
+  const { cart, region, t, clearCart, language, integrations } = useApp();
   const navigate = useNavigate();
 
   // Локальное состояние UI
@@ -243,7 +244,23 @@ export const CheckoutPage: React.FC = () => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   
   const total = cart.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
-  const shippingCost = formData.shippingMethod === 'express' ? 15 : 5;
+
+  // Доставка: если включена интеграция DHL — считаем по её тарифам
+  // (страна получателя + расчётный вес посылки), иначе прежние 5/15 €.
+  const dhl = integrations?.dhl;
+  const parcelWeightGrams = useMemo(
+    () => (dhl ? estimateWeightGrams(dhl, cart.map(item => ({ quantity: item.quantity }))) : 0),
+    [dhl, cart],
+  );
+  const dhlQuote = useMemo(
+    () => (dhl?.enabled ? calculateShipping(dhl, formData.country, parcelWeightGrams, total) : null),
+    [dhl, formData.country, parcelWeightGrams, total],
+  );
+  const standardShipping = dhlQuote?.rate ? dhlQuote.price : 5;
+  const expressShipping = dhlQuote?.rate
+    ? (dhlQuote.free ? 0 : dhlQuote.price + (dhl?.expressSurcharge ?? 9.9))
+    : 15;
+  const shippingCost = formData.shippingMethod === 'express' ? expressShipping : standardShipping;
   const finalTotal = total + shippingCost;
   const visaUrl = paymentSettings.visaPaymentUrl || '';
   const mastercardUrl = paymentSettings.mastercardPaymentUrl || '';
@@ -602,6 +619,16 @@ export const CheckoutPage: React.FC = () => {
                 {/* --- ШАГ 2: ДОСТАВКА --- */}
                 {currentStep === 'shipping' && (
                    <div className="space-y-6 animate-fade-in">
+                      {dhlQuote?.free ? (
+                        <p className="border border-primary/20 bg-[#F8F9FA] p-4 font-mono text-[11px] uppercase tracking-widest text-primary">
+                          {t('checkout.free_shipping_note')}
+                        </p>
+                      ) : null}
+                      {dhl?.enabled && !dhlQuote?.rate ? (
+                        <p className="border border-amber-300 bg-amber-50 p-4 font-mono text-[11px] uppercase tracking-widest text-amber-800">
+                          {t('checkout.shipping_manual_note')}
+                        </p>
+                      ) : null}
                       {['standard', 'express'].map((method) => (
                          <label key={method} className={`relative flex items-center justify-between p-6 md:p-8 border cursor-pointer transition-all duration-300 group ${formData.shippingMethod === method ? 'border-primary bg-[#F8F9FA] shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}>
                             <div className="flex items-center gap-6">
@@ -616,8 +643,13 @@ export const CheckoutPage: React.FC = () => {
                                   <span className="text-[10px] uppercase tracking-widest text-gray-500">{t(`checkout.est_${method}`)}</span>
                                </div>
                             </div>
-                            <span className="font-mono text-lg font-bold">
-                                {method === 'standard' ? '5.00' : '15.00'} {region.currency}
+                            <span className="font-mono text-lg font-bold text-right">
+                                {(method === 'standard' ? standardShipping : expressShipping).toFixed(2)} {region.currency}
+                                {dhlQuote?.rate ? (
+                                  <span className="block text-[9px] font-normal uppercase tracking-widest text-gray-400">
+                                    {dhlQuote.rate.product} · {dhlQuote.rate.deliveryDays} {t('checkout.days')}
+                                  </span>
+                                ) : null}
                             </span>
                             <input 
                                 type="radio" 

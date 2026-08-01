@@ -882,6 +882,12 @@ export const contentStore = {
     return saveOrdersStorage(orders);
   },
 
+  /** Номер посылки DHL для заказа (ссылка отслеживания строится из настроек интеграции). */
+  updateOrderTracking(orderId: string, trackingNumber: string) {
+    const orders = getOrdersStorage().map(o => (o.id === orderId ? { ...o, trackingNumber } : o));
+    return saveOrdersStorage(orders);
+  },
+
   updatePaymentStatus(orderId: string, paymentStatus: PaymentStatus) {
     const orders = getOrdersStorage().map(o =>
       o.id === orderId ? { ...o, paymentStatus } : o,

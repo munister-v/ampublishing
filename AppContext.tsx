@@ -1,11 +1,12 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Book, BookVariant, CartItem, Region, Language, NewsItem, Order, OrderStatus, ServicesContent, SiteSettings, TranslationOverrides } from './types';
+import { Book, BookVariant, CartItem, IntegrationSettings, Region, Language, NewsItem, Order, OrderStatus, ServicesContent, SiteSettings, TranslationOverrides } from './types';
 import { REGIONS } from './constants';
 import { translations } from './translations';
 import { api } from './services/api';
 import { contentStore } from './services/contentStore';
+import { getIntegrations } from './services/integrations';
 import { ToastMessage } from './components/Toast';
 
 // --- Context Definition ---
@@ -71,6 +72,10 @@ interface AppContextType {
   // Services («Услуги») for the current language
   services: ServicesContent | null;
   setServices: (s: ServicesContent) => void;
+
+  // Integrations (Shopify / DHL / заявки / аналитика)
+  integrations: IntegrationSettings | null;
+  reloadIntegrations: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -112,6 +117,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [translationOverrides, setTranslationOverrides] = useState<TranslationOverrides>({ ru: {}, en: {}, de: {} });
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [services, setServices] = useState<ServicesContent | null>(null);
+  const [integrations, setIntegrations] = useState<IntegrationSettings | null>(null);
 
   // --- CART STATE ---
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -185,6 +191,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setIsLoadingData(false);
       }
   };
+
+  const reloadIntegrations = async () => {
+    try {
+      setIntegrations(await getIntegrations(true));
+    } catch {
+      /* дефолты уже применены внутри getIntegrations */
+    }
+  };
+
+  useEffect(() => {
+    getIntegrations().then(setIntegrations).catch(() => {});
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -453,6 +471,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       showRegionModal, setShowRegionModal,
       siteSettings, setSiteSettings,
       services, setServices,
+      integrations, reloadIntegrations,
     }}>
       {children}
     </AppContext.Provider>

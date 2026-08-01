@@ -224,6 +224,119 @@ export interface SiteSettings {
   };
 }
 
+// --- INTEGRATIONS (Shopify / DHL / заявки / аналитика) ---
+
+/** Привязка книги к товару Shopify. bookId → variant. */
+export interface ShopifyProductLink {
+  bookId: string;
+  /** Числовой ID варианта (Shopify → Products → Variant → …/variants/<id>). */
+  variantId: string;
+  /** handle товара, для ссылки на карточку товара в Shopify. */
+  handle?: string;
+  enabled?: boolean;
+}
+
+export interface ShopifyIntegration {
+  enabled: boolean;
+  /** myshopify-домен или собственный домен магазина. */
+  domain: string;
+  /** Опциональный Storefront access token (на будущее, для Buy Button SDK). */
+  storefrontToken: string;
+  /** Открывать корзину Shopify сразу (permalink) вместо своей корзины. */
+  redirectToShopifyCheckout: boolean;
+  /** Метка канала для аналитики Shopify (?ref=). */
+  refTag: string;
+  products: ShopifyProductLink[];
+}
+
+export interface DhlShippingRate {
+  id: string;
+  /** Название зоны для клиента: Германия, ЕС, весь мир. */
+  label: string;
+  /** ISO-коды стран через запятую; пусто = все остальные. */
+  countries: string;
+  /** Верхняя граница веса в граммах для этой строки. */
+  maxWeightGrams: number;
+  price: number;
+  /** Продукт DHL: Paket, Warenpost, Päckchen … */
+  product: string;
+  deliveryDays: string;
+}
+
+export interface DhlIntegration {
+  enabled: boolean;
+  /** Номер клиента DHL (EKP) — для экспорта в Geschäftskundenportal. */
+  accountNumber: string;
+  senderName: string;
+  senderStreet: string;
+  senderZip: string;
+  senderCity: string;
+  senderCountry: string;
+  /** Вес одной книги по умолчанию, граммы (если не задан в книге). */
+  defaultItemWeightGrams: number;
+  /** Вес упаковки, граммы. */
+  packagingWeightGrams: number;
+  freeShippingThreshold: number;
+  /** Наценка за экспресс-доставку поверх базового тарифа, EUR. */
+  expressSurcharge: number;
+  rates: DhlShippingRate[];
+  /** Шаблон ссылки отслеживания; {tracking} подставляется номером. */
+  trackingUrlTemplate: string;
+}
+
+export interface LeadsIntegration {
+  enabled: boolean;
+  /** Куда уходит заявка: Formspree/Getform/Make/n8n — любой POST-эндпоинт. */
+  endpointUrl: string;
+  /** 'form' = обычный POST c JSON и чтением ответа, 'webhook' = no-cors fire-and-forget. */
+  mode: 'form' | 'webhook';
+  /** Почта для fallback-письма, если эндпоинт не задан или не ответил. */
+  fallbackEmail: string;
+  /** Копия заявки в Telegram/Slack через тот же webhook-мост, что и заказы. */
+  notifyWebhookUrl: string;
+  successMessage: string;
+}
+
+export interface AnalyticsIntegration {
+  enabled: boolean;
+  /** Грузить счётчики только после согласия на cookie. */
+  requireConsent: boolean;
+  ga4MeasurementId: string;
+  plausibleDomain: string;
+  umamiWebsiteId: string;
+  umamiScriptUrl: string;
+  /** Метрика/Facebook — на будущее, пока только поля. */
+  metaPixelId: string;
+  /** Писать события в localStorage, чтобы видеть их в админке. */
+  keepLocalLog: boolean;
+}
+
+export interface IntegrationSettings {
+  shopify: ShopifyIntegration;
+  dhl: DhlIntegration;
+  leads: LeadsIntegration;
+  analytics: AnalyticsIntegration;
+}
+
+export type LeadStatus = 'new' | 'in_progress' | 'done' | 'archived';
+
+export interface Lead {
+  id: string;
+  createdAt: string; // ISO
+  name: string;
+  email: string;
+  phone?: string;
+  /** id услуги из раздела «Услуги» либо произвольный тип. */
+  service: string;
+  serviceTitle?: string;
+  message: string;
+  language: Language;
+  pageUrl?: string;
+  status: LeadStatus;
+  /** Ушла ли заявка на эндпоинт (false = только локально/почтой). */
+  delivered: boolean;
+}
+
 // --- ADMIN & ORDER TYPES ---
 
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';

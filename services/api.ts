@@ -267,6 +267,11 @@ export const api = {
     return true;
   },
 
+  updateOrderTracking: async (orderId: string, trackingNumber: string): Promise<boolean> => {
+    contentStore.updateOrderTracking(orderId, trackingNumber);
+    return true;
+  },
+
   updatePaymentStatus: async (orderId: string, paymentStatus: PaymentStatus): Promise<boolean> => {
     contentStore.updatePaymentStatus(orderId, paymentStatus);
     if (paymentStatus === 'paid') {

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Check, Loader2, Globe } from 'lucide-react';
 import { REGIONS } from '../constants';
 import { useApp } from '../AppContext';
+import { analytics } from '../services/analytics';
 
 // --- Reusable Modal Shell ---
 const ModalOverlay: React.FC<{ children: React.ReactNode; onClose?: () => void }> = ({ children, onClose }) => (
@@ -26,7 +27,13 @@ export const CookieConsent: React.FC = () => {
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('cookie-consent', 'true');
+    // Согласие включает счётчики: скрипты аналитики грузятся только отсюда.
+    analytics.grantConsent();
+    setVisible(false);
+  };
+
+  const handleDecline = () => {
+    localStorage.setItem('cookie-consent', 'denied');
     setVisible(false);
   };
 
@@ -43,12 +50,20 @@ export const CookieConsent: React.FC = () => {
               {t('modal.cookies')}
             </p>
         </div>
-        <button 
-          onClick={handleAccept}
-          className="bg-primary text-white px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent transition-colors whitespace-nowrap"
-        >
-          {t('modal.accept')}
-        </button>
+        <div className="flex gap-3 shrink-0">
+          <button
+            onClick={handleDecline}
+            className="border border-primary px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition-colors whitespace-nowrap"
+          >
+            {t('modal.decline')}
+          </button>
+          <button
+            onClick={handleAccept}
+            className="bg-primary text-white px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent transition-colors whitespace-nowrap"
+          >
+            {t('modal.accept')}
+          </button>
+        </div>
       </div>
     </div>
   );

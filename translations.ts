@@ -152,6 +152,9 @@ export const translations: Record<Language, TranslationTree> = {
       delivery_next_step: "На следующем шаге",
     },
     checkout: {
+      days: "дн.",
+      free_shipping_note: "Доставка бесплатно — сумма заказа выше порога",
+      shipping_manual_note: "Для этой страны и веса тариф не задан — стоимость доставки уточним письмом",
       title: "Оформление",
       step1: "Данные",
       step2: "Доставка",
@@ -237,6 +240,7 @@ export const translations: Record<Language, TranslationTree> = {
     modal: {
       cookies: "Мы используем файлы cookie для улучшения работы сайта.",
       accept: "Принять",
+      decline: "Только необходимые",
       region_detecting: "Определяем ваш регион...",
       region_confirm: "Ваш регион - {region}?",
       region_desc: "Это поможет нам рассчитать стоимость доставки.",
@@ -251,6 +255,7 @@ export const translations: Record<Language, TranslationTree> = {
       age_yes: "Да, мне есть 18",
     },
     services: {
+        form_link: "Заполнить форму",
         title: "Заявка на публикацию",
         subtitle: "Заполните форму ниже для расчета стоимости издания или рассмотрения рукописи.",
         protocol_title: "Протокол процесса",
@@ -260,6 +265,12 @@ export const translations: Record<Language, TranslationTree> = {
             3: "Контракт и начало производства"
         },
         form: {
+          phone: "Телефон (необязательно)",
+          or_email: "Или просто напишите нам:",
+          fallback_title: "Почти готово",
+          fallback_desc: "Заявка сохранена, но автоматическая отправка не сработала. Нажмите кнопку ниже — письмо уже заполнено, останется отправить.",
+          fallback_cta: "Отправить письмом",
+          fallback_hint: "Отправка через форму недоступна — воспользуйтесь письмом.",
           name: "Имя / Организация",
           email: "Email для связи",
           type: "Тип услуги",
@@ -530,6 +541,9 @@ export const translations: Record<Language, TranslationTree> = {
       }
     },
     checkout: {
+      days: "days",
+      free_shipping_note: "Shipping is free — your order is above the threshold",
+      shipping_manual_note: "No rate is set for this country and weight — we will confirm shipping by e-mail",
       title: "Checkout",
       step1: "Details",
       step2: "Shipping",
@@ -795,6 +809,7 @@ export const translations: Record<Language, TranslationTree> = {
       delivery_next_step: "Calc. next step",
     },
     services: {
+      form_link: "Fill in the form",
       title: "Publishing Application",
       subtitle: "Fill out the form below for a publishing cost estimate or manuscript review.",
       protocol_title: "Process Protocol",
@@ -804,6 +819,12 @@ export const translations: Record<Language, TranslationTree> = {
         3: "Contract & Production Start"
       },
       form: {
+          phone: "Phone (optional)",
+          or_email: "Or simply write to us:",
+          fallback_title: "Almost there",
+          fallback_desc: "Your enquiry was saved, but automatic sending failed. Use the button below — the e-mail is already filled in, just press send.",
+          fallback_cta: "Send by e-mail",
+          fallback_hint: "Form delivery is unavailable — please send it by e-mail.",
         name: "Name / Organization",
         email: "Contact Email",
         type: "Service Type",
@@ -828,6 +849,7 @@ export const translations: Record<Language, TranslationTree> = {
     modal: {
       cookies: "We use cookies to improve the site experience. By continuing, you agree to our privacy policy.",
       accept: "Accept",
+      decline: "Essential only",
       region_detecting: "Detecting your region...",
       region_confirm: "Is your region - {region}?",
       region_desc: "This helps us calculate shipping costs.",
@@ -1018,6 +1040,9 @@ export const translations: Record<Language, TranslationTree> = {
       }
     },
     checkout: {
+      days: "Tage",
+      free_shipping_note: "Versand kostenlos — Bestellwert über der Schwelle",
+      shipping_manual_note: "Für dieses Land und Gewicht ist kein Tarif hinterlegt — wir bestätigen die Versandkosten per E-Mail",
       title: "Kasse",
       step1: "Details",
       step2: "Versand",
@@ -1283,6 +1308,7 @@ export const translations: Record<Language, TranslationTree> = {
       delivery_next_step: "Im nächsten Schritt",
     },
     services: {
+      form_link: "Formular ausfüllen",
       title: "Publikationsantrag",
       subtitle: "Füllen Sie das untenstehende Formular für einen Kostenvoranschlag oder eine Manuskriptprüfung aus.",
       protocol_title: "Prozessprotokoll",
@@ -1292,6 +1318,12 @@ export const translations: Record<Language, TranslationTree> = {
         3: "Vertrag & Produktionsbeginn"
       },
       form: {
+          phone: "Telefon (optional)",
+          or_email: "Oder schreiben Sie uns einfach:",
+          fallback_title: "Fast geschafft",
+          fallback_desc: "Ihre Anfrage wurde gespeichert, der automatische Versand hat jedoch nicht funktioniert. Nutzen Sie die Schaltfläche unten — die E-Mail ist bereits ausgefüllt.",
+          fallback_cta: "Per E-Mail senden",
+          fallback_hint: "Der Formularversand ist nicht verfügbar — bitte per E-Mail senden.",
         name: "Name / Organisation",
         email: "Kontakt E-Mail",
         type: "Dienstleistungsart",
@@ -1316,6 +1348,7 @@ export const translations: Record<Language, TranslationTree> = {
     modal: {
       cookies: "Wir verwenden Cookies, um das Website-Erlebnis zu verbessern. Durch die weitere Nutzung stimmen Sie unserer Datenschutzerklärung zu.",
       accept: "Akzeptieren",
+      decline: "Nur notwendige",
       region_detecting: "Region wird erkannt...",
       region_confirm: "Ist Ihre Region - {region}?",
       region_desc: "Dies hilft uns bei der Berechnung der Versandkosten.",
