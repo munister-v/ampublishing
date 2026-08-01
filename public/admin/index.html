@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>AM Publishing Admin</title>
+    <script>
+      // GitHub Pages has no server-side SPA rewrite. Keeping a real /admin/
+      // document makes direct admin links return 200, then hands the route to
+      // the React router through the same restoration hook used by 404.html.
+      sessionStorage.redirect = '/admin';
+      window.location.replace('/');
+    </script>
+  </head>
+  <body></body>
+</html>
