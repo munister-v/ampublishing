@@ -295,6 +295,12 @@ export interface DhlIntegration {
 
 export interface LeadsIntegration {
   enabled: boolean;
+  /**
+   * Базовый адрес своего сервиса заявок на VPS (ampublishing-leads).
+   * Публичный: по нему только приём заявок; чтение списка требует токена,
+   * который хранится в браузере админа и НИКОГДА не попадает в репозиторий.
+   */
+  apiBaseUrl: string;
   /** Куда уходит заявка: Formspree/Getform/Make/n8n — любой POST-эндпоинт. */
   endpointUrl: string;
   /** 'form' = обычный POST c JSON и чтением ответа, 'webhook' = no-cors fire-and-forget. */

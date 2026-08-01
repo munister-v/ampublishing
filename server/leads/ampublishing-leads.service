@@ -1,0 +1,26 @@
+[Unit]
+Description=AM Publishing Leads (Gunicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/ampublishing-leads
+Environment="PATH=/opt/ampublishing-leads/.venv/bin"
+EnvironmentFile=/opt/ampublishing-leads/.env
+ExecStart=/opt/ampublishing-leads/.venv/bin/gunicorn -c gunicorn.conf.py app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=3
+MemoryAccounting=true
+MemoryHigh=128M
+MemoryMax=192M
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/ampublishing-leads
+
+[Install]
+WantedBy=multi-user.target

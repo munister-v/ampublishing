@@ -79,11 +79,12 @@
   },
   "leads": {
     "enabled": true,
-    "endpointUrl": "",
+    "endpointUrl": "https://radio-api.helpushelpua.com/leads/api/leads",
     "mode": "form",
     "fallbackEmail": "info@ampublishing.org",
     "notifyWebhookUrl": "",
-    "successMessage": ""
+    "successMessage": "",
+    "apiBaseUrl": "https://radio-api.helpushelpua.com/leads/api"
   },
   "analytics": {
     "enabled": false,

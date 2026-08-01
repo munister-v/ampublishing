@@ -9,6 +9,10 @@ import { analytics } from '../services/analytics';
 import {
   getLeadLog, updateLeadStatus, deleteLead, clearLeadLog, leadsToCsv, buildLeadMailto,
 } from '../services/leads';
+import {
+  fetchServerLeads, setServerLeadStatus, deleteServerLead, serverCsvUrl,
+  serverHealth, getLeadsToken, setLeadsToken,
+} from '../services/leadsApi';
 import { buildShopifyCartUrl, buildShopifyProductUrl, normalizeShopifyDomain, shopifyCoverage } from '../utils/shopify';
 import { fetchVariantStates, isStorefrontConfigured, pingStorefront, clearStorefrontCache, type VariantState } from '../services/shopifyStorefront';
 import { buildDhlTrackingUrl, estimateWeightGrams, ordersToDhlCsv } from '../utils/dhl';
@@ -86,6 +90,10 @@ export const IntegrationsPanel: React.FC<{
   const [testing, setTesting] = useState(false);
   const [analyticsLog, setAnalyticsLog] = useState(analytics.getLog());
   const [bulkTracking, setBulkTracking] = useState('');
+  const [leadsToken, setToken] = useState(getLeadsToken());
+  const [serverLeads, setServerLeads] = useState<Lead[] | null>(null);
+  const [leadsBusy, setLeadsBusy] = useState(false);
+  const [leadsError, setLeadsError] = useState('');
   const [shopPing, setShopPing] = useState<{ status: 'idle' | 'busy' | 'ok' | 'error'; message: string }>({ status: 'idle', message: '' });
   const [variantStates, setVariantStates] = useState<Record<string, VariantState>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -107,6 +115,7 @@ export const IntegrationsPanel: React.FC<{
   };
 
   useEffect(() => { load(); }, [language]);
+  useEffect(() => { if (draft?.leads.apiBaseUrl) loadServerLeads(draft.leads.apiBaseUrl); }, [draft?.leads.apiBaseUrl]);
 
   const patch = (updater: (next: IntegrationSettings) => void) => {
     setDraft(prev => {
@@ -139,10 +148,29 @@ export const IntegrationsPanel: React.FC<{
     [draft, books],
   );
 
+  // Сервер — источник правды; локальный журнал остаётся запасным.
+  const activeLeads = serverLeads ?? leads;
+  const fromServer = serverLeads !== null;
   const filteredLeads = useMemo(
-    () => (leadFilter === 'all' ? leads : leads.filter(lead => lead.status === leadFilter)),
-    [leads, leadFilter],
+    () => (leadFilter === 'all' ? activeLeads : activeLeads.filter(lead => lead.status === leadFilter)),
+    [activeLeads, leadFilter],
   );
+
+  /** Список заявок с сервера; при ошибке остаётся локальный журнал. */
+  const loadServerLeads = async (base?: string) => {
+    const baseUrl = base ?? draft?.leads.apiBaseUrl ?? '';
+    if (!baseUrl || !getLeadsToken()) { setServerLeads(null); return; }
+    setLeadsBusy(true);
+    setLeadsError('');
+    try {
+      setServerLeads(await fetchServerLeads(baseUrl));
+    } catch (e: any) {
+      setServerLeads(null);
+      setLeadsError(e?.message || String(e));
+    } finally {
+      setLeadsBusy(false);
+    }
+  };
 
   const testLeadEndpoint = async () => {
     if (!draft?.leads.endpointUrl) {
@@ -646,7 +674,46 @@ export const IntegrationsPanel: React.FC<{
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field label="Адрес приёма заявок" hint="Formspree, Getform, Make, n8n — любой URL, принимающий POST с JSON." className="md:col-span-2">
+            <Field label="Свой сервис заявок (VPS)" className="md:col-span-2"
+              hint="Базовый адрес ampublishing-leads. Заявки хранятся у нас, а не у стороннего сервиса.">
+              <input className={`${inputCls} font-mono text-xs`} value={draft.leads.apiBaseUrl}
+                placeholder="https://radio-api.helpushelpua.com/leads/api"
+                onChange={e => patch(next => { next.leads.apiBaseUrl = e.target.value; })} />
+            </Field>
+            <Field label="Токен доступа к заявкам" className="md:col-span-2"
+              hint="Хранится только в этом браузере и никогда не попадает в репозиторий. Нужен, чтобы видеть список заявок.">
+              <div className="flex flex-wrap gap-2">
+                <input
+                  type="password"
+                  className={`${inputCls} font-mono text-xs flex-1 min-w-[240px]`}
+                  value={leadsToken}
+                  placeholder="вставьте токен сервиса"
+                  onChange={e => setToken(e.target.value)}
+                />
+                <button
+                  onClick={async () => {
+                    setLeadsToken(leadsToken.trim());
+                    await loadServerLeads();
+                    onToast(leadsToken.trim() ? 'Токен сохранён в этом браузере' : 'Токен удалён');
+                  }}
+                  className="px-4 py-3 bg-primary text-white text-[10px] uppercase tracking-widest hover:bg-accent hover:text-primary">
+                  Сохранить токен
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const info = await serverHealth(draft.leads.apiBaseUrl);
+                      onToast(`Сервис заявок отвечает · всего заявок: ${info.leads}`);
+                    } catch (e: any) {
+                      onToast(`Сервис недоступен: ${e?.message || e}`, 'error');
+                    }
+                  }}
+                  className="px-4 py-3 border border-gray-300 text-[10px] uppercase tracking-widest hover:bg-gray-50">
+                  Проверить сервис
+                </button>
+              </div>
+            </Field>
+            <Field label="Адрес приёма заявок" hint="Куда форма шлёт заявку. По умолчанию — свой сервис; можно заменить на Formspree/Make." className="md:col-span-2">
               <input className={`${inputCls} font-mono text-xs`} value={draft.leads.endpointUrl}
                 placeholder="https://formspree.io/f/xxxxxxx"
                 onChange={e => patch(next => { next.leads.endpointUrl = e.target.value; })} />
@@ -677,28 +744,47 @@ export const IntegrationsPanel: React.FC<{
           <div className="border-t border-gray-100 pt-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h4 className="text-xl font-serif">Журнал заявок</h4>
+                <h4 className="text-xl font-serif">
+                  Заявки {leadsBusy ? <Loader2 size={14} className="inline animate-spin" /> : null}
+                </h4>
                 <p className="text-xs text-gray-500 mt-1">
-                  Копии заявок, отправленных из этого браузера. Основной список ведёт сервис приёма — журнал нужен,
-                  чтобы ничего не потерялось при сбое отправки.
+                  {fromServer
+                    ? 'Список с сервера на VPS — видно из любого браузера и с телефона.'
+                    : 'Локальный журнал этого браузера. Введите токен выше, чтобы видеть заявки с сервера.'}
+                  {leadsError ? <span className="block text-red-600 mt-1">{leadsError}</span> : null}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <select className="border border-gray-300 px-3 py-2 text-xs" value={leadFilter}
                   onChange={e => setLeadFilter(e.target.value as any)}>
-                  <option value="all">Все ({leads.length})</option>
+                  <option value="all">Все ({activeLeads.length})</option>
                   {(Object.keys(STATUS_LABEL) as LeadStatus[]).map(status => (
-                    <option key={status} value={status}>{STATUS_LABEL[status]} ({leads.filter(l => l.status === status).length})</option>
+                    <option key={status} value={status}>{STATUS_LABEL[status]} ({activeLeads.filter(l => l.status === status).length})</option>
                   ))}
                 </select>
-                <button onClick={() => downloadFile(`leads-${new Date().toISOString().slice(0, 10)}.csv`, leadsToCsv(leads))}
-                  className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-[10px] uppercase tracking-widest hover:bg-gray-50">
-                  <Download size={12} /> CSV
-                </button>
-                <button onClick={() => { setLeads(clearLeadLog()); onToast('Журнал очищен'); }}
-                  className="inline-flex items-center gap-2 px-3 py-2 border border-red-200 text-red-600 text-[10px] uppercase tracking-widest hover:bg-red-50">
-                  <Trash2 size={12} /> Очистить
-                </button>
+                {fromServer ? (
+                  <>
+                    <button onClick={() => loadServerLeads()}
+                      className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-[10px] uppercase tracking-widest hover:bg-gray-50">
+                      <RefreshCw size={12} /> Обновить
+                    </button>
+                    <a href={serverCsvUrl(draft.leads.apiBaseUrl)} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-[10px] uppercase tracking-widest hover:bg-gray-50">
+                      <Download size={12} /> CSV
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => downloadFile(`leads-${new Date().toISOString().slice(0, 10)}.csv`, leadsToCsv(leads))}
+                      className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-[10px] uppercase tracking-widest hover:bg-gray-50">
+                      <Download size={12} /> CSV
+                    </button>
+                    <button onClick={() => { setLeads(clearLeadLog()); onToast('Журнал очищен'); }}
+                      className="inline-flex items-center gap-2 px-3 py-2 border border-red-200 text-red-600 text-[10px] uppercase tracking-widest hover:bg-red-50">
+                      <Trash2 size={12} /> Очистить
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -715,7 +801,20 @@ export const IntegrationsPanel: React.FC<{
                     </div>
                     <div className="flex flex-wrap gap-2 items-center">
                       <select className="border border-gray-300 px-2 py-1.5 text-[11px]" value={lead.status}
-                        onChange={e => setLeads(updateLeadStatus(lead.id, e.target.value as LeadStatus))}>
+                        onChange={async e => {
+                          const status = e.target.value as LeadStatus;
+                          if (fromServer) {
+                            setServerLeads(prev => (prev || []).map(item => item.id === lead.id ? { ...item, status } : item));
+                            try {
+                              await setServerLeadStatus(draft.leads.apiBaseUrl, lead.id, status);
+                            } catch (err: any) {
+                              onToast(err?.message || String(err), 'error');
+                              loadServerLeads();
+                            }
+                          } else {
+                            setLeads(updateLeadStatus(lead.id, status));
+                          }
+                        }}>
                         {(Object.keys(STATUS_LABEL) as LeadStatus[]).map(status => (
                           <option key={status} value={status}>{STATUS_LABEL[status]}</option>
                         ))}
@@ -723,7 +822,20 @@ export const IntegrationsPanel: React.FC<{
                       <a href={buildLeadMailto(lead, lead.email)} className="p-2 border border-gray-200 hover:bg-gray-50" title="Ответить">
                         <Send size={12} />
                       </a>
-                      <button onClick={() => setLeads(deleteLead(lead.id))}
+                      <button
+                        onClick={async () => {
+                          if (fromServer) {
+                            setServerLeads(prev => (prev || []).filter(item => item.id !== lead.id));
+                            try {
+                              await deleteServerLead(draft.leads.apiBaseUrl, lead.id);
+                            } catch (err: any) {
+                              onToast(err?.message || String(err), 'error');
+                              loadServerLeads();
+                            }
+                          } else {
+                            setLeads(deleteLead(lead.id));
+                          }
+                        }}
                         className="p-2 border border-red-200 text-red-600 hover:bg-red-50"><X size={12} /></button>
                     </div>
                   </div>

@@ -43,7 +43,8 @@ export const DEFAULT_INTEGRATIONS: IntegrationSettings = {
   },
   leads: {
     enabled: true,
-    endpointUrl: '',
+    apiBaseUrl: 'https://radio-api.helpushelpua.com/leads/api',
+    endpointUrl: 'https://radio-api.helpushelpua.com/leads/api/leads',
     mode: 'form',
     fallbackEmail: 'info@ampublishing.org',
     notifyWebhookUrl: '',
