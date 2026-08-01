@@ -190,6 +190,11 @@ const CardLogos = ({ activeType }: { activeType: 'visa' | 'mastercard' | null })
 const STEPS = ['details', 'shipping', 'payment'] as const;
 
 const EMPTY_PAYMENT_SETTINGS: PaymentSettings = {
+  shopifyStoreUrl: '',
+  shopifyAdminUrl: '',
+  shopifyAnalyticsUrl: '',
+  shopifySupportUrl: '',
+  gaMeasurementId: '',
   recipientName: 'AM Publishing',
   visaPaymentUrl: '',
   mastercardPaymentUrl: '',
@@ -808,7 +813,7 @@ export const CheckoutPage: React.FC = () => {
                 {cart.map(item => (
                    <div key={item.variantId} className="flex gap-4 items-start group">
                       <div className="w-14 h-20 border border-primary bg-white flex-shrink-0 overflow-hidden">
-                         <img src={item.coverUrl} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
+                         <img src={item.coverUrl} className="w-full h-full object-cover transition-all duration-500" />
                       </div>
                       <div className="flex-1 min-w-0">
                          <h4 className="font-serif text-lg leading-none mb-1 truncate">{item.title}</h4>

@@ -348,6 +348,11 @@ const normalizeLanguageData = (
 };
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
+  shopifyStoreUrl: '',
+  shopifyAdminUrl: '',
+  shopifyAnalyticsUrl: '',
+  shopifySupportUrl: '',
+  gaMeasurementId: '',
   recipientName: 'AM Publishing',
   visaPaymentUrl: '',
   mastercardPaymentUrl: '',

@@ -59,7 +59,7 @@ export const CartDrawer: React.FC = () => {
                   >
                     <div className="flex gap-4">
                       <div className="w-16 h-20 border border-primary flex-shrink-0 overflow-hidden">
-                        <img src={item.coverUrl} alt={displayTitle} className="w-full h-full object-cover grayscale" />
+                        <img src={item.coverUrl} alt={displayTitle} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-2">

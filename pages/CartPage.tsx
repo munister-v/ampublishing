@@ -75,7 +75,7 @@ export const CartPage: React.FC = () => {
                  <div key={item.variantId} className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 border-b border-primary items-center hover:bg-gray-50">
                     <div className="col-span-6 flex gap-6">
                        <Link to={`/product/${item.bookId}`} className="block w-20 h-28 flex-shrink-0 border border-primary overflow-hidden">
-                          <img src={item.coverUrl} className="w-full h-full object-cover grayscale hover:scale-110 transition-transform duration-700" />
+                          <img src={item.coverUrl} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
                        </Link>
                        <div>
                           <h3 className="font-serif text-2xl leading-none mb-2">{item.title}</h3>

@@ -12,6 +12,7 @@ import { SEO } from './components/SEO';
 import { AppProvider, useApp } from './AppContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { analytics } from './services/analytics'; // Import Analytics
+import { api } from './services/api';
 import { HomePage } from './pages/HomePage';
 import { CatalogPage } from './pages/CatalogPage';
 import { ProductPage } from './pages/ProductPage';
@@ -37,6 +38,15 @@ const AppContent: React.FC = () => {
     showAgeModal, handleAgeConfirm, handleAgeDeny,
     isAdmin
   } = useApp();
+
+  useEffect(() => {
+    api.getPaymentSettings()
+      .then(settings => {
+        analytics.configure(settings.gaMeasurementId);
+        analytics.pageView(location.pathname);
+      })
+      .catch(() => undefined);
+  }, [location.pathname]);
 
   // 1. Scroll to top on route change
   // 2. Track Page View

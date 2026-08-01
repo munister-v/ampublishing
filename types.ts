@@ -166,6 +166,11 @@ export interface LocalizedCatalogData {
 export type TranslationOverrides = Record<Language, Record<string, any>>;
 
 export interface PaymentSettings {
+  shopifyStoreUrl: string;
+  shopifyAdminUrl: string;
+  shopifyAnalyticsUrl: string;
+  shopifySupportUrl: string;
+  gaMeasurementId: string;
   recipientName: string;
   visaPaymentUrl: string;
   mastercardPaymentUrl: string;

@@ -53,6 +53,12 @@ import {
   ExternalLink,
   Clipboard,
   SortAsc,
+  Store,
+  BarChart3,
+  Link2,
+  CreditCard,
+  CircleCheck,
+  AlertTriangle,
 } from 'lucide-react';
 
 type AdminTab = 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'payments' | 'integrations' | 'orders' | 'status' | 'radio';
@@ -217,6 +223,11 @@ const createNewsTemplate = (): NewsItem => ({
 });
 
 const createPaymentSettingsTemplate = (): PaymentSettings => ({
+  shopifyStoreUrl: '',
+  shopifyAdminUrl: '',
+  shopifyAnalyticsUrl: '',
+  shopifySupportUrl: '',
+  gaMeasurementId: '',
   recipientName: 'AM Publishing',
   visaPaymentUrl: '',
   mastercardPaymentUrl: '',
@@ -239,6 +250,15 @@ const createPaymentSettingsTemplate = (): PaymentSettings => ({
 });
 
 const getNestedValue = (obj: any, path: string) => path.split('.').reduce((acc, key) => (acc && typeof acc === 'object' ? acc[key] : undefined), obj);
+
+const asSafeExternalUrl = (value?: string) => {
+  try {
+    const url = new URL(value || '');
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : '';
+  } catch {
+    return '';
+  }
+};
 
 const serializeFieldValue = (value: any, type: FieldType) => {
   if (typeof value === 'undefined') return '';
@@ -3023,100 +3043,101 @@ export const AdminPage: React.FC = () => {
           </section>
         ) : null}
 
-        {activeTab === 'payments' ? (
-          <section className="bg-white border border-primary/10 p-6 md:p-8 space-y-8">
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-              <div>
-                <h3 className="text-3xl font-serif">Оплата и счета</h3>
-                <p className="mt-2 text-sm text-gray-500">Реквизиты для оплаты, которые видят покупатели.</p>
-              </div>
-              <button onClick={handleSavePaymentSettings} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
-                {savingKey === 'payment-settings' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                Сохранить настройки оплаты
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <LF label="Получатель / название">
-                <input value={paymentSettings.recipientName} onChange={e => setPaymentSettings(prev => ({ ...prev, recipientName: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
-              </LF>
-              <LF label="Префикс счёта (напр. AM → AM-0001)">
-                <input value={paymentSettings.invoicePrefix} onChange={e => setPaymentSettings(prev => ({ ...prev, invoicePrefix: e.target.value.toUpperCase() }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
-              </LF>
-              <LF label="Ссылка для оплаты Visa">
-                <input value={paymentSettings.visaPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, visaPaymentUrl: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
-              </LF>
-              <LF label="Ссылка для оплаты Mastercard">
-                <input value={paymentSettings.mastercardPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, mastercardPaymentUrl: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
-              </LF>
-              <LF label="Владелец карты (Visa/MC)">
-                <input value={paymentSettings.cardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, cardholder: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
-              </LF>
-              <LF label="Номер карты (Visa/MC)">
-                <input value={paymentSettings.cardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, cardNumber: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
-              </LF>
-              <LF label="Название банка">
-                <input value={paymentSettings.bankName} onChange={e => setPaymentSettings(prev => ({ ...prev, bankName: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
-              </LF>
-              <LF label="IBAN / номер счёта">
-                <input value={paymentSettings.iban} onChange={e => setPaymentSettings(prev => ({ ...prev, iban: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" />
-              </LF>
-              <LF label="Владелец карты МИР">
-                <input value={paymentSettings.mirCardholder} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardholder: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
-              </LF>
-              <LF label="Номер карты МИР">
-                <input value={paymentSettings.mirCardNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, mirCardNumber: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
-              </LF>
-              <LF label="Банк МИР" className="md:col-span-2">
-                <input value={paymentSettings.mirBankName} onChange={e => setPaymentSettings(prev => ({ ...prev, mirBankName: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
-              </LF>
-              <LF label="WhatsApp (международный формат, напр. +49…)">
-                <input value={paymentSettings.whatsappNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
-              </LF>
-              <LF label="Telegram username (без @)">
-                <input value={paymentSettings.telegramUsername} onChange={e => setPaymentSettings(prev => ({ ...prev, telegramUsername: e.target.value.replace(/^@/, '') }))} className="w-full border border-gray-300 px-4 py-3 font-mono" />
-              </LF>
-              <LF label="Контактный email" className="md:col-span-2">
-                <input type="email" value={paymentSettings.contactEmail} onChange={e => setPaymentSettings(prev => ({ ...prev, contactEmail: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
-              </LF>
-              <LF label="Название вебхука">
-                <input value={paymentSettings.webhookLabel} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookLabel: e.target.value }))} className="w-full border border-gray-300 px-4 py-3" />
-              </LF>
-              <LF label="URL вебхука (Make / n8n / Telegram)" className="md:col-span-2">
-                <input value={paymentSettings.webhookUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookUrl: e.target.value }))} className="w-full border border-gray-300 px-4 py-3 font-mono text-sm" placeholder="https://..." />
-              </LF>
-            </div>
-
-            <LF label="Примечание об оплате для покупателя">
-              <AutoTextarea value={paymentSettings.paymentNote}
-                onChange={e => setPaymentSettings(prev => ({ ...prev, paymentNote: (e.target as HTMLTextAreaElement).value }))}
-                rows={4} countType="chars"
-                className="border border-gray-300 px-4 py-3" />
-            </LF>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="flex items-center gap-3 border border-gray-200 px-4 py-4">
-                <input type="checkbox" checked={paymentSettings.notifyOnOrderCreated} onChange={e => setPaymentSettings(prev => ({ ...prev, notifyOnOrderCreated: e.target.checked }))} />
-                <span className="text-sm">Отправлять вебхук при новом заказе</span>
-              </label>
-              <label className="flex items-center gap-3 border border-gray-200 px-4 py-4">
-                <input type="checkbox" checked={paymentSettings.notifyOnPaymentConfirmed} onChange={e => setPaymentSettings(prev => ({ ...prev, notifyOnPaymentConfirmed: e.target.checked }))} />
-                <span className="text-sm">Отправлять вебхук при подтверждении оплаты</span>
-              </label>
-            </div>
-
-            <div className="border border-primary/10 bg-[#F8F8F5] p-6">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400 mb-4">Рекомендуемый процесс</p>
-              <div className="space-y-3 text-sm text-gray-700">
-                <p>1. Покупатель оформляет заказ, выбрав «Visa», «Mastercard», «Счёт» или «МИР».</p>
-                <p>2. Заказ создаётся немедленно и отправляется на вебхук.</p>
-                <p>3. Для Visa / Mastercard покупатель переходит по внешней ссылке для оплаты.</p>
-                <p>4. Для Счёта / МИР покупатель платит вручную и присылает подтверждение в WhatsApp, Telegram или email.</p>
-                <p>5. Вы подтверждаете оплату на вкладке «Заказы», меняя «статус оплаты» на «оплачен».</p>
+        {activeTab === 'payments' ? (() => {
+          const paidOrders = orders.filter(order => order.paymentStatus === 'paid');
+          const pendingOrders = orders.filter(order => order.paymentStatus === 'pending');
+          const paidRevenue = paidOrders.reduce((sum, order) => sum + order.total, 0);
+          const shopifyUrl = asSafeExternalUrl(paymentSettings.shopifyStoreUrl);
+          const adminUrl = asSafeExternalUrl(paymentSettings.shopifyAdminUrl);
+          const analyticsUrl = asSafeExternalUrl(paymentSettings.shopifyAnalyticsUrl);
+          const supportUrl = asSafeExternalUrl(paymentSettings.shopifySupportUrl);
+          const configured = [shopifyUrl, adminUrl, paymentSettings.gaMeasurementId.trim()].filter(Boolean).length;
+          const cardInput = 'w-full min-h-11 border border-primary/15 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10';
+          return <section className="space-y-6">
+            <div className="border border-primary bg-primary px-6 py-7 text-white md:px-8 md:py-8">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div className="max-w-2xl">
+                  <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.24em] text-white/60"><Store size={14} /> Commerce control room</div>
+                  <h3 className="font-serif text-3xl leading-none md:text-4xl">Shopify, payments &amp; growth</h3>
+                  <p className="mt-3 text-sm leading-6 text-white/70">Основной путь покупки — Shopify. Здесь сохраняются ссылки команды, резервные способы оплаты и Google Analytics 4.</p>
+                </div>
+                <button onClick={handleSavePaymentSettings} disabled={savingKey === 'payment-settings'} className="inline-flex min-h-11 items-center justify-center gap-2 border border-white bg-white px-4 py-3 text-xs font-bold uppercase tracking-widest text-primary transition hover:bg-accent disabled:cursor-wait disabled:opacity-70">
+                  {savingKey === 'payment-settings' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                  Сохранить
+                </button>
               </div>
             </div>
-          </section>
-        ) : null}
+
+            <div className="grid grid-cols-2 gap-px border border-primary/15 bg-primary/15 md:grid-cols-4">
+              {[
+                ['Продажи подтверждены', `${paidOrders.length}`, <CircleCheck size={17} />],
+                ['Ожидают оплаты', `${pendingOrders.length}`, <CreditCard size={17} />],
+                ['Подтверждённый оборот', `${paidRevenue.toLocaleString('de-DE', { maximumFractionDigits: 2 })} EUR`, <BarChart3 size={17} />],
+                ['Контур подключён', `${configured}/3`, configured === 3 ? <CircleCheck size={17} /> : <AlertTriangle size={17} />],
+              ].map(([label, value, icon]) => <div key={String(label)} className="min-w-0 bg-white p-4 md:p-5">
+                <div className="flex items-center justify-between text-primary/55">{icon as React.ReactNode}</div>
+                <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.14em] text-primary/55">{label as string}</p>
+                <p className="mt-1 truncate font-serif text-2xl text-primary">{value as string}</p>
+              </div>)}
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
+              <div className="border border-primary/15 bg-white p-5 md:p-7">
+                <div className="mb-6 flex items-start gap-3"><Store size={18} className="mt-1" /><div><h4 className="font-serif text-2xl">Shopify — главный контур</h4><p className="mt-1 text-sm text-gray-500">Добавьте рабочие URL: в карточках книг уже используются отдельные Shopify‑ссылки.</p></div></div>
+                <div className="grid gap-5 md:grid-cols-2">
+                  <LF label="Витрина Shopify">
+                    <input value={paymentSettings.shopifyStoreUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, shopifyStoreUrl: e.target.value }))} className={cardInput} placeholder="https://store.myshopify.com" inputMode="url" />
+                  </LF>
+                  <LF label="Shopify Admin">
+                    <input value={paymentSettings.shopifyAdminUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, shopifyAdminUrl: e.target.value }))} className={cardInput} placeholder="https://admin.shopify.com/store/..." inputMode="url" />
+                  </LF>
+                  <LF label="Shopify Analytics / Reports">
+                    <input value={paymentSettings.shopifyAnalyticsUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, shopifyAnalyticsUrl: e.target.value }))} className={cardInput} placeholder="https://admin.shopify.com/store/.../analytics" inputMode="url" />
+                  </LF>
+                  <LF label="Shopify Inbox / support">
+                    <input value={paymentSettings.shopifySupportUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, shopifySupportUrl: e.target.value }))} className={cardInput} placeholder="https://admin.shopify.com/store/.../inbox" inputMode="url" />
+                  </LF>
+                </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {[[shopifyUrl, 'Открыть витрину'], [adminUrl, 'Открыть Shopify Admin'], [analyticsUrl, 'Отчёты Shopify'], [supportUrl, 'Shopify Inbox']].map(([url, label]) => url ? <a key={label as string} href={url as string} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-primary/20 px-3 text-xs font-bold uppercase tracking-wider transition hover:bg-primary hover:text-white"><ExternalLink size={13} />{label as string}</a> : null)}
+                  {!shopifyUrl && !adminUrl && !analyticsUrl && !supportUrl ? <p className="text-sm text-gray-400">Ссылки появятся здесь сразу после сохранения.</p> : null}
+                </div>
+              </div>
+
+              <aside className="border border-primary/15 bg-[#F8F8F5] p-5 md:p-7">
+                <div className="flex items-start gap-3"><BarChart3 size={18} className="mt-1" /><div><h4 className="font-serif text-2xl">Analytics</h4><p className="mt-1 text-sm leading-5 text-gray-500">GA4 получает события просмотра, корзины и начала заказа.</p></div></div>
+                <div className="mt-6"><LF label="Google Analytics 4 Measurement ID"><input value={paymentSettings.gaMeasurementId} onChange={e => setPaymentSettings(prev => ({ ...prev, gaMeasurementId: e.target.value.trim().toUpperCase() }))} className={`${cardInput} font-mono`} placeholder="G-XXXXXXXXXX" /></LF></div>
+                <div className="mt-5 border-t border-primary/10 pt-4 text-xs leading-5 text-gray-600">
+                  {paymentSettings.gaMeasurementId.trim() ? <p className="flex gap-2"><CircleCheck size={15} className="mt-0.5 shrink-0 text-green-700" />После сохранения тег GA4 подключится на публичном сайте. Проверяйте live‑данные в GA4.</p> : <p className="flex gap-2"><AlertTriangle size={15} className="mt-0.5 shrink-0 text-amber-700" />Введите Measurement ID из Google Analytics → Admin → Data streams. Пока поле пустое, трекинг не загружается.</p>}
+                </div>
+              </aside>
+            </div>
+
+            <details className="group border border-primary/15 bg-white" open>
+              <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 text-sm font-bold"><span className="flex items-center gap-2"><Link2 size={16} />Резервная оплата и уведомления</span><span className="font-mono text-[10px] font-normal uppercase tracking-widest text-gray-400">раскрыть / скрыть</span></summary>
+              <div className="border-t border-primary/10 p-5 md:p-7">
+                <p className="mb-5 max-w-3xl text-sm leading-6 text-gray-500">Эти данные нужны только для ручных Visa / Mastercard / счёта. Не вводите сюда ключи Shopify, Stripe или Google — секреты остаются в соответствующих сервисах.</p>
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <LF label="Получатель / название"><input value={paymentSettings.recipientName} onChange={e => setPaymentSettings(prev => ({ ...prev, recipientName: e.target.value }))} className={cardInput} /></LF>
+                  <LF label="Префикс счёта"><input value={paymentSettings.invoicePrefix} onChange={e => setPaymentSettings(prev => ({ ...prev, invoicePrefix: e.target.value.toUpperCase() }))} className={`${cardInput} font-mono`} /></LF>
+                  <LF label="Внешняя ссылка Visa"><input value={paymentSettings.visaPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, visaPaymentUrl: e.target.value }))} className={`${cardInput} font-mono`} placeholder="https://..." inputMode="url" /></LF>
+                  <LF label="Внешняя ссылка Mastercard"><input value={paymentSettings.mastercardPaymentUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, mastercardPaymentUrl: e.target.value }))} className={`${cardInput} font-mono`} placeholder="https://..." inputMode="url" /></LF>
+                  <LF label="Банк"><input value={paymentSettings.bankName} onChange={e => setPaymentSettings(prev => ({ ...prev, bankName: e.target.value }))} className={cardInput} /></LF>
+                  <LF label="IBAN / счёт"><input value={paymentSettings.iban} onChange={e => setPaymentSettings(prev => ({ ...prev, iban: e.target.value }))} className={`${cardInput} font-mono`} /></LF>
+                  <LF label="WhatsApp"><input value={paymentSettings.whatsappNumber} onChange={e => setPaymentSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))} className={`${cardInput} font-mono`} placeholder="+49..." inputMode="tel" /></LF>
+                  <LF label="Email для подтверждений"><input type="email" value={paymentSettings.contactEmail} onChange={e => setPaymentSettings(prev => ({ ...prev, contactEmail: e.target.value }))} className={cardInput} /></LF>
+                  <LF label="Название webhook"><input value={paymentSettings.webhookLabel} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookLabel: e.target.value }))} className={cardInput} /></LF>
+                  <LF label="Webhook URL"><input value={paymentSettings.webhookUrl} onChange={e => setPaymentSettings(prev => ({ ...prev, webhookUrl: e.target.value }))} className={`${cardInput} font-mono`} placeholder="https://..." inputMode="url" /></LF>
+                </div>
+                <div className="mt-5"><LF label="Примечание для покупателя"><AutoTextarea value={paymentSettings.paymentNote} onChange={e => setPaymentSettings(prev => ({ ...prev, paymentNote: (e.target as HTMLTextAreaElement).value }))} rows={3} countType="chars" className="border border-primary/15 px-3 py-2.5" /></LF></div>
+                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                  <label className="flex min-h-12 items-center gap-3 border border-primary/15 px-4 text-sm"><input type="checkbox" checked={paymentSettings.notifyOnOrderCreated} onChange={e => setPaymentSettings(prev => ({ ...prev, notifyOnOrderCreated: e.target.checked }))} />Webhook при новом заказе</label>
+                  <label className="flex min-h-12 items-center gap-3 border border-primary/15 px-4 text-sm"><input type="checkbox" checked={paymentSettings.notifyOnPaymentConfirmed} onChange={e => setPaymentSettings(prev => ({ ...prev, notifyOnPaymentConfirmed: e.target.checked }))} />Webhook при подтверждении оплаты</label>
+                </div>
+              </div>
+            </details>
+          </section>;
+        })() : null}
 
         {activeTab === 'status' ? <StatusPanel /> : null}
 
