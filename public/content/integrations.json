@@ -1,6 +1,6 @@
 {
   "shopify": {
-    "enabled": false,
+    "enabled": true,
     "domain": "",
     "storefrontToken": "",
     "redirectToShopifyCheckout": true,
@@ -79,12 +79,12 @@
   },
   "leads": {
     "enabled": true,
+    "apiBaseUrl": "https://radio-api.helpushelpua.com/leads/api",
     "endpointUrl": "https://radio-api.helpushelpua.com/leads/api/leads",
     "mode": "form",
     "fallbackEmail": "info@ampublishing.org",
     "notifyWebhookUrl": "",
-    "successMessage": "",
-    "apiBaseUrl": "https://radio-api.helpushelpua.com/leads/api"
+    "successMessage": ""
   },
   "analytics": {
     "enabled": false,
