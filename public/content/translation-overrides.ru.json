@@ -119,7 +119,7 @@
   "static.about.quote": "",
   "static.about.stat1_value": "500",
   "static.about.stat1_text": "первый тираж каждой книги",
-  "static.about.stat2_value": "",
+  "static.about.stat2_value": "500",
   "static.about.stat2_text": "первый тираж каждой книги",
   "static.about.cta_button": ""
 }
