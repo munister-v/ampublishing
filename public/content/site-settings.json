@@ -14,110 +14,110 @@
   },
   "headerNav": [
     {
+      "enabled": true,
       "id": "h-catalog",
       "labelKey": "nav.catalog",
-      "path": "/catalog",
-      "enabled": true
+      "path": "/catalog"
     },
     {
+      "enabled": true,
       "id": "h-our-authors",
       "labelKey": "nav.our_authors",
-      "path": "/our-authors",
-      "enabled": true
+      "path": "/our-authors"
     },
     {
+      "enabled": true,
       "id": "h-authors",
       "labelKey": "nav.authors",
-      "path": "/authors",
-      "enabled": true
+      "path": "/authors"
     },
     {
+      "enabled": true,
       "id": "h-services",
       "labelKey": "nav.services",
-      "path": "/services",
-      "enabled": true
+      "path": "/services"
     },
     {
+      "enabled": true,
       "id": "h-about",
       "labelKey": "nav.about",
-      "path": "/about",
-      "enabled": true
+      "path": "/about"
     },
     {
+      "enabled": true,
       "id": "h-media",
       "labelKey": "nav.media",
-      "path": "/media",
-      "enabled": true
+      "path": "/media"
     },
     {
+      "enabled": true,
       "id": "h-radio",
       "labelKey": "nav.radio",
-      "path": "/radio",
-      "enabled": true
+      "path": "/radio"
     }
   ],
   "footerNav": [
     {
+      "enabled": true,
       "id": "f-catalog",
       "labelKey": "nav.catalog",
-      "path": "/catalog",
-      "enabled": true
+      "path": "/catalog"
     },
     {
+      "enabled": true,
       "id": "f-our-authors",
       "labelKey": "nav.our_authors",
-      "path": "/our-authors",
-      "enabled": true
+      "path": "/our-authors"
     },
     {
+      "enabled": true,
       "id": "f-authors",
       "labelKey": "nav.authors",
-      "path": "/authors",
-      "enabled": true
+      "path": "/authors"
     },
     {
+      "enabled": true,
       "id": "f-services",
       "labelKey": "nav.services",
-      "path": "/services",
-      "enabled": true
+      "path": "/services"
     },
     {
+      "enabled": true,
       "id": "f-about",
       "labelKey": "nav.about",
-      "path": "/about",
-      "enabled": true
+      "path": "/about"
     },
     {
+      "enabled": true,
       "id": "f-media",
       "labelKey": "nav.media",
-      "path": "/media",
-      "enabled": true
+      "path": "/media"
     },
     {
+      "enabled": true,
       "id": "f-radio",
       "labelKey": "nav.radio",
-      "path": "/radio",
-      "enabled": true
+      "path": "/radio"
     }
   ],
   "footerLegal": [
     {
+      "enabled": true,
       "id": "l-impressum",
       "labelKey": "footer.links.impressum",
-      "path": "/impressum",
-      "enabled": true
+      "path": "/impressum"
     },
     {
+      "enabled": true,
       "id": "l-privacy",
       "labelKey": "footer.links.privacy",
-      "path": "/privacy",
-      "enabled": true
+      "path": "/privacy"
     },
     {
+      "enabled": true,
       "id": "l-terms",
       "labelKey": "footer.links.terms",
-      "path": "/terms",
-      "enabled": true
+      "path": "/terms"
     }
   ],
   "showNewsletter": true,
@@ -127,19 +127,46 @@
   },
   "aboutLayout": {
     "sections": [
-      { "id": "hero", "enabled": true },
-      { "id": "story", "enabled": true },
-      { "id": "principles", "enabled": true },
-      { "id": "team", "enabled": true },
-      { "id": "contact", "enabled": true }
+      {
+        "id": "hero",
+        "enabled": true
+      },
+      {
+        "id": "story",
+        "enabled": true
+      },
+      {
+        "id": "principles",
+        "enabled": true
+      },
+      {
+        "id": "team",
+        "enabled": true
+      },
+      {
+        "id": "contact",
+        "enabled": true
+      }
     ],
     "heroImageUrl": "/images/about-hero.jpg",
     "missionImageUrl": "/images/about-hero.jpg",
     "missionImageSide": "right",
     "team": [
-      { "id": "role1", "imageUrl": "", "enabled": true },
-      { "id": "role2", "imageUrl": "", "enabled": true },
-      { "id": "role3", "imageUrl": "", "enabled": true }
+      {
+        "id": "role1",
+        "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-role1-1785658440165.webp",
+        "enabled": true
+      },
+      {
+        "id": "role2",
+        "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-role2-1785658450804.webp",
+        "enabled": true
+      },
+      {
+        "id": "role3",
+        "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-role3-1785658474864.webp",
+        "enabled": true
+      }
     ]
   }
 }
