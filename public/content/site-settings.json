@@ -137,7 +137,7 @@
       },
       {
         "id": "principles",
-        "enabled": true
+        "enabled": false
       },
       {
         "id": "team",
