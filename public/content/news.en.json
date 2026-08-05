@@ -1,8 +1,16 @@
 [
   {
+    "id": "news-1784020885211",
+    "date": "2026-07-12",
+    "title": "AM Publishing's First Literary Picnic Was Held in Berlin",
+    "preview": "On July 12, the first literary picnic organized by our publishing house took place in Berlin.",
+    "body": "The gathering brought together readers united by their love of books, face-to-face conversation, and meeting new people. Participants got to know one another, shared their favorite works, exchanged books, and spent a few cozy hours in the shade of the trees enjoying heartfelt conversations and light snacks. \n\nFor AM Publishing, this picnic was the first step toward building a community of Russian-speaking readers in Berlin. We believe that books have the power to bring people together, and we hope that gatherings like this will become a cherished tradition."
+  },
+  {
     "id": "news-2",
     "date": "May 03, 2026",
     "title": "Limited-print launch announced",
-    "preview": "The first AM Publishing edition ships worldwide in a small, carefully produced run."
+    "preview": "The first AM Publishing edition ships worldwide in a small, carefully produced run.",
+    "body": "In the meantime, here’s our top four once again: \n\nSergey Kalinin, “All That Remains” (contemporary fiction) \nNadya Hedwig, “The Order of (In)Justice” (magical realism) \nNikolai Pokush, “Gray Dol” (dark fantasy) \nAlexa Dragan, “In the Dance of Delusions” (autofiction)"
   }
 ]

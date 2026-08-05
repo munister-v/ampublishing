@@ -1,5 +1,295 @@
 [
   {
+    "id": "seryy-dol",
+    "aliases": [],
+    "title": "Seryi Dol",
+    "author": "Nikolai Pokusch",
+    "price": 0,
+    "coverUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/cover-seryy-dol-1785093167259.webp",
+    "badges": [
+      "preorder"
+    ],
+    "type": "publisher",
+    "isPreorder": false,
+    "stock": 500,
+    "description": "An der Grenze zweier mächtiger Reiche, fernab von lärmenden Städten, endlosen Kriegen und Palastintrigen, liegt das Graue Tal – eine stille Gegend mit weißlichen Nebeln und uralten Wäldern. Hier haben fünf Soldatenfamilien eine neue Heimat gefunden. Die Väter haben ihre Schwerter längst gegen Pflüge eingetauscht, und ihre Kinder sind ohne Kriegserfahrung aufgewachsen.\n\nDoch alles ändert sich in einer einzigen Nacht, als die Töchter des Veteranen Sain von einem gelbäugigen Ungeheuer aus alten Volkssagen angegriffen werden. Die junge Zana ist verwundet – die Bisswunde der Bestie will nicht heilen. Sie wird von einem tierischen Hunger gequält, und in ihrem Kopf ertönt immer lauter ein geheimnisvoller Ruf. Um Zana zu retten, muss sich ihre Schwester auf den Weg zu einer alten Hexe machen, die tief im Walddickicht lebt.\n\nUnterdessen kommt der ehemalige Späher Hanris der Bestie auf die Spur, entdeckt jedoch eine weitaus schrecklichere Bedrohung. Bald wird allen Bewohnern des Tals klar: Der Angriff war nur der Anfang. Die uralten Kreaturen sind auf die Jagd ausgegangen.\nNun müssen die Veteranen erneut zu den Waffen greifen, und ihre Kinder müssen viel zu schnell erwachsen werden. \n\nUm ihre Häuser und Familien zu schützen, müssen sich die Helden nicht nur den Dämonen aus vergessenen Sagen stellen, sondern auch der Dunkelheit in ihrem Inneren.",
+    "details": {
+      "pages": 790,
+      "year": 2026,
+      "publisher": "",
+      "weight": "",
+      "dimensions": ""
+    },
+    "genre": [
+      "düstere Fantasy"
+    ],
+    "series": "",
+    "ageRating": "18+",
+    "variants": [],
+    "releaseDate": "2026-10-26",
+    "story": {
+      "quote": "...Die Wesen der Nacht werden dich in dieser Nacht fangen und fortschleppen. In ihre Behausung, ins Herz der Dunkelheit, und dort wirst du für immer verschwinden. Ich musste es dir erzählen – ob du es glaubst oder nicht, bleibt dir überlassen.",
+      "quoteSource": "Auszug aus einem Volkslied aus Volchari",
+      "about": [
+        "An der Grenze zweier mächtiger Reiche, fernab von lärmenden Städten, endlosen Kriegen und Palastintrigen, liegt das Graue Tal – eine stille Gegend mit weißlichen Nebeln und uralten Wäldern. Hier haben fünf Soldatenfamilien eine neue Heimat gefunden. Die Väter haben ihre Schwerter längst gegen Pflüge eingetauscht, und ihre Kinder sind aufgewachsen, ohne den Krieg kennengelernt zu haben.",
+        "Doch alles ändert sich in einer einzigen Nacht, als die Töchter des Veteranen Sain von einem gelbäugigen Ungeheuer aus alten Volkssagen angegriffen werden. Die junge Zana ist verletzt – die Bisswunde der Bestie will nicht heilen. Sie wird von einem tierischen Hunger geplagt, und in ihrem Kopf ertönt immer lauter ein geheimnisvoller Ruf. Um Zana zu retten, muss sich ihre Schwester auf den Weg zu einer alten Hexe machen, die tief im Walddickicht lebt.",
+        "Unterdessen kommt der ehemalige Spion Hanris der Bestie auf die Spur, entdeckt jedoch eine weitaus schrecklichere Bedrohung. Bald wird allen Bewohnern des Tals klar: Der Angriff war nur der Anfang. Die uralten Kreaturen sind auf die Jagd gegangen.\nNun müssen die Veteranen erneut zu den Waffen greifen, und ihre Kinder müssen viel zu schnell erwachsen werden.",
+        "Um ihre Häuser und Familien zu schützen, müssen sich die Helden nicht nur Dämonen aus vergessenen Sagen stellen, sondern auch der Dunkelheit in ihrem Inneren."
+      ],
+      "excerpt": [
+        "Die Nacht kroch die Berghänge hinunter. Sie floss wie eine zähe Welle hinab, während die letzten Strahlen des zu Ende gehenden Tages hinter dem Horizont im Westen verschwanden. Die Nacht hüllte die schneebedeckten Felsvorsprünge und die Spitzen der flauschigen Fichten ein und senkte sich ins Tal, und mit ihr kroch ein blasser Nebel heran, und mit ihm … kam noch etwas anderes ins Tal. Es versteckte sich in den Schatten, glitt als kaum wahrnehmbarer Schatten durch den Nebel, blitzte mit gelben Augen, für die die Dunkelheit der Nacht kein Hindernis darstellte, blähte die Nasenflügel auf und ließ Speichel aus dem Maul tropfen. In Vorfreude auf den Duft von warmem Blut und in dem verzweifelten Verlangen, so schnell wie möglich seine Zähne in ein Stück frisches Fleisch zu versenken, kroch es aus der Dunkelheit der Fabeln und Mythen hervor, wo es sich viele Jahre lang versteckt gehalten hatte, und zeigte sich dem einschlafenden Land, dessen Bewohner noch nicht ahnten, was sie erwartete.",
+        "Die ersten, die dieses Etwas wahrnahmen, waren nicht die Menschen, sondern die Tiere, die auf dem Anwesen von Sain Gotho lebten. Die Schafe begannen zu blöken. Die Hühner sprangen von ihren Sitzstangen herunter und rannten mit flatternden Flügeln im Kreis durch den Hühnerstall. Die einzige Kuh muhte langgezogen. Die Pferde wieherten, bäumten sich auf und schlugen mit den Hufen gegen die Wände des Stalls. Zwei Schäferhunde, der alte Lokhmatsch und der lebhafte junge Klykastyj, die nachts in einem Gehege neben dem Stall eingesperrt wurden, fingen an, klagend zu bellen.",
+        "Ilija, die älteste Tochter von Sain, dreizehn Jahre alt, wachte auf, setzte sich sofort im Bett auf, schob die Daunendecke beiseite und ließ die Füße auf den Dielenboden sinken. Das Zimmer, in dem sie geschlafen hatte, war in dichte Dunkelheit gehüllt, doch aus dem Ofen, der in der Ecke stand, war noch das Knistern der Flammen zu hören, und im Raum war es noch warm. Das bedeutete, dass das Feuer noch nicht ganz erloschen war, und folglich, wie Ilia schnell begriff, hatte die Nacht gerade erst begonnen.",
+        "Auch ihre drei Schwestern, die in den benachbarten Betten schliefen, wurden von diesem unglaublichen Lärm geweckt, der unerwartet in die klangvolle Stille der Nacht eingedrungen war. Ilya sah, wie sich ihre Silhouetten nacheinander in ihren Betten aufrichteten.",
+        "„Was ist los?“, wimmerte die vierjährige Riza, die sofort von der panischen Angst angesteckt wurde, die aus dem Muhen, Wiehern, Bellen und Blöken der Tiere durchschimmerte. „Warum schreien die so?!“",
+        "— Ganz ruhig, ganz ruhig, meine Kleine, — Ilia eilte zu ihrer kleinen Schwester, kniete sich neben sie und drückte den Kopf des Mädchens an ihre Brust, wobei sie spürte, wie ihr eigenes Herz pochte, gequält von einem Schrecken, dessen Ursache sie noch nicht begreifen konnte.",
+        "„Wo ist Mama? …“ – Rizas Wutanfall wurde immer heftiger. „Ich will zu ihr! Ich will zu Mama und Papa!“",
+        "„Ganz ruhig, meine Liebe … Pssst …“, beruhigte Ilia ihre Schwester, während sie deutlich spürte, wie Panik und Angst in ihrem Bewusstsein immer stärker wurden und sich ausbreiteten. Sie versuchte mit aller Willenskraft, diese Gefühle zu überwinden und sich nicht von ihnen überwältigen zu lassen, denn sie war die Älteste, und es stand ihr nicht zu, sich vor den Augen ihrer Schwestern vor Angst zusammenzukauern. Indem sie Riza beruhigte, beruhigte sie gewissermaßen auch sich selbst: „Ganz ruhig … Es ist alles in Ordnung …“",
+        "„Da ist etwas im Stall los“, sagte Zana, ein elfjähriges Mädchen, die lebhafteste und mutigste von Sains Töchtern, während sie sich an die Fensterläden drückte, die die Fenster verschlossen. „Ich glaube, ich habe jemanden auf dem Dach gesehen. Vielleicht ist ein Werwolf da hochgeklettert?“",
+        "„Ein Werwolf?!“, rief Riza entsetzt aus und fing sofort noch heftiger an zu weinen: „Wo ist Papa?! Ich will zu Papa!“",
+        "„Hast du den Verstand verloren, du Dummkopf?!“, fauchte Ilia Zana an. „Was redest du da für einen Unsinn?“",
+        "Sie drückte Riza fester an sich und flüsterte ihr ins Ohr:",
+        "— Ganz ruhig, ganz ruhig … Zana redet Unsinn. Hier gibt es keine Werwölfe.",
+        "„Das ist doch kein Unsinn!“, widersprach Zana gekränkt. „Erinnerst du dich, was Vesna uns über die Wälder im Norden erzählt hat und über …“",
+        "„Halt endlich die Klappe!“, fauchte Ilia."
+      ],
+      "authorBio": [
+        "Er arbeitet als Tester in einem Produktionsunternehmen. Er ist ein großer Fan von Videospielen und Brettspielen, betrachtet jedoch Rollenspiele als sein Haupt-Hobby. Seit mehr als zwanzig Jahren ist er Spielleiter und hat sein eigenes System sowie eine eigene Spielwelt entwickelt. Seit kurzem beteiligt er sich als Spielleiter an einem Projekt, das sich mit Rollenspielen befasst."
+      ],
+      "themes": [
+        {
+          "title": "Ein uraltes Übel erwacht",
+          "text": ""
+        },
+        {
+          "title": "Die Veteranen greifen erneut zu den Waffen",
+          "text": ""
+        },
+        {
+          "title": "Väter und Kinder",
+          "text": ""
+        },
+        {
+          "title": "Die Verwandlung in ein Monster und der Kampf um die Menschlichkeit",
+          "text": ""
+        }
+      ],
+      "reviews": [
+        {
+          "quote": "Was kann stärker sein als Angst? „Seryi Dol“ gibt eine eindeutige Antwort: die Kraft menschlicher Beziehungen. Nach der Lektüre bekommt man eine Gänsehaut – aber nicht vor Entsetzen, sondern weil der Glaube an die Menschheit wiedererweckt wird. \n",
+          "author": "Nika Zabolotnikova, Literaturredakteurin."
+        }
+      ],
+      "orderNote": "",
+      "featureImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/story-seryy-dol-1785093424331.webp",
+      "detailPageUrl": ""
+    },
+    "purchaseLinks": [
+      {
+        "id": "shopify",
+        "label": "Shopify",
+        "url": ""
+      },
+      {
+        "id": "mnogoknig",
+        "label": "Mnogoknig",
+        "url": ""
+      },
+      {
+        "id": "mostik",
+        "label": "Mostik.de",
+        "url": ""
+      }
+    ]
+  },
+  {
+    "id": "v-tantse-delyuziy",
+    "aliases": [],
+    "title": "Im Tanz der Wahnvorstellungen",
+    "author": "Alexa Dragan",
+    "price": 0,
+    "coverUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/cover-v-tantse-delyuziy-1784554037133.webp",
+    "badges": [
+      "preorder"
+    ],
+    "type": "publisher",
+    "isPreorder": false,
+    "stock": 500,
+    "description": "Sasha widersetzt sich ihren Eltern und schreibt sich an ihrer Traumuniversität ein, um Regisseurin zu werden. Dort findet sie Freunde, fühlt sich zum ersten Mal als Teil der kreativen Welt und begegnet einer Liebe, die ihr wie Schicksal erscheint. \n\nDoch die Liebe verwandelt sich nach und nach in Abhängigkeit, und die künstlerische Verwirklichung in einen schmerzhaften Zerfall ihrer Persönlichkeit. Auf der Suche nach sich selbst hin- und hergerissen zwischen ihren Liebsten, dem Theater, den Dreharbeiten und dem Versuch, zu beweisen, dass sie ihres gewählten Weges würdig ist. Jede Entscheidung bringt sie ihrem Traum näher, entfernt sie aber gleichzeitig von sich selbst.\n\nJahre später kehrt die erwachsene Protagonistin zu dieser Vergangenheit zurück, wie zu einem unvollendeten Film. Erinnerungen flammen auf wie Streichhölzer und beleuchten das, was damals unmöglich zu verstehen war: wo die Liebe endete und die Abhängigkeit begann, wo die Kunst zur Rettung wurde und wo sie ein Mittel war, den Schmerz nicht zu spüren.\n\nEin offener psychologischer Roman über die erste Liebe, kreative Besessenheit, das Erwachsenwerden und den Versuch, sich nach dem Verlust der Illusionen wieder zusammenzufinden.",
+    "details": {
+      "pages": 680,
+      "year": 2026,
+      "publisher": "AM Publishing",
+      "weight": "",
+      "dimensions": ""
+    },
+    "genre": [
+      "Autofix"
+    ],
+    "series": "Komplexe Menschen",
+    "ageRating": "18+",
+    "variants": [],
+    "releaseDate": "2026-07-20",
+    "story": {
+      "quote": "Anstelle von Blut fließt junger Wein durch meine Adern. Nur keine Scheu – haltet eure Gläser hin. Ich ziehe mir mit der Klinge über die Handgelenke – und fülle sie bis zum Rand. Ihr werdet betrunken und glücklich sein. So wie ich.",
+      "quoteSource": "Streichholz 51",
+      "about": [
+        "Sasha widersetzt sich ihren Eltern und schreibt sich an ihrer Traumuniversität ein, um Regisseurin zu werden. Dort findet sie Freunde, fühlt sich zum ersten Mal als Teil der kreativen Welt und begegnet einer Liebe, die ihr wie Schicksal erscheint.",
+        "Doch die Liebe verwandelt sich nach und nach in Abhängigkeit, und die kreative Entfaltung in einen schmerzhaften Zerfall der Persönlichkeit. Auf der Suche nach sich selbst hin- und hergerissen zwischen ihren Liebhabern, dem Theater, den Dreharbeiten und dem Versuch, zu beweisen, dass sie des eingeschlagenen Weges würdig ist. Jede Entscheidung bringt sie ihrem Traum näher, entfernt sie aber gleichzeitig von sich selbst.",
+        "Jahre später kehrt die erwachsene Protagonistin zu dieser Vergangenheit zurück, als wäre es ein unvollendeter Film. Erinnerungen flammen auf wie Streichhölzer und beleuchten das, was damals unmöglich zu verstehen war: wo die Liebe endete und die Abhängigkeit begann, wo die Kunst zur Rettung wurde und wo sie ein Mittel war, den Schmerz nicht zu spüren.",
+        "Ein offener psychologischer Roman über die erste Liebe, kreative Besessenheit, das Erwachsenwerden und den Versuch, sich nach dem Verlust der Illusionen wieder aufzurappeln."
+      ],
+      "excerpt": [
+        "Dort, wo ich herkomme, glaubt man an einen Aberglauben: Wer in Fenster hineinschaut, wird blind. Ein dummes Aberglauben. Mein Sehvermögen ist bis heute hervorragend, obwohl ich schon seit meiner Kindheit gerne in die Fenster fremder Häuser starre. Eine Katze auf der Fensterbank, Suppe auf dem Herd, Auszeichnungen im Regal – Fragmente eines anderen Lebens bleiben mir als eine Kette von Fotos im Gedächtnis. Wer weiß, wozu sie sich noch als nützlich erweisen könnten? \nAn der Universität haben wir gelernt, interessante Beobachtungen in ein „Regie-Tagebuch“ einzutragen. Diese haben wir im Unterricht vorgelesen und anschließend versucht, die Psychologie hinter dem Verhalten verschiedener Sonderlinge zu entschlüsseln. Einmal wurde ich selbst zur Heldin der Diskussion. Sergej wandte verlegen den Blick ab, als er eine Unbekannte aus dem Café beschrieb, die mit den Fingern den Milchschaum vom Cappuccino abstreifte und diese sofort ableckte. Sie hätte fast den ganzen Kaffee aufgegessen. Während meine Kommilitonen diskutierten und Hypothesen aufstellten, saß ich in meinen Stuhl gekauert und hatte Angst, dass sie mich entlarven würden. In diesem Moment kam es mir vor, als würde man mir mit feinen Klingen die Haut abkratzen. \nHeute, siebzehn Jahre später, kam es mir vor, als wäre ich wieder in derselben Vorlesung gelandet. \nVasja hatte es geschafft, den Großteil unserer Workshop-Gruppe zur Eröffnung seines Schauspielstudios zusammenzubringen. In den Jahren seit unserem Abschluss hatten wir uns in alle Winde zerstreut, waren aber wie durch ein Wunder zur gleichen Zeit in derselben Stadt gelandet. Natürlich hatte ich alle vermisst, und Vasja zu gratulieren schien mir ein hervorragender Anlass, meine Freunde aus Studienzeiten wiederzusehen. Nur hatte er uns nicht vorgewarnt, dass wir an einer improvisierten Aufführung teilnehmen sollten.\n„Wer fängt an?“, fragte Vasja und kratzte sich an der leicht ergrauten Schläfe. Mit den Jahren war er noch dünner geworden; an seinen schlanken Handgelenken hätten sogar Kinderfinger Platz gefunden. Jetzt trug er eine Brille. \nDie Zeit hatte an unseren Schicksalen und Gesichtern ihre Spuren hinterlassen, obwohl wir uns nicht so radikal verändert hatten. Wenn überhaupt, dann waren wir etwas stiller geworden, verblasst, ausgebrannt. Das Leben hatte uns den Hochmut genommen, uns ein paar Schläge versetzt, und wir waren viel bescheidener geworden.\nVasja schaltete das Hauptlicht aus und zündete eine blutrote Lampe in Form eines riesigen Tropfens an. Warum muss man alles so kompliziert machen? Wir könnten uns doch einfach einen hinter die Binde kippen. \nAndererseits ist heute ein besonderer Tag – der 30. November. Für unsere Vorfahren war dies der Beginn des neuen Jahres, und in Moldawien ehren wir Traditionen und feiern bis heute den Tag des Wolfes. \nDas Alte vergeht, das Neue tritt an seine Stelle, heute werden Geheimnisse enthüllt, Prophezeiungen erfüllen sich und Geister erwachen zum Leben. Um eine tapfere Wolfsseele zu erlangen, muss man einen Initiationsritus durchlaufen. Sich zu fürchten wäre eine Sünde.\n– Da es niemand will, mache ich den Anfang. \nRotes Licht färbte die Wände und Gesichter, Schatten fielen mal auf den Boden, mal krochen sie zur Tür. Kaum war ich vor den Zuschauern in die Mitte des Saals getreten, schoss mein Schatten zur Fensterbank und verfing sich in den Falten des Vorhangs. \n– Die Geschichte muss hier entstehen, vor unseren Augen“, sagte Vasja und reichte mir eine Schachtel Streichhölzer. „Hör nicht auf zu sprechen, bis alle abgebrannt sind.“\nEin Schauer läuft mir über den Rücken, mein Mund ist trocken – so fühle ich mich, wenn ich ins Rampenlicht trete. Normalerweise dient der Text des Stücks als Autobahn, von der man nicht abkommen darf, aber Vasja bittet mich, hier und jetzt etwas Neues zu schaffen. \nDie Tür öffnete sich, und im Halbdunkel des Saals tauchte eine große Gestalt in einem schwarzen Mantel auf. \nSergej war zu spät gekommen. Er entschuldigte sich überschwänglich, begrüßte alle lautstark und schnitt lustige Grimassen. Als er sich zu mir umdrehte, strahlte er. \n„Und du bist gekommen?!“, rief er freudig aus. \n„Sergej, gib mir doch mal ein Thema für einen Monolog“, bat ihn Vasja. \nEinmal hatte ich mir eine Zigarette an der Schulter ausgedrückt, aber nichts gespürt. Die Haut war verkohlt, das Loch war tief, so dick wie ein Finger. Der Zigarettenstummel drang immer tiefer in den Körper ein und steckte schließlich wie in einem Aschenbecher in meiner Schulter. Aus der Wunde sickerte Lymphe, und ich wartete darauf, dass es endlich wehtat. Und das alles nur, um auf der Bühne so ehrlich wie möglich zu spielen. Serjosa warf mir damals einen Blick voller Erstaunen, Mitleid und Entsetzen zu und nannte mich verrückt.\n Jetzt sah er mich anders an, ungewöhnlich warmherzig. Er dachte ernsthaft über das Thema des Monologs nach, strich sich über die breite Brust und kratzte sich am unrasierten Kinn.\n– Erzähl mir von deinen größten Enttäuschungen, – schnippte er mit den Fingern. – Was bereust du im Leben am meisten?\nIch schüttelte die Schachtel. \n– Diese Streichhölzer reichen nicht aus, – scherzte ich.\nDie Erinnerung gleicht einem zerfetzten Filmstreifen. Die Jahre haben die Schnipsel durcheinandergewürfelt und in eiserne Kisten gestopft. Und ich setze mich, als würde ich mich wieder an den Schnitttisch setzen …\n„Nimmst du das Thema an?“, fragte Vasja. „Spricht es dich an?“\nIch drehte ein Streichholz in der Hand, traute mich aber nicht, es anzuzünden. Ich wartete, bis die Worte vom Herzen zur Zunge gelangten und sich gehorsam darauf niederließen. \n„Soll ich dich begleiten?“, fragte Sergej, setzte sich ans Klavier und ließ seine Finger auf die Tasten fallen. – Fang an, dann greife ich den Rhythmus und die Stimmung auf. \nDas war definitiv etwas Neues. Früher war ich es, die ihm begleitete, den Rhythmus aufgriff und mich seiner Stimmung anpasste.\n– O-oh! Wird es einen Soundtrack geben? \nDort, wo ich herkomme, gibt es einen alten Aberglauben: Man darf nicht in Fenster hineinschauen, sonst erblindet man. Das hat seinen Grund. Das Haus ist für einen Moldawier der Mittelpunkt der Welt. Es wurde ursprünglich vom Teufel selbst erbaut, doch im Inneren herrschte pechschwarze Dunkelheit. Da kam der helle Demiurg zur Hilfe und schlug Fenster in die Wände, wodurch Durchgänge zwischen den Welten – der inneren und der äußeren – entstanden. Seitdem kann der Teufel nicht mehr in die Behausung vordringen. Er friert draußen und wirft neidische Blicke auf die bestickten Vorhänge.\n\tIch stehe neben dem Teufel und betrachte das himmelblaue Haus mit den gemusterten Fensterrahmen. Dort ist kein Platz mehr für mich, ihn hat eine andere Sascha eingenommen, die mir äußerlich wie ein Ei dem anderen gleicht. In dem Haus, in dem ich nicht mehr willkommen bin, erlöschen die Kerzen nie und der Herd kühlt nie ab. Diese andere hat im Leben alles richtig gemacht, und nun verschwindet das Lächeln nie von ihrem ewig jugendlichen Gesicht. Aber dieses Haus – das ist meins. Lasst mich rein!\nKlick…"
+      ],
+      "authorBio": [
+        "Alexas erste Novelle erschien in der Zeitschrift „Tolstoy“, die zweite schaffte es auf die Longlist des „Lyzeum“-Preises. Ihr Schaffen ist eine Erforschung der menschlichen Seele: Beziehungen zwischen Menschen, verschiedene Abhängigkeiten, die Grenze zwischen Normalität und Pathologie. Das Genre ist für Alexa zweitrangig – sie schreibt Horror, Science-Fiction und Fantasy, doch besonders am Herzen liegen ihr der mystische Realismus, die Gothic-Literatur und die Familiensaga."
+      ],
+      "themes": [
+        {
+          "title": "Erste Liebe und Abhängigkeit",
+          "text": ""
+        },
+        {
+          "title": "Das Durchleben von Traumata und der Verlust von Illusionen",
+          "text": ""
+        },
+        {
+          "title": "Erwachsenwerden durch Enttäuschung",
+          "text": ""
+        },
+        {
+          "title": "Die Vergangenheit lässt sich nicht umschreiben, aber man kann ihre Bedeutung verändern",
+          "text": ""
+        }
+      ],
+      "reviews": [
+        {
+          "quote": "Eine ergreifende, bewegende und zugleich ein wenig beängstigende Geschichte über das Erwachsenwerden einer Frau, die tausendmal Fehler gemacht hat – und schließlich zu sich selbst gefunden hat",
+          "author": "Nadja Hedwig, Schriftstellerin, Philologin und Literaturwissenschaftlerin, Literaturberaterin und Dozentin für kreatives Schreiben."
+        }
+      ],
+      "orderNote": "",
+      "featureImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/story-v-tantse-delyuziy-1784554345656.webp",
+      "detailPageUrl": ""
+    },
+    "purchaseLinks": [
+      {
+        "id": "shopify",
+        "label": "Shopify",
+        "url": ""
+      },
+      {
+        "id": "mnogoknig",
+        "label": "Mnogoknig",
+        "url": ""
+      },
+      {
+        "id": "mostik",
+        "label": "Mostik.de",
+        "url": ""
+      }
+    ]
+  },
+  {
+    "id": "orden-ne-spravedlivosti",
+    "aliases": [],
+    "title": "Der Orden der (Un-)Gerechtigkeit",
+    "author": "Nadja Hedwig",
+    "price": 0,
+    "coverUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/cover-orden-ne-spravedlivosti-1784019599879.webp",
+    "badges": [
+      "preorder"
+    ],
+    "type": "publisher",
+    "isPreorder": false,
+    "stock": 500,
+    "description": "Jeder Mitarbeiter der gemeinnützigen Organisation Wilde Jagd e.V. weiß: Mitleid mit den Verurteilten ist unzulässig, Zweifel sind verboten. Die Tötungen finden streng zwischen zwei und vier Uhr nachts statt, Samstag und Sonntag sind frei.\n\nDer junge Praktikant Martin Steinmeier ist sich sicher: Wenn er endlich keine normale Arbeit findet, wird ihn seine chronische Depression wieder in den Abgrund ziehen. Das Leben wird endgültig seinen Sinn verlieren. \n\nOlga Orlowa, die Leiterin der „Wilde Jagd“, ist überzeugt: Solange sie arbeitet, bleibt ihr von Geburt an schwerkranker Sohn gesund. Das rechtfertigt alles. \n\nIbrahim Zakajew, leitender Mitarbeiter der „Wilde Jagd“, hat sich daran gewöhnt, keine unnötigen Fragen zu stellen. Wenn man sich viele Jahre lang vor der Justiz seines Heimatlandes versteckt, ist jede Arbeit gut. Und die Verurteilten verdienen ohnehin den Tod.\n\nSie alle glauben, der Großen Gerechtigkeit zu dienen. \nAber gibt es sie überhaupt?..",
+    "details": {
+      "pages": 420,
+      "year": 2026,
+      "publisher": "AM Publishing",
+      "weight": "",
+      "dimensions": ""
+    },
+    "genre": [
+      "magischer Realismus",
+      "soziale Prosa"
+    ],
+    "series": "Komplexe Menschen",
+    "ageRating": "16+",
+    "variants": [],
+    "releaseDate": "2026-10-01",
+    "story": {
+      "quote": "…was wäre dein Gutes, wenn es das Böse nicht gäbe, und wie würde die Erde aussehen, wenn die Schatten von ihr verschwunden wären?",
+      "quoteSource": "„Der Meister und Margarita“ von Michail Bulgakow ",
+      "about": [
+        "Jeder Mitarbeiter der gemeinnützigen Organisation Wilde Jagd e.V. weiß: Mitleid mit den Verurteilten ist unzulässig, Zweifel sind verboten. Die Liquidationen finden streng zwischen zwei und vier Uhr nachts statt, samstags und sonntags ist frei.",
+        "Der junge Praktikant Martin Steinmeier ist sich sicher: Wenn er nicht endlich einen vernünftigen Job findet, wird ihn die chronische Depression wieder in den Abgrund ziehen. Das Leben wird endgültig seinen Sinn verlieren.",
+        "Olga Orlova, Geschäftsführerin von „Wilde Jagd“, ist überzeugt: Solange sie arbeitet, bleibt ihr von Geburt an schwerkranker Sohn gesund. Das rechtfertigt alles.",
+        "Ibrahim Zakajew, leitender Mitarbeiter bei „Wilde Jagd“, hat sich daran gewöhnt, keine unnötigen Fragen zu stellen. Wenn man sich viele Jahre lang vor der Justiz seines Heimatlandes versteckt, ist jede Arbeit gut. Und die Verurteilten verdienen ohnehin den Tod.",
+        "Sie alle glauben, dass sie der großen Gerechtigkeit dienen. \nAber gibt es sie überhaupt?.."
+      ],
+      "excerpt": [
+        "Diese Geschichte begann in einer Stadt, die einem steinernen Ungeheuer glich – gleichgültig und längst tot, mit ihren aufgerissenen Eingeweiden entlang des Flusses ausgebreitet. Diese Stadt heißt Berlin, und dort lebt – abgesehen natürlich vom Autor, der diese ganze Geschichte ins Rollen gebracht hat – ein gewisser Martin Steinmeier, ein russischer Deutscher aus Kasachstan. \nIm Alter von sieben Jahren wurde Martin nach Deutschland gebracht. Wenn er jemandem davon erzählte, kam er sich vor wie ein Sack Kartoffeln, den man an einem Seil über die Grenze gezogen hatte. An den Umzug erinnerte er sich kaum: wie seine Mutter lange überlegte, was aus der Zweizimmerwohnung in ein paar kleine Koffer gepackt werden sollte, wie der Grenzbeamte am Flughafen den Einreisestempel aufdrückte und ihm zurückhaltend zulächelte. Wie sein Vater zwei Wochen später erklärte, dass Deutschland nichts für ihn sei, und ging. Seine Mutter fand allerdings schnell einen Ersatz für ihn – sie sagte es sogar ganz offen: „Ich habe einen Ersatz für deinen Vater gefunden.“ Von ihrem neuen Mann erbte Martin den etwas rauen Berliner Dialekt und den klangvollen Nachnamen Steinmeier. \nIn der siebten Klasse wurde Martin von einer Depression heimgesucht, doch dann schien er sich wieder zu erholen, und alle kamen zu dem Schluss, dass es an den Hormonen gelegen habe. Ob es nun an den Hormonen lag oder nicht – seitdem hatte Martin ständig Angst, dass die Niedergeschlagenheit zurückkehren würde, dass er unweigerlich jemanden im Stich lassen würde, und deshalb konnte er keine einzige begonnene Sache zu Ende bringen. Nach der Schule schrieb sich Martin an der Freien Universität Berlin ein, brach das Studium jedoch nach drei Semestern ab. Er begann eine Ausbildung zum Friseur, kam aber ein halbes Jahr vor Abschluss zu dem Schluss, dass es nichts für ihn sei, neun Stunden am Tag auf den Beinen zu sein. Er nahm sich vor, die Welt zu erkunden, und begab sich sogar auf eine Weltreise, doch diese dauerte nicht einmal einen Monat: Martin erkrankte an Malaria und kehrte nach Berlin zurück. Dort überkam ihn erneut eine Apathie, die Gott weiß wie ausgegangen wäre, hätte es nicht die belebende Berliner Luft und die streng verschreibungspflichtigen Tabletten gegeben. \nSo war Martin Steinmeier mit siebenundzwanzig Jahren ein glückloser Reisender, ein Mensch mit wenig Lebenserfahrung, ohne nennenswerte Erfolge und, wie seine Mutter sagte, ohne anständigen Beruf. Kein Wunder also, dass man ihn in das Büro von Frau Krause schickte, einer Mitarbeiterin des Berliner Arbeitsamtes. Im Laufe eines Jahres war er dreimal dort gewesen. Das kleine, weiße Zimmer hatte ein einziges Fenster, das auf einen ruhigen Innenhof hinausging, und einen Schrank, in dem die Akten ihrer Schützlinge aufbewahrt wurden.\nAuch dieses Mal war es dasselbe Zimmer, doch statt der zierlichen Frau Krause saß eine so korpulente Dame am Schreibtisch, dass man meinen konnte, der Stuhl würde jeden Moment unter ihr zusammenbrechen. \nDie Dame wandte ihren Blick vom Monitor vor ihr ab und sah Martin kühl an. \n„Nehmen Sie Platz, Herr Steinmeier.“ \nVorsichtshalber lächelte Martin sie an. Es half nichts – die Dame spielte weiterhin die unnahbare Frau Helle aus seinem ungeliebten Märchen."
+      ],
+      "authorBio": [
+        "Schriftstellerin, Philologin und Literaturwissenschaftlerin, Literaturberaterin und Dozentin für kreatives Schreiben.",
+        "Bücher:",
+        "— die Trilogie „Die großen Jungfrauen“ (Verlag „Schwarz-Weiß“),",
+        "— der Roman „Die Dunkelheit in dir“ (Shortlist des Preises „Elektronische Buchstabe 2025“, erscheint im Verlag Steklograf),",
+        "— Herausgeber und Kurator der Erzählsammlung „Trauma(s)“, die auf den Ergebnissen des Autorenkurses „Die authentische Darstellung von Traumata in literarischen Texten“ basiert (Verlag Steklograf)",
+        "In seinem künstlerischen Schaffen konzentriert er sich auf die Darstellung psychischer Traumata, die Bewältigung von Trauer und Verlust und untersucht das Wesen von Gewalt; seit mehr als drei Jahren hält er Vorträge zu diesem Thema.",
+        "„Für sich selbst“ liest sie Psychothriller und Gesellschaftsdramen. Ihre Lieblingsautorin der Gegenwart ist Vera Bogdanowa.",
+        "Eine zeitlose Inspiration – „Der Meister und Margarita“ von M. A. Bulgakov sowie die Liebesgeschichte zwischen Bulgakov und seiner dritten Ehefrau, Elena Sergejewna."
+      ],
+      "themes": [
+        {
+          "title": "Eine geheime magische Organisation",
+          "text": ""
+        },
+        {
+          "title": "Der Preis der Gerechtigkeit und des freien Willens",
+          "text": ""
+        },
+        {
+          "title": "Gewalt im Namen des Guten",
+          "text": ""
+        },
+        {
+          "title": "Wer einen Drachen tötet, wird selbst zum Drachen",
+          "text": ""
+        }
+      ],
+      "reviews": [
+        {
+          "quote": "Der Roman behandelt die ewigen Fragen von Gut und Böse in der besten Tradition von Bulgakovs „Der Meister und Margarita“ und verspricht – wie eine Figur des venezianischen Karnevals mit einer wunderschönen Maske – schon ab den ersten Seiten spannende Unterhaltung. Wenn es Ihnen gelingt, hinter die Maske zu blicken, werden Sie den Roman nicht mehr aus dem Kopf bekommen oder aufhören können, darüber nachzudenken.",
+          "author": "Buchgestalterin Julia Martytschenko"
+        }
+      ],
+      "orderNote": "",
+      "featureImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/story-orden-ne-spravedlivosti-1784553675776.webp",
+      "detailPageUrl": ""
+    },
+    "purchaseLinks": [
+      {
+        "id": "shopify",
+        "label": "Shopify",
+        "url": ""
+      },
+      {
+        "id": "mnogoknig",
+        "label": "Mnogoknig",
+        "url": ""
+      },
+      {
+        "id": "mostik",
+        "label": "Mostik.de",
+        "url": ""
+      }
+    ]
+  },
+  {
     "id": "ambook-001",
     "aliases": [
       "ambook-001-copy"
@@ -29,16 +319,7 @@
     "series": "AM Publishing",
     "ageRating": "16+",
     "releaseDate": "2026-10-01",
-    "variants": [
-      {
-        "id": "ambook-001-hc",
-        "format": "paperback",
-        "language": "Russisch",
-        "price": 0,
-        "stock": 500,
-        "isbn": "AM-BOOK-HC-001"
-      }
-    ],
+    "variants": [],
     "story": {
       "quote": "...wie man diese seltsame, beunruhigende Frage beantwortet: Was wird nach mir bleiben?",
       "quoteSource": "Aus dem Roman, Kapitel 49",

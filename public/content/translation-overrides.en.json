@@ -1,4 +1,20 @@
 {
+  "static.our_authors.featured_author": {
+    "nameMain": "Sergey",
+    "nameAccent": "Kalinin",
+    "label": "Lead Author of the Catalog",
+    "intro": "A prose writer whose works combine psychological precision with atmospheric intensity and a slow-unfolding internal drama.",
+    "body": [
+      "Sergey Kalinin writes about people at turning points: when the familiar is crumbling and the new has not yet taken shape. His prose pays close attention to pauses, to hidden tension, and to what remains off-screen but defines everything else.",
+      "It is precisely this distinctive literary voice that sets the tone for the first book in the AM Publishing catalog. It embodies both an inner stillness and cultural memory, as well as a rare sense of literary dignity without unnecessary grandstanding."
+    ],
+    "tags": [
+      "psychological fiction",
+      "contemporary literature",
+      "Russian-speaking author",
+      "AM Publishing"
+    ]
+  },
   "static.our_authors.showcase_items": [
     {
       "id": "aleksa-dragan",
@@ -70,11 +86,40 @@
       "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1782205768945.webp"
     }
   ],
-  "home.feature_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1784555775446.webp",
+  "static.about.mission_image": "/images/about-hero.jpg",
+  "static.about.p1": "Sometimes it feels like my whole life is spent on the move: another city, another country, new routes, suitcases, roads…\n\nAnd in the midst of all this movement, I really long for something of my own—something I can take with me.\n",
+  "static.about.title": "About Us",
+  "static.about.subtitle": "An independent Russian-language publishing house based in Berlin",
+  "static.about.mission": "Mission",
+  "static.about.p2": "We’ve created a publishing house where books aren’t just stories—they’re companions. \n\nThey’re easy to slip into your bag, open on the train, take with you on vacation, or read in the morning before work or at home in the evening. \n\nBut most importantly, they’re not just light reading. They’re stories about making choices, about inner strength, and about finding yourself. Because even when we’re on the go, we keep searching for answers.",
+  "static.about.stat1": "Small print runs",
+  "static.about.stat2": "Editorial Review of Manuscripts",
+  "static.about.team": "Team",
+  "static.about.role1": "Maria Surkont, founder of the publishing house",
+  "static.about.role2": "Designer Yulia Martychenko",
+  "static.about.role3": "PR Manager Nadia Hedwig",
+  "home.hero_title_1": "Books to Bring Along",
+  "home.hero_subtitle": "We publish contemporary fiction with depth and psychological nuance—books that are easy to take with you and impossible to forget.",
+  "static.authors.p1": "AM Publishing specializes in fiction and autofiction.",
+  "static.our_authors.subtitle": "Voices of Contemporary Russian-Language Literature",
+  "footer.desc": "An independent Russian-language publishing house based in Berlin. Our stories are perfect for the road, trips, flights, the morning subway ride, and quiet evenings at home.",
+  "static.impressum.text": "Impressum\nAngaben gemäß § 5 DDG\n\nAM PUBLISHING\nInhaberin: Maryia Surkant\n\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nTelefon: +49 176 40444853\nE-Mail: info@ampublishing.org\n\nUmsatzsteuer-Identifikationsnummer gemäß § 27a UStG:\nDE461941530\n\nVerantwortlich für den Inhalt nach § 18 Abs. 2 MStV\n\nMaryia Surkant\nMehrower Allee 71\n12687 Berlin\nDeutschland",
+  "home.feature_kicker": "Announcement",
+  "home.feature_title": "this week",
   "home.global_reach": "No Borders",
   "home.global_desc": "We deliver books worldwide.",
+  "home.stats_delivery": "partner",
   "home.stats_countries_value": "Europe",
-  "home.stats_countries": "primary region",
   "home.stats_delivery_value": "DHL",
-  "home.stats_delivery": "partner"
+  "home.feature_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1784555775446.webp",
+  "home.stats_countries": "primary region",
+  "static.about.cta_title": "Are you working on a book?",
+  "static.about.cta_text": "We help authors strengthen their manuscripts—from professional editing to a detailed publishing assessment.",
+  "static.about.eyebrow": "",
+  "static.about.quote": "",
+  "static.about.stat1_value": "4 books",
+  "static.about.stat1_text": "in the first collection",
+  "static.about.stat2_value": "500",
+  "static.about.stat2_text": "the first printing of each book",
+  "static.about.cta_button": ""
 }

@@ -1,8 +1,16 @@
 [
   {
+    "id": "news-1784020885211",
+    "date": "2026-07-12",
+    "title": "Das erste Literaturpicknick von AM Publishing fand in Berlin statt",
+    "preview": "Am 12. Juli fand in Berlin das erste Literaturpicknick statt, das von unserem Verlag organisiert wurde.",
+    "body": "Bei dem Treffen kamen Leser zusammen, die die Liebe zu Büchern, zu lebendigen Gesprächen und zu neuen Bekanntschaften verbindet. Die Teilnehmer lernten sich kennen, tauschten sich über ihre Lieblingswerke aus, tauschten Bücher aus und verbrachten einige gemütliche Stunden im Schatten der Bäume bei herzlichen Gesprächen und leichten Snacks. \n\nFür AM Publishing war dieses Picknick der erste Schritt zum Aufbau einer Gemeinschaft russischsprachiger Leser in Berlin. Wir glauben, dass Bücher Menschen verbinden können, und hoffen, dass solche Treffen zu einer schönen Tradition werden."
+  },
+  {
     "id": "news-2",
     "date": "03. Mai 2026",
     "title": "Kleine Auflage zum Start",
-    "preview": "Die erste Ausgabe erscheint in kleiner Auflage und wird weltweit versendet."
+    "preview": "Die erste Ausgabe erscheint in kleiner Auflage und wird weltweit versendet.",
+    "body": "Und nun noch einmal unsere ersten vier: \n\nSergej Kalinin „Alles, was übrig bleibt“ (zeitgenössische Prosa) \nNadja Hedwig „Der Orden der (Un-)Gerechtigkeit“ (magischer Realismus) \nNikolai Pokusch „Grauer Dol“ (düstere Fantasy) \nAlexa Dragan „Im Tanz der Wahnvorstellungen“ (Autofiction)"
   }
 ]

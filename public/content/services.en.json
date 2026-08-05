@@ -26,9 +26,11 @@
         "Literary editing",
         "Proofreading — spelling, punctuation, consistency",
         "Editor’s notes on the structure of the text",
-        "One round of revisions after approval"
+        "One round of revisions after approval",
+        "Recommendations for Improving Specific Sections",
+        "Preserving the author's voice and the distinctive features of the work"
       ],
-      "note": "",
+      "note": "The final cost and turnaround time depend on the length of the manuscript, its condition, and the extent of the editing required. After reviewing the text, we send the author a personalized quote. All significant changes are made while preserving the author’s original intent and are agreed upon with the author.",
       "priceNote": "Individual quote",
       "enabled": true
     },
@@ -40,9 +42,10 @@
         "Cover concept and sketches",
         "Final cover in print and digital formats",
         "Interior typesetting",
-        "Print-ready file preparation"
+        "Print-ready file preparation",
+        "Processing time: up to 30 calendar days"
       ],
-      "note": "",
+      "note": "The final cost is calculated based on the length of the manuscript. Once the terms have been agreed upon, the author will be billed. The review process begins upon receipt of payment.\nPlease note! This service does not guarantee publication of the work with AM Publishing.",
       "priceNote": "Individual quote",
       "enabled": true
     },
@@ -54,23 +57,12 @@
         "Choice of paper, binding and format",
         "Digital or offset printing",
         "Quality control of the print run",
-        "Shipping and delivery"
+        "Shipping and delivery",
+        "Target Audience",
+        "Assessment of Commercial Potential",
+        "A 12- to 14-page report in PDF format"
       ],
-      "note": "",
-      "priceNote": "Individual quote",
-      "enabled": true
-    },
-    {
-      "id": "promotion",
-      "title": "Promotion and distribution",
-      "summary": "So the book is seen and bought.",
-      "includes": [
-        "Your book in the publisher’s catalogue",
-        "Book presentations and events",
-        "Announcements on social media and the publisher’s radio",
-        "Support in reaching retail platforms"
-      ],
-      "note": "",
+      "note": "The final cost is calculated based on the manuscript’s length. Once the terms have been agreed upon, the author will be billed. The review process begins upon receipt of payment. The turnaround time is up to 30 calendar days.\nPlease note! The editorial evaluation is an expert assessment and does not guarantee that the work will be published by AM Publishing or any other publisher.",
       "priceNote": "Individual quote",
       "enabled": true
     }
@@ -81,11 +73,38 @@
     "The name of the service you are interested in",
     "Your name and how to reach you",
     "A short description of the manuscript: genre, length, how finished it is",
-    "Preferred timeline and print run, if you already know them",
-    "The manuscript or an excerpt — if you are ready to share it"
+    "Preferred timeline and print run, if you already know them"
   ],
   "contactEmail": "info@ampublishing.org",
   "emailSubject": "Service enquiry: {service}",
   "ctaLabel": "Write to us",
-  "outro": "We usually reply within a few working days."
+  "outro": "We usually reply within a few working days.",
+  "faqTitle": "Frequently Asked Questions",
+  "faq": [
+    {
+      "id": "manuscript",
+      "question": "What are the benefits of priority review of a manuscript?",
+      "answer": "Priority review allows you to receive a decision from the publisher without waiting in the general queue. \nUnlike the standard review process, we READ THE ENTIRE MANUSCRIPT, rather than making a decision based on a synopsis and a few chapters. \nFollowing the review, the author receives an official response from the publisher.\nIf the manuscript is not suitable for publication by AM Publishing, we provide a written review explaining the reasons for the rejection and offering recommendations for revising the work."
+    },
+    {
+      "id": "timeline",
+      "question": "How long does the priority review of a manuscript take?",
+      "answer": "Priority review is conducted within 30 calendar days of receipt of the manuscript and confirmation of payment. "
+    },
+    {
+      "id": "faq-644o",
+      "question": "What does a publisher's evaluation of a manuscript offer?",
+      "answer": "A publishing evaluation is a professional assessment of a work. It is intended for authors who wish to receive a detailed analysis of their manuscript.\nThe expert report includes an analysis of the work’s strengths and weaknesses, an evaluation of the plot, structure, and characters, identification of the target audience, an assessment of commercial potential, and recommendations for further work on the text."
+    },
+    {
+      "id": "price",
+      "question": "How long does proofreading take?",
+      "answer": "The turnaround time depends on the length and condition of the manuscript. On average, proofreading takes between 2 and 6 weeks. Once we have reviewed the text, we will provide you with an exact turnaround time."
+    },
+    {
+      "id": "rights",
+      "question": "How long does literary editing take?",
+      "answer": "Editing requires a thorough analysis of the text, so turnaround times are determined on a case-by-case basis. On average, the process takes between 4 and 10 weeks, depending on the length of the manuscript and the complexity of the tasks."
+    }
+  ]
 }

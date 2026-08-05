@@ -1,4 +1,20 @@
 {
+  "static.our_authors.featured_author": {
+    "nameMain": "Sergej",
+    "nameAccent": "Kalinin",
+    "label": "Hauptverfasser des Katalogs",
+    "intro": "Ein Prosaautor, in dessen Texten sich psychologische Präzision mit atmosphärischer Dichte und einer sich langsam entfaltenden inneren Dramaturgie verbindet.",
+    "body": [
+      "Sergej Kalinin schreibt über Menschen in entscheidenden Momenten: wenn das Gewohnte zusammenbricht und das Neue noch keine Gestalt angenommen hat. Seine Prosa hat ein Gespür für Pausen, für verborgene Spannungen und für das, was hinter den Kulissen bleibt, aber alles andere bestimmt.",
+      "Genau dieser stilistische Ansatz gibt den Ton für das erste Buch im Katalog von AM Publishing an. Darin finden sich sowohl innere Stille als auch kulturelles Gedächtnis und das seltene Gefühl literarischer Würde ohne übertriebene Selbstdarstellung."
+    ],
+    "tags": [
+      "psychologische Prosa",
+      "zeitgenössische Literatur",
+      "russischsprachiger Autor",
+      "AM Publishing"
+    ]
+  },
   "static.our_authors.showcase_items": [
     {
       "id": "aleksa-dragan",
@@ -70,11 +86,40 @@
       "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1782205768945.webp"
     }
   ],
-  "home.feature_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1784555775446.webp",
+  "static.about.mission_image": "/images/about-hero.jpg",
+  "static.about.p1": "Manchmal hat man das Gefühl, dass das ganze Leben im Wandel steht: eine andere Stadt, ein anderes Land, neue Routen, Koffer, Reisen …\n\nUnd inmitten dieses Wandels sehnt man sich so sehr nach etwas Eigenem, nach etwas, das man mitnehmen kann.\n",
+  "static.about.title": "Über uns",
+  "static.about.subtitle": "Ein unabhängiger russischsprachiger Verlag aus Berlin",
+  "static.about.mission": "Mission",
+  "static.about.p2": "Wir haben einen Verlag gegründet, in dem Bücher nicht nur Geschichten sind, sondern Begleiter. \n\nMan kann sie bequem in die Tasche stecken, im Zug aufschlagen, mit in den Urlaub nehmen, morgens vor der Arbeit oder abends zu Hause lesen. \n\nAber das Wichtigste ist: Es handelt sich nicht nur um leichte Lektüre. Es sind Geschichten über Entscheidungen, über innere Stärke und über die Suche nach sich selbst. Denn auch unterwegs suchen wir weiter nach Antworten.",
+  "static.about.stat1": "Kleine Auflagen",
+  "static.about.stat2": "Redaktionelle Begutachtung von Manuskripten",
+  "static.about.team": "Team",
+  "static.about.role1": "Die Gründerin des Verlags, Maria Surkont",
+  "static.about.role2": "Designerin Julia Martytschenko",
+  "static.about.role3": "PR-Managerin Nadia Hedwig",
+  "home.hero_title_1": "Bücher zum Mitnehmen",
+  "home.hero_subtitle": "Wir veröffentlichen zeitgenössische Belletristik, die sich durch Tiefe und psychologische Feinheit auszeichnet – Bücher, die man leicht mitnehmen kann und die man nie vergisst.",
+  "static.authors.p1": "AM Publishing hat sich auf Belletristik und Autofiction spezialisiert.",
+  "static.our_authors.subtitle": "Stimmen der zeitgenössischen russischsprachigen Literatur",
+  "footer.desc": "Ein unabhängiger russischsprachiger Verlag aus Berlin. Unsere Geschichten sind wie geschaffen für unterwegs, für Reisen, Flugreisen, die morgendliche U-Bahnfahrt und ruhige Abende zu Hause.",
+  "static.impressum.text": "Impressum\nAngaben gemäß § 5 DDG\n\nAM PUBLISHING\nInhaberin: Maryia Surkant\n\nMehrower Allee 71\n12687 Berlin\nDeutschland\n\nTelefon: +49 176 40444853\nE-Mail: info@ampublishing.org\n\nUmsatzsteuer-Identifikationsnummer gemäß § 27a UStG:\nDE461941530\n\nVerantwortlich für den Inhalt nach § 18 Abs. 2 MStV\n\nMaryia Surkant\nMehrower Allee 71\n12687 Berlin\nDeutschland",
+  "home.feature_kicker": "Vorschau",
+  "home.feature_title": "dieser Woche",
   "home.global_reach": "Ohne Grenzen",
   "home.global_desc": "Wir liefern Bücher weltweit.",
+  "home.stats_delivery": "Partner",
   "home.stats_countries_value": "Europa",
-  "home.stats_countries": "Hauptregion",
   "home.stats_delivery_value": "DHL",
-  "home.stats_delivery": "Partner"
+  "home.feature_image": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1784555775446.webp",
+  "home.stats_countries": "Hauptregion",
+  "static.about.cta_title": "Arbeitest du gerade an einem Buch?",
+  "static.about.cta_text": "Wir helfen Autoren dabei, ihr Manuskript zu optimieren – von der professionellen Lektoratsbearbeitung bis hin zu einem ausführlichen Verlagsgutachten.",
+  "static.about.eyebrow": "",
+  "static.about.quote": "",
+  "static.about.stat1_value": "4 Bücher",
+  "static.about.stat1_text": "in der ersten Kollektion",
+  "static.about.stat2_value": "500",
+  "static.about.stat2_text": "die erste Auflage jedes Buches",
+  "static.about.cta_button": ""
 }
