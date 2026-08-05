@@ -402,7 +402,9 @@ export const ProductPage: React.FC = () => {
                   {book.title}
                 </span>
               </div>
-              <div className="px-6 py-12 md:px-16 md:py-20 bg-[#F4F4F0]">
+              {/* Тёплая подложка + белая «страница» поверх: колонка текста
+                  перестаёт висеть в пустоте и читается как разворот книги. */}
+              <div className="px-4 py-10 md:px-10 md:py-16 bg-[#EFEBE3]">
                 {/*
                   Набор по книжным правилам, а не «цитата на три страницы»:
                   — прямое начертание, курсив тут был на всём отрывке и убивал
@@ -411,18 +413,21 @@ export const ProductPage: React.FC = () => {
                     так читается непрерывный текст в книге;
                   — первый абзац без отступа и с буквицей — типографская норма.
                 */}
-                <div className="mx-auto max-w-[34rem] md:max-w-[38rem]">
+                <div className="mx-auto max-w-[46rem] bg-white px-7 py-12 md:px-20 md:py-20 shadow-[0_1px_2px_rgba(4,15,30,0.04),0_18px_50px_-28px_rgba(4,15,30,0.28)]">
                   {book.story.excerpt.map((para, i) => (
                     <p
                       key={i}
                       className={
                         "font-serif text-primary/90 " +
-                        "text-[1.15rem] leading-[1.75] md:text-[1.3rem] md:leading-[1.8] " +
+                        "text-[1.15rem] leading-[1.8] md:text-[1.32rem] md:leading-[1.85] " +
                         (i === 0
-                          ? "first-letter:float-left first-letter:mr-3 first-letter:mt-1 " +
-                            "first-letter:font-serif first-letter:text-[3.4rem] first-letter:leading-[0.82] " +
-                            "first-letter:text-primary md:first-letter:text-[4.2rem]"
-                          : "indent-8 md:indent-10")
+                          ? "first-letter:float-left first-letter:mr-4 first-letter:mt-2 " +
+                            "first-letter:font-serif first-letter:text-[4.6rem] first-letter:leading-[0.76] " +
+                            "first-letter:text-accent md:first-letter:text-[5.6rem] " +
+                            // Первая строка капителью — классический зачин главы,
+                            // мягко вводит в текст без лишней графики.
+                            "first-line:tracking-[0.04em] first-line:text-primary"
+                          : "indent-8 md:indent-12")
                       }
                     >
                       {para}
@@ -431,12 +436,11 @@ export const ProductPage: React.FC = () => {
 
                   {/* Отрывок обрывается на середине главы — читателю нужен знак,
                       что текст закончился намеренно, а не «недогрузился». */}
-                  <div className="mt-10 flex items-center gap-4">
-                    <span className="h-px flex-1 bg-primary/15" />
-                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">
+                  <div className="mt-12 text-center">
+                    <span className="block font-serif text-2xl leading-none text-accent/70">❧</span>
+                    <span className="mt-4 block font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">
                       {t('product.excerpt_end')}
                     </span>
-                    <span className="h-px flex-1 bg-primary/15" />
                   </div>
                 </div>
               </div>
