@@ -396,14 +396,48 @@ export const ProductPage: React.FC = () => {
               wall of text before. */}
           {(book.story.excerpt?.length ?? 0) > 0 ? (
             <div className="border-b border-primary">
-              <div className="p-8 border-b border-primary">
+              <div className="p-8 border-b border-primary flex flex-wrap items-baseline justify-between gap-3">
                 <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.excerpt')}</h2>
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-300">
+                  {book.title}
+                </span>
               </div>
-              <div className="p-8 md:p-16 bg-[#F4F4F0]">
-                <div className="max-w-2xl mx-auto space-y-6">
+              <div className="px-6 py-12 md:px-16 md:py-20 bg-[#F4F4F0]">
+                {/*
+                  Набор по книжным правилам, а не «цитата на три страницы»:
+                  — прямое начертание, курсив тут был на всём отрывке и убивал
+                    читаемость длинной прозы (курсив — для акцента, не для тела);
+                  — абзацы отбиваются красной строкой, а не пустотой между ними,
+                    так читается непрерывный текст в книге;
+                  — первый абзац без отступа и с буквицей — типографская норма.
+                */}
+                <div className="mx-auto max-w-[34rem] md:max-w-[38rem]">
                   {book.story.excerpt.map((para, i) => (
-                    <p key={i} className="text-lg md:text-xl font-serif leading-relaxed text-primary/80 italic">{para}</p>
+                    <p
+                      key={i}
+                      className={
+                        "font-serif text-primary/90 " +
+                        "text-[1.15rem] leading-[1.75] md:text-[1.3rem] md:leading-[1.8] " +
+                        (i === 0
+                          ? "first-letter:float-left first-letter:mr-3 first-letter:mt-1 " +
+                            "first-letter:font-serif first-letter:text-[3.4rem] first-letter:leading-[0.82] " +
+                            "first-letter:text-primary md:first-letter:text-[4.2rem]"
+                          : "indent-8 md:indent-10")
+                      }
+                    >
+                      {para}
+                    </p>
                   ))}
+
+                  {/* Отрывок обрывается на середине главы — читателю нужен знак,
+                      что текст закончился намеренно, а не «недогрузился». */}
+                  <div className="mt-10 flex items-center gap-4">
+                    <span className="h-px flex-1 bg-primary/15" />
+                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">
+                      {t('product.excerpt_end')}
+                    </span>
+                    <span className="h-px flex-1 bg-primary/15" />
+                  </div>
                 </div>
               </div>
             </div>
