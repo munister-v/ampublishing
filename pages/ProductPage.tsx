@@ -316,13 +316,25 @@ export const ProductPage: React.FC = () => {
                        </button>
                     </div>
                   ) : (
-                    <button
-                       onClick={secondaryPurchaseLinks.length > 0 ? scrollToBuy : undefined}
-                       disabled={secondaryPurchaseLinks.length === 0}
-                       className="w-full h-14 bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
-                    >
-                       {secondaryPurchaseLinks.length > 0 ? t('product.where_to_buy') : t('product.price_on_request')}
-                    </button>
+                    /* Без ссылок на магазины кнопка раньше была отключена и
+                       повторяла надпись «Цена по запросу» строкой выше. Дубль
+                       ничего не сообщал и никуда не вёл — теперь это живое
+                       письмо с уже подставленной книгой в теме. */
+                    secondaryPurchaseLinks.length > 0 ? (
+                      <button
+                         onClick={scrollToBuy}
+                         className="w-full h-14 bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest"
+                      >
+                         {t('product.where_to_buy')}
+                      </button>
+                    ) : (
+                      <a
+                         href={`mailto:info@ampublishing.org?subject=${encodeURIComponent(`${t('product.ask_price')}: ${book.title}`)}`}
+                         className="w-full h-14 flex items-center justify-center bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest"
+                      >
+                         {t('product.ask_price')}
+                      </a>
+                    )
                   )}
                </div>
             </div>
@@ -364,11 +376,13 @@ export const ProductPage: React.FC = () => {
               </div>
               {/* Строка была ~123 знака — вдвое шире нормы чтения. Сузили меру,
                   но колонку центрируем: прижатая влево, она оставляла полэкрана
-                  пустоты справа. */}
+                  пустоты справа. Гарнитура — та же серифная, что в отрывке и
+                  биографии: соседние блоки прозы разными шрифтами читались как
+                  недоделка. */}
               <div className="px-8 py-12 md:px-16 md:py-20">
                 <div className="mx-auto max-w-[40rem] space-y-6">
                   {aboutParas.map((para, i) => (
-                    <p key={i} className="text-[1.05rem] leading-[1.75] text-gray-700 md:text-[1.15rem]">{para}</p>
+                    <p key={i} className="font-serif text-[1.15rem] leading-[1.8] text-primary/85 md:text-[1.28rem] md:leading-[1.85]">{para}</p>
                   ))}
                 </div>
               </div>
