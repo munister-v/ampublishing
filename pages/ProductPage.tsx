@@ -422,14 +422,39 @@ export const ProductPage: React.FC = () => {
               <div className="px-8 py-6 border-b border-primary bg-primary text-white">
                 <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/60">{t('product.themes')}</h2>
               </div>
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${book.story.themes!.length >= 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
-                {book.story.themes!.map((theme, i) => (
-                  <div key={i} className="border-b sm:border-r border-primary p-8 last:border-r-0 bg-primary text-white">
-                    <span className="block font-mono text-[10px] uppercase tracking-widest text-accent mb-4">0{i + 1}</span>
-                    <h3 className="font-serif text-2xl mb-3">{theme.title}</h3>
-                    <p className="text-sm text-white/70 leading-relaxed">{theme.text}</p>
-                  </div>
-                ))}
+              {/* Секция шла от края до края, пока соседние выровнены по общей
+                  колонке, — держим те же поля и ту же меру, что у отрывка.
+
+                  Разделители раньше были заданы `border-primary` — тёмным по
+                  тёмному фону, то есть невидимыми. Теперь это светлые волоски. */}
+              <div className="bg-primary px-8 py-14 text-white md:px-16 md:py-20">
+                <div
+                  className={`mx-auto grid max-w-[74rem] grid-cols-1 gap-y-10 sm:grid-cols-2 sm:gap-x-10 ${
+                    book.story.themes!.length >= 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'
+                  }`}
+                >
+                  {book.story.themes!.map((theme, i) => (
+                    <div
+                      key={i}
+                      className="border-t border-white/15 pt-5 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0"
+                    >
+                      <span className="block font-mono text-[10px] uppercase tracking-widest text-accent">
+                        0{i + 1}
+                      </span>
+                      {/* Заголовки разной длины: сверху они выровнены по волоску,
+                          и колонки читаются как один ряд, даже когда одна тема в
+                          строку, а другая в две. */}
+                      <h3 className="mt-4 font-serif text-[1.4rem] leading-[1.3] md:text-2xl">
+                        {theme.title}
+                      </h3>
+                      {/* Описания у тем не заполнены ни у одной книги — пустой
+                          абзац только раздвигал карточку. Показываем, если есть. */}
+                      {theme.text?.trim() ? (
+                        <p className="mt-3 text-sm leading-relaxed text-white/70">{theme.text}</p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}
