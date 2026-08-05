@@ -12,6 +12,7 @@ import { fetchVariantStates, isStorefrontConfigured, type VariantState } from '.
 import { analytics } from '../services/analytics';
 import { toGenitiveRu } from '../utils/declension';
 import { findBookByRouteId, getBookPath, isAliasRoute } from '../utils/bookRoutes';
+import { BookSpread } from '../components/BookSpread';
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -435,35 +436,39 @@ export const ProductPage: React.FC = () => {
                     так читается непрерывный текст в книге;
                   — первый абзац без отступа и с буквицей — типографская норма.
                 */}
-                <div className="mx-auto max-w-[52rem] bg-white px-7 py-12 md:px-24 md:py-24 ring-1 ring-primary/[0.06] shadow-[0_2px_4px_rgba(4,15,30,0.03),0_30px_70px_-40px_rgba(4,15,30,0.35)]">
-                  {book.story.excerpt.map((para, i) => (
-                    <p
-                      key={i}
-                      className={
-                        "font-serif text-primary/90 " +
-                        "text-[1.15rem] leading-[1.8] md:text-[1.32rem] md:leading-[1.85] " +
-                        (i === 0
-                          ? "first-letter:float-left first-letter:mr-4 first-letter:mt-2 " +
-                            "first-letter:font-serif first-letter:text-[4.6rem] first-letter:leading-[0.76] " +
-                            "first-letter:text-accent md:first-letter:text-[5.6rem] " +
-                            // Первая строка капителью — классический зачин главы,
-                            // мягко вводит в текст без лишней графики.
-                            "first-line:tracking-[0.04em] first-line:text-primary"
-                          : "indent-8 md:indent-12")
-                      }
-                    >
-                      {para}
-                    </p>
-                  ))}
-
-                  {/* Отрывок обрывается на середине главы — читателю нужен знак,
-                      что текст закончился намеренно, а не «недогрузился». */}
-                  <div className="mt-12 text-center">
-                    <span className="block font-serif text-2xl leading-none text-accent/70">❧</span>
-                    <span className="mt-4 block font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">
-                      {t('product.excerpt_end')}
-                    </span>
-                  </div>
+                {/* На широком экране лист шире: две колонки должны держать
+                    норму строки, в 52rem они выходили по ~35 знаков. */}
+                <div className="mx-auto max-w-[52rem] lg:max-w-[74rem] bg-white px-7 py-12 md:px-16 md:py-20 lg:px-20 ring-1 ring-primary/[0.06] shadow-[0_2px_4px_rgba(4,15,30,0.03),0_30px_70px_-40px_rgba(4,15,30,0.35)]">
+                  <BookSpread
+                    paragraphs={book.story.excerpt}
+                    labels={{
+                      prev: t('product.spread_prev'),
+                      next: t('product.spread_next'),
+                      of: t('product.spread_of'),
+                    }}
+                    paragraphClass={(i) =>
+                      "font-serif text-primary/90 " +
+                      "text-[1.15rem] leading-[1.8] md:text-[1.32rem] md:leading-[1.85] " +
+                      (i === 0
+                        ? "first-letter:float-left first-letter:mr-4 first-letter:mt-2 " +
+                          "first-letter:font-serif first-letter:text-[4.6rem] first-letter:leading-[0.76] " +
+                          "first-letter:text-accent md:first-letter:text-[5.6rem] " +
+                          // Первая строка капителью — классический зачин главы,
+                          // мягко вводит в текст без лишней графики.
+                          "first-line:tracking-[0.04em] first-line:text-primary"
+                        : "indent-8 md:indent-12")
+                    }
+                    footer={
+                      /* Отрывок обрывается на середине главы — читателю нужен знак,
+                         что текст закончился намеренно, а не «недогрузился». */
+                      <div className="mt-12 text-center">
+                        <span className="block font-serif text-2xl leading-none text-accent/70">❧</span>
+                        <span className="mt-4 block font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">
+                          {t('product.excerpt_end')}
+                        </span>
+                      </div>
+                    }
+                  />
                 </div>
               </div>
             </div>
