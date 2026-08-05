@@ -6,10 +6,17 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const ROOT = path.resolve(process.cwd(), 'public/content');
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/** Пауза между запросами: free-тариф не любит плотных серий. */
+const REQUEST_GAP_MS = Number(process.env.DEEPL_GAP_MS || 350);
+
 const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
 if (!DEEPL_API_KEY) {
-  console.error('DEEPL_API_KEY not set. Skipping translation.');
-  process.exit(0);
+  // Раньше здесь был тихий выход с кодом 0: workflow годами показывал зелёные
+  // галочки, а переводы не делались, и это заметили только по пустому каталогу
+  // на EN/DE. Пусть лучше падает громко.
+  console.error('DEEPL_API_KEY not set — перевод не выполнен.');
+  process.exit(1);
 }
 
 const DEEPL_ENDPOINT = DEEPL_API_KEY.endsWith(':fx')
@@ -46,19 +53,41 @@ async function deeplTranslate(text, lang) {
   body.set('target_lang', TARGET_LANG[lang]);
   body.set('preserve_formatting', '1');
 
-  const res = await fetch(DEEPL_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body,
-  });
+  // Бесплатный тариф DeepL режет частоту запросов, а дерево контента —
+  // это сотни отдельных строк подряд. Без пауз и повторов первый же прогон
+  // валится с 429 и не переводит вообще ничего.
+  let res;
+  for (let attempt = 0; ; attempt++) {
+    res = await fetch(DEEPL_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body,
+    });
+
+    // 429 — превышена частота, 456 — исчерпана квота символов (её ждать
+    // бессмысленно, поэтому падаем сразу с понятным текстом).
+    if (res.status === 456) {
+      throw new Error('DeepL 456: месячная квота символов исчерпана');
+    }
+    if (res.status !== 429 && res.status < 500) break;
+    if (attempt >= 5) break;
+
+    const wait = Math.min(30000, 1500 * 2 ** attempt);
+    console.log(`DeepL ${res.status}, повтор через ${Math.round(wait / 1000)} с…`);
+    await sleep(wait);
+  }
+
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`DeepL ${res.status}: ${err.slice(0, 200)}`);
   }
   const data = await res.json();
+  // Небольшая пауза между строками — ровный темп дешевле, чем ловить 429
+  // и ждать секундами на повторах.
+  await sleep(REQUEST_GAP_MS);
   const out = data?.translations?.[0]?.text ?? text;
   cache.set(cacheKey, out);
   return out;
