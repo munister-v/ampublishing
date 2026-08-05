@@ -360,12 +360,16 @@ export const ProductPage: React.FC = () => {
           {aboutParas.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] border-b border-primary">
               <div className="p-8 border-b md:border-b-0 md:border-r border-primary bg-[#F4F4F0] flex items-start">
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400 writing-vertical md:writing-vertical">{t('product.about_book')}</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.about_book')}</span>
               </div>
-              <div className="p-8 md:p-16 space-y-6">
-                {aboutParas.map((para, i) => (
-                  <p key={i} className="text-lg leading-relaxed text-gray-700">{para}</p>
-                ))}
+              {/* Строка была ~123 знака — вдвое шире читаемой нормы: глаз терял
+                  строку при возврате. Ограничиваем меру, как в отрывке. */}
+              <div className="p-8 md:p-16">
+                <div className="max-w-[38rem] space-y-6">
+                  {aboutParas.map((para, i) => (
+                    <p key={i} className="text-[1.05rem] leading-[1.75] text-gray-700 md:text-[1.15rem]">{para}</p>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}
@@ -453,11 +457,13 @@ export const ProductPage: React.FC = () => {
               <div className="p-8 border-b md:border-b-0 md:border-r border-primary bg-[#F4F4F0] flex items-start">
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.author_section')}</span>
               </div>
-              <div className="p-8 md:p-16 space-y-5">
-                <h3 className="font-serif text-3xl">{book.author}</h3>
-                {book.story.authorBio.map((para, i) => (
-                  <p key={i} className="text-base leading-relaxed text-gray-600">{para}</p>
-                ))}
+              <div className="p-8 md:p-16">
+                <div className="max-w-[38rem] space-y-5">
+                  <h3 className="font-serif text-3xl">{book.author}</h3>
+                  {book.story.authorBio.map((para, i) => (
+                    <p key={i} className="text-[1.05rem] leading-[1.75] text-gray-600 md:text-[1.15rem]">{para}</p>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}
