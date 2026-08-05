@@ -358,14 +358,15 @@ export const ProductPage: React.FC = () => {
 
           {/* About */}
           {aboutParas.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] border-b border-primary">
-              <div className="p-8 border-b md:border-b-0 md:border-r border-primary bg-[#F4F4F0] flex items-start">
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.about_book')}</span>
+            <div className="border-b border-primary">
+              <div className="px-8 py-6 border-b border-primary">
+                <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.about_book')}</h2>
               </div>
-              {/* Строка была ~123 знака — вдвое шире читаемой нормы: глаз терял
-                  строку при возврате. Ограничиваем меру, как в отрывке. */}
-              <div className="p-8 md:p-16">
-                <div className="max-w-[38rem] space-y-6">
+              {/* Строка была ~123 знака — вдвое шире нормы чтения. Сузили меру,
+                  но колонку центрируем: прижатая влево, она оставляла полэкрана
+                  пустоты справа. */}
+              <div className="px-8 py-12 md:px-16 md:py-20">
+                <div className="mx-auto max-w-[40rem] space-y-6">
                   {aboutParas.map((para, i) => (
                     <p key={i} className="text-[1.05rem] leading-[1.75] text-gray-700 md:text-[1.15rem]">{para}</p>
                   ))}
@@ -417,7 +418,7 @@ export const ProductPage: React.FC = () => {
                     так читается непрерывный текст в книге;
                   — первый абзац без отступа и с буквицей — типографская норма.
                 */}
-                <div className="mx-auto max-w-[46rem] bg-white px-7 py-12 md:px-20 md:py-20 shadow-[0_1px_2px_rgba(4,15,30,0.04),0_18px_50px_-28px_rgba(4,15,30,0.28)]">
+                <div className="mx-auto max-w-[52rem] bg-white px-7 py-12 md:px-24 md:py-24 ring-1 ring-primary/[0.06] shadow-[0_2px_4px_rgba(4,15,30,0.03),0_30px_70px_-40px_rgba(4,15,30,0.35)]">
                   {book.story.excerpt.map((para, i) => (
                     <p
                       key={i}
@@ -460,7 +461,7 @@ export const ProductPage: React.FC = () => {
               {/* Тот же разворот, что у отрывка: биография — связный текст,
                   а не справка, и читается тем же способом. */}
               <div className="px-4 py-10 md:px-10 md:py-16 bg-[#EFEBE3]">
-                <div className="mx-auto max-w-[46rem] bg-white px-7 py-12 md:px-20 md:py-16 shadow-[0_1px_2px_rgba(4,15,30,0.04),0_18px_50px_-28px_rgba(4,15,30,0.28)]">
+                <div className="mx-auto max-w-[52rem] bg-white px-7 py-12 md:px-24 md:py-20 ring-1 ring-primary/[0.06] shadow-[0_2px_4px_rgba(4,15,30,0.03),0_30px_70px_-40px_rgba(4,15,30,0.35)]">
                   <h3 className="font-serif text-3xl md:text-4xl">{book.author}</h3>
                   <div className="mt-6 space-y-5">
                     {book.story.authorBio.map((para, i) => (
