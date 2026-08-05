@@ -5,9 +5,10 @@ import { ArrowRight, Globe, Sparkles } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { EuropeGlyph, DHLBadge } from '../components/BrandGlyphs';
 import { useApp } from '../AppContext';
+import { formatNewsDate } from '../utils/newsDate';
 
 export const HomePage: React.FC = () => {
-  const { t, books, news } = useApp();
+  const { t, books, news, language } = useApp();
   const newBooks = books.filter(b => b.badges.includes('new')).slice(0, 4);
   const heroLine2 = t('home.hero_title_2');
   const heroImageUrl = t('home.hero_image') as string;
@@ -173,12 +174,41 @@ export const HomePage: React.FC = () => {
                to={`/news/${n.id}`}
                className="block group cursor-pointer"
             >
-               <div className="border-b border-primary p-8 md:p-12 flex flex-col md:flex-row items-baseline gap-6 transition-colors duration-500 ease-out group-hover:bg-primary/[0.03]">
-                  <span className="font-mono text-xs w-32 shrink-0 text-primary/50 group-hover:text-accent transition-colors duration-500">0{idx+1} / {n.date}</span>
-                  <div className="flex-1">
-                     <h3 className="text-4xl md:text-6xl font-serif mb-2 transition-all duration-300 group-hover:translate-x-2">{n.title}</h3>
+               {/*
+                 Раньше строка показывала только огромный заголовок (60px) и дату
+                 в том виде, в каком её сохранил редактор — соседние новости шли
+                 в разных форматах («2026-07-12» и «May 03, 2026»). Подводка при
+                 этом лежала в данных, но не выводилась, и читатель не понимал,
+                 о чём новость, пока не откроет её.
+               */}
+               <div className="border-b border-primary px-8 py-10 md:px-12 md:py-12 flex flex-col md:flex-row md:items-start gap-4 md:gap-10 transition-colors duration-500 ease-out group-hover:bg-primary/[0.03]">
+                  <div className="md:w-40 shrink-0 flex items-center gap-3 md:block">
+                     <span className="font-mono text-[10px] tabular-nums text-primary/30">{String(idx + 1).padStart(2, '0')}</span>
+                     <time
+                        dateTime={n.date}
+                        className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary/50 group-hover:text-accent transition-colors duration-500 md:mt-2 md:block"
+                     >
+                        {formatNewsDate(n.date, language)}
+                     </time>
                   </div>
-                  <ArrowRight className="hidden md:block text-primary/40 transform group-hover:translate-x-4 group-hover:text-accent transition-all duration-500 ease-out-quart" />
+
+                  <div className="flex-1 min-w-0">
+                     {n.category ? (
+                        <span className="inline-block mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-accent">
+                           {n.category}
+                        </span>
+                     ) : null}
+                     <h3 className="font-serif text-3xl md:text-[2.6rem] leading-[1.12] transition-transform duration-300 group-hover:translate-x-1">
+                        {n.title}
+                     </h3>
+                     {n.preview ? (
+                        <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-primary/60 line-clamp-2">
+                           {n.preview}
+                        </p>
+                     ) : null}
+                  </div>
+
+                  <ArrowRight className="hidden md:block shrink-0 mt-2 text-primary/30 transform group-hover:translate-x-3 group-hover:text-accent transition-all duration-500 ease-out-quart" />
                </div>
             </Link>
          ))}

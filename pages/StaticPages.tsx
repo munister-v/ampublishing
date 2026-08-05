@@ -5,6 +5,7 @@ import { useApp } from '../AppContext';
 import { Link, useParams } from 'react-router-dom';
 import { getAuthorShowcaseContent } from '../services/authorShowcase';
 import type { AboutLayoutSettings, NewsBlock } from '../types';
+import { formatNewsDate } from '../utils/newsDate';
 
 // --- Components ---
 const SectionHeader: React.FC<{ title: string; subtitle?: string; bgClass?: string }> = ({ title, subtitle, bgClass = 'bg-primary' }) => (
@@ -635,7 +636,12 @@ export const NewsPage: React.FC = () => {
         <Link to="/" className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-gray-500 hover:text-accent transition-colors mb-10">
           <ArrowLeft size={14} /> {L.back}
         </Link>
-        <p className="font-mono text-xs uppercase tracking-widest text-gray-500 mb-4">{item.date}</p>
+        <time
+          dateTime={item.date}
+          className="block font-mono text-xs uppercase tracking-widest text-gray-500 mb-4"
+        >
+          {formatNewsDate(item.date, language)}
+        </time>
         <h1 className="font-serif text-4xl md:text-6xl leading-[1.05] text-primary mb-10 break-words">{item.title}</h1>
         {item.imageUrl ? (
           <figure className="mb-10">
