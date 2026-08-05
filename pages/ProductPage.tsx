@@ -201,7 +201,10 @@ export const ProductPage: React.FC = () => {
 
                {/* VARIANTS SELECTOR */}
                <div className="py-8 border-b border-primary">
-                  <div className="mb-6">
+                  {/* У книг без заведённых вариантов подпись висела над пустотой:
+                      заголовок «Формат» и под ним ничего. Показываем, только
+                      когда есть что выбирать. */}
+                  <div className={availableFormats.length > 0 ? 'mb-6' : 'hidden'}>
                     <span className="block text-[10px] uppercase text-gray-400 mb-3 tracking-widest">{t('product.format')}</span>
                     <div className="flex flex-wrap gap-3">
                       {availableFormats.map(f => (
