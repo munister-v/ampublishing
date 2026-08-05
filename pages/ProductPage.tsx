@@ -383,10 +383,33 @@ export const ProductPage: React.FC = () => {
                   пустоты справа. Гарнитура — та же серифная, что в отрывке и
                   биографии: соседние блоки прозы разными шрифтами читались как
                   недоделка. */}
-              <div className="px-8 py-12 md:px-16 md:py-20">
-                <div className="mx-auto max-w-[40rem] space-y-6">
+              {/* Тёплая подложка — та же, что под отрывком: аннотация и отрывок
+                  идут подряд, и на белом фоне этот блок висел в пустоте, тогда
+                  как соседний лежал на бумаге.
+
+                  Абзацы отбиваются пробелом, а не красной строкой: это не
+                  сплошная проза, а издательская аннотация, и набор у неё должен
+                  отличаться от отрывка, иначе два соседних блока сливаются. */}
+              <div className="bg-[#EFEBE3] px-8 py-14 md:px-16 md:py-24">
+                <div className="mx-auto max-w-[40rem]">
+                  {/* Короткий штрих вместо пустоты над текстом — даёт колонке
+                      верхнюю точку опоры, как зачин на шмуцтитуле. */}
+                  <span aria-hidden className="mx-auto mb-10 block h-px w-16 bg-accent/50" />
+
                   {aboutParas.map((para, i) => (
-                    <p key={i} className="font-serif text-[1.15rem] leading-[1.8] text-primary/85 md:text-[1.28rem] md:leading-[1.85]">{para}</p>
+                    <p
+                      key={i}
+                      className={
+                        'font-serif ' +
+                        (i === 0
+                          // Первый абзац — вводный: крупнее и темнее, он держит
+                          // начало и задаёт, с чего читать.
+                          ? 'text-[1.3rem] leading-[1.7] text-primary md:text-[1.5rem] md:leading-[1.65]'
+                          : 'mt-6 text-[1.12rem] leading-[1.8] text-primary/80 md:text-[1.22rem] md:leading-[1.85]')
+                      }
+                    >
+                      {para}
+                    </p>
                   ))}
                 </div>
               </div>
@@ -480,16 +503,26 @@ export const ProductPage: React.FC = () => {
               <div className="px-8 py-6 border-b border-primary">
                 <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.author_section')}</h2>
               </div>
-              {/* Тот же разворот, что у отрывка: биография — связный текст,
-                  а не справка, и читается тем же способом. */}
-              <div className="px-4 py-10 md:px-10 md:py-16 bg-[#EFEBE3]">
-                <div className="mx-auto max-w-[52rem] bg-white px-7 py-12 md:px-24 md:py-20 ring-1 ring-primary/[0.06] shadow-[0_2px_4px_rgba(4,15,30,0.03),0_30px_70px_-40px_rgba(4,15,30,0.35)]">
-                  <h3 className="font-serif text-3xl md:text-4xl">{book.author}</h3>
-                  <div className="mt-6 space-y-5">
-                    {book.story.authorBio.map((para, i) => (
-                      <p key={i} className="font-serif text-[1.08rem] leading-[1.8] text-primary/80 md:text-[1.18rem]">{para}</p>
-                    ))}
-                  </div>
+              {/* Набрано как аннотация, а не как отрывок. Правило по странице
+                  простое: белый лист — это проза автора, и он тут один, у
+                  отрывка. Биография — редакционный текст о человеке, поэтому
+                  лежит прямо на тёплом фоне. Раньше лист шёл сразу за листом
+                  отрывка, и два одинаковых блока подряд читались как повтор. */}
+              <div className="bg-[#EFEBE3] px-8 py-14 md:px-16 md:py-24">
+                <div className="mx-auto max-w-[40rem]">
+                  <span aria-hidden className="mx-auto mb-10 block h-px w-16 bg-accent/50" />
+                  <h3 className="font-serif text-3xl text-primary md:text-4xl">{book.author}</h3>
+                  {book.story.authorBio.map((para, i) => (
+                    <p
+                      key={i}
+                      className={
+                        'font-serif text-[1.12rem] leading-[1.8] text-primary/80 md:text-[1.22rem] md:leading-[1.85] ' +
+                        (i === 0 ? 'mt-7' : 'mt-6')
+                      }
+                    >
+                      {para}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>
