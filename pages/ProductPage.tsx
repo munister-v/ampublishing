@@ -377,7 +377,7 @@ export const ProductPage: React.FC = () => {
           {/* Themes */}
           {(book.story.themes?.length ?? 0) > 0 ? (
             <div className="border-b border-primary">
-              <div className="p-8 border-b border-primary bg-primary text-white">
+              <div className="px-8 py-6 border-b border-primary bg-primary text-white">
                 <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/60">{t('product.themes')}</h2>
               </div>
               <div className={`grid grid-cols-1 sm:grid-cols-2 ${book.story.themes!.length >= 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
@@ -400,7 +400,7 @@ export const ProductPage: React.FC = () => {
               wall of text before. */}
           {(book.story.excerpt?.length ?? 0) > 0 ? (
             <div className="border-b border-primary">
-              <div className="p-8 border-b border-primary flex flex-wrap items-baseline justify-between gap-3">
+              <div className="px-8 py-6 border-b border-primary flex flex-wrap items-baseline justify-between gap-3">
                 <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.excerpt')}</h2>
                 <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-gray-300">
                   {book.title}
@@ -453,16 +453,20 @@ export const ProductPage: React.FC = () => {
 
           {/* Author bio */}
           {(book.story.authorBio?.length ?? 0) > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] border-b border-primary">
-              <div className="p-8 border-b md:border-b-0 md:border-r border-primary bg-[#F4F4F0] flex items-start">
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.author_section')}</span>
+            <div className="border-b border-primary">
+              <div className="px-8 py-6 border-b border-primary">
+                <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.author_section')}</h2>
               </div>
-              <div className="p-8 md:p-16">
-                <div className="max-w-[38rem] space-y-5">
-                  <h3 className="font-serif text-3xl">{book.author}</h3>
-                  {book.story.authorBio.map((para, i) => (
-                    <p key={i} className="text-[1.05rem] leading-[1.75] text-gray-600 md:text-[1.15rem]">{para}</p>
-                  ))}
+              {/* Тот же разворот, что у отрывка: биография — связный текст,
+                  а не справка, и читается тем же способом. */}
+              <div className="px-4 py-10 md:px-10 md:py-16 bg-[#EFEBE3]">
+                <div className="mx-auto max-w-[46rem] bg-white px-7 py-12 md:px-20 md:py-16 shadow-[0_1px_2px_rgba(4,15,30,0.04),0_18px_50px_-28px_rgba(4,15,30,0.28)]">
+                  <h3 className="font-serif text-3xl md:text-4xl">{book.author}</h3>
+                  <div className="mt-6 space-y-5">
+                    {book.story.authorBio.map((para, i) => (
+                      <p key={i} className="font-serif text-[1.08rem] leading-[1.8] text-primary/80 md:text-[1.18rem]">{para}</p>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -475,7 +479,7 @@ export const ProductPage: React.FC = () => {
               const single = reviews.length === 1;
               return (
                 <div className="border-b border-primary">
-                  <div className="p-8 border-b border-primary">
+                  <div className="px-8 py-6 border-b border-primary">
                     <h2 className="font-mono text-[10px] uppercase tracking-[0.22em] text-gray-400">{t('product.reviews')}</h2>
                   </div>
                   {single ? (
@@ -489,7 +493,7 @@ export const ProductPage: React.FC = () => {
                     <div className={`grid grid-cols-1 sm:grid-cols-2 ${reviews.length >= 3 ? 'xl:grid-cols-3' : ''}`}>
                       {reviews.map((review, i) => (
                         <div key={i} className="p-8 md:p-10 border-b sm:border-r border-primary last:border-r-0">
-                          <p className="text-xl font-serif italic leading-relaxed mb-6">«{review.quote}»</p>
+                          <p className="font-serif text-[1.15rem] leading-[1.7] italic mb-6 text-primary/85">«{review.quote}»</p>
                           <p className="font-mono text-[10px] uppercase tracking-widest text-gray-400">— {review.author}</p>
                         </div>
                       ))}
