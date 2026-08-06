@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, Menu, X, ArrowRight, Clock, Trash2 } from 'lucide-react';
+import { Search, Menu, X, ArrowRight, ArrowUpRight, Clock, Trash2 } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { setDocumentScrollLock } from '../utils/scrollLock';
+import { SHOPIFY_STORE_URL } from '../utils/purchaseLinks';
+import { analytics } from '../services/analytics';
 
 export const BrandLogo: React.FC<{ className?: string; white?: boolean }> = ({ className = "w-10 h-10", white }) => (
   <img
@@ -15,11 +17,9 @@ export const BrandLogo: React.FC<{ className?: string; white?: boolean }> = ({ c
 );
 
 export const Header: React.FC = () => {
-  const { cart, setCartOpen, language, setLanguage, t, searchHistory, addSearchHistory, clearSearchHistory, siteSettings } = useApp();
+  const { language, setLanguage, t, searchHistory, addSearchHistory, clearSearchHistory, siteSettings } = useApp();
   const headerNav = (siteSettings?.headerNav || []).filter(item => item.enabled !== false);
-  const brandShort = siteSettings?.brand?.short || 'AM Pub.';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -119,17 +119,18 @@ export const Header: React.FC = () => {
               ))}
             </div>
 
-            <button 
-              onClick={() => setCartOpen(true)} 
-              aria-label="Open Cart"
-              className="w-[64px] md:w-[94px] flex items-center justify-center relative group overflow-hidden border-primary border-l md:border-l-0"
+            <a
+              href={SHOPIFY_STORE_URL}
+              onClick={() => analytics.track('shopify_buy_click', { source: 'header', destination: SHOPIFY_STORE_URL })}
+              aria-label={t('nav.shop')}
+              className="w-[56px] md:w-[148px] min-h-[44px] flex items-center justify-center gap-2 relative group overflow-hidden border-primary border-l md:border-l-0 bg-accent text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
             >
-              <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out-quart"></div>
-              <div className="relative z-10 flex items-center group-hover:text-white transition-colors duration-500">
-                 <span className="font-mono text-sm mr-2">({cartCount})</span>
-                 <ShoppingBag size={18} strokeWidth={1} />
-              </div>
-            </button>
+              <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+              <span className="relative z-10 hidden md:inline text-[10px] font-bold uppercase tracking-[0.2em] group-hover:text-white transition-colors duration-300">
+                {t('nav.shop')}
+              </span>
+              <ArrowUpRight className="relative z-10 group-hover:text-white transition-colors duration-300" size={18} strokeWidth={1.5} aria-hidden="true" />
+            </a>
 
              <button 
               onClick={() => setMobileMenuOpen(true)}
@@ -234,6 +235,17 @@ export const Header: React.FC = () => {
                   <span className="text-xs font-mono opacity-0 group-hover:opacity-100 text-accent transition-opacity duration-700">0{i+1}</span>
                 </Link>
               ))}
+              <a
+                href={SHOPIFY_STORE_URL}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  analytics.track('shopify_buy_click', { source: 'mobile_menu', destination: SHOPIFY_STORE_URL });
+                }}
+                className="mt-5 min-h-[56px] bg-accent text-primary px-5 py-4 text-sm font-bold uppercase tracking-[0.2em] flex items-center justify-between border border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                {t('nav.shop')}
+                <ArrowUpRight size={20} aria-hidden="true" />
+              </a>
               <div className="mt-auto grid grid-cols-3 gap-px bg-white/20 border border-white/20 animate-fade-up delay-500 gpu-accelerated">
                  {(['en', 'de', 'ru'] as const).map(lang => (
                     <button 

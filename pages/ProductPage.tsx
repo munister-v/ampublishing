@@ -1,14 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useApp } from '../AppContext';
-import { Minus, Plus, ArrowLeft, AlertCircle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
-import { BookVariant, Format, PurchaseLink } from '../types';
+import { PurchaseLink } from '../types';
 import { formatLabel } from '../utils/formatLabel';
 import { getActivePurchaseLinks, getShopifyPurchaseLink, isShopifyPurchaseLink } from '../utils/purchaseLinks';
-import { buildShopifyCartUrl, getShopifyLinkForBook } from '../utils/shopify';
-import { fetchVariantStates, isStorefrontConfigured, type VariantState } from '../services/shopifyStorefront';
 import { analytics } from '../services/analytics';
 import { toGenitiveRu } from '../utils/declension';
 import { findBookByRouteId, getBookPath, isAliasRoute } from '../utils/bookRoutes';
@@ -16,112 +14,45 @@ import { BookSpread } from '../components/BookSpread';
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { addToCart, region, t, addRecentlyViewed, books, language, integrations } = useApp();
+  const { region, t, addRecentlyViewed, books, language, checkAgeGate } = useApp();
   const book = findBookByRouteId(books, id);
-  const [qty, setQty] = useState(1);
   const relatedBooks = book ? books.filter(b => b.genre[0] === book.genre[0] && b.id !== book.id).slice(0, 4) : [];
-  
-  // Variant Logic
-  const [selectedFormat, setSelectedFormat] = useState<Format | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
-  const [currentVariant, setCurrentVariant] = useState<BookVariant | null>(null);
-  // Живые цена и наличие из Shopify (если подключён Storefront API).
-  const [shopifyState, setShopifyState] = useState<VariantState | null>(null);
 
   useEffect(() => {
-    if (book) {
-      addRecentlyViewed(book);
-      // Default selection
-      if (book.variants.length > 0) {
-        const defaultVar = book.variants[0];
-        setSelectedFormat(defaultVar.format);
-        setSelectedLanguage(defaultVar.language);
-        setCurrentVariant(defaultVar);
-      }
-    }
+    if (book) addRecentlyViewed(book);
   }, [book, id]);
-
-  useEffect(() => {
-    if (book && selectedFormat && selectedLanguage) {
-      const v = book.variants.find(v => v.format === selectedFormat && v.language === selectedLanguage);
-      setCurrentVariant(v || null);
-    }
-  }, [selectedFormat, selectedLanguage, book]);
-
-  useEffect(() => {
-    const shopify = integrations?.shopify;
-    const link = book ? getShopifyLinkForBook(shopify, book.id) : null;
-    if (!shopify || !link || !isStorefrontConfigured(shopify)) {
-      setShopifyState(null);
-      return;
-    }
-    let alive = true;
-    fetchVariantStates(shopify, [link.variantId])
-      .then(states => { if (alive) setShopifyState(states[link.variantId.replace(/\D/g, '')] || null); })
-      .catch(error => { console.warn('[shopify] не удалось получить цену', error); });
-    return () => { alive = false; };
-  }, [integrations, book?.id]);
 
   if (!book) return <div className="pt-32 text-center font-mono uppercase">{t('product.not_found')}</div>;
   if (isAliasRoute(book, id)) return <Navigate to={getBookPath(book)} replace />;
 
-  // Shopify: сначала прямая привязка книги к варианту товара (админка →
-  // Интеграции → Shopify), затем — старая ручная ссылка в purchaseLinks.
-  const shopifyProduct = getShopifyLinkForBook(integrations?.shopify, book.id);
-  const shopifyCartUrl = shopifyProduct && integrations
-    ? buildShopifyCartUrl(integrations.shopify, shopifyProduct.variantId, qty)
-    : null;
-  const shopifyLink = shopifyCartUrl
-    ? { id: 'shopify', label: 'Shopify', url: shopifyCartUrl }
-    : getShopifyPurchaseLink(book);
+  // The editorial site links to the real Shopify product page. Shopify owns
+  // quantity, live price, availability, payment, and delivery.
+  const shopifyLink = getShopifyPurchaseLink(book);
   const secondaryPurchaseLinks = getActivePurchaseLinks(book).filter((link): link is PurchaseLink => !isShopifyPurchaseLink(link));
-  const availableFormats = Array.from(new Set(book.variants.map(v => v.format))) as Format[];
-  
-  // Get languages available for the currently selected format
-  const availableLanguages = selectedFormat 
-    ? Array.from(new Set(book.variants.filter(v => v.format === selectedFormat).map(v => v.language)))
-    : [];
+  const mainVariant = book.variants[0];
+  const hasLocalPrice = book.price > 0;
+  const actionLabel = book.isPreorder ? t('product.preorder_in_shop') : t('product.buy_in_shop');
 
-  const handleFormatChange = (newFormat: Format) => {
-    setSelectedFormat(newFormat);
-    // Smart language selection: try to keep current language, else pick first available
-    const newLangs = Array.from(new Set(book.variants.filter(v => v.format === newFormat).map(v => v.language)));
-    if (selectedLanguage && newLangs.includes(selectedLanguage)) {
-        // Keep current
-    } else if (newLangs.length > 0) {
-        setSelectedLanguage(newLangs[0]);
-    } else {
-        setSelectedLanguage(null);
+  const handleShopClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!shopifyLink) return;
+    analytics.shopifyBuyClick(book.id, shopifyLink.url, 'product_page');
+
+    if (book.badges.includes('18+')) {
+      event.preventDefault();
+      checkAgeGate(book, () => window.location.assign(shopifyLink.url));
     }
   };
-
-  const handleAddToCart = () => {
-    if (currentVariant && currentVariant.stock > 0) {
-      if (shopifyLink) {
-        analytics.shopifyBuyClick(book.id, shopifyProduct?.variantId || shopifyLink.url);
-        window.location.assign(shopifyLink.url);
-        return;
-      }
-      addToCart(book, currentVariant, qty);
-    }
-  };
-
-  // Pricing / availability
-  const effectivePrice = currentVariant ? currentVariant.price : book.price;
-  const isPurchasable = effectivePrice > 0;
-  const effectiveStock = currentVariant ? currentVariant.stock : book.stock;
-  const inStock = effectiveStock > 0;
 
   // Build a compact, data-driven spec list (only real values are shown)
   const specs: { label: string; value: string }[] = [
     { label: t('product.details.year'), value: String(book.details.year || '') },
     { label: t('product.details.pages'), value: book.details.pages ? String(book.details.pages) : '' },
-    { label: t('product.format'), value: currentVariant ? formatLabel(currentVariant.format, language) : '' },
-    { label: t('product.language'), value: currentVariant ? currentVariant.language.toUpperCase() : '' },
+    { label: t('product.format'), value: mainVariant ? formatLabel(mainVariant.format, language) : '' },
+    { label: t('product.language'), value: mainVariant ? mainVariant.language.toUpperCase() : '' },
     { label: t('product.details.publisher'), value: book.details.publisher || '' },
     { label: t('product.details.dimensions'), value: book.details.dimensions || '' },
     { label: t('product.details.weight'), value: book.details.weight || '' },
-    { label: t('product.details.isbn'), value: currentVariant ? currentVariant.isbn : (book.variants[0]?.isbn || '') },
+    { label: t('product.details.isbn'), value: mainVariant?.isbn || '' },
   ].filter(s => s.value.trim() !== '');
 
   const scrollToBuy = () => {
@@ -141,10 +72,9 @@ export const ProductPage: React.FC = () => {
       {/* HEADER NAV */}
       <div className="border-b border-primary px-4 py-2 flex justify-between items-center bg-white sticky top-[58px] md:top-[76px] z-20">
          <Link to="/catalog" className="flex items-center gap-2 text-[10px] uppercase font-bold hover:text-accent">
-            <ArrowLeft size={12} /> {t('cart.back_to_catalog')}
+            <ArrowLeft size={12} /> {t('product.back_to_catalog')}
          </Link>
-         {/* Fix: Display variant ISBN or fallback */}
-         <span className="font-mono text-[10px]">{currentVariant ? currentVariant.isbn : (book.variants[0]?.isbn || '')}</span>
+         <span className="font-mono text-[10px]">{mainVariant?.isbn || ''}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 border-b border-primary">
@@ -169,14 +99,19 @@ export const ProductPage: React.FC = () => {
                <div className="mb-10">
                   <div className="flex flex-wrap items-center gap-3 mb-5">
                      <span className="text-accent font-mono text-xs uppercase tracking-widest">{book.genre[0]}</span>
-                     {inStock ? (
+                     {book.isPreorder ? (
+                       <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-accent">
+                         <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" aria-hidden="true" />
+                         {t('product.preorder')}
+                       </span>
+                     ) : shopifyLink ? (
                        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-primary/70">
-                         <span className="w-1.5 h-1.5 rounded-full bg-green-600 inline-block" />
-                         {t('product.in_stock_label')}
+                         <span className="w-1.5 h-1.5 rounded-full bg-green-700 inline-block" aria-hidden="true" />
+                         {t('product.available_in_shop')}
                        </span>
                      ) : (
                        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-gray-400">
-                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" />
+                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" aria-hidden="true" />
                          {t('product.out_of_stock')}
                        </span>
                      )}
@@ -189,6 +124,50 @@ export const ProductPage: React.FC = () => {
                   </p>
                </div>
 
+               {/* Keep the only checkout action in the first information screen. */}
+               <div className="border border-primary bg-[#F4F4F0] p-5 md:p-6 mb-10">
+                  <div className="flex flex-col gap-4">
+                     <div className="flex justify-between items-baseline gap-4">
+                        <span className="font-mono text-xs uppercase">{t('product.purchase')}</span>
+                        <span className={`${hasLocalPrice ? 'text-4xl font-serif' : 'text-sm font-mono uppercase tracking-[0.16em]'} text-right text-primary`}>
+                          {hasLocalPrice ? `${book.price.toFixed(2)} ${region.currency}` : t('product.price_in_shop')}
+                        </span>
+                     </div>
+
+                     {shopifyLink ? (
+                       <>
+                         <a
+                           href={shopifyLink.url}
+                           onClick={handleShopClick}
+                           className="w-full min-h-[58px] px-6 py-4 flex items-center justify-center gap-3 bg-primary text-white hover:bg-accent hover:text-primary transition-colors duration-300 uppercase font-bold text-sm tracking-[0.16em] border border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                         >
+                           {actionLabel}
+                           <ExternalLink size={17} aria-hidden="true" />
+                         </a>
+                         <p className="text-center font-mono text-[10px] leading-relaxed uppercase tracking-[0.12em] text-primary/60">
+                           {t('product.shop_checkout_note')}
+                         </p>
+                       </>
+                     ) : (
+                       secondaryPurchaseLinks.length > 0 ? (
+                         <button
+                            onClick={scrollToBuy}
+                            className="w-full min-h-[56px] bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                         >
+                            {t('product.where_to_buy')}
+                         </button>
+                       ) : (
+                         <a
+                            href={`mailto:info@ampublishing.org?subject=${encodeURIComponent(`${t('product.ask_price')}: ${book.title}`)}`}
+                            className="w-full min-h-[56px] flex items-center justify-center bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                         >
+                            {t('product.ask_price')}
+                         </a>
+                       )
+                     )}
+                  </div>
+               </div>
+
                {specs.length > 0 && (
                  <dl className="grid grid-cols-2 sm:grid-cols-3 border-t border-l border-primary">
                     {specs.map((s, i) => (
@@ -199,48 +178,6 @@ export const ProductPage: React.FC = () => {
                     ))}
                  </dl>
                )}
-
-               {/* VARIANTS SELECTOR */}
-               <div className="py-8 border-b border-primary">
-                  {/* У книг без заведённых вариантов подпись висела над пустотой:
-                      заголовок «Формат» и под ним ничего. Показываем, только
-                      когда есть что выбирать. */}
-                  <div className={availableFormats.length > 0 ? 'mb-6' : 'hidden'}>
-                    <span className="block text-[10px] uppercase text-gray-400 mb-3 tracking-widest">{t('product.format')}</span>
-                    <div className="flex flex-wrap gap-3">
-                      {availableFormats.map(f => (
-                        <button
-                          key={f}
-                          onClick={() => handleFormatChange(f)}
-                          className={`px-4 py-2 border font-mono text-xs uppercase transition-all ${selectedFormat === f ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-primary hover:bg-gray-100'}`}
-                        >
-                          {formatLabel(f, language)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {selectedFormat && (
-                    <div className="mb-4">
-                      <span className="block text-[10px] uppercase text-gray-400 mb-3 tracking-widest">{t('product.language')}</span>
-                      <div className="flex flex-wrap gap-3">
-                        {availableLanguages.map(l => (
-                          <button
-                            key={l}
-                            onClick={() => setSelectedLanguage(l)}
-                            className={`px-4 py-2 border font-mono text-xs uppercase transition-all ${selectedLanguage === l ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-primary hover:bg-gray-100'}`}
-                          >
-                            {l}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {!currentVariant && selectedFormat && (
-                     <p className="text-red-500 text-xs font-mono flex items-center gap-2 mt-4"><AlertCircle size={12}/> {t('product.variant_unavailable')}</p>
-                  )}
-               </div>
 
                {secondaryPurchaseLinks.length > 0 ? (
                  <section id="buy-elsewhere" className="border-t border-primary py-8 md:py-10 scroll-mt-32">
@@ -273,74 +210,6 @@ export const ProductPage: React.FC = () => {
                      </p>
                   </div>
                </section>
-            </div>
-
-            {/* ACTION FOOTER */}
-            {/* Added 'pb-safe-b' to respect Safe Area on iOS */}
-            <div className="border-t border-primary bg-[#F4F4F0] p-6 md:p-8 md:sticky md:bottom-0 z-10 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-               <div className="flex flex-col gap-4">
-                  <div className="flex justify-between items-baseline">
-                     <span className="font-mono text-xs uppercase">{isPurchasable ? t('cart.total') : t('product.availability')}</span>
-                     <span className="text-4xl font-serif text-right">
-                       {isPurchasable
-                          ? shopifyState?.price != null
-                            ? `${shopifyState.price.toFixed(2)} ${shopifyState.currency === 'EUR' ? '€' : shopifyState.currency}`
-                            : `${(currentVariant ? currentVariant.price : book.price).toFixed(2)} ${region.currency}`
-                          : t('product.price_on_request')}
-                       {shopifyState?.available === false ? (
-                         <span className="block text-[10px] font-mono uppercase tracking-widest text-amber-600">
-                           {t('product.out_of_stock')}
-                         </span>
-                       ) : null}
-                     </span>
-                  </div>
-
-                  {isPurchasable ? (
-                    <div className="flex border border-primary bg-white h-14 md:h-14">
-                       <button onClick={() => setQty(Math.max(1, qty-1))} className="w-14 border-r border-primary hover:bg-primary hover:text-white flex items-center justify-center transition-colors">
-                          <Minus size={16} />
-                       </button>
-                       <div className="flex-1 flex items-center justify-center font-mono text-lg border-r border-primary">
-                          {qty}
-                       </div>
-                       <button onClick={() => setQty(qty+1)} className="w-14 border-r border-primary hover:bg-primary hover:text-white flex items-center justify-center transition-colors">
-                          <Plus size={16} />
-                       </button>
-                       <button
-                          onClick={handleAddToCart}
-                          className="flex-[2] bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest disabled:bg-gray-300 disabled:cursor-not-allowed"
-                          disabled={!currentVariant || currentVariant.stock === 0 || shopifyState?.available === false}
-                       >
-                          {!currentVariant
-                             ? t('product.select_variant')
-                             : currentVariant.stock > 0
-                               ? (shopifyLink ? t('product.buy_on_shopify') : t('product.add_to_cart'))
-                               : t('product.out_of_stock')
-                          }
-                       </button>
-                    </div>
-                  ) : (
-                    /* Без ссылок на магазины кнопка раньше была отключена и
-                       повторяла надпись «Цена по запросу» строкой выше. Дубль
-                       ничего не сообщал и никуда не вёл — теперь это живое
-                       письмо с уже подставленной книгой в теме. */
-                    secondaryPurchaseLinks.length > 0 ? (
-                      <button
-                         onClick={scrollToBuy}
-                         className="w-full h-14 bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest"
-                      >
-                         {t('product.where_to_buy')}
-                      </button>
-                    ) : (
-                      <a
-                         href={`mailto:info@ampublishing.org?subject=${encodeURIComponent(`${t('product.ask_price')}: ${book.title}`)}`}
-                         className="w-full h-14 flex items-center justify-center bg-primary text-white hover:bg-accent transition-colors uppercase font-bold text-sm tracking-widest"
-                      >
-                         {t('product.ask_price')}
-                      </a>
-                    )
-                  )}
-               </div>
             </div>
 
          </div>

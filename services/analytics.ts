@@ -231,8 +231,8 @@ class AnalyticsService {
     this.track('lead_submit', { service_id: serviceId, delivered });
   }
 
-  public shopifyBuyClick(bookId: string, variantId: string) {
-    this.track('shopify_buy_click', { book_id: bookId, variant_id: variantId });
+  public shopifyBuyClick(bookId: string, destination: string, source = 'product_page') {
+    this.track('shopify_buy_click', { book_id: bookId, destination, source });
   }
 
   public dhlTrackingClick(orderId: string) {

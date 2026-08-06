@@ -14,6 +14,7 @@ import {
   serverHealth, getLeadsToken, setLeadsToken,
 } from '../services/leadsApi';
 import { buildShopifyCartUrl, buildShopifyProductUrl, normalizeShopifyDomain, shopifyCoverage } from '../utils/shopify';
+import { getShopifyPurchaseLink, SHOPIFY_STORE_URL } from '../utils/purchaseLinks';
 import { fetchVariantStates, isStorefrontConfigured, pingStorefront, clearStorefrontCache, type VariantState } from '../services/shopifyStorefront';
 import { buildDhlTrackingUrl, estimateWeightGrams, ordersToDhlCsv } from '../utils/dhl';
 import type {
@@ -163,15 +164,19 @@ export const IntegrationsPanel: React.FC<{
     }
   };
 
-  const coverage = useMemo(
+  const apiCoverage = useMemo(
     () => (draft ? shopifyCoverage(draft.shopify, books) : { linked: 0, total: 0 }),
     [draft, books],
   );
+  const directLinkCoverage = useMemo(() => ({
+    linked: books.filter(book => Boolean(getShopifyPurchaseLink(book))).length,
+    total: books.length,
+  }), [books]);
   const shopifyReadiness = [
     { label: 'Магазин включён', ready: draft?.shopify.enabled },
     { label: 'Домен указан', ready: Boolean(normalizeShopifyDomain(draft?.shopify.domain || '')) },
-    { label: 'Книги привязаны', ready: coverage.total > 0 && coverage.linked === coverage.total },
-    { label: 'Live‑каталог', ready: Boolean(draft?.shopify.storefrontToken.trim()) },
+    { label: 'Ссылки у книг', ready: directLinkCoverage.total > 0 && directLinkCoverage.linked === directLinkCoverage.total },
+    { label: 'API (необязательно)', ready: Boolean(draft?.shopify.storefrontToken.trim()) },
   ];
 
   // Сервер — источник правды; локальный журнал остаётся запасным.
@@ -242,12 +247,10 @@ export const IntegrationsPanel: React.FC<{
     return acc;
   }, {});
 
-  // Воронка магазина: сколько людей дошло от карточки книги до заказа.
+  // Воронка витрины: просмотр книги → переход на товар в Shopify.
   const funnelSteps = [
     { key: 'view_item', label: 'Смотрели книгу' },
-    { key: 'add_to_cart', label: 'В корзину' },
-    { key: 'begin_checkout', label: 'Начали оформление' },
-    { key: 'purchase', label: 'Заказ' },
+    { key: 'shopify_buy_click', label: 'Перешли в Shopify' },
   ].map(step => ({ ...step, count: eventCounts[step.key] || 0 }));
   const funnelTop = funnelSteps[0].count || 1;
 
@@ -309,11 +312,31 @@ export const IntegrationsPanel: React.FC<{
       {/* ─────────── SHOPIFY ─────────── */}
       {section === 'shopify' ? (
         <section className="bg-white border border-primary/10 p-5 md:p-6 space-y-6">
+          <div className="border border-primary bg-[#F4F4F0] p-4 md:p-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-accent">Основной способ подключения</p>
+                <h4 className="mt-1 font-serif text-2xl">Книги → карточка книги → URL товара Shopify</h4>
+                <p className="mt-2 max-w-3xl text-xs leading-relaxed text-gray-600">
+                  Для обычного добавления книги Storefront API и ID варианта не нужны. Вставьте публичную ссылку товара в редакторе книги — все кнопки покупки сразу будут вести в Shopify. Настройки ниже оставлены только для расширенной API-диагностики.
+                </p>
+              </div>
+              <a
+                href={SHOPIFY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 border border-primary bg-white px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-white"
+              >
+                <ExternalLink size={14} /> Открыть магазин
+              </a>
+            </div>
+          </div>
+
           <Toggle
             checked={draft.shopify.enabled}
             onChange={value => patch(next => { next.shopify.enabled = value; })}
-            label="Продавать книги через Shopify"
-            hint="Кнопка «Купить» на карточке книги ведёт в корзину вашего магазина Shopify с уже добавленным товаром."
+            label="Shopify включён"
+            hint="Глобальный статус интеграции. Ссылка каждой книги задаётся вручную в разделе «Книги»."
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -321,7 +344,7 @@ export const IntegrationsPanel: React.FC<{
               checked={draft.shopify.redirectToShopifyCheckout}
               onChange={value => patch(next => { next.shopify.redirectToShopifyCheckout = value; })}
               label="Оформление в Shopify"
-              hint="Покупатель переходит в безопасную корзину Shopify, а оплату и заказы ведёт сам магазин."
+              hint="Покупатель переходит на страницу товара Shopify, а оплату, заказы и доставку ведёт сам магазин."
             />
             <div className="border border-primary/10 bg-[#F8F8F5] p-4 flex flex-col justify-between gap-3">
               <div>
@@ -329,7 +352,7 @@ export const IntegrationsPanel: React.FC<{
                 <h4 className="mt-1 font-serif text-2xl leading-tight">Каталог → Shopify → заказ</h4>
                 <p className="mt-1 text-xs leading-relaxed text-gray-600">Книги остаются красиво описанными на AM Publishing; остатки, оплата и доставка — в Shopify без дублирования данных.</p>
               </div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-primary/60">{coverage.linked}/{coverage.total} книг привязано</span>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-primary/60">{directLinkCoverage.linked}/{directLinkCoverage.total} книг со ссылкой</span>
             </div>
           </div>
 
@@ -412,9 +435,9 @@ export const IntegrationsPanel: React.FC<{
           <div className="border-t border-gray-100 pt-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h4 className="text-xl font-serif">Привязка книг к товарам</h4>
+                <h4 className="text-xl font-serif">Расширенная API-привязка <span className="font-sans text-xs font-normal text-gray-400">(необязательно)</span></h4>
                 <p className="text-xs text-gray-500 mt-1">
-                  Привязано {coverage.linked} из {coverage.total} книг каталога ({language.toUpperCase()}).
+                  API-привязка настроена для {apiCoverage.linked} из {apiCoverage.total} книг каталога ({language.toUpperCase()}).
                   ID варианта — это число в адресе товара в админке Shopify: …/variants/<b>1234567890</b>.
                 </p>
               </div>
@@ -486,7 +509,7 @@ export const IntegrationsPanel: React.FC<{
                           {cartUrl ? (
                             <a href={cartUrl} target="_blank" rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 text-[10px] underline hover:text-accent">
-                              <Link2 size={10} /> корзина
+                              <Link2 size={10} /> тестовая корзина API
                             </a>
                           ) : <span className="text-[10px] text-gray-400">нет данных</span>}
                           {productUrl ? (

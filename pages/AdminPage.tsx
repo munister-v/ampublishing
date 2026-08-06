@@ -16,7 +16,7 @@ import { contentStore, WriteLogEntry } from '../services/contentStore';
 import { FeaturedAuthor, ShowcaseAuthor, getAuthorShowcaseContent, getFeaturedAuthorContent } from '../services/authorShowcase';
 import { translations } from '../translations';
 import { toGenitiveRu } from '../utils/declension';
-import { getShopifyPurchaseLink } from '../utils/purchaseLinks';
+import { getShopifyPurchaseLink, isShopifyPurchaseLink, SHOPIFY_STORE_URL } from '../utils/purchaseLinks';
 import { getBookPath } from '../utils/bookRoutes';
 import { AboutLayoutSettings, AboutSectionId, Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsBlock, NewsBlockType, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
@@ -123,12 +123,6 @@ const contentGroups: ContentGroup[] = [
       { key: 'home.stats_delivery_value', label: 'Значение «Доставка»', type: 'text' },
       { key: 'product.payment_info_title', label: 'Заголовок оплаты на странице товара', type: 'text' },
       { key: 'product.payment_info_text', label: 'Текст оплаты на странице товара', type: 'textarea' },
-      { key: 'checkout.payment_note', label: 'Примечание об оплате (корзина)', type: 'textarea' },
-      { key: 'checkout.payment_timeline', label: 'Срок подтверждения оплаты', type: 'text' },
-      { key: 'checkout.invoice_steps_title', label: 'Заголовок шагов счёта', type: 'text' },
-      { key: 'checkout.invoice_step_1', label: 'Шаг счёта 1', type: 'text' },
-      { key: 'checkout.invoice_step_2', label: 'Шаг счёта 2', type: 'text' },
-      { key: 'checkout.invoice_step_3', label: 'Шаг счёта 3', type: 'text' },
     ],
   },
   {
@@ -193,9 +187,9 @@ const createBookTemplate = (language: Language): Book => ({
   author: '',
   price: 0,
   coverUrl: '',
-  badges: ['new'],
+  badges: ['new', 'preorder'],
   type: 'publisher',
-  isPreorder: false,
+  isPreorder: true,
   stock: 0,
   description: '',
   details: {
@@ -208,7 +202,14 @@ const createBookTemplate = (language: Language): Book => ({
   genre: [],
   series: '',
   ageRating: '16+',
-  variants: [],
+  variants: [{
+    id: `sku-${Date.now()}`,
+    format: 'paperback',
+    language,
+    price: 0,
+    stock: 0,
+    isbn: '',
+  }],
   releaseDate: new Date().toISOString().slice(0, 10),
   story: {
     quote: '',
@@ -224,8 +225,6 @@ const createBookTemplate = (language: Language): Book => ({
   },
   purchaseLinks: [
     { id: 'shopify', label: 'Shopify', url: '' },
-    { id: 'mnogoknig', label: 'Mnogoknig', url: '' },
-    { id: 'mostik', label: 'Mostik.de', url: '' },
   ],
 });
 
@@ -334,6 +333,48 @@ const isValidHttpUrl = (value: string) => {
   } catch {
     return false;
   }
+};
+
+const getShopifyProductHandle = (value: string) => {
+  if (!value.trim()) return '';
+  try {
+    const url = new URL(value.trim());
+    const match = url.pathname.match(/^\/products\/([^/]+)/);
+    return match?.[1] || '';
+  } catch {
+    return '';
+  }
+};
+
+const isValidShopifyProductUrl = (value: string) => {
+  if (!isValidHttpUrl(value)) return false;
+  try {
+    const url = new URL(value.trim());
+    return url.hostname === 'shop.ampublishing.org' && Boolean(getShopifyProductHandle(value));
+  } catch {
+    return false;
+  }
+};
+
+const normalizeShopifyProductUrl = (value: string) => {
+  const handle = getShopifyProductHandle(value);
+  return handle ? `${SHOPIFY_STORE_URL}products/${handle}` : value.trim();
+};
+
+const withShopifyPurchaseUrl = (book: Book, url: string): Book => {
+  const links = [...(Array.isArray(book.purchaseLinks) ? book.purchaseLinks : [])];
+  const index = links.findIndex(link => isShopifyPurchaseLink(link));
+  const shopifyLink = { id: 'shopify', label: 'Shopify', url };
+  if (index >= 0) links[index] = { ...links[index], ...shopifyLink };
+  else links.unshift(shopifyLink);
+  return { ...book, purchaseLinks: links };
+};
+
+const withPreorderStatus = (book: Book, enabled: boolean): Book => {
+  const badges = new Set(book.badges || []);
+  if (enabled) badges.add('preorder');
+  else badges.delete('preorder');
+  return { ...book, isPreorder: enabled, badges: Array.from(badges) as Book['badges'] };
 };
 
 const parseAliases = (value: string) =>
@@ -1057,7 +1098,7 @@ export const AdminPage: React.FC = () => {
   const [savingPassword, setSavingPassword] = useState(false);
   const [bookDirty, setBookDirty] = useState(false);
   const [newsDirty, setNewsDirty] = useState(false);
-  const [storyCollapsed, setStoryCollapsed] = useState(false);
+  const [storyCollapsed, setStoryCollapsed] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [orderSearch, setOrderSearch] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all');
@@ -1391,6 +1432,9 @@ export const AdminPage: React.FC = () => {
     (bookDraft.purchaseLinks || []).forEach(link => {
       if (link.url && !isValidHttpUrl(link.url)) issues.push(`Ссылка «${link.label || link.id}» должна начинаться с http:// или https://`);
     });
+    const shopifyLink = getShopifyPurchaseLink(bookDraft);
+    if (!shopifyLink) issues.push('Добавьте публичную ссылку товара Shopify');
+    else if (!isValidShopifyProductUrl(shopifyLink.url)) issues.push('Shopify URL должен иметь вид https://shop.ampublishing.org/products/...');
     return issues;
   }, [bookDraft]);
 
@@ -1425,6 +1469,14 @@ export const AdminPage: React.FC = () => {
     [selectedNewsId, database, selectedLanguage],
   );
   const activeShopifyLink = bookDraft ? getShopifyPurchaseLink(bookDraft) : null;
+  const bookSetupChecks = useMemo(() => bookDraft ? [
+    { label: 'Название и автор', ok: Boolean(bookDraft.title.trim() && bookDraft.author.trim()) },
+    { label: 'Обложка', ok: Boolean(bookDraft.coverUrl.trim() && isValidHttpUrl(bookDraft.coverUrl)) },
+    { label: 'Описание', ok: Boolean(bookDraft.description.trim()) },
+    { label: 'Жанр', ok: bookDraft.genre.some(Boolean) },
+    { label: 'Товар Shopify', ok: Boolean(activeShopifyLink && isValidShopifyProductUrl(activeShopifyLink.url)) },
+  ] : [], [bookDraft, activeShopifyLink]);
+  const completedBookSetupChecks = bookSetupChecks.filter(item => item.ok).length;
   const currentBookPublicPath = bookDraft ? getBookPath(bookDraft) : '';
   const currentBookPublicUrl = currentBookPublicPath && typeof window !== 'undefined'
     ? `${window.location.origin}${currentBookPublicPath}`
@@ -1531,12 +1583,19 @@ export const AdminPage: React.FC = () => {
       const parsedVariants = parseJsonField(bookJsonDrafts.variants);
       const parsedThemes = parseJsonField(bookJsonDrafts.themes);
       const parsedReviews = parseJsonField(bookJsonDrafts.reviews);
+      const normalizedShopifyLink = getShopifyPurchaseLink(bookDraft);
+      const normalizedDraft = withPreorderStatus(
+        normalizedShopifyLink
+          ? withShopifyPurchaseUrl(bookDraft, normalizeShopifyProductUrl(normalizedShopifyLink.url))
+          : bookDraft,
+        Boolean(bookDraft.isPreorder),
+      );
       const nextBook = {
-        ...bookDraft,
-        genre: bookDraft.genre.filter(Boolean),
+        ...normalizedDraft,
+        genre: normalizedDraft.genre.filter(Boolean),
         variants: parsedVariants || [],
         story: {
-          ...bookDraft.story!,
+          ...normalizedDraft.story!,
           themes: parsedThemes || [],
           reviews: parsedReviews || [],
         },
@@ -1975,7 +2034,9 @@ export const AdminPage: React.FC = () => {
           const draftNews = catalog.news.filter(item => item.draft).length;
           const scheduledNews = catalog.news.filter(item => item.publishAt && new Date(item.publishAt).getTime() > now).length;
           const liveNews = Math.max(0, catalog.news.length - draftNews - scheduledNews);
-          const lowStock = catalog.books.filter(book => Number(book.stock || 0) <= 2);
+          // Stock is owned by Shopify for linked books. Only flag legacy books
+          // that still rely on the editorial site's local inventory field.
+          const lowStock = catalog.books.filter(book => !getShopifyPurchaseLink(book) && Number(book.stock || 0) <= 2);
           const paidOrders = orders.filter(order => order.paymentStatus === 'paid');
           const pendingOrders = orders.filter(order => order.paymentStatus === 'pending');
           const deliveredOrders = orders.filter(order => order.status === 'delivered');
@@ -2166,12 +2227,13 @@ export const AdminPage: React.FC = () => {
                     setSelectedBookId(next.id);
                     skipBookDirtyRef.current = true;
                     setBookDraft(next);
+                    setStoryCollapsed(true);
                     setBookDirty(false);
                   }}
-                  className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
+                  className="min-h-[44px] px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                 >
                   <Plus size={12} />
-                  Добавить
+                  Новая книга
                 </button>
               </div>
               <div className="p-3 border-b border-gray-100 space-y-2">
@@ -2211,7 +2273,13 @@ export const AdminPage: React.FC = () => {
                       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-gray-400 truncate">{book.author}</p>
                       <div className="flex gap-1 flex-wrap mt-0.5">
                         {book.isPreorder && <span className="text-[9px] bg-accent/20 text-accent-dark px-1 uppercase tracking-widest">предзаказ</span>}
-                        {book.stock === 0 ? <span className="text-[9px] bg-red-100 text-red-600 px-1 font-mono">нет</span> : book.stock <= 3 ? <span className="text-[9px] bg-amber-100 text-amber-700 px-1 font-mono">{book.stock} ост.</span> : null}
+                        {getShopifyPurchaseLink(book)
+                          ? <span className="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-100 px-1 uppercase tracking-widest">Shopify</span>
+                          : book.stock === 0
+                            ? <span className="text-[9px] bg-red-100 text-red-600 px-1 font-mono">нет ссылки</span>
+                            : book.stock <= 3
+                              ? <span className="text-[9px] bg-amber-100 text-amber-700 px-1 font-mono">{book.stock} ост.</span>
+                              : null}
                       </div>
                     </div>
                   </button>
@@ -2250,17 +2318,32 @@ export const AdminPage: React.FC = () => {
                             Удалить
                           </button>
                           <button onClick={() => {
-                            const dup = cloneBook(bookDraft);
+                            let dup = cloneBook(bookDraft);
                             dup.id = createCopySlug(bookDraft);
+                            dup.aliases = [];
+                            dup = withPreorderStatus(withShopifyPurchaseUrl(dup, ''), true);
+                            dup.variants = (dup.variants || []).map((variant, index) => ({
+                              ...variant,
+                              id: `sku-${Date.now()}-${index + 1}`,
+                              isbn: '',
+                              price: 0,
+                              stock: 0,
+                            }));
                             skipBookDirtyRef.current = true;
                             setSelectedBookId(dup.id);
                             setBookDraft(dup);
+                            setStoryCollapsed(true);
                             setBookDirty(true);
-                          }} className="px-4 py-3 border border-gray-300 hover:bg-gray-50 flex items-center gap-2 text-xs uppercase tracking-widest" title="Создать копию книги">
+                          }} className="px-4 py-3 border border-gray-300 hover:bg-gray-50 flex items-center gap-2 text-xs uppercase tracking-widest" title="Создать шаблон новой книги без старой Shopify-ссылки и ISBN">
                             <Copy size={14} />
-                            Копия
+                            Как шаблон
                           </button>
-                          <button onClick={handleSaveBook} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                          <button
+                            onClick={handleSaveBook}
+                            disabled={Boolean(savingKey) || bookRequiredErrors.length > 0 || Object.keys(bookJsonErrors).length > 0}
+                            title={bookRequiredErrors.length || Object.keys(bookJsonErrors).length ? 'Сначала исправьте ошибки в карточке' : 'Сохранить книгу'}
+                            className="min-h-[44px] px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary disabled:hover:text-white"
+                          >
                             {savingKey === `book:${bookDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                             Сохранить
                           </button>
@@ -2296,12 +2379,38 @@ export const AdminPage: React.FC = () => {
                   ) : null}
 
                   {bookRequiredErrors.length || Object.keys(bookJsonErrors).length ? (
-                    <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">
                       {[...bookRequiredErrors, ...Object.values(bookJsonErrors)].map(item => (
                         <div key={item}>{item}</div>
                       ))}
                     </div>
                   ) : null}
+
+                  <section className="border border-primary bg-[#F4F4F0] p-5 md:p-6" aria-labelledby="book-setup-title">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="max-w-2xl">
+                        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Новая книга · быстрый сценарий</p>
+                        <h4 id="book-setup-title" className="mt-2 font-serif text-3xl leading-tight">Заполните витрину и вставьте ссылку Shopify</h4>
+                        <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                          Название создаёт URL автоматически. Для публикации обязательны автор, обложка и публичная ссылка товара из Shopify; цену, наличие, оплату и доставку дальше ведёт сам магазин.
+                        </p>
+                      </div>
+                      <div className="shrink-0 border border-primary bg-white px-4 py-3 text-center">
+                        <span className="block font-serif text-3xl leading-none">{completedBookSetupChecks}/{bookSetupChecks.length}</span>
+                        <span className="mt-1 block font-mono text-[9px] uppercase tracking-widest text-gray-500">готовность карточки</span>
+                      </div>
+                    </div>
+                    <div className="mt-5 grid grid-cols-1 gap-px border border-primary/10 bg-primary/10 sm:grid-cols-2 xl:grid-cols-5">
+                      {bookSetupChecks.map(item => (
+                        <div key={item.label} className="flex min-h-[52px] items-center gap-2 bg-white px-3 py-3 text-xs">
+                          {item.ok
+                            ? <CircleCheck size={16} className="shrink-0 text-emerald-700" aria-hidden="true" />
+                            : <AlertCircle size={16} className="shrink-0 text-amber-600" aria-hidden="true" />}
+                          <span className={item.ok ? 'text-primary' : 'text-gray-600'}>{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <LF label="ID (slug)" hint="Создаётся автоматически — менять не нужно">
@@ -2367,13 +2476,78 @@ export const AdminPage: React.FC = () => {
                         Заполняйте только если автосклонение неверно (напр. «Лев Толстой» → «Льва Толстого»). Пусто = склоняется само.
                       </p>
                     </LF>
-                    <LF label="Цена (€)">
+
+                    <div id="book-shopify" className="md:col-span-2 scroll-mt-28 border border-primary bg-[#F8F8F5] p-4 md:p-5">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Шаг 2 · продажа</p>
+                          <h4 className="mt-1 font-serif text-2xl">Товар в Shopify</h4>
+                          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-gray-600">
+                            Откройте товар в магазине, нажмите View и скопируйте публичный адрес вида <span className="font-mono">shop.ampublishing.org/products/…</span>. Это будет основная кнопка покупки на сайте.
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <a
+                            href={SHOPIFY_STORE_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex min-h-[44px] items-center justify-center gap-2 border border-gray-300 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:border-primary"
+                          >
+                            <Store size={14} aria-hidden="true" /> Магазин
+                          </a>
+                          <a
+                            href="https://admin.shopify.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex min-h-[44px] items-center justify-center gap-2 border border-gray-300 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:border-primary"
+                          >
+                            <ExternalLink size={14} aria-hidden="true" /> Shopify Admin
+                          </a>
+                        </div>
+                      </div>
+                      <label htmlFor="book-shopify-url" className="mt-5 block text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                        Публичная ссылка товара Shopify <span className="text-red-600">*</span>
+                      </label>
+                      <div className="mt-1 flex flex-col gap-2 lg:flex-row">
+                        <input
+                          id="book-shopify-url"
+                          type="url"
+                          inputMode="url"
+                          value={activeShopifyLink?.url || ''}
+                          onChange={e => setBookDraft(prev => prev ? withShopifyPurchaseUrl(prev, e.target.value) : prev)}
+                          onBlur={e => setBookDraft(prev => prev ? withShopifyPurchaseUrl(prev, normalizeShopifyProductUrl(e.target.value)) : prev)}
+                          aria-invalid={!activeShopifyLink || !isValidShopifyProductUrl(activeShopifyLink.url)}
+                          aria-describedby="book-shopify-help"
+                          className={`min-h-[48px] flex-1 border bg-white px-4 py-3 font-mono text-sm outline-none focus:border-primary ${
+                            activeShopifyLink && isValidShopifyProductUrl(activeShopifyLink.url) ? 'border-emerald-300' : 'border-amber-400'
+                          }`}
+                          placeholder="https://shop.ampublishing.org/products/nazvanie-knigi"
+                        />
+                        {activeShopifyLink && isValidShopifyProductUrl(activeShopifyLink.url) ? (
+                          <a
+                            href={activeShopifyLink.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex min-h-[48px] shrink-0 items-center justify-center gap-2 border border-emerald-300 bg-emerald-50 px-4 py-3 text-xs font-bold uppercase tracking-widest text-emerald-800 hover:bg-white"
+                          >
+                            <ExternalLink size={14} aria-hidden="true" /> Проверить товар
+                          </a>
+                        ) : null}
+                      </div>
+                      <p id="book-shopify-help" className={`mt-2 text-xs ${activeShopifyLink && isValidShopifyProductUrl(activeShopifyLink.url) ? 'text-emerald-700' : 'text-amber-700'}`}>
+                        {activeShopifyLink && isValidShopifyProductUrl(activeShopifyLink.url)
+                          ? 'Ссылка корректна — кнопки карточки и страницы книги откроют этот товар.'
+                          : 'Обязательное поле. Нужна именно публичная страница товара на shop.ampublishing.org.'}
+                      </p>
+                    </div>
+
+                    <LF label="Цена на витрине (€)" hint="Необязательно. Оставьте 0, чтобы показывать «Текущая цена в магазине» и не дублировать Shopify.">
                       <input type="number" min={0} step={0.01} value={bookDraft.price} onChange={e => setBookDraft(prev => prev ? { ...prev, price: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
-                    <LF label="Старая цена € (зачёркнутая)">
+                    <LF label="Старая цена (€)" hint="Используется только если выше указана локальная цена.">
                       <input type="number" min={0} step={0.01} value={bookDraft.oldPrice ?? ''} onChange={e => setBookDraft(prev => prev ? { ...prev, oldPrice: e.target.value ? Number(e.target.value) : undefined } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="Оставьте пустым, если нет скидки" />
                     </LF>
-                    <LF label="Остаток на складе (0 = нет в наличии)">
+                    <LF label="Локальный остаток" hint="Для Shopify не используется: реальное наличие ведётся в магазине.">
                       <input type="number" min={0} value={bookDraft.stock} onChange={e => setBookDraft(prev => prev ? { ...prev, stock: Number(e.target.value) } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
                     <LF label="Тип издания">
@@ -2396,41 +2570,12 @@ export const AdminPage: React.FC = () => {
                     <LF label="Жанры (через запятую)" className="md:col-span-2">
                       <input value={bookDraft.genre.join(', ')} onChange={e => setBookDraft(prev => prev ? { ...prev, genre: e.target.value.split(',').map(item => item.trim()).filter(Boolean) } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="проза, лирика, историческая" />
                     </LF>
-                    <LF label="Ссылки на книгу (магазины)" className="md:col-span-2">
+                    <LF label="Дополнительные магазины" hint="Необязательно. Эти ссылки появятся ниже основной кнопки Shopify." className="md:col-span-2">
                       <div className="space-y-3">
-                        <p className="text-xs leading-relaxed text-gray-500">
-                          Shopify-ссылка становится основной кнопкой покупки на сайте. Остальные ссылки показываются ниже как дополнительные магазины.
-                        </p>
-                        <div className={`border p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 ${
-                          activeShopifyLink ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'
-                        }`}>
-                          <div>
-                            <p className={`text-[10px] uppercase tracking-[0.2em] font-bold ${activeShopifyLink ? 'text-emerald-700' : 'text-amber-700'}`}>
-                              {activeShopifyLink ? 'Shopify checkout active' : 'Shopify checkout inactive'}
-                            </p>
-                            <p className="text-sm text-gray-700 mt-1">
-                              {activeShopifyLink
-                                ? 'Основная кнопка покупки на сайте ведёт в Shopify.'
-                                : 'Добавьте или заполните Shopify URL, чтобы основная кнопка покупки вела во внешний checkout.'}
-                            </p>
-                            {activeShopifyLink ? (
-                              <a href={activeShopifyLink.url} target="_blank" rel="noopener noreferrer" className="block mt-2 text-xs font-mono text-primary hover:text-accent break-all">
-                                {activeShopifyLink.url}
-                              </a>
-                            ) : null}
-                          </div>
-                          {activeShopifyLink ? (
-                            <a
-                              href={activeShopifyLink.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center gap-2 px-4 py-3 border border-emerald-300 text-emerald-800 hover:bg-white text-xs uppercase tracking-widest font-bold"
-                            >
-                              <ExternalLink size={13} /> Test checkout
-                            </a>
-                          ) : null}
-                        </div>
-                        {(Array.isArray(bookDraft.purchaseLinks) ? bookDraft.purchaseLinks : []).map((link, idx) => (
+                        {(Array.isArray(bookDraft.purchaseLinks) ? bookDraft.purchaseLinks : [])
+                          .map((link, idx) => ({ link, idx }))
+                          .filter(({ link }) => !isShopifyPurchaseLink(link))
+                          .map(({ link, idx }) => (
                           <div key={link.id} className="flex flex-col sm:flex-row gap-2">
                             <input
                               value={link.label}
@@ -2454,11 +2599,6 @@ export const AdminPage: React.FC = () => {
                               className="flex-1 border border-gray-300 px-4 py-3 font-mono text-sm"
                               placeholder="https://..."
                             />
-                            {`${link.id || ''} ${link.label || ''} ${link.url || ''}`.toLowerCase().includes('shopify') ? (
-                              <span className="sm:self-center text-[10px] uppercase font-bold tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-2">
-                                checkout
-                              </span>
-                            ) : null}
                             <button
                               type="button"
                               onClick={() => setBookDraft(prev => prev ? { ...prev, purchaseLinks: (Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : []).filter((_, i) => i !== idx) } : prev)}
@@ -2471,23 +2611,10 @@ export const AdminPage: React.FC = () => {
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
-                            onClick={() => setBookDraft(prev => {
-                              if (!prev) return prev;
-                              const list = Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : [];
-                              const hasShopify = list.some(link => `${link.id} ${link.label} ${link.url}`.toLowerCase().includes('shopify'));
-                              if (hasShopify) return prev;
-                              return { ...prev, purchaseLinks: [{ id: 'shopify', label: 'Shopify', url: '' }, ...list] };
-                            })}
-                            className="text-xs uppercase font-bold tracking-widest text-white bg-primary border border-primary px-4 py-2 hover:bg-accent hover:border-accent transition-colors"
-                          >
-                            + Shopify checkout
-                          </button>
-                          <button
-                            type="button"
                             onClick={() => setBookDraft(prev => prev ? { ...prev, purchaseLinks: [...(Array.isArray(prev.purchaseLinks) ? prev.purchaseLinks : []), { id: `pl-${Date.now()}`, label: '', url: '' }] } : prev)}
-                            className="text-xs uppercase font-bold tracking-widest text-primary border border-gray-300 px-4 py-2 hover:bg-gray-50"
+                            className="min-h-[44px] text-xs uppercase font-bold tracking-widest text-primary border border-gray-300 px-4 py-2 hover:bg-gray-50"
                           >
-                            + Добавить ссылку
+                            + Добавить магазин
                           </button>
                         </div>
                       </div>
@@ -2500,7 +2627,6 @@ export const AdminPage: React.FC = () => {
                       {([
                         { id: 'new', label: 'Новинка' },
                         { id: 'bestseller', label: 'Бестселлер' },
-                        { id: 'preorder', label: 'Предзаказ' },
                         { id: 'exclusive', label: 'Эксклюзив' },
                         { id: '18+', label: '18+' },
                         { id: 'last_copy', label: 'Последний экземпляр' },
@@ -2514,9 +2640,14 @@ export const AdminPage: React.FC = () => {
                           {badge.label}
                         </label>
                       ))}
-                      <label className="flex items-center gap-2 border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm">
-                        <input type="checkbox" checked={!!bookDraft.isPreorder} onChange={e => setBookDraft(prev => prev ? { ...prev, isPreorder: e.target.checked } : prev)} />
-                        Режим предзаказа
+                      <label className="flex min-h-[44px] items-center gap-3 border border-accent/40 bg-accent/10 px-3 py-2 cursor-pointer hover:bg-accent/20 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(bookDraft.isPreorder)}
+                          onChange={e => setBookDraft(prev => prev ? withPreorderStatus(prev, e.target.checked) : prev)}
+                          className="h-4 w-4 accent-primary"
+                        />
+                        <span><b className="block text-xs uppercase tracking-widest">Предзаказ</b><small className="block text-[11px] text-gray-500">Меняет и статус, и бейдж на витрине</small></span>
                       </label>
                     </div>
                   </div>
@@ -2554,9 +2685,11 @@ export const AdminPage: React.FC = () => {
                           </p>
                         </div>
                         <div className="flex items-end justify-between gap-3 border-t border-gray-100 pt-3">
-                          <span className="font-serif text-xl leading-none">{bookDraft.price.toFixed(2)} EUR</span>
+                          <span className={bookDraft.price > 0 ? 'font-serif text-xl leading-none' : 'font-mono text-[9px] uppercase tracking-widest text-gray-500'}>
+                            {bookDraft.price > 0 ? `${bookDraft.price.toFixed(2)} EUR` : 'Цена в Shopify'}
+                          </span>
                           <span className={`text-[9px] uppercase tracking-widest font-bold px-2 py-1 ${activeShopifyLink ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
-                            {activeShopifyLink ? 'Shopify' : 'Cart'}
+                            {activeShopifyLink ? 'Shopify' : 'Нет ссылки'}
                           </span>
                         </div>
                       </div>
@@ -3452,11 +3585,11 @@ export const AdminPage: React.FC = () => {
 
             <div className="grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
               <div className="border border-primary/15 bg-white p-5 md:p-7">
-                <div className="mb-6 flex items-start gap-3"><Store size={18} className="mt-1" /><div><h4 className="font-serif text-2xl">Shopify — главный контур</h4><p className="mt-1 text-sm text-gray-500">Для магазина используются привязки книг, домен и Storefront API из раздела «Интеграции».</p></div></div>
+                <div className="mb-6 flex items-start gap-3"><Store size={18} className="mt-1" /><div><h4 className="font-serif text-2xl">Shopify — главный контур</h4><p className="mt-1 text-sm text-gray-500">Основная ссылка товара задаётся прямо в редакторе каждой книги; API-настройки в «Интеграциях» необязательны.</p></div></div>
                 <div className="grid gap-px border border-primary/15 bg-primary/15 sm:grid-cols-3">
                   {[
-                    ['Каталог', 'Привяжите variant ID каждой книги — кнопка покупки ведёт в Shopify checkout.'],
-                    ['Live‑цены', 'Подключите Storefront token, чтобы цена и наличие синхронизировались автоматически.'],
+                    ['Каталог', 'Вставьте публичный URL товара в карточке книги — кнопка покупки сразу ведёт в Shopify.'],
+                    ['Цена и наличие', 'Ведите цену, остаток, оплату и доставку в Shopify без дублирования на сайте.'],
                     ['Аналитика', 'GA4, Plausible, Umami и Meta Pixel настраиваются с cookie‑согласием.'],
                   ].map(([title, text]) => <div key={title} className="bg-white p-4"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary/55">{title}</p><p className="mt-3 text-sm leading-5 text-gray-600">{text}</p></div>)}
                 </div>
@@ -3464,8 +3597,8 @@ export const AdminPage: React.FC = () => {
               </div>
 
               <aside className="border border-primary/15 bg-[#F8F8F5] p-5 md:p-7">
-                <div className="flex items-start gap-3"><BarChart3 size={18} className="mt-1" /><div><h4 className="font-serif text-2xl">Analytics</h4><p className="mt-1 text-sm leading-5 text-gray-500">GA4 получает события просмотра, корзины и начала заказа.</p></div></div>
-                <div className="mt-6 border-t border-primary/10 pt-4 text-xs leading-5 text-gray-600"><p className="flex gap-2"><CircleCheck size={15} className="mt-0.5 shrink-0 text-green-700" />События просмотра, книги, корзины и оформления уже предусмотрены. В «Интеграциях» добавьте GA4 Measurement ID и включите consent‑режим.</p></div>
+                <div className="flex items-start gap-3"><BarChart3 size={18} className="mt-1" /><div><h4 className="font-serif text-2xl">Analytics</h4><p className="mt-1 text-sm leading-5 text-gray-500">GA4 получает просмотры книг и переходы покупателей в Shopify.</p></div></div>
+                <div className="mt-6 border-t border-primary/10 pt-4 text-xs leading-5 text-gray-600"><p className="flex gap-2"><CircleCheck size={15} className="mt-0.5 shrink-0 text-green-700" />События просмотра книги и клика по Shopify уже предусмотрены. В «Интеграциях» добавьте GA4 Measurement ID и включите consent‑режим.</p></div>
                 <button onClick={() => setActiveTab('integrations')} className="mt-5 inline-flex min-h-11 items-center gap-2 border border-primary px-3 text-xs font-bold uppercase tracking-wider transition hover:bg-primary hover:text-white"><BarChart3 size={13} />Настроить аналитику</button>
               </aside>
             </div>

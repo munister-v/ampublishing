@@ -218,26 +218,3 @@ export const AgeGateModal: React.FC<{ isOpen: boolean; onConfirm: () => void; on
     </ModalOverlay>
   );
 };
-
-// --- Confirm Remove ---
-export const ConfirmRemoveModal: React.FC<{ isOpen: boolean; onClose: () => void; onConfirm: () => void; itemName: string }> = ({ isOpen, onClose, onConfirm, itemName }) => {
-  const { t } = useApp();
-  if (!isOpen) return null;
-  return (
-    <ModalOverlay onClose={onClose}>
-      <div className="p-8 bg-white">
-        <h3 className="text-xl font-serif mb-2">{t('cart.delete_confirm')}</h3>
-        <p className="text-sm text-gray-500 mb-8 font-mono">{t('cart.delete_msg', { name: itemName })}</p>
-        <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="px-6 py-3 text-xs uppercase tracking-widest text-gray-500 hover:text-primary">{t('cart.cancel')}</button>
-          <button 
-            onClick={onConfirm}
-            className="px-8 py-3 bg-primary text-white text-xs uppercase tracking-widest font-bold hover:bg-red-700 transition-colors"
-          >
-            {t('cart.delete')}
-          </button>
-        </div>
-      </div>
-    </ModalOverlay>
-  );
-};

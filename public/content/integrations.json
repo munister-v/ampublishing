@@ -1,7 +1,7 @@
 {
   "shopify": {
     "enabled": true,
-    "domain": "",
+    "domain": "shop.ampublishing.org",
     "storefrontToken": "",
     "redirectToShopifyCheckout": true,
     "refTag": "ampublishing-site",

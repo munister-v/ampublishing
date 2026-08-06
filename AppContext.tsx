@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Book, BookVariant, CartItem, IntegrationSettings, Region, Language, NewsItem, Order, OrderStatus, ServicesContent, SiteSettings, TranslationOverrides } from './types';
+import { Book, IntegrationSettings, Region, Language, NewsItem, Order, OrderStatus, ServicesContent, SiteSettings, TranslationOverrides } from './types';
 import { REGIONS } from './constants';
 import { translations } from './translations';
 import { api } from './services/api';
@@ -31,14 +31,6 @@ interface AppContextType {
   updateInventory: (bookId: string, stock: number) => Promise<void>;
   reloadContent: () => Promise<void>;
 
-  cart: CartItem[];
-  addToCart: (book: Book, variant: BookVariant, qty?: number) => void;
-  removeFromCart: (variantId: string) => void;
-  updateQuantity: (variantId: string, delta: number) => void;
-  clearCart: () => void;
-  
-  cartOpen: boolean;
-  setCartOpen: (v: boolean) => void;
   region: Region;
   setRegionById: (id: string) => void;
   
@@ -119,15 +111,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [services, setServices] = useState<ServicesContent | null>(null);
   const [integrations, setIntegrations] = useState<IntegrationSettings | null>(null);
-
-  // --- CART STATE ---
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('am-cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) { return []; }
-  });
-  const [cartOpen, setCartOpen] = useState(false);
 
   // --- USER PREFS ---
   const [region, setRegion] = useState<Region>(REGIONS[0]);
@@ -223,8 +206,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return () => { mounted = false; };
   }, [language]);
 
+  // The public checkout now lives entirely in Shopify. Remove stale baskets
+  // left by earlier versions of the editorial site.
+  useEffect(() => {
+    try { localStorage.removeItem('am-cart'); } catch { /* private mode */ }
+  }, []);
+
   // Persistence
-  useEffect(() => { localStorage.setItem('am-cart', JSON.stringify(cart)); }, [cart]);
   useEffect(() => { localStorage.setItem('am-recent', JSON.stringify(recentlyViewed)); }, [recentlyViewed]);
 
   // Init logic
@@ -341,67 +329,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     navigate('/');
   };
 
-  const addToCart = (book: Book, variant: BookVariant, qty: number = 1) => {
-    const currentItem = cart.find(i => i.variantId === variant.id);
-    const currentQty = currentItem ? currentItem.quantity : 0;
-    
-    if (currentQty + qty > variant.stock) {
-        showToast(t('common.toast_stock_limit', { count: variant.stock }), 'error');
-        return;
-    }
-
-    checkAgeGate(book, () => {
-      setCart(prev => {
-        const existing = prev.find(item => item.variantId === variant.id);
-        if (existing) {
-          return prev.map(item => 
-            item.variantId === variant.id ? { ...item, quantity: item.quantity + qty } : item
-          );
-        }
-        return [...prev, { 
-          bookId: book.id,
-          variantId: variant.id,
-          title: book.title,
-          author: book.author,
-          coverUrl: book.coverUrl,
-          variant: variant,
-          quantity: qty 
-        }];
-      });
-      analytics.addToCart(book, variant, qty);
-      showToast(t('common.toast_added', { title: book.title }));
-    });
-  };
-
-  const removeFromCart = (variantId: string) => {
-    const removed = cart.find(item => item.variantId === variantId);
-    if (removed) {
-      analytics.track('remove_from_cart', {
-        currency: 'EUR',
-        value: removed.variant.price * removed.quantity,
-        items: [{ item_id: removed.variantId, item_name: removed.title, quantity: removed.quantity }],
-      });
-    }
-    setCart(prev => prev.filter(item => item.variantId !== variantId));
-  };
-
-  const clearCart = () => {
-    setCart([]);
-    localStorage.removeItem('am-cart');
-  };
-
-  const updateQuantity = (variantId: string, delta: number) => {
-    setCart(prev => prev.map(item => {
-      if (item.variantId === variantId) {
-        const limit = item.variant.stock;
-        const newQ = Math.max(1, Math.min(limit, item.quantity + delta));
-        if (item.quantity + delta > limit) showToast(t('common.toast_max_stock'), 'error');
-        return { ...item, quantity: newQ };
-      }
-      return item;
-    }));
-  };
-
   const addRecentlyViewed = (book: Book) => {
     analytics.viewItem(book);
     setRecentlyViewed(prev => {
@@ -472,8 +399,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       books, news, genres, authors, isLoadingData, isBackendLive,
       isAdmin, login, logout,
       orders, refreshOrders, updateOrderStatus, updateInventory, reloadContent,
-      cart, addToCart, removeFromCart, updateQuantity, clearCart,
-      cartOpen, setCartOpen, 
       region, setRegionById,
       checkAgeGate, showAgeModal, handleAgeConfirm, handleAgeDeny,
       recentlyViewed, addRecentlyViewed,

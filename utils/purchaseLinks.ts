@@ -2,6 +2,8 @@ import { Book, PurchaseLink } from '../types';
 
 const SHOPIFY_MARKERS = ['shopify', 'myshopify'];
 
+export const SHOPIFY_STORE_URL = 'https://shop.ampublishing.org/';
+
 export const isShopifyPurchaseLink = (link?: Partial<PurchaseLink> | null): link is PurchaseLink => {
   if (!link) return false;
   const haystack = `${link.id || ''} ${link.label || ''} ${link.url || ''}`.toLowerCase();

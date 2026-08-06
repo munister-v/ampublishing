@@ -4,7 +4,6 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Preloader } from './components/Preloader';
-import { CartDrawer } from './components/CartDrawer';
 import { ToastContainer } from './components/Toast';
 import { CookieConsent, RegionModal, AgeGateModal } from './components/Modals';
 import { DevTools } from './components/DevTools';
@@ -15,8 +14,6 @@ import { analytics } from './services/analytics'; // Import Analytics
 import { HomePage } from './pages/HomePage';
 import { CatalogPage } from './pages/CatalogPage';
 import { ProductPage } from './pages/ProductPage';
-import { CartPage } from './pages/CartPage';
-import { CheckoutPage } from './pages/CheckoutPage';
 import { ServiceOrderPage } from './pages/ServiceOrderPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { TrackingPage } from './pages/TrackingPage';
@@ -26,8 +23,17 @@ import { LoginPage } from './pages/LoginPage';
 import { AdminPage } from './pages/AdminPage';
 import { RadioPage } from './pages/RadioPage';
 import { RadioAdminPage } from './pages/RadioAdminPage';
+import { SHOPIFY_STORE_URL } from './utils/purchaseLinks';
 
 // --- App Content with Routing ---
+
+const ShopifyRedirect: React.FC = () => {
+  useEffect(() => {
+    window.location.replace(SHOPIFY_STORE_URL);
+  }, []);
+
+  return null;
+};
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -53,7 +59,6 @@ const AppContent: React.FC = () => {
       <SEO />
       {!isAdminRoute && <Preloader />}
       {!isAdminRoute && <Header />}
-      <CartDrawer />
       
       <main key={location.pathname} className="flex-1 relative z-10 page-enter">
         <Routes>
@@ -62,8 +67,8 @@ const AppContent: React.FC = () => {
           <Route path="/shop" element={<CatalogPage />} />
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/cart" element={<ShopifyRedirect />} />
+          <Route path="/checkout" element={<ShopifyRedirect />} />
           
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/order" element={<ServiceOrderPage />} />
