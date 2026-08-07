@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Check, Loader2, Globe } from 'lucide-react';
 import { REGIONS } from '../constants';
 import { useApp } from '../AppContext';
-import { analytics } from '../services/analytics';
+import { analytics, readConsent } from '../services/analytics';
 
 // --- Reusable Modal Shell ---
 const ModalOverlay: React.FC<{ children: React.ReactNode; onClose?: () => void }> = ({ children, onClose }) => (
@@ -21,8 +21,11 @@ export const CookieConsent: React.FC = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem('cookie-consent')) {
-      setTimeout(() => setVisible(true), 2000);
+    // Спрашиваем только у того, кто ещё не отвечал. Ответ — и «принять», и
+    // «только необходимые»: оба закрывают вопрос на год.
+    if (readConsent() === null) {
+      const timer = setTimeout(() => setVisible(true), 2000);
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -33,7 +36,7 @@ export const CookieConsent: React.FC = () => {
   };
 
   const handleDecline = () => {
-    localStorage.setItem('cookie-consent', 'denied');
+    analytics.denyConsent();
     setVisible(false);
   };
 

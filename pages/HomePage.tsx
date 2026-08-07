@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Globe, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { EuropeGlyph, DHLBadge } from '../components/BrandGlyphs';
 import { useApp } from '../AppContext';
@@ -123,7 +123,7 @@ export const HomePage: React.FC = () => {
       {/* 4. EDITORIAL / CONCEPT */}
       <section className="grid grid-cols-1 md:grid-cols-2 border-b border-primary min-h-[600px]">
          <div className="p-12 md:p-20 flex flex-col justify-center border-b md:border-b-0 md:border-r border-primary bg-[#E8EDF2]">
-            <Globe className="mb-12 text-primary animate-spin-slow" size={64} strokeWidth={0.5} />
+            <BookOpen className="mb-12 text-primary" size={64} strokeWidth={0.5} />
             <h2 className="text-6xl md:text-8xl font-serif leading-[0.8] mb-8">
                {t('home.global_reach').split(' ')[0]} <br/> {t('home.global_reach').split(' ')[1]}
             </h2>

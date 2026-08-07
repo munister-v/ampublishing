@@ -32,6 +32,36 @@ const LOG_KEY = 'am-analytics-log-v1';
 const LOG_MAX = 500;
 const CONSENT_KEY = 'cookie-consent';
 
+/* Согласие хранится ДВАЖДЫ — в localStorage и в cookie на год.
+ *
+ * Причина не в перестраховке: Safari по своей политике вычищает записанное
+ * скриптом localStorage примерно через неделю, и баннер возвращается к тому,
+ * кто уже ответил. Cookie переживает эту чистку; localStorage, в свою очередь,
+ * переживает случаи, когда cookie режут расширениями. Читаем из любого.
+ *
+ * И читают, и пишут теперь ТОЛЬКО эти две функции: раньше баннер ходил в
+ * localStorage напрямую, а аналитика — через себя, и два места могли
+ * разойтись во мнении, отвечал ли человек. */
+export type ConsentValue = 'true' | 'denied';
+
+export function readConsent(): ConsentValue | null {
+  try {
+    const stored = localStorage.getItem(CONSENT_KEY);
+    if (stored === 'true' || stored === 'denied') return stored;
+  } catch { /* приватный режим */ }
+  const match = document.cookie.match(/(?:^|;\s*)am-cookie-consent=([^;]+)/);
+  const fromCookie = match && decodeURIComponent(match[1]);
+  return fromCookie === 'true' || fromCookie === 'denied' ? fromCookie : null;
+}
+
+export function writeConsent(value: ConsentValue): void {
+  try {
+    localStorage.setItem(CONSENT_KEY, value);
+  } catch { /* приватный режим */ }
+  const secure = location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `am-cookie-consent=${value}; Max-Age=31536000; Path=/; SameSite=Lax${secure}`;
+}
+
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
@@ -62,19 +92,18 @@ class AnalyticsService {
 
   /** Согласие на cookie, выданное баннером. */
   public hasConsent(): boolean {
-    try {
-      return localStorage.getItem(CONSENT_KEY) === 'true';
-    } catch {
-      return false;
-    }
+    return readConsent() === 'true';
   }
 
   /** Вызывается из баннера cookie после «Принять». */
   public grantConsent() {
-    try {
-      localStorage.setItem(CONSENT_KEY, 'true');
-    } catch { /* приватный режим */ }
+    writeConsent('true');
     void this.init();
+  }
+
+  /** Отказ тоже ответ: баннер после него не возвращается. */
+  public denyConsent() {
+    writeConsent('denied');
   }
 
   /** Загружает настройки и, если можно, подключает счётчики. */
