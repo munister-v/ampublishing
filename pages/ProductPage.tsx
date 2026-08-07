@@ -10,7 +10,6 @@ import { getActivePurchaseLinks, getShopifyPurchaseLink, isShopifyPurchaseLink }
 import { analytics } from '../services/analytics';
 import { toGenitiveRu } from '../utils/declension';
 import { findBookByRouteId, getBookPath, isAliasRoute } from '../utils/bookRoutes';
-import { BookSpread } from '../components/BookSpread';
 import { getPrimaryBookVariant } from '../utils/bookVariants';
 
 export const ProductPage: React.FC = () => {
@@ -329,12 +328,6 @@ export const ProductPage: React.FC = () => {
             </div>
           ) : null}
 
-          {/* Excerpt — same label-bar + breathing room as Reviews below, since both
-              present quoted words from/about the book rather than editorial copy.
-              Left-aligned and measure-constrained (not centred like the pull-quote):
-              this is running prose, often several paragraphs, and centring or
-              cramping that into a narrow sidebar column is what read as a dense
-              wall of text before. */}
           {(book.story.excerpt?.length ?? 0) > 0 ? (
             <div className="border-b border-primary">
               <div className="px-8 py-6 border-b border-primary flex flex-wrap items-baseline justify-between gap-3">
@@ -343,50 +336,44 @@ export const ProductPage: React.FC = () => {
                   {book.title}
                 </span>
               </div>
-              {/* Тёплая подложка + белая «страница» поверх: колонка текста
-                  перестаёт висеть в пустоте и читается как разворот книги. */}
-              <div className="px-4 py-10 md:px-10 md:py-16 bg-[#EFEBE3]">
-                {/*
-                  Набор по книжным правилам, а не «цитата на три страницы»:
-                  — прямое начертание, курсив тут был на всём отрывке и убивал
-                    читаемость длинной прозы (курсив — для акцента, не для тела);
-                  — абзацы отбиваются красной строкой, а не пустотой между ними,
-                    так читается непрерывный текст в книге;
-                  — первый абзац без отступа и с буквицей — типографская норма.
-                */}
-                {/* На широком экране лист шире: две колонки должны держать
-                    норму строки, в 52rem они выходили по ~35 знаков. */}
-                <div className="mx-auto max-w-[52rem] lg:max-w-[74rem] bg-white px-7 py-12 md:px-16 md:py-20 lg:px-20 ring-1 ring-primary/[0.06] shadow-[0_2px_4px_rgba(4,15,30,0.03),0_30px_70px_-40px_rgba(4,15,30,0.35)]">
-                  <BookSpread
-                    paragraphs={book.story.excerpt}
-                    labels={{
-                      prev: t('product.spread_prev'),
-                      next: t('product.spread_next'),
-                      of: t('product.spread_of'),
-                    }}
-                    paragraphClass={(i) =>
-                      "font-serif text-primary/90 " +
-                      "text-[1.15rem] leading-[1.8] md:text-[1.32rem] md:leading-[1.85] " +
-                      (i === 0
-                        ? "first-letter:float-left first-letter:mr-4 first-letter:mt-2 " +
-                          "first-letter:font-serif first-letter:text-[4.6rem] first-letter:leading-[0.76] " +
-                          "first-letter:text-accent md:first-letter:text-[5.6rem] " +
-                          // Первая строка капителью — классический зачин главы,
-                          // мягко вводит в текст без лишней графики.
-                          "first-line:tracking-[0.04em] first-line:text-primary"
-                        : "indent-8 md:indent-12")
-                    }
-                    footer={
-                      /* Отрывок обрывается на середине главы — читателю нужен знак,
-                         что текст закончился намеренно, а не «недогрузился». */
-                      <div className="mt-12 text-center">
-                        <span className="block font-serif text-2xl leading-none text-accent/70">❧</span>
-                        <span className="mt-4 block font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">
-                          {t('product.excerpt_end')}
-                        </span>
+              <div className="bg-[#EFEBE3] px-4 py-10 md:px-10 md:py-16 lg:py-20">
+                <div className="mx-auto max-w-[72rem] border border-primary/10 bg-white shadow-[0_2px_4px_rgba(4,15,30,0.03),0_30px_70px_-40px_rgba(4,15,30,0.35)]">
+                  <div className="grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)]">
+                    <aside className="border-b border-primary/10 bg-[#FBFAF7] px-7 py-7 lg:border-b-0 lg:border-r lg:px-8 lg:py-10">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
+                        {t('product.excerpt')}
+                      </p>
+                      <h3 className="mt-5 font-serif text-3xl leading-tight text-primary">
+                        {book.title}
+                      </h3>
+                      <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-primary/45">
+                        {t('product.by_author')} {book.author}
+                      </p>
+                    </aside>
+                    <article className="px-7 py-10 md:px-14 md:py-16 lg:px-20">
+                      <div className="mx-auto max-w-[44rem]">
+                        {book.story.excerpt.map((para, i) => (
+                          <p
+                            key={i}
+                            className={
+                              'font-serif text-[1.15rem] leading-[1.85] text-primary/90 md:text-[1.28rem] md:leading-[1.9] ' +
+                              (i === 0
+                                ? 'first-letter:float-left first-letter:mr-4 first-letter:mt-2 first-letter:font-serif first-letter:text-[4.6rem] first-letter:leading-[0.76] first-letter:text-accent md:first-letter:text-[5.4rem]'
+                                : 'mt-1 indent-8 md:indent-12')
+                            }
+                          >
+                            {para}
+                          </p>
+                        ))}
+                        <div className="mt-12 border-t border-primary/10 pt-8 text-center">
+                          <span className="block font-serif text-2xl leading-none text-accent/70">❧</span>
+                          <span className="mt-4 block font-mono text-[10px] uppercase tracking-[0.24em] text-gray-400">
+                            {t('product.excerpt_end')}
+                          </span>
+                        </div>
                       </div>
-                    }
-                  />
+                    </article>
+                  </div>
                 </div>
               </div>
             </div>

@@ -296,18 +296,19 @@ export const OurAuthorsPage: React.FC = () => {
       />
 
       <section className="px-4 md:px-8 py-10 md:py-16">
-        <div className="space-y-8">
+        <div className="mx-auto max-w-[86rem] space-y-8">
         {authorShowcase.map((item, index) => (
-          <article key={item.id} className="border border-primary bg-white overflow-hidden">
-            <div className={`grid grid-cols-1 xl:grid-cols-2 ${index % 2 === 1 ? 'xl:[&>*:first-child]:order-2 xl:[&>*:last-child]:order-1' : ''}`}>
-              <div className="relative min-h-[360px] md:min-h-[520px] bg-primary overflow-hidden">
+          <article key={item.id} className="border border-primary/20 bg-white overflow-hidden shadow-[0_20px_60px_-48px_rgba(4,15,30,0.55)]">
+            <div className={`grid grid-cols-1 xl:grid-cols-[minmax(24rem,0.9fr)_minmax(0,1.1fr)] ${index % 2 === 1 ? 'xl:[&>*:first-child]:order-2 xl:[&>*:last-child]:order-1' : ''}`}>
+              <div className="relative min-h-[360px] md:min-h-[500px] xl:min-h-[620px] bg-primary overflow-hidden">
                 <img
                   src={item.imageUrl}
                   alt={`${item.nameMain} ${item.nameAccent}`}
-                  className="absolute inset-0 w-full h-full object-cover grayscale"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  className="absolute inset-0 w-full h-full object-cover grayscale transition-transform duration-700 hover:scale-[1.015]"
                   style={{ objectPosition: '50% 18%' }}
                 />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,15,30,0.12),rgba(4,15,30,0.72))]" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,15,30,0.08),rgba(4,15,30,0.76))]" />
                 <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 md:px-8 py-5">
                   <span className="border border-white/20 bg-black/20 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-white/80">
                     {item.years}
@@ -332,24 +333,26 @@ export const OurAuthorsPage: React.FC = () => {
                     <div className="h-px flex-1 bg-primary/15" />
                   </div>
 
-                  <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif leading-[0.9] text-primary break-words">
-                    {item.nameMain}
-                  </h2>
-                  <p className="text-3xl sm:text-4xl md:text-6xl font-serif italic text-primary/60 leading-[0.95] mt-2 break-words">
-                    {item.nameAccent}
-                  </p>
+                  <div className="max-w-[46rem]">
+                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif leading-[0.95] text-primary break-words">
+                      {item.nameMain}
+                    </h2>
+                    <p className="text-3xl sm:text-4xl md:text-5xl font-serif italic text-primary/60 leading-[1] mt-2 break-words">
+                      {item.nameAccent}
+                    </p>
+                  </div>
 
-                  <div className="mt-8 grid grid-cols-1 md:grid-cols-[170px_1fr] gap-6 items-start">
+                  <div className="mt-10 grid grid-cols-1 md:grid-cols-[12rem_minmax(0,1fr)] gap-6 md:gap-10 items-start">
                     <div className="text-[10px] uppercase tracking-[0.18em] text-accent font-mono leading-relaxed">
                       {item.knownFor}
                     </div>
-                    <div className="space-y-5 text-lg md:text-xl leading-relaxed text-primary/70">
+                    <div className="max-w-[42rem] space-y-5 text-lg md:text-xl leading-relaxed text-primary/75">
                       <p>{item.bio}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-10 flex flex-wrap gap-2">
+                <div className="mt-10 flex max-w-[42rem] flex-wrap gap-2 md:ml-[calc(12rem+2.5rem)]">
                   {item.tags.map((tag) => (
                     <span key={tag} className="border border-primary/15 bg-white/60 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-primary/75">
                       {tag}
@@ -363,7 +366,7 @@ export const OurAuthorsPage: React.FC = () => {
         </div>
 
         {catalogAuthors.length > 0 && (
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 border-l border-t border-primary bg-white">
+          <div className="mx-auto mt-8 grid max-w-[86rem] grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 border-l border-t border-primary bg-white">
             {catalogAuthors.map((author, index) => (
               <article key={author} className="border-r border-b border-primary p-8 md:p-10 bg-[#F7F1E6]">
                 <div className="flex items-start justify-between gap-4 mb-10">
