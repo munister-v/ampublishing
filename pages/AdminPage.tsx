@@ -846,8 +846,35 @@ const StatusPanel: React.FC = () => {
         headers: {
           Accept: 'application/vnd.github+json',
           ...(pat ? { Authorization: `Bearer ${pat}` } : {}),
-        },
-      });
+  },
+});
+
+const getBookEditorReadiness = (book: Book) => {
+  const checks = [
+    Boolean(book.title.trim()),
+    Boolean(book.author.trim()),
+    Boolean(book.coverUrl.trim()),
+    Boolean(book.description.trim()),
+    Boolean(getShopifyPurchaseLink(book)),
+  ];
+  return { complete: checks.filter(Boolean).length, total: checks.length };
+};
+
+const ADMIN_TAB_META: Record<AdminTab, { title: string; description: string }> = {
+  command: { title: 'Обзор', description: 'Состояние каталога, контента и подключений Shopify.' },
+  books: { title: 'Книги', description: 'Карточки витрины, обложки, форматы и ссылки на товары Shopify.' },
+  news: { title: 'Мероприятия', description: 'Новости, события, анонсы и публикации издательства.' },
+  authors: { title: 'Авторы', description: 'Страница авторов и редакционная подача участников каталога.' },
+  radio: { title: 'Радио', description: 'Анонсы эфиров, сообщения, закрепления и настройки радио.' },
+  copy: { title: 'Тексты сайта', description: 'Переводимые заголовки, подписи и системные тексты.' },
+  about: { title: 'О нас', description: 'Содержание и визуальная структура страницы издательства.' },
+  services: { title: 'Услуги', description: 'Направления работы, состав услуг и условия сотрудничества.' },
+  site: { title: 'Навигация и футер', description: 'Меню, контакты, социальные ссылки и системные настройки.' },
+  integrations: { title: 'Shopify и сервисы', description: 'Магазин, заявки и аналитика сайта.' },
+  status: { title: 'Состояние сайта', description: 'Диагностика публикаций, API и последних операций.' },
+  payments: { title: 'Оплата', description: 'Архивный раздел локальной оплаты.' },
+  orders: { title: 'Заказы', description: 'Архивный раздел локальных заказов.' },
+};
       if (!res.ok) throw new Error(`GitHub API ${res.status}`);
       const data = await res.json();
       setRuns(data.workflow_runs || []);
@@ -1837,6 +1864,60 @@ export const AdminPage: React.FC = () => {
 
   const books = database?.[selectedLanguage].books || [];
   const news = database?.[selectedLanguage].news || [];
+  const currentTabMeta = ADMIN_TAB_META[activeTab];
+  const activeEditorDirty = (activeTab === 'books' && bookDirty) || (activeTab === 'news' && newsDirty);
+  const activeEditorHasErrors = activeTab === 'books'
+    ? bookRequiredErrors.length > 0 || Object.keys(bookJsonErrors).length > 0
+    : activeTab === 'news'
+      ? newsRequiredErrors.length > 0
+      : false;
+  const normalizedBookSearch = bookSearch.trim().toLowerCase();
+  const filteredAdminBooks = [...books]
+    .filter(book => !normalizedBookSearch || book.title.toLowerCase().includes(normalizedBookSearch) || book.author.toLowerCase().includes(normalizedBookSearch))
+    .sort((a, b) => bookSort === 'alpha' ? a.title.localeCompare(b.title) : bookSort === 'stock' ? a.stock - b.stock : 0);
+  const normalizedNewsSearch = newsSearch.trim().toLowerCase();
+  const filteredAdminNews = news.filter(item => !normalizedNewsSearch || item.title.toLowerCase().includes(normalizedNewsSearch));
+
+  const confirmEditorLeave = () => !activeEditorDirty || window.confirm('Есть несохранённые изменения. Если перейти сейчас, они будут потеряны. Продолжить?');
+  const changeAdminTab = (nextTab: AdminTab) => {
+    if (nextTab !== activeTab && !confirmEditorLeave()) return;
+    setActiveTab(nextTab);
+    setSidebarOpen(false);
+  };
+  const changeAdminLanguage = (language: Language) => {
+    if (language !== selectedLanguage && !confirmEditorLeave()) return;
+    setSelectedLanguage(language);
+    setSidebarOpen(false);
+  };
+  const selectAdminBook = (bookId: string) => {
+    if (bookId === selectedBookId) return;
+    if (bookDirty && !window.confirm('В книге есть несохранённые изменения. Если открыть другую карточку, они будут потеряны. Продолжить?')) return;
+    setSelectedBookId(bookId);
+    setBookDirty(false);
+  };
+  const startNewBook = () => {
+    if (bookDirty && !window.confirm('В книге есть несохранённые изменения. Если создать новую карточку, они будут потеряны. Продолжить?')) return;
+    const next = createBookTemplate(selectedLanguage);
+    setSelectedBookId(next.id);
+    skipBookDirtyRef.current = true;
+    setBookDraft(next);
+    setStoryCollapsed(true);
+    setBookDirty(false);
+  };
+  const selectAdminNews = (newsId: string) => {
+    if (newsId === selectedNewsId) return;
+    if (newsDirty && !window.confirm('В материале есть несохранённые изменения. Если открыть другой материал, они будут потеряны. Продолжить?')) return;
+    setSelectedNewsId(newsId);
+    setNewsDirty(false);
+  };
+  const startNewNews = () => {
+    if (newsDirty && !window.confirm('В материале есть несохранённые изменения. Если создать новый, они будут потеряны. Продолжить?')) return;
+    const next = createNewsTemplate();
+    setSelectedNewsId(next.id);
+    skipNewsDirtyRef.current = true;
+    setNewsDraft(next);
+    setNewsDirty(false);
+  };
 
   return (
     <div className="admin-ui min-h-screen bg-[#F4F4F0] flex flex-col md:flex-row text-primary md:h-screen md:overflow-hidden">
@@ -1908,7 +1989,7 @@ export const AdminPage: React.FC = () => {
                 {group.items.map(item => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => changeAdminTab(item.id)}
                     aria-current={activeTab === item.id ? 'page' : undefined}
                     className={`flex min-h-[48px] w-full items-center gap-3 border-l-2 px-3 py-3 text-left text-xs font-bold uppercase tracking-[0.12em] transition-colors ${
                       activeTab === item.id
@@ -1933,7 +2014,7 @@ export const AdminPage: React.FC = () => {
               {(['ru', 'en', 'de'] as Language[]).map(lang => (
                 <button
                   key={lang}
-                  onClick={() => { setSelectedLanguage(lang); setSidebarOpen(false); }}
+                  onClick={() => changeAdminLanguage(lang)}
                   className={`py-2 text-[10px] uppercase tracking-[0.2em] border relative ${
                     selectedLanguage === lang ? 'bg-accent text-primary border-accent font-bold' : 'border-white/20 text-white/70 hover:bg-white/10'
                   }`}
@@ -1983,7 +2064,7 @@ export const AdminPage: React.FC = () => {
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 p-4 md:p-8 xl:p-10 overflow-y-auto overflow-x-hidden min-h-screen md:h-screen scroll-panel">
+      <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden min-h-screen p-4 pb-28 md:h-screen md:p-8 md:pb-28 xl:p-10 xl:pb-28 scroll-panel">
         {/* ── Live save progress ── */}
         {(savingKey || savingPassword) && (
           <div className="sticky top-0 z-20 bg-primary text-white border-b border-white/10">
@@ -2012,7 +2093,66 @@ export const AdminPage: React.FC = () => {
           </div>
         ) : null}
 
-        {database ? (() => {
+        {database ? (
+          <header className="mb-6 border border-primary/10 bg-white p-4 md:p-6" aria-labelledby="admin-section-title">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="bg-primary px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-white">{selectedLanguage.toUpperCase()}</span>
+                  {activeTab === 'books' || activeTab === 'news' ? (
+                    activeEditorDirty ? (
+                      <span className="inline-flex items-center gap-1.5 border border-amber-300 bg-amber-50 px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-widest text-amber-800">
+                        <span className="h-1.5 w-1.5 bg-amber-500" aria-hidden="true" /> Не опубликовано
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-widest text-emerald-800">
+                        <CheckCircle size={11} aria-hidden="true" /> Актуально
+                      </span>
+                    )
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 border border-primary/15 bg-[#F8F8F5] px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-widest text-gray-600">
+                      Раздел открыт
+                    </span>
+                  )}
+                </div>
+                <h1 id="admin-section-title" className="mt-3 font-serif text-4xl leading-none md:text-5xl">{currentTabMeta.title}</h1>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-500">{currentTabMeta.description}</p>
+                {lastDraftSavedAt ? <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-400">Локальный черновик: {lastDraftSavedAt}</p> : null}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <a href="/" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center justify-center gap-2 border border-primary/20 px-4 py-3 text-[10px] font-bold uppercase tracking-widest hover:border-primary hover:bg-[#F8F8F5]">
+                  <ExternalLink size={14} aria-hidden="true" /> Открыть сайт
+                </a>
+                <a href={SHOPIFY_STORE_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center justify-center gap-2 border border-primary bg-primary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white hover:bg-accent hover:text-primary">
+                  <Store size={14} aria-hidden="true" /> Shopify
+                </a>
+              </div>
+            </div>
+          </header>
+        ) : null}
+
+        {activeEditorDirty ? (
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-primary bg-white shadow-[0_-12px_32px_rgba(4,15,30,0.12)] md:left-72" role="status" aria-live="polite">
+            <div className="mx-auto flex max-w-[1600px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between md:px-8">
+              <div className="min-w-0">
+                <p className="text-sm font-bold">Есть несохранённые изменения</p>
+                <p className="mt-0.5 text-xs text-gray-500">Черновик сохранён только в этом браузере{lastDraftSavedAt ? ` · ${lastDraftSavedAt}` : ''}.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => activeTab === 'books' ? handleSaveBook() : handleSaveNews()}
+                disabled={Boolean(savingKey) || activeEditorHasErrors}
+                className="inline-flex min-h-[48px] shrink-0 items-center justify-center gap-2 bg-primary px-6 py-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-accent hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                title={activeEditorHasErrors ? 'Исправьте ошибки перед публикацией' : 'Опубликовать изменения'}
+              >
+                {savingKey ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                {activeEditorHasErrors ? 'Исправьте ошибки' : 'Сохранить и опубликовать'}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {database && activeTab === 'command' ? (() => {
           const totalBooks = database[selectedLanguage].books.length;
           const totalNews = database[selectedLanguage].news.length;
           const linkedBooks = database[selectedLanguage].books.filter(book => Boolean(getShopifyPurchaseLink(book))).length;
@@ -2228,16 +2368,12 @@ export const AdminPage: React.FC = () => {
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
             <section className="bg-white border border-primary/10 xl:sticky xl:top-0 xl:max-h-[calc(100vh-5rem)] xl:self-start xl:overflow-y-auto">
               <div className="p-6 border-b border-primary/10 flex items-center justify-between">
-                <h3 className="text-2xl font-serif">Книги</h3>
+                <div>
+                  <h3 className="text-2xl font-serif">Книги</h3>
+                  <p className="mt-1 font-mono text-[9px] uppercase tracking-widest text-gray-400">{books.length} карточек</p>
+                </div>
                 <button
-                  onClick={() => {
-                    const next = createBookTemplate(selectedLanguage);
-                    setSelectedBookId(next.id);
-                    skipBookDirtyRef.current = true;
-                    setBookDraft(next);
-                    setStoryCollapsed(true);
-                    setBookDirty(false);
-                  }}
+                  onClick={startNewBook}
                   className="min-h-[44px] px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                 >
                   <Plus size={12} />
@@ -2255,28 +2391,29 @@ export const AdminPage: React.FC = () => {
                   <SortAsc size={11} className="text-gray-400 flex-shrink-0" />
                   {(['default', 'alpha', 'stock'] as const).map(s => (
                     <button key={s} onClick={() => setBookSort(s)}
-                      className={`px-2 py-0.5 text-[9px] uppercase tracking-widest border ${bookSort === s ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:bg-gray-50 text-gray-500'}`}>
+                      className={`min-h-[44px] px-3 py-2 text-[9px] uppercase tracking-widest border ${bookSort === s ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:bg-gray-50 text-gray-500'}`}>
                       {s === 'default' ? 'Дата' : s === 'alpha' ? 'А-Я' : 'Склад'}
                     </button>
                   ))}
                 </div>
+                <p className="text-[10px] leading-relaxed text-gray-400">Готовность: название, автор, обложка, описание и Shopify-ссылка.</p>
               </div>
               <div className="divide-y divide-gray-100">
-                {books
-                  .filter(b => !bookSearch || b.title.toLowerCase().includes(bookSearch.toLowerCase()) || b.author.toLowerCase().includes(bookSearch.toLowerCase()))
-                  .sort((a, b2) => bookSort === 'alpha' ? a.title.localeCompare(b2.title) : bookSort === 'stock' ? a.stock - b2.stock : 0)
-                  .map(book => (
+                {filteredAdminBooks.map(book => {
+                  const readiness = getBookEditorReadiness(book);
+                  return (
                   <button
                     key={book.id}
-                    onClick={() => { setSelectedBookId(book.id); setBookDirty(false); }}
-                    className={`w-full text-left p-3 hover:bg-gray-50 flex gap-3 items-center ${selectedBookId === book.id ? 'bg-[#F4F4F0]' : ''}`}
+                    onClick={() => selectAdminBook(book.id)}
+                    aria-current={selectedBookId === book.id ? 'true' : undefined}
+                    className={`w-full min-h-[84px] text-left p-3 hover:bg-gray-50 flex gap-3 items-center border-l-2 ${selectedBookId === book.id ? 'bg-[#F4F4F0] border-accent' : 'border-transparent'}`}
                   >
                     {book.coverUrl ? (
                       <img src={book.coverUrl} alt="" className="w-10 h-14 object-cover flex-shrink-0 border border-gray-100" />
                     ) : (
                       <div className="w-10 h-14 bg-gray-100 flex-shrink-0 flex items-center justify-center text-gray-300 text-[10px]">?</div>
                     )}
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="font-serif text-base leading-tight truncate">{book.title || book.id}</p>
                       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-gray-400 truncate">{book.author}</p>
                       <div className="flex gap-1 flex-wrap mt-0.5">
@@ -2289,9 +2426,24 @@ export const AdminPage: React.FC = () => {
                               ? <span className="text-[9px] bg-amber-100 text-amber-700 px-1 font-mono">{book.stock} ост.</span>
                               : null}
                       </div>
+                      <div className="mt-2 flex items-center gap-2" aria-label={`Заполнено ${readiness.complete} из ${readiness.total}`}>
+                        <div className="h-1 flex-1 overflow-hidden bg-gray-200">
+                          <div className={`h-full ${readiness.complete === readiness.total ? 'bg-emerald-600' : 'bg-accent'}`} style={{ width: `${(readiness.complete / readiness.total) * 100}%` }} />
+                        </div>
+                        <span className="font-mono text-[9px] text-gray-400">{readiness.complete}/{readiness.total}</span>
+                      </div>
                     </div>
                   </button>
-                ))}
+                  );
+                })}
+                {filteredAdminBooks.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <BookOpen size={22} className="mx-auto text-gray-300" aria-hidden="true" />
+                    <p className="mt-3 text-sm font-bold">Книги не найдены</p>
+                    <p className="mt-1 text-xs text-gray-500">Измените запрос или создайте новую карточку.</p>
+                    <button type="button" onClick={() => setBookSearch('')} className="mt-4 min-h-[44px] border border-primary px-4 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">Сбросить поиск</button>
+                  </div>
+                ) : null}
               </div>
             </section>
 
@@ -2846,19 +2998,13 @@ export const AdminPage: React.FC = () => {
         ) : null}
 
         {database && activeTab === 'news' ? (
-          <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-8">
-            <section className="bg-white border border-primary/10">
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+            <section className="bg-white border border-primary/10 xl:sticky xl:top-0 xl:max-h-[calc(100vh-5rem)] xl:self-start xl:overflow-y-auto">
               <div className="p-6 border-b border-primary/10 flex items-center justify-between">
                 <h3 className="text-2xl font-serif">Мероприятия</h3>
                 <button
-                  onClick={() => {
-                    const next = createNewsTemplate();
-                    setSelectedNewsId(next.id);
-                    skipNewsDirtyRef.current = true;
-                    setNewsDraft(next);
-                    setNewsDirty(false);
-                  }}
-                  className="px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
+                  onClick={startNewNews}
+                  className="min-h-[44px] px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2"
                 >
                   <Plus size={12} />
                   Добавить
@@ -2873,11 +3019,12 @@ export const AdminPage: React.FC = () => {
                 />
               </div>
               <div className="divide-y divide-gray-100">
-                {news.filter(n => !newsSearch || n.title.toLowerCase().includes(newsSearch.toLowerCase())).map(item => (
+                {filteredAdminNews.map(item => (
                   <button
                     key={item.id}
-                    onClick={() => setSelectedNewsId(item.id)}
-                    className={`w-full text-left p-4 hover:bg-gray-50 ${selectedNewsId === item.id ? 'bg-[#F4F4F0]' : ''}`}
+                    onClick={() => selectAdminNews(item.id)}
+                    aria-current={selectedNewsId === item.id ? 'true' : undefined}
+                    className={`w-full min-h-[80px] border-l-2 p-4 text-left hover:bg-gray-50 ${selectedNewsId === item.id ? 'border-accent bg-[#F4F4F0]' : 'border-transparent'}`}
                   >
                     <div className="flex gap-3">
                       {item.imageUrl ? <img src={item.imageUrl} alt="" className="h-12 w-12 shrink-0 border border-primary/10 object-cover" /> : <span className="flex h-12 w-12 shrink-0 items-center justify-center border border-dashed border-primary/20 bg-[#F8F8F5] font-mono text-[9px] text-gray-400">NO IMG</span>}
@@ -2888,18 +3035,26 @@ export const AdminPage: React.FC = () => {
                     </div>
                   </button>
                 ))}
+                {filteredAdminNews.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <Newspaper size={22} className="mx-auto text-gray-300" aria-hidden="true" />
+                    <p className="mt-3 text-sm font-bold">Материалы не найдены</p>
+                    <p className="mt-1 text-xs text-gray-500">Измените запрос или добавьте новое мероприятие.</p>
+                    <button type="button" onClick={() => setNewsSearch('')} className="mt-4 min-h-[44px] border border-primary px-4 text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white">Сбросить поиск</button>
+                  </div>
+                ) : null}
               </div>
             </section>
 
-            <section className="bg-white border border-primary/10 p-6">
+            <section className="overflow-hidden bg-white border border-primary/10 p-4 md:p-6">
               {newsDraft ? (
                 <div className="space-y-6">
-                  <div className="sticky top-0 z-10 bg-white -mx-6 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                  <div className="sticky top-0 z-10 -mx-4 flex flex-col justify-between gap-3 border-b border-gray-100 bg-white px-4 py-4 md:-mx-6 md:px-6 lg:flex-row lg:items-center">
                     <div>
                       <h3 className="text-3xl font-serif">Редактор новости</h3>
                       {newsDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● НЕСОХРАНЁННЫЕ ИЗМЕНЕНИЯ · CTRL+S</span>}
                     </div>
-                    <div className="flex gap-2 items-center">
+                    <div className="flex flex-wrap gap-2 items-center">
                       {deleteConfirm === `news:${newsDraft.id}` ? (
                         <>
                           <span className="text-xs text-red-600 font-bold">Подтвердить удаление?</span>
@@ -2924,7 +3079,7 @@ export const AdminPage: React.FC = () => {
                             <Copy size={14} />
                             Копия
                           </button>
-                          <button onClick={handleSaveNews} className="px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest">
+                          <button onClick={handleSaveNews} disabled={Boolean(savingKey) || newsRequiredErrors.length > 0} className="min-h-[44px] px-4 py-3 bg-primary text-white hover:bg-accent hover:text-primary flex items-center gap-2 text-xs uppercase tracking-widest disabled:cursor-not-allowed disabled:opacity-40">
                             {savingKey === `news:${newsDraft.id}` ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                             Сохранить
                           </button>
