@@ -1,13 +1,11 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, Globe, Sparkles } from 'lucide-react';
+import { ArrowRight, Globe, Sparkles } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { EuropeGlyph, DHLBadge } from '../components/BrandGlyphs';
 import { useApp } from '../AppContext';
 import { formatNewsDate } from '../utils/newsDate';
-import { SHOPIFY_STORE_URL } from '../utils/purchaseLinks';
-import { analytics } from '../services/analytics';
 
 export const HomePage: React.FC = () => {
   const { t, books, news, language } = useApp();
@@ -58,16 +56,15 @@ export const HomePage: React.FC = () => {
                     {t('home.hero_subtitle')}
                  </p>
                  <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
-                    <Link to="/catalog" className="min-h-[52px] bg-primary text-white px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent hover:text-primary transition-colors border border-primary duration-300 flex items-center justify-center text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-                       {t('home.hero_cta')}
+                    <Link to="/our-authors" className="min-h-[52px] bg-primary text-white px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent hover:text-primary transition-colors border border-primary duration-300 flex items-center justify-center text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+                       {t('nav.our_authors')}
                     </Link>
-                    <a
-                       href={SHOPIFY_STORE_URL}
-                       onClick={() => analytics.track('shopify_buy_click', { source: 'home_hero', destination: SHOPIFY_STORE_URL })}
+                    <Link
+                       to="/about"
                        className="min-h-[52px] bg-transparent text-primary px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-white transition-colors border border-primary duration-300 flex items-center justify-center gap-2 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     >
-                       {t('home.shop_cta')} <ArrowUpRight size={15} aria-hidden="true" />
-                    </a>
+                       {t('nav.about')} <ArrowRight size={15} aria-hidden="true" />
+                    </Link>
                  </div>
               </div>
            </div>

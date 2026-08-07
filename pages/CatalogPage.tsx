@@ -5,6 +5,7 @@ import { ProductCard } from '../components/ProductCard';
 import { Filter, X, ChevronDown, ChevronUp, RefreshCw, Check, LayoutGrid, List } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { SortOption, Format } from '../types';
+import { getBookFormats } from '../utils/bookVariants';
 
 // Helper for Accordion Items
 const FilterAccordion: React.FC<{ title: string; children: React.ReactNode; isOpen?: boolean }> = ({ title, children, isOpen = true }) => {
@@ -87,7 +88,7 @@ export const CatalogPage: React.FC = () => {
 
     // 3. Formats
     if (activeFormats.length > 0) {
-        const hasFormat = book.variants.some(v => activeFormats.includes(v.format));
+        const hasFormat = getBookFormats(book).some(format => activeFormats.includes(format));
         if (!hasFormat) return false;
     }
 

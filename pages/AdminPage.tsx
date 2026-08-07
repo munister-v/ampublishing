@@ -18,6 +18,7 @@ import { translations } from '../translations';
 import { toGenitiveRu } from '../utils/declension';
 import { getShopifyPurchaseLink, isShopifyPurchaseLink, SHOPIFY_STORE_URL } from '../utils/purchaseLinks';
 import { getBookPath } from '../utils/bookRoutes';
+import { DEFAULT_BOOK_FORMAT, ensureBookVariants } from '../utils/bookVariants';
 import { AboutLayoutSettings, AboutSectionId, Book, BookReview, BookTheme, BookVariant, Format, Language, LocalizedCatalogData, NavLinkConfig, NewsBlock, NewsBlockType, NewsItem, OrderStatus, PaymentSettings, PaymentStatus, SiteSettings, TranslationOverrides } from '../types';
 import {
   Activity,
@@ -1593,7 +1594,7 @@ export const AdminPage: React.FC = () => {
       const nextBook = {
         ...normalizedDraft,
         genre: normalizedDraft.genre.filter(Boolean),
-        variants: parsedVariants || [],
+        variants: parsedVariants?.length ? parsedVariants : ensureBookVariants(normalizedDraft, selectedLanguage),
         story: {
           ...normalizedDraft.story!,
           themes: parsedThemes || [],
@@ -2583,6 +2584,23 @@ export const AdminPage: React.FC = () => {
                     <LF label="Возрастной рейтинг">
                       <select value={bookDraft.ageRating || '16+'} onChange={e => setBookDraft(prev => prev ? { ...prev, ageRating: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3 bg-white">
                         {['0+','6+','12+','16+','18+'].map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </LF>
+                    <LF label="Основной формат" hint="У всех текущих книг — мягкая обложка. Для новой книги выберите формат здесь; фильтр каталога обновится автоматически.">
+                      <select
+                        value={(bookDraft.variants?.[0]?.format || DEFAULT_BOOK_FORMAT)}
+                        onChange={e => setBookDraft(prev => {
+                          if (!prev) return prev;
+                          const variants = ensureBookVariants(prev, selectedLanguage).map(variant => ({ ...variant }));
+                          variants[0] = { ...variants[0], format: e.target.value as Format };
+                          return { ...prev, variants };
+                        })}
+                        className="w-full border border-gray-300 bg-white px-4 py-3"
+                      >
+                        <option value="paperback">Мягкая обложка</option>
+                        <option value="hardcover">Твёрдая обложка</option>
+                        <option value="digital">Цифровой отрывок</option>
+                        <option value="special_edition">Подарочный комплект</option>
                       </select>
                     </LF>
                     <LF label="Серия">

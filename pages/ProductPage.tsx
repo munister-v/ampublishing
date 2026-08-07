@@ -11,6 +11,7 @@ import { analytics } from '../services/analytics';
 import { toGenitiveRu } from '../utils/declension';
 import { findBookByRouteId, getBookPath, isAliasRoute } from '../utils/bookRoutes';
 import { BookSpread } from '../components/BookSpread';
+import { getPrimaryBookVariant } from '../utils/bookVariants';
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,7 +30,7 @@ export const ProductPage: React.FC = () => {
   // quantity, live price, availability, payment, and delivery.
   const shopifyLink = getShopifyPurchaseLink(book);
   const secondaryPurchaseLinks = getActivePurchaseLinks(book).filter((link): link is PurchaseLink => !isShopifyPurchaseLink(link));
-  const mainVariant = book.variants[0];
+  const mainVariant = getPrimaryBookVariant(book, language);
   const hasLocalPrice = book.price > 0;
   const actionLabel = book.isPreorder ? t('product.preorder_in_shop') : t('product.buy_in_shop');
 

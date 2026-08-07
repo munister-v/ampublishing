@@ -8,6 +8,7 @@ import { analytics } from '../services/analytics';
 import { formatLabel } from '../utils/formatLabel';
 import { getShopifyPurchaseLink } from '../utils/purchaseLinks';
 import { getBookPath } from '../utils/bookRoutes';
+import { getPrimaryBookVariant } from '../utils/bookVariants';
 
 interface ProductCardProps {
   book: Book;
@@ -17,7 +18,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid' }) => {
   const { region, t, language, checkAgeGate } = useApp();
-  const mainVariant = book.variants[0];
+  const mainVariant = getPrimaryBookVariant(book, language);
   const shopifyLink = getShopifyPurchaseLink(book);
   const canBuyInShop = Boolean(shopifyLink);
   const isSoldOut = !canBuyInShop && book.stock === 0 && !book.isPreorder;
@@ -116,8 +117,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ book, viewMode = 'grid
             {mainVariant?.isbn && <span className="hidden sm:inline text-primary/20">|</span>}
             <span className={mainVariant?.isbn ? 'hidden sm:inline' : ''}>{book.details.year}</span>
           </div>
-          <span className={book.variants.length > 1 ? 'text-accent' : ''}>
-            {mainVariant ? formatLabel(mainVariant.format, language) : '—'}
+          <span className={(book.variants || []).length > 1 ? 'text-accent' : ''}>
+            {formatLabel(mainVariant.format, language)}
           </span>
         </div>
 
