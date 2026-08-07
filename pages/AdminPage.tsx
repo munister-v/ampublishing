@@ -438,9 +438,9 @@ const optimizeImageFile = async (file: File) => {
 
 const LF: React.FC<{ label: string; hint?: string; children: React.ReactNode; className?: string }> = ({ label, hint, children, className }) => (
   <div className={className}>
-    <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">{label}</label>
+    <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.14em] text-primary/65">{label}</label>
     {children}
-    {hint ? <p className="mt-1 text-[10px] text-gray-400">{hint}</p> : null}
+    {hint ? <p className="mt-2 text-xs leading-relaxed text-gray-500">{hint}</p> : null}
   </div>
 );
 
@@ -1838,7 +1838,7 @@ export const AdminPage: React.FC = () => {
   const news = database?.[selectedLanguage].news || [];
 
   return (
-    <div className="min-h-screen bg-[#F4F4F0] flex flex-col md:flex-row text-primary md:h-screen md:overflow-hidden">
+    <div className="admin-ui min-h-screen bg-[#F4F4F0] flex flex-col md:flex-row text-primary md:h-screen md:overflow-hidden">
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
@@ -1858,11 +1858,10 @@ export const AdminPage: React.FC = () => {
       </div>
 
       <aside className={`
-  fixed top-0 left-0 bottom-0 z-40 w-72 max-w-[85vw] overflow-y-auto
+  fixed inset-y-0 left-0 z-40 w-full max-w-72 overflow-y-auto
   transition-transform duration-200 ease-in-out
   ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-  md:relative md:translate-x-0 md:top-0 md:w-72 md:max-w-none
-  md:flex-shrink-0 md:sticky md:h-screen
+  md:sticky md:top-0 md:h-screen md:w-72 md:max-w-none md:flex-shrink-0 md:translate-x-0
   bg-primary text-white
 `}>
         <div className="hidden md:block p-8 border-b border-white/10">
@@ -1870,33 +1869,59 @@ export const AdminPage: React.FC = () => {
           <p className="text-[10px] font-mono opacity-60 uppercase tracking-[0.24em] mt-2">Управление контентом</p>
         </div>
 
-        <nav className="p-6 space-y-3">
-          {[
-            { id: 'command', label: 'Издательский пульт', icon: <Sparkles size={16} /> },
-            { id: 'copy', label: 'Тексты сайта', icon: <FileText size={16} /> },
-            { id: 'books', label: 'Книги', icon: <BookOpen size={16} /> },
-            { id: 'news', label: 'Мероприятия', icon: <Newspaper size={16} /> },
-            { id: 'authors', label: 'Наши авторы', icon: <Globe size={16} /> },
-            { id: 'about', label: 'О нас', icon: <Info size={16} /> },
-            { id: 'services', label: 'Услуги', icon: <Clipboard size={16} /> },
-            { id: 'site', label: 'Сайт / Шапка / Подвал', icon: <Layout size={16} /> },
-            { id: 'payments', label: 'Оплата', icon: <Gavel size={16} /> },
-            { id: 'integrations', label: 'Интеграции', icon: <GitBranch size={16} />, badge: newLeadsCount },
-            { id: 'orders', label: 'Заказы', icon: <ShoppingBag size={16} />, badge: orders.filter(o => o.paymentStatus === 'pending').length },
-            { id: 'status', label: 'Статус системы', icon: <Activity size={16} />, badge: 0 },
-            { id: 'radio', label: 'Радио', icon: <Wifi size={16} /> },
-          ].map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id as AdminTab)}
-              className={`w-full flex items-center gap-4 px-4 py-4 text-xs uppercase font-bold tracking-widest transition-all ${
-                activeTab === item.id ? 'bg-accent text-primary translate-x-2 shadow-lg' : 'hover:bg-white/10 text-gray-300'
-              }`}
-            >
-              {item.icon}
-              {item.label}
-              {item.badge > 0 && <span className="ml-auto bg-accent text-primary text-[9px] font-bold px-1.5 py-0.5 min-w-[18px] text-center flex-shrink-0">{item.badge}</span>}
-            </button>
+        <nav className="space-y-6 p-5" aria-label="Разделы админки">
+          {([
+            {
+              label: 'Рабочий стол',
+              items: [{ id: 'command', label: 'Обзор', icon: <Sparkles size={17} /> }],
+            },
+            {
+              label: 'Контент',
+              items: [
+                { id: 'books', label: 'Книги', icon: <BookOpen size={17} /> },
+                { id: 'news', label: 'Мероприятия', icon: <Newspaper size={17} /> },
+                { id: 'authors', label: 'Авторы', icon: <Globe size={17} /> },
+                { id: 'radio', label: 'Радио', icon: <Wifi size={17} /> },
+              ],
+            },
+            {
+              label: 'Сайт',
+              items: [
+                { id: 'copy', label: 'Тексты', icon: <FileText size={17} /> },
+                { id: 'about', label: 'О нас', icon: <Info size={17} /> },
+                { id: 'services', label: 'Услуги', icon: <Clipboard size={17} /> },
+                { id: 'site', label: 'Навигация и футер', icon: <Layout size={17} /> },
+              ],
+            },
+            {
+              label: 'Система',
+              items: [
+                { id: 'integrations', label: 'Shopify и сервисы', icon: <GitBranch size={17} />, badge: newLeadsCount },
+                { id: 'status', label: 'Состояние сайта', icon: <Activity size={17} /> },
+              ],
+            },
+          ] as { label: string; items: { id: AdminTab; label: string; icon: React.ReactNode; badge?: number }[] }[]).map(group => (
+            <div key={group.label}>
+              <p className="mb-2 px-3 font-mono text-[9px] font-bold uppercase tracking-[0.22em] text-white/35">{group.label}</p>
+              <div className="space-y-1">
+                {group.items.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    aria-current={activeTab === item.id ? 'page' : undefined}
+                    className={`flex min-h-[48px] w-full items-center gap-3 border-l-2 px-3 py-3 text-left text-xs font-bold uppercase tracking-[0.12em] transition-colors ${
+                      activeTab === item.id
+                        ? 'border-accent bg-white/10 text-white'
+                        : 'border-transparent text-white/65 hover:border-white/30 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                    {Boolean(item.badge) && <span className="ml-auto min-w-[20px] bg-accent px-1.5 py-0.5 text-center text-[9px] font-bold text-primary">{item.badge}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -1957,7 +1982,7 @@ export const AdminPage: React.FC = () => {
         </div>
       </aside>
 
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto overflow-x-hidden min-h-screen md:h-screen">
+      <main className="min-w-0 flex-1 p-4 md:p-8 xl:p-10 overflow-y-auto overflow-x-hidden min-h-screen md:h-screen scroll-panel">
         {/* ── Live save progress ── */}
         {(savingKey || savingPassword) && (
           <div className="sticky top-0 z-20 bg-primary text-white border-b border-white/10">
@@ -1989,13 +2014,13 @@ export const AdminPage: React.FC = () => {
         {database ? (() => {
           const totalBooks = database[selectedLanguage].books.length;
           const totalNews = database[selectedLanguage].news.length;
-          const pendingOrders = orders.filter(o => o.paymentStatus === 'pending').length;
-          const totalRevenue = orders.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + o.total, 0);
+          const linkedBooks = database[selectedLanguage].books.filter(book => Boolean(getShopifyPurchaseLink(book))).length;
+          const preorderBooks = database[selectedLanguage].books.filter(book => book.isPreorder).length;
           const hasErrors = Object.keys(copyJsonErrors).length || Object.keys(bookJsonErrors).length ||
             (!isNewBook && bookRequiredErrors.length) ||
             (!isNewNews && newsRequiredErrors.length);
           return (
-            <div className="flex flex-wrap gap-3 mb-6">
+            <div className="mb-6 grid grid-cols-2 gap-px border border-primary/10 bg-primary/10 lg:grid-cols-5">
               <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Книги</p>
                 <p className="mt-1 font-serif text-3xl">{totalBooks}</p>
@@ -2004,25 +2029,17 @@ export const AdminPage: React.FC = () => {
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Мероприятия</p>
                 <p className="mt-1 font-serif text-3xl">{totalNews}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[110px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Заказы</p>
-                <p className="mt-1 font-serif text-3xl">{orders.length}</p>
+              <div className="bg-white p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Shopify-ссылки</p>
+                <p className="mt-1 font-serif text-3xl">{linkedBooks}<span className="text-base text-gray-400">/{totalBooks}</span></p>
               </div>
-              <div className={`border p-4 flex-1 min-w-[130px] ${pendingOrders > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-primary/10'}`}>
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Ожидают оплаты</p>
-                <p className={`mt-1 font-serif text-3xl ${pendingOrders > 0 ? 'text-amber-700' : ''}`}>{pendingOrders}</p>
+              <div className="bg-white p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Предзаказ</p>
+                <p className="mt-1 font-serif text-3xl">{preorderBooks}</p>
               </div>
-              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[120px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Выручка (оплачено)</p>
-                <p className="mt-1 font-serif text-3xl">{totalRevenue > 0 ? `€${totalRevenue.toFixed(0)}` : '—'}</p>
-              </div>
-              <div className={`border p-4 flex-1 min-w-[110px] ${hasErrors ? 'bg-red-50 border-red-200' : 'bg-white border-primary/10'}`}>
+              <div className={`${hasErrors ? 'bg-red-50' : 'bg-white'} p-4`}>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Контент</p>
                 <p className={`mt-1 font-serif text-2xl ${hasErrors ? 'text-red-600' : 'text-green-700'}`}>{hasErrors ? 'Ошибки' : 'ОК'}</p>
-              </div>
-              <div className="bg-white border border-primary/10 p-4 flex-1 min-w-[150px]">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-gray-400">Последнее сохранение</p>
-                <p className="mt-1 font-serif text-xl truncate">{lastPublishedAt || '—'}</p>
               </div>
             </div>
           );
@@ -2034,35 +2051,24 @@ export const AdminPage: React.FC = () => {
           const draftNews = catalog.news.filter(item => item.draft).length;
           const scheduledNews = catalog.news.filter(item => item.publishAt && new Date(item.publishAt).getTime() > now).length;
           const liveNews = Math.max(0, catalog.news.length - draftNews - scheduledNews);
-          // Stock is owned by Shopify for linked books. Only flag legacy books
-          // that still rely on the editorial site's local inventory field.
-          const lowStock = catalog.books.filter(book => !getShopifyPurchaseLink(book) && Number(book.stock || 0) <= 2);
-          const paidOrders = orders.filter(order => order.paymentStatus === 'paid');
-          const pendingOrders = orders.filter(order => order.paymentStatus === 'pending');
-          const deliveredOrders = orders.filter(order => order.status === 'delivered');
-          const revenue = paidOrders.reduce((sum, order) => sum + order.total, 0);
+          const linkedBooks = catalog.books.filter(book => Boolean(getShopifyPurchaseLink(book)));
+          const missingShopify = catalog.books.filter(book => !getShopifyPurchaseLink(book));
+          const incompleteBooks = catalog.books.filter(book => !book.coverUrl || !book.description || !book.title || !book.author);
+          const preorderBooks = catalog.books.filter(book => book.isPreorder);
           const readiness = Math.min(100,
-            (catalog.books.length ? 24 : 0) +
-            (catalog.news.length ? 16 : 0) +
-            (catalog.books.every(book => Boolean(book.coverUrl && book.description)) ? 22 : 8) +
-            (lowStock.length === 0 ? 14 : 6) +
-            (pendingOrders.length === 0 ? 12 : 7) +
+            (catalog.books.length ? 22 : 0) +
+            (catalog.news.length ? 14 : 0) +
+            (incompleteBooks.length === 0 ? 24 : 8) +
+            (missingShopify.length === 0 ? 28 : 8) +
             (lastPublishedAt ? 12 : 4)
           );
-          const countryCounts = orders.reduce<Record<string, number>>((acc, order) => {
-            const country = order.customer.country || order.diagnostics?.ipCountry || order.customer.location?.split(',').pop()?.trim() || '—';
-            acc[country] = (acc[country] || 0) + 1;
-            return acc;
-          }, {});
-          const topCountry = Object.entries(countryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Нет данных';
-          const nextAction = pendingOrders.length
-            ? { title: `Проверить ${pendingOrders.length} ожидающих оплат`, detail: 'Заказы уже сформированы и требуют подтверждения.', tab: 'orders' as AdminTab, label: 'Открыть заказы' }
-            : newLeadsCount
+          const nextAction = newLeadsCount
               ? { title: `Ответить на ${newLeadsCount} новых заявок`, detail: 'Горячие обращения из раздела услуг ждут обработки.', tab: 'integrations' as AdminTab, label: 'Открыть заявки' }
-              : lowStock.length
-                ? { title: `Обновить остатки: ${lowStock.length} позиций`, detail: 'Карточки с критическим остатком могут потерять продажи.', tab: 'books' as AdminTab, label: 'Проверить книги' }
-                : { title: 'Запланировать следующий материал', detail: 'Коммерческий контур спокоен — можно усилить редакционный ритм.', tab: 'news' as AdminTab, label: 'Создать материал' };
-          const recentOrders = [...orders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
+              : missingShopify.length
+                ? { title: `Подключить Shopify: ${missingShopify.length} книг`, detail: 'Добавьте публичные ссылки товаров, чтобы все карточки имели понятную кнопку покупки.', tab: 'books' as AdminTab, label: 'Открыть книги' }
+                : incompleteBooks.length
+                  ? { title: `Дополнить ${incompleteBooks.length} карточек`, detail: 'У части книг не хватает обложки или описания.', tab: 'books' as AdminTab, label: 'Проверить каталог' }
+                  : { title: 'Запланировать следующий материал', detail: 'Каталог готов — можно усилить редакционный ритм.', tab: 'news' as AdminTab, label: 'Создать материал' };
 
           return (
             <section className="space-y-6 pb-12">
@@ -2076,7 +2082,7 @@ export const AdminPage: React.FC = () => {
                         <span>Live workspace</span>
                       </div>
                       <h1 className="font-serif text-5xl md:text-7xl leading-[.92] mt-8 max-w-3xl">Издательство<br /><span className="text-accent italic">в одном кадре.</span></h1>
-                      <p className="mt-7 max-w-xl text-sm md:text-base text-white/65 leading-relaxed">Контент, продажи, заявки и готовность сайта собраны в одном редакционном ритме. Здесь видно не просто цифры — здесь видно, что делать дальше.</p>
+                      <p className="mt-7 max-w-xl text-sm md:text-base text-white/65 leading-relaxed">Каталог, материалы, заявки и готовность сайта собраны в одном редакционном пространстве. Заказы, оплата и доставка полностью ведутся в Shopify.</p>
                     </div>
                     <button onClick={() => setActiveTab(nextAction.tab)} className="mt-9 min-h-12 w-fit inline-flex items-center gap-3 bg-accent text-primary px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] hover:bg-white focus:outline-none focus:ring-4 focus:ring-accent/30 transition-colors">
                       {nextAction.label}<ArrowRight size={16} />
@@ -2090,8 +2096,8 @@ export const AdminPage: React.FC = () => {
                       <p className="mt-4 text-sm leading-relaxed text-white/60">{readiness >= 85 ? 'Контур готов к активному продвижению.' : readiness >= 65 ? 'Хорошая база. Осталось закрыть несколько операционных точек.' : 'Есть критические элементы, требующие внимания.'}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-px bg-white/10 border border-white/10 mt-8">
-                      <div className="bg-primary/80 p-4"><p className="text-[9px] uppercase tracking-widest text-white/40">Рынок</p><p className="mt-2 font-serif text-xl">{topCountry}</p></div>
-                      <div className="bg-primary/80 p-4"><p className="text-[9px] uppercase tracking-widest text-white/40">Выручка</p><p className="mt-2 font-serif text-xl">€{revenue.toFixed(0)}</p></div>
+                      <div className="bg-primary/80 p-4"><p className="text-[9px] uppercase tracking-widest text-white/40">Shopify</p><p className="mt-2 font-serif text-xl">{linkedBooks.length}/{catalog.books.length}</p></div>
+                      <div className="bg-primary/80 p-4"><p className="text-[9px] uppercase tracking-widest text-white/40">Предзаказ</p><p className="mt-2 font-serif text-xl">{preorderBooks.length}</p></div>
                     </div>
                   </div>
                 </div>
@@ -2124,9 +2130,9 @@ export const AdminPage: React.FC = () => {
 
               <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-px bg-primary/10 border border-primary/10">
                 {[
-                  { label: 'Оплаченные заказы', value: paidOrders.length, sub: `${deliveredOrders.length} доставлено`, icon: <ShoppingBag size={17} />, tab: 'orders' as AdminTab },
+                  { label: 'Shopify подключён', value: linkedBooks.length, sub: `${missingShopify.length} без ссылки`, icon: <Store size={17} />, tab: 'books' as AdminTab },
                   { label: 'Новые заявки', value: newLeadsCount, sub: 'из формы услуг', icon: <TrendingUp size={17} />, tab: 'integrations' as AdminTab },
-                  { label: 'Критический остаток', value: lowStock.length, sub: lowStock[0]?.title || 'всё в норме', icon: <AlertTriangle size={17} />, tab: 'books' as AdminTab },
+                  { label: 'Неполные карточки', value: incompleteBooks.length, sub: incompleteBooks[0]?.title || 'всё заполнено', icon: <AlertTriangle size={17} />, tab: 'books' as AdminTab },
                   { label: 'Каталог', value: catalog.books.length, sub: `${catalog.news.length} материалов`, icon: <BookOpen size={17} />, tab: 'books' as AdminTab },
                 ].map(item => (
                   <button key={item.label} onClick={() => setActiveTab(item.tab)} className="min-h-[150px] bg-white p-6 text-left hover:bg-[#F8F8F4] focus:outline-none focus:ring-4 focus:ring-inset focus:ring-accent/40 transition-colors">
@@ -2137,16 +2143,17 @@ export const AdminPage: React.FC = () => {
               </div>
 
               <div className="bg-white border border-primary/10">
-                <div className="p-6 md:p-8 border-b border-primary/10 flex flex-wrap items-end justify-between gap-4"><div><p className="text-[10px] uppercase tracking-[0.2em] font-mono text-gray-400">Commerce signal</p><h2 className="font-serif text-3xl mt-2">Последние заказы</h2></div><button onClick={() => setActiveTab('orders')} className="min-h-11 px-4 border border-primary/20 text-[10px] uppercase tracking-[0.18em] font-bold hover:bg-primary hover:text-white">Все заказы</button></div>
-                <div className="divide-y divide-primary/10">
-                  {recentOrders.length ? recentOrders.map(order => (
-                    <button key={order.id} onClick={() => setActiveTab('orders')} className="w-full min-h-[76px] px-6 md:px-8 py-4 grid grid-cols-[1fr_auto] md:grid-cols-[1.2fr_.8fr_.6fr_auto] items-center gap-4 text-left hover:bg-[#F8F8F4] focus:outline-none focus:ring-4 focus:ring-inset focus:ring-accent/35">
-                      <div><p className="font-bold text-sm">{order.customer.name}</p><p className="text-xs text-gray-400 mt-1">{order.items.map(item => item.bookTitle).join(', ')}</p></div>
-                      <p className="hidden md:block text-xs text-gray-500">{order.customer.location}</p>
-                      <span className={`hidden md:inline-flex w-fit px-2 py-1 text-[9px] uppercase tracking-widest ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>{order.paymentStatus}</span>
-                      <p className="font-serif text-xl">{order.currency === 'EUR' ? '€' : order.currency}{order.total.toFixed(0)}</p>
-                    </button>
-                  )) : <div className="p-8 text-sm text-gray-400">Заказов пока нет. Пульт начнёт показывать коммерческие сигналы после первой покупки.</div>}
+                <div className="p-6 md:p-8 border-b border-primary/10"><p className="text-[10px] uppercase tracking-[0.2em] font-mono text-gray-400">Быстрый старт</p><h2 className="font-serif text-3xl mt-2">Что редактируем сейчас?</h2></div>
+                <div className="grid md:grid-cols-3 gap-px bg-primary/10">
+                  <button onClick={() => setActiveTab('books')} className="min-h-[140px] bg-white p-6 text-left hover:bg-[#F8F8F4] focus:ring-4 focus:ring-inset focus:ring-accent/35">
+                    <BookOpen size={20} className="text-accent" /><p className="mt-6 font-serif text-2xl">Книгу</p><p className="mt-2 text-xs leading-relaxed text-gray-500">Карточка, обложка и ссылка Shopify.</p>
+                  </button>
+                  <button onClick={() => setActiveTab('news')} className="min-h-[140px] bg-white p-6 text-left hover:bg-[#F8F8F4] focus:ring-4 focus:ring-inset focus:ring-accent/35">
+                    <Newspaper size={20} className="text-accent" /><p className="mt-6 font-serif text-2xl">Материал</p><p className="mt-2 text-xs leading-relaxed text-gray-500">Новость, событие или анонс.</p>
+                  </button>
+                  <a href={SHOPIFY_STORE_URL} target="_blank" rel="noopener noreferrer" className="min-h-[140px] bg-white p-6 text-left hover:bg-[#F8F8F4] focus:ring-4 focus:ring-inset focus:ring-accent/35">
+                    <Store size={20} className="text-accent" /><p className="mt-6 font-serif text-2xl">Shopify</p><p className="mt-2 text-xs leading-relaxed text-gray-500">Товары, заказы, оплата и доставка.</p>
+                  </a>
                 </div>
               </div>
             </section>
@@ -2217,8 +2224,8 @@ export const AdminPage: React.FC = () => {
         ) : null}
 
         {database && activeTab === 'books' ? (
-          <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-8">
-            <section className="bg-white border border-primary/10">
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+            <section className="bg-white border border-primary/10 xl:sticky xl:top-0 xl:max-h-[calc(100vh-5rem)] xl:self-start xl:overflow-y-auto">
               <div className="p-6 border-b border-primary/10 flex items-center justify-between">
                 <h3 className="text-2xl font-serif">Книги</h3>
                 <button
@@ -2287,15 +2294,15 @@ export const AdminPage: React.FC = () => {
               </div>
             </section>
 
-            <section className="bg-white border border-primary/10 p-6">
+            <section className="admin-editor overflow-hidden bg-white border border-primary/10 p-4 md:p-6">
               {bookDraft ? (
                 <div className="space-y-8">
-                  <div className="sticky top-0 z-10 bg-white -mx-6 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                  <div className="sticky top-0 z-20 bg-white -mx-4 px-4 py-4 md:-mx-6 md:px-6 border-b border-gray-100 flex flex-col lg:flex-row justify-between lg:items-center gap-3">
                     <div>
                       <h3 className="text-3xl font-serif">Редактор книги</h3>
                       {bookDirty && <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest">● Есть несохранённые изменения · Ctrl+S</span>}
                     </div>
-                    <div className="flex gap-2 items-center">
+                    <div className="flex flex-wrap gap-2 items-center">
                       {deleteConfirm === `book:${bookDraft.id}` ? (
                         <>
                           <span className="text-xs text-red-600 font-bold">Удалить книгу?</span>
@@ -2351,6 +2358,23 @@ export const AdminPage: React.FC = () => {
                       )}
                     </div>
                   </div>
+                  <nav className="-mt-8 flex min-h-[52px] gap-2 overflow-x-auto border-b border-gray-100 py-2" aria-label="Разделы карточки книги">
+                    {[
+                      { href: '#book-basics', label: 'Основное' },
+                      { href: '#book-shopify', label: 'Shopify' },
+                      { href: '#book-cover', label: 'Обложка' },
+                      { href: '#book-details', label: 'Описание' },
+                      { href: '#book-story', label: 'Story Page' },
+                    ].map(item => (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        className="inline-flex min-h-[44px] shrink-0 items-center border border-gray-200 px-3 text-[10px] font-bold uppercase tracking-widest text-gray-600 hover:border-primary hover:bg-[#F4F4F0] hover:text-primary"
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </nav>
                   {bookPublishProbe.status !== 'idle' ? (
                     <div className={`border p-4 text-sm ${
                       bookPublishProbe.status === 'live'
@@ -2389,7 +2413,7 @@ export const AdminPage: React.FC = () => {
                   <section className="border border-primary bg-[#F4F4F0] p-5 md:p-6" aria-labelledby="book-setup-title">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div className="max-w-2xl">
-                        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Новая книга · быстрый сценарий</p>
+                        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-accent">{isNewBook ? 'Новая книга · быстрый сценарий' : 'Карточка книги · готовность'}</p>
                         <h4 id="book-setup-title" className="mt-2 font-serif text-3xl leading-tight">Заполните витрину и вставьте ссылку Shopify</h4>
                         <p className="mt-2 text-sm leading-relaxed text-gray-600">
                           Название создаёт URL автоматически. Для публикации обязательны автор, обложка и публичная ссылка товара из Shopify; цену, наличие, оплату и доставку дальше ведёт сам магазин.
@@ -2412,7 +2436,7 @@ export const AdminPage: React.FC = () => {
                     </div>
                   </section>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div id="book-basics" className="grid scroll-mt-32 grid-cols-1 gap-5 md:grid-cols-2">
                     <LF label="ID (slug)" hint="Создаётся автоматически — менять не нужно">
                       <input
                         value={bookDraft.id}
@@ -2652,12 +2676,14 @@ export const AdminPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <ImageField
-                    label="Обложка"
-                    value={bookDraft.coverUrl}
-                    onChange={value => setBookDraft(prev => prev ? { ...prev, coverUrl: value } : prev)}
-                    filenamePrefix={`cover-${bookDraft.id || 'book'}`}
-                  />
+                  <div id="book-cover" className="scroll-mt-32">
+                    <ImageField
+                      label="Обложка"
+                      value={bookDraft.coverUrl}
+                      onChange={value => setBookDraft(prev => prev ? { ...prev, coverUrl: value } : prev)}
+                      filenamePrefix={`cover-${bookDraft.id || 'book'}`}
+                    />
+                  </div>
 
                   <section className="border border-primary/10 bg-[#F8F8F5] p-4 md:p-5">
                     <div className="flex items-center justify-between gap-3 mb-4">
@@ -2696,14 +2722,15 @@ export const AdminPage: React.FC = () => {
                     </div>
                   </section>
 
-                  <LF label="Краткое описание">
-                    <AutoTextarea value={bookDraft.description}
-                      onChange={e => setBookDraft(prev => prev ? { ...prev, description: (e.target as HTMLTextAreaElement).value } : prev)}
-                      countType="words"
-                      className="border border-gray-300 px-4 py-3" rows={4} />
-                  </LF>
+                  <div id="book-details" className="scroll-mt-32 space-y-5">
+                    <LF label="Краткое описание">
+                      <AutoTextarea value={bookDraft.description}
+                        onChange={e => setBookDraft(prev => prev ? { ...prev, description: (e.target as HTMLTextAreaElement).value } : prev)}
+                        countType="words"
+                        className="border border-gray-300 px-4 py-3" rows={4} />
+                    </LF>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-4">
                     <LF label="Страниц">
                       <input type="number" min={0} value={bookDraft.details.pages} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, pages: Number(e.target.value) } } : prev)} className="w-full border border-gray-300 px-4 py-3" />
                     </LF>
@@ -2717,8 +2744,9 @@ export const AdminPage: React.FC = () => {
                       <input value={bookDraft.details.dimensions || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, details: { ...prev.details, dimensions: e.target.value } } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder="21×14 cm" />
                     </LF>
                   </div>
+                  </div>
 
-                  <div className="space-y-5">
+                  <div id="book-story" className="scroll-mt-32 space-y-5">
                     <div className="flex items-center justify-between border-t border-gray-100 pt-6">
                       <h4 className="font-serif text-2xl">Story Page</h4>
                       <button type="button" onClick={() => setStoryCollapsed(v => !v)}

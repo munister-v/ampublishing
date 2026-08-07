@@ -114,6 +114,59 @@
   }
 }
 
+@layer components {
+  .admin-ui input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  .admin-ui select,
+  .admin-ui textarea {
+    min-height: 48px;
+    border-color: rgba(4, 15, 30, 0.2);
+    background-color: #fff;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  }
+
+  .admin-ui input:not([type='checkbox']):not([type='radio']):not([type='file']):hover,
+  .admin-ui select:hover,
+  .admin-ui textarea:hover {
+    border-color: rgba(4, 15, 30, 0.42);
+  }
+
+  .admin-ui input:not([type='checkbox']):not([type='radio']):not([type='file']):focus,
+  .admin-ui select:focus,
+  .admin-ui textarea:focus {
+    border-color: #040F1E;
+    box-shadow: 0 0 0 3px rgba(201, 166, 107, 0.24);
+  }
+
+  .admin-ui input:disabled,
+  .admin-ui select:disabled,
+  .admin-ui textarea:disabled {
+    cursor: not-allowed;
+    background-color: #F1F1EC;
+    color: rgba(4, 15, 30, 0.56);
+  }
+
+  .admin-ui input[type='checkbox'],
+  .admin-ui input[type='radio'] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: #040F1E;
+  }
+
+  .admin-ui button,
+  .admin-ui a {
+    transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, opacity 180ms ease;
+  }
+
+  @media (max-width: 767px) {
+    .admin-ui input:not([type='checkbox']):not([type='radio']):not([type='file']),
+    .admin-ui select,
+    .admin-ui textarea {
+      font-size: 16px;
+    }
+  }
+}
+
 @layer utilities {
   /* GPU hint without clobbering `transform` utilities */
   .gpu-accelerated, img {

@@ -28,7 +28,6 @@ export const HomePage: React.FC = () => {
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));
-  const tickerContent = Array(12).fill(t('home.marquee_h'));
 
   return (
     <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
@@ -96,22 +95,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. TICKER TAPE (Horizontal) */}
-      <div className="relative border-b border-primary bg-accent text-primary py-3 overflow-hidden">
-         {/* Container width must be large enough to hold double content for smooth loop */}
-         <div className="flex whitespace-nowrap motion-safe:animate-marquee gpu-accelerated w-max">
-            {tickerContent.map((text, i) => (
-               <span key={i} className="mx-8 text-2xl font-serif italic">
-                  {text}
-               </span>
-            ))}
-            {/* Duplicate content visually if needed for perfect loop, but here array is long enough */}
-         </div>
-         <div className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-28 bg-gradient-to-r from-accent to-transparent"></div>
-         <div className="pointer-events-none absolute inset-y-0 right-0 w-16 md:w-28 bg-gradient-to-l from-accent to-transparent"></div>
-      </div>
-
-      {/* 3. CATALOG GRID */}
+      {/* 2. CATALOG GRID */}
       {newBooks.length > 0 && <section>
          <div className="grid grid-cols-1 md:grid-cols-12">
             {/* Sidebar Title */}

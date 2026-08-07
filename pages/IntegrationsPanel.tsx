@@ -272,7 +272,7 @@ export const IntegrationsPanel: React.FC<{
         <div>
           <h3 className="text-3xl font-serif leading-none">Интеграции</h3>
           <p className="mt-2 text-xs text-gray-500">
-            Shopify · DHL · заявки · аналитика
+            Shopify · заявки · аналитика
             {dirty ? <span className="ml-2 text-amber-600 font-mono">● несохранённые изменения</span> : null}
           </p>
         </div>
@@ -289,10 +289,9 @@ export const IntegrationsPanel: React.FC<{
       </div>
 
       {/* Разделы */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-primary/10 border border-primary/10">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-primary/10 border border-primary/10">
         {([
           { id: 'shopify', label: 'Shopify', icon: <ShoppingBag size={14} />, on: draft.shopify.enabled },
-          { id: 'dhl', label: 'DHL', icon: <Truck size={14} />, on: draft.dhl.enabled },
           { id: 'leads', label: 'Заявки', icon: <Inbox size={14} />, on: draft.leads.enabled, badge: leads.filter(l => l.status === 'new').length },
           { id: 'analytics', label: 'Аналитика', icon: <BarChart3 size={14} />, on: draft.analytics.enabled },
         ] as const).map(tab => (
