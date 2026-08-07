@@ -350,6 +350,7 @@ export interface AnalyticsIntegration {
   /** Грузить счётчики только после согласия на cookie. */
   requireConsent: boolean;
   ga4MeasurementId: string;
+  cloudflareWebAnalyticsToken: string;
   plausibleDomain: string;
   umamiWebsiteId: string;
   umamiScriptUrl: string;

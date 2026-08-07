@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Globe, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Sparkles, Users } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
-import { EuropeGlyph, DHLBadge } from '../components/BrandGlyphs';
 import { useApp } from '../AppContext';
 import { formatNewsDate } from '../utils/newsDate';
 
@@ -14,15 +13,8 @@ export const HomePage: React.FC = () => {
   const heroImageUrl = t('home.hero_image') as string;
   const featureImageUrl = t('home.feature_image') as string;
 
-  // The "region" / "delivery partner" tiles can be repurposed via admin
-  // translation overrides (e.g. RU currently reads "Европа" / "DHL" instead
-  // of the default numeric stats). When that's the case, pair the value with
-  // a small glyph instead of plain bold text; any other override (or the
-  // default numbers) keeps rendering as plain text.
-  const countriesValue = String(t('home.stats_countries_value') ?? '').trim();
-  const deliveryValue = String(t('home.stats_delivery_value') ?? '').trim();
-  const isEuropeTile = /^(европа|europe|europa)$/i.test(countriesValue);
-  const isDHLTile = /^dhl$/i.test(deliveryValue);
+  const catalogBookCount = books.length;
+  const catalogAuthorCount = new Set(books.map(book => book.author.trim()).filter(Boolean)).size;
 
   // Marquee content repeated to ensure seamless loop
   const marqueeContent = Array(20).fill(t('home.marquee_v'));
@@ -124,21 +116,22 @@ export const HomePage: React.FC = () => {
       {/* 4. EDITORIAL / CONCEPT */}
       <section className="grid grid-cols-1 md:grid-cols-2 border-b border-primary min-h-[600px]">
          <div className="p-12 md:p-20 flex flex-col justify-center border-b md:border-b-0 md:border-r border-primary bg-[#E8EDF2]">
-            <Globe className="mb-12 text-primary animate-spin-slow" size={64} strokeWidth={0.5} />
+            <BookOpen className="mb-12 text-primary" size={64} strokeWidth={0.5} />
             <h2 className="text-6xl md:text-8xl font-serif leading-[0.8] mb-8">
-               {t('home.global_reach').split(' ')[0]} <br/> {t('home.global_reach').split(' ')[1]}
+               {t('home.global_reach')}
             </h2>
             <p className="font-mono text-sm max-w-sm mb-12">
                {t('home.global_desc')}
             </p>
             <div className="grid grid-cols-2 gap-px bg-primary border border-primary">
                <div className="bg-[#E8EDF2] p-4 flex flex-col items-center justify-center gap-1.5 text-center hover:bg-white transition-colors duration-500">
-                  {isEuropeTile && <EuropeGlyph className="w-7 h-7 text-primary" />}
-                  <span className="block text-3xl font-bold">{countriesValue}</span>
+                  <BookOpen size={22} strokeWidth={1} aria-hidden />
+                  <span className="block text-3xl font-bold tabular-nums">{catalogBookCount}</span>
                   <span className="text-[9px] uppercase">{t('home.stats_countries')}</span>
                </div>
                <div className="bg-[#E8EDF2] p-4 flex flex-col items-center justify-center gap-1.5 text-center hover:bg-white transition-colors duration-500">
-                  {isDHLTile ? <DHLBadge className="text-2xl" /> : <span className="block text-3xl font-bold">{deliveryValue}</span>}
+                  <Users size={22} strokeWidth={1} aria-hidden />
+                  <span className="block text-3xl font-bold tabular-nums">{catalogAuthorCount}</span>
                   <span className="text-[9px] uppercase">{t('home.stats_delivery')}</span>
                </div>
             </div>

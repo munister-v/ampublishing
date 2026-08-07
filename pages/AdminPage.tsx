@@ -1106,6 +1106,7 @@ export const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>('command');
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('ru');
   const [database, setDatabase] = useState<Record<Language, LocalizedCatalogData> | null>(null);
+  const [adminLoadError, setAdminLoadError] = useState('');
   const [overrides, setOverrides] = useState<TranslationOverrides>({ ru: {}, en: {}, de: {} });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [savingKey, setSavingKey] = useState<string | null>(null);
@@ -1186,23 +1187,28 @@ export const AdminPage: React.FC = () => {
 
   const loadAdminData = async () => {
     setIsRefreshing(true);
+    setAdminLoadError('');
     try {
-      const [db, translationState, paymentState, siteState] = await Promise.all([
-        api.getContentDatabase(),
+      const db = await api.getContentDatabase();
+      const [translationResult, paymentResult, siteResult] = await Promise.allSettled([
         api.getTranslationOverrides(),
         api.getPaymentSettings(),
         api.getSiteSettings(),
       ]);
       setDatabase(db);
-      setOverrides(translationState);
-      setPaymentSettings(paymentState);
-      setSiteDraft(siteState);
-      if (!selectedBookId && db[selectedLanguage].books[0]) {
+      if (translationResult.status === 'fulfilled') setOverrides(translationResult.value);
+      if (paymentResult.status === 'fulfilled') setPaymentSettings(paymentResult.value);
+      if (siteResult.status === 'fulfilled') setSiteDraft(siteResult.value);
+      if (!selectedBookId && db[selectedLanguage]?.books?.[0]) {
         setSelectedBookId(db[selectedLanguage].books[0].id);
       }
-      if (!selectedNewsId && db[selectedLanguage].news[0]) {
+      if (!selectedNewsId && db[selectedLanguage]?.news?.[0]) {
         setSelectedNewsId(db[selectedLanguage].news[0].id);
       }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Не удалось загрузить данные админки';
+      setAdminLoadError(message);
+      showToast(message, 'error');
     } finally {
       setIsRefreshing(false);
     }
@@ -1863,8 +1869,8 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const books = database?.[selectedLanguage].books || [];
-  const news = database?.[selectedLanguage].news || [];
+  const books = database?.[selectedLanguage]?.books || [];
+  const news = database?.[selectedLanguage]?.news || [];
   const currentTabMeta = ADMIN_TAB_META[activeTab];
   const activeEditorDirty = (activeTab === 'books' && bookDirty) || (activeTab === 'news' && newsDirty);
   const activeEditorHasErrors = activeTab === 'books'
@@ -2088,7 +2094,16 @@ export const AdminPage: React.FC = () => {
             <span className="font-mono text-[10px] text-green-400/60 flex-shrink-0 ml-auto">{lastPublishedAt}</span>
           </div>
         )}
-        {!database ? (
+        {!database && adminLoadError ? (
+          <div className="h-full flex items-center justify-center p-4">
+            <section className="w-full max-w-xl border border-red-200 bg-white p-8 text-center">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-600">Ошибка загрузки</p>
+              <h1 className="mt-3 font-serif text-3xl">Данные админки недоступны</h1>
+              <p className="mt-3 text-sm leading-relaxed text-gray-600">{adminLoadError}</p>
+              <button onClick={loadAdminData} className="mt-6 min-h-[44px] bg-primary px-6 py-3 text-xs font-bold uppercase tracking-widest text-white">Повторить загрузку</button>
+            </section>
+          </div>
+        ) : !database ? (
           <div className="h-full flex items-center justify-center">
             <Loader2 className="animate-spin text-primary" />
           </div>

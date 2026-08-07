@@ -84,7 +84,7 @@ class AnalyticsService {
     if (this.settings.requireConsent && !this.hasConsent()) return;
     if (this.loaded) return;
 
-    const { ga4MeasurementId, plausibleDomain, umamiWebsiteId, umamiScriptUrl, metaPixelId } = this.settings;
+    const { ga4MeasurementId, cloudflareWebAnalyticsToken, plausibleDomain, umamiWebsiteId, umamiScriptUrl, metaPixelId } = this.settings;
 
     try {
       if (ga4MeasurementId) {
@@ -93,6 +93,14 @@ class AnalyticsService {
         window.gtag = window.gtag || function gtag() { window.dataLayer!.push(arguments); };
         window.gtag('js', new Date());
         window.gtag('config', ga4MeasurementId, { anonymize_ip: true });
+      }
+
+      if (cloudflareWebAnalyticsToken) {
+        await injectScript('https://static.cloudflareinsights.com/beacon.min.js', {
+          type: 'module',
+          defer: 'true',
+          'data-cf-beacon': JSON.stringify({ token: cloudflareWebAnalyticsToken }),
+        });
       }
 
       if (plausibleDomain) {
@@ -182,6 +190,7 @@ class AnalyticsService {
       loaded: this.loaded,
       providers: {
         ga4: Boolean(window.gtag && settings?.ga4MeasurementId),
+        cloudflare: Boolean(document.querySelector('script[src="https://static.cloudflareinsights.com/beacon.min.js"]')),
         plausible: Boolean(window.plausible),
         umami: Boolean(window.umami),
         metaPixel: Boolean(window.fbq),

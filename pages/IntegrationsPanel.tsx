@@ -972,6 +972,10 @@ export const IntegrationsPanel: React.FC<{
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Field label="Cloudflare Web Analytics token" hint="Бесплатная privacy-first аналитика: Cloudflare → Web Analytics → Add site → token.">
+              <input className={`${inputCls} font-mono text-xs`} value={draft.analytics.cloudflareWebAnalyticsToken || ''} placeholder="Site token"
+                onChange={e => patch(next => { next.analytics.cloudflareWebAnalyticsToken = e.target.value.trim(); })} />
+            </Field>
             <Field label="GA4 Measurement ID" hint="Формат G-XXXXXXXXXX">
               <input className={`${inputCls} font-mono text-xs`} value={draft.analytics.ga4MeasurementId} placeholder="G-XXXXXXXXXX"
                 onChange={e => patch(next => { next.analytics.ga4MeasurementId = e.target.value.trim(); })} />

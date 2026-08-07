@@ -54,6 +54,7 @@ export const DEFAULT_INTEGRATIONS: IntegrationSettings = {
     enabled: false,
     requireConsent: true,
     ga4MeasurementId: '',
+    cloudflareWebAnalyticsToken: '',
     plausibleDomain: '',
     umamiWebsiteId: '',
     umamiScriptUrl: '',

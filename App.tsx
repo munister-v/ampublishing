@@ -10,6 +10,7 @@ import { DevTools } from './components/DevTools';
 import { SEO } from './components/SEO';
 import { AppProvider, useApp } from './AppContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminErrorBoundary } from './components/AdminErrorBoundary';
 import { analytics } from './services/analytics'; // Import Analytics
 import { HomePage } from './pages/HomePage';
 import { CatalogPage } from './pages/CatalogPage';
@@ -91,7 +92,7 @@ const AppContent: React.FC = () => {
           {/* Protected Admin Routes */}
           <Route path="/admin" element={
             <ProtectedRoute>
-              <AdminPage />
+              <AdminErrorBoundary><AdminPage /></AdminErrorBoundary>
             </ProtectedRoute>
           } />
           
