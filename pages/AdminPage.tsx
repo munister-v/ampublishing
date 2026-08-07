@@ -68,6 +68,33 @@ import {
 } from 'lucide-react';
 
 type AdminTab = 'command' | 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'payments' | 'integrations' | 'orders' | 'status' | 'radio';
+
+const getBookEditorReadiness = (book: Book) => {
+  const checks = [
+    Boolean(book.title.trim()),
+    Boolean(book.author.trim()),
+    Boolean(book.coverUrl.trim()),
+    Boolean(book.description.trim()),
+    Boolean(getShopifyPurchaseLink(book)),
+  ];
+  return { complete: checks.filter(Boolean).length, total: checks.length };
+};
+
+const ADMIN_TAB_META: Record<AdminTab, { title: string; description: string }> = {
+  command: { title: 'Обзор', description: 'Состояние каталога, контента и подключений Shopify.' },
+  books: { title: 'Книги', description: 'Карточки витрины, обложки, форматы и ссылки на товары Shopify.' },
+  news: { title: 'Мероприятия', description: 'Новости, события, анонсы и публикации издательства.' },
+  authors: { title: 'Авторы', description: 'Страница авторов и редакционная подача участников каталога.' },
+  radio: { title: 'Радио', description: 'Анонсы эфиров, сообщения, закрепления и настройки радио.' },
+  copy: { title: 'Тексты сайта', description: 'Переводимые заголовки, подписи и системные тексты.' },
+  about: { title: 'О нас', description: 'Содержание и визуальная структура страницы издательства.' },
+  services: { title: 'Услуги', description: 'Направления работы, состав услуг и условия сотрудничества.' },
+  site: { title: 'Навигация и футер', description: 'Меню, контакты, социальные ссылки и системные настройки.' },
+  integrations: { title: 'Shopify и сервисы', description: 'Магазин, заявки и аналитика сайта.' },
+  status: { title: 'Состояние сайта', description: 'Диагностика публикаций, API и последних операций.' },
+  payments: { title: 'Оплата', description: 'Архивный раздел локальной оплаты.' },
+  orders: { title: 'Заказы', description: 'Архивный раздел локальных заказов.' },
+};
 type FieldType = 'text' | 'textarea' | 'json';
 
 type ContentField = {
@@ -849,32 +876,6 @@ const StatusPanel: React.FC = () => {
   },
 });
 
-const getBookEditorReadiness = (book: Book) => {
-  const checks = [
-    Boolean(book.title.trim()),
-    Boolean(book.author.trim()),
-    Boolean(book.coverUrl.trim()),
-    Boolean(book.description.trim()),
-    Boolean(getShopifyPurchaseLink(book)),
-  ];
-  return { complete: checks.filter(Boolean).length, total: checks.length };
-};
-
-const ADMIN_TAB_META: Record<AdminTab, { title: string; description: string }> = {
-  command: { title: 'Обзор', description: 'Состояние каталога, контента и подключений Shopify.' },
-  books: { title: 'Книги', description: 'Карточки витрины, обложки, форматы и ссылки на товары Shopify.' },
-  news: { title: 'Мероприятия', description: 'Новости, события, анонсы и публикации издательства.' },
-  authors: { title: 'Авторы', description: 'Страница авторов и редакционная подача участников каталога.' },
-  radio: { title: 'Радио', description: 'Анонсы эфиров, сообщения, закрепления и настройки радио.' },
-  copy: { title: 'Тексты сайта', description: 'Переводимые заголовки, подписи и системные тексты.' },
-  about: { title: 'О нас', description: 'Содержание и визуальная структура страницы издательства.' },
-  services: { title: 'Услуги', description: 'Направления работы, состав услуг и условия сотрудничества.' },
-  site: { title: 'Навигация и футер', description: 'Меню, контакты, социальные ссылки и системные настройки.' },
-  integrations: { title: 'Shopify и сервисы', description: 'Магазин, заявки и аналитика сайта.' },
-  status: { title: 'Состояние сайта', description: 'Диагностика публикаций, API и последних операций.' },
-  payments: { title: 'Оплата', description: 'Архивный раздел локальной оплаты.' },
-  orders: { title: 'Заказы', description: 'Архивный раздел локальных заказов.' },
-};
       if (!res.ok) throw new Error(`GitHub API ${res.status}`);
       const data = await res.json();
       setRuns(data.workflow_runs || []);
