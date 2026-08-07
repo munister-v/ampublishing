@@ -13,24 +13,8 @@ export const Footer: React.FC = () => {
       {/* ── Mobile layout (< sm) ─────────────────────────────────────────── */}
       <div className="relative sm:hidden bg-[radial-gradient(circle_at_85%_12%,rgba(201,162,90,0.12),transparent_34%),linear-gradient(180deg,#061422_0%,#071827_100%)]">
 
-        {/* Logo + desc */}
-        <div className="px-6 pb-8 pt-10 border-b border-white/10">
-          <img src="/logo-white.svg" alt="AM Publishing" className="mb-7 h-auto w-24" draggable={false} />
-          <p className="max-w-[34rem] text-[13px] leading-7 text-white/70">
-            {t('footer.desc')}
-          </p>
-          <div className="mt-7 grid grid-cols-2 gap-3 font-mono text-[10px] uppercase tracking-[0.16em]">
-            <a href="https://t.me/ampublishingberlin" target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-between border border-white/15 px-4 text-white/75 transition-colors hover:border-accent/70 hover:text-accent active:bg-white/5">
-              Telegram <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden />
-            </a>
-            <a href="https://www.instagram.com/am.publishing?igsh=b2JoMDZqdDJzMXdj" target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-between border border-white/15 px-4 text-white/75 transition-colors hover:border-accent/70 hover:text-accent active:bg-white/5">
-              Instagram <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden />
-            </a>
-          </div>
-        </div>
-
         {/* Telegram CTA — mobile */}
-        <div className="relative overflow-hidden border-b border-white/10 px-6 py-10">
+        <div className="relative overflow-hidden border-b border-white/10 px-6 py-12">
           <Send size={240} strokeWidth={0.55} aria-hidden className="pointer-events-none absolute -bottom-20 -right-16 rotate-12 text-accent/[0.055]" />
           <div className="relative z-10">
             <p className="mb-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
@@ -60,6 +44,15 @@ export const Footer: React.FC = () => {
 
         {/* Copyright strip — mobile */}
         <div className="px-6 pb-7 pt-6 font-mono text-[9px] uppercase tracking-[0.16em] text-white/45">
+          <a
+            href="https://www.instagram.com/am.publishing?igsh=b2JoMDZqdDJzMXdj"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-6 flex min-h-12 items-center justify-between border border-white/15 px-4 text-[10px] text-white/70 transition-colors hover:border-accent/70 hover:text-accent active:bg-white/5"
+          >
+            Instagram
+            <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden />
+          </a>
           <span className="block pb-5 text-center">© 2026 AM Publishing · Berlin</span>
           <div className="grid border-y border-white/10 text-center">
             <Link to="/impressum" className="flex min-h-11 items-center justify-center border-b border-white/10 transition-colors hover:text-white">{t('footer.links.impressum')}</Link>
