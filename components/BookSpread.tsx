@@ -157,9 +157,9 @@ export function BookSpread({
           }}
         >
           {body}
-          {footer}
-          {/* Метка конца текста — до добивки, иначе замер поплывёт от неё самой. */}
-          <span ref={endRef} aria-hidden className="block h-px" />
+          {/* Считаем только страницы самого отрывка. Служебный финал ниже не
+              должен занимать отдельную колонку и создавать пустой разворот. */}
+          <span ref={endRef} aria-hidden className="inline-block h-px w-px" />
           {oddTail && <span aria-hidden className="block h-full" style={{ breakBefore: 'column' }} />}
         </div>
 
@@ -174,6 +174,10 @@ export function BookSpread({
           }}
         />
       </div>
+
+      {/* Завершение показываем только после последнего разворота. Оно остаётся
+          заметным, но больше не участвует в пагинации книжного текста. */}
+      {page === pages - 1 ? footer : null}
 
       {pages > 1 && (
         <div className="mt-10 flex items-center justify-between border-t border-primary/10 pt-6">

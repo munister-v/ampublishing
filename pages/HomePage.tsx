@@ -37,7 +37,7 @@ export const HomePage: React.FC = () => {
            {/* Left: Text */}
            <div className="lg:col-span-8 p-6 md:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-primary relative">
               <div className="flex justify-between items-start animate-fade-in gpu-accelerated">
-                 <span className="font-mono text-xs uppercase px-2 py-1">Est. 2026 Berlin</span>
+                 <span className="font-mono text-xs uppercase px-2 py-1">{t('home.established')}</span>
               </div>
 
               <div className="z-10 mt-12 md:mt-0 overflow-hidden">

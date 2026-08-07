@@ -58,6 +58,7 @@ export const translations: Record<Language, TranslationTree> = {
     home: {
       hero_title_1: "Книги с собой",
       hero_title_2: "",
+      established: "Основано в 2026 году в Берлине!",
       hero_subtitle: "Мы издаём современную литературную прозу с глубиной и психологической тонкостью - книги, которые легко взять с собой и невозможно забыть.",
       hero_cta: "Перейти в каталог",
       shop_cta: "Купить книги",
@@ -727,6 +728,7 @@ export const translations: Record<Language, TranslationTree> = {
     home: {
       hero_title_1: "Prose that slows time",
       hero_title_2: "",
+      established: "Founded in Berlin in 2026!",
       hero_subtitle: "We bring out books for those who want more than a gripping story - readers who appreciate depth, psychological richness, and a distinctive atmosphere.",
       hero_cta: "Go to Catalog",
       shop_cta: "Buy books",
@@ -1255,6 +1257,7 @@ export const translations: Record<Language, TranslationTree> = {
     home: {
       hero_title_1: "Bücher für unterwegs",
       hero_title_2: "",
+      established: "2026 in Berlin gegründet!",
       hero_subtitle: "Wir veröffentlichen moderne literarische Prosa mit Tiefe und psychologischem Feingefühl - Bücher, die man leicht mitnehmen kann und unmöglich vergisst.",
       hero_cta: "Zum Katalog",
       shop_cta: "Bücher kaufen",
