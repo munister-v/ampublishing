@@ -37,7 +37,10 @@ export const HomePage: React.FC = () => {
            {/* Left: Text */}
            <div className="lg:col-span-8 p-6 md:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-primary relative">
               <div className="flex justify-between items-start animate-fade-in gpu-accelerated">
-                 <span className="font-mono text-xs uppercase px-2 py-1">{t('home.established')}</span>
+                 <span className="inline-flex items-center gap-3 border border-primary/15 bg-white/65 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-primary/70 shadow-[0_8px_28px_-20px_rgba(4,15,30,0.45)] backdrop-blur-sm md:text-[11px]">
+                   <span aria-hidden className="h-px w-6 bg-accent" />
+                   {t('home.established')}
+                 </span>
               </div>
 
               <div className="z-10 mt-12 md:mt-0 overflow-hidden">
