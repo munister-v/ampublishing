@@ -227,7 +227,16 @@
     ],
     "series": "Сложные люди",
     "ageRating": "16+",
-    "variants": [],
+    "variants": [
+      {
+        "id": "orden-ne-spravedlivosti-paperback",
+        "format": "paperback",
+        "language": "Русский",
+        "price": 0,
+        "stock": 500,
+        "isbn": ""
+      }
+    ],
     "releaseDate": "2026-10-01",
     "story": {
       "quote": "…что бы делало твоё добро, если бы не существовало зла,  и как бы выглядела земля, если бы с неё исчезли тени?",
