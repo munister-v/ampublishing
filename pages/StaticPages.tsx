@@ -3,6 +3,7 @@ import React from 'react';
 import { Mail, Download, PenTool, BookOpen, Send, User, Clock, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { Link, useParams } from 'react-router-dom';
+import { Prose } from '../components/Prose';
 import { getAuthorShowcaseContent } from '../services/authorShowcase';
 import type { AboutLayoutSettings, NewsBlock } from '../types';
 import { formatNewsDate } from '../utils/newsDate';
@@ -140,9 +141,7 @@ export const PrivacyPage: React.FC = () => {
                                 {sections.map((section: any, idx: number) => (
                                     <section key={idx} id={`section-${idx}`} className="scroll-mt-32">
                                         <h2 className="text-3xl font-serif mb-6 border-b border-primary pb-4">{section.title}</h2>
-                                        <div className="text-lg leading-loose font-light text-justify whitespace-pre-wrap">
-                                            {section.text}
-                                        </div>
+                                        <Prose text={section.text} className="text-lg leading-loose font-light" />
                                     </section>
                                 ))}
                             </div>
@@ -579,9 +578,10 @@ export const MediaPage: React.FC = () => {
                   ) : null}
                   <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-accent mb-4">{item.date}</p>
                   <h2 className="text-3xl md:text-5xl font-serif text-primary leading-tight mb-5">{item.title}</h2>
-                  <div className="text-lg text-gray-600 leading-relaxed font-light whitespace-pre-line">
-                    {item.body && item.body.trim() ? item.body : item.preview}
-                  </div>
+                  <Prose
+                    text={item.body && item.body.trim() ? item.body : item.preview}
+                    className="text-lg text-gray-600 leading-relaxed font-light"
+                  />
                 </article>
               ))}
             </div>
@@ -602,7 +602,7 @@ const NewsBlocks: React.FC<{ blocks: NewsBlock[] }> = ({ blocks }) => (
       if (block.type === 'heading') return <h2 key={block.id} className="pt-4 text-3xl md:text-4xl leading-tight text-primary">{block.content}</h2>;
       if (block.type === 'quote') return <blockquote key={block.id} className="border-l-2 border-accent py-1 pl-5 text-2xl italic leading-relaxed text-primary">{block.content}</blockquote>;
       if (block.type === 'image') return block.content ? <figure key={block.id}><img src={block.content} alt={block.caption || ''} className="w-full border border-primary/10" />{block.caption ? <figcaption className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">{block.caption}</figcaption> : null}</figure> : null;
-      return <p key={block.id} className="whitespace-pre-wrap">{block.content}</p>;
+      return <Prose key={block.id} text={block.content} />;
     })}
   </div>
 );
@@ -652,7 +652,7 @@ export const NewsPage: React.FC = () => {
             {item.imageAlt ? <figcaption className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">{item.imageAlt}</figcaption> : null}
           </figure>
         ) : null}
-        {item.blocks?.length ? <NewsBlocks blocks={item.blocks} /> : <div className="whitespace-pre-wrap font-serif text-lg md:text-xl leading-relaxed text-primary/90">{body}</div>}
+        {item.blocks?.length ? <NewsBlocks blocks={item.blocks} /> : <Prose text={body} className="font-serif text-lg md:text-xl leading-[1.65] text-primary/90" />}
       </article>
     </div>
   );
