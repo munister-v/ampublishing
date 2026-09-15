@@ -73,8 +73,17 @@ export const HomePage: React.FC = () => {
 
            {/* Right: Visual */}
            <div className="lg:col-span-4 bg-primary relative group border-l border-primary -ml-[1px] overflow-hidden min-h-[300px] lg:min-h-auto">
-              <div className="w-full h-full overflow-hidden">
-                <img 
+              {/*
+                absolute inset-0, не w-full h-full: внутри CSS grid высота строки
+                считается ДО того, как h-full картинки может её унаследовать, поэтому
+                при первом проходе браузер берёт "auto"-высоту img, то есть её
+                собственное соотношение сторон. У портретных обложек это раздувает
+                всю строку сетки далеко за реальную высоту левой колонки. Absolute
+                убирает картинку из расчёта intrinsic-размера — высоту строки задаёт
+                только текстовая колонка и min-h.
+              */}
+              <div className="absolute inset-0 overflow-hidden">
+                <img
                    src={heroImageUrl}
                    alt="Всё, что останется - обложка книги"
                    fetchPriority="high"
@@ -143,10 +152,15 @@ export const HomePage: React.FC = () => {
             </div>
          </div>
          <div className="relative group overflow-hidden min-h-[420px] md:min-h-0">
-            <div className="w-full h-full overflow-hidden">
-               <img 
+            {/* absolute inset-0: см. комментарий у hero-картинки выше — то же самое
+                исправление. Здесь эффект был заметнее всего: редактор время от
+                времени меняет featureImageUrl на обложку другой книги (портретную),
+                и при w-full h-full вся секция "Без границ" раздувалась до ~1000px
+                вместо 600, оставляя текстовую колонку слева наполовину пустой. */}
+            <div className="absolute inset-0 overflow-hidden">
+               <img
                   src={featureImageUrl}
-                  alt="Всё, что останется - предметное фото книги"
+                  alt="AM Publishing — предметная фотография книги"
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover saturate-100 contrast-110 group-hover:scale-105 transition-transform duration-[1200ms] ease-out-quart gpu-accelerated"
