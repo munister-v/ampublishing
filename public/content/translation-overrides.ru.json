@@ -129,5 +129,6 @@
   "static.authors.prose": "Сроки приёма рукописей",
   "static.authors.poetry_sub": "от 8 до 16 а.л.",
   "static.authors.poetry": "Объём",
-  "static.authors.ready_sub": "Ссылка на форму подачи появится 1 октября."
+  "static.authors.ready_sub": "Ссылка на форму подачи появится 1 октября.",
+  "static.authors.go_to_form": "Перейти к условиям подачи рукописей"
 }
