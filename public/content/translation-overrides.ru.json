@@ -130,5 +130,6 @@
   "static.authors.poetry_sub": "от 8 до 16 а.л.",
   "static.authors.poetry": "Объём",
   "static.authors.ready_sub": "Ссылка на форму подачи появится 1 октября.",
-  "static.authors.go_to_form": "Перейти к условиям подачи рукописей"
+  "static.authors.go_to_form": "Перейти к условиям подачи рукописей",
+  "static.authors.form_url": "https://docs.google.com/document/d/1e03fxc9KN95YylAmCGjfJFh0FCuQmv71jCQt5spAmrg/edit?usp=sharing"
 }
