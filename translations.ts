@@ -388,7 +388,6 @@ export const translations: Record<Language, TranslationTree> = {
         authors: {
           title: "Авторам",
           subtitle: "Мы ищем авторов, для которых в литературе важны не только сюжет, но и глубина, психологическая точность и атмосфера.",
-          manifesto: "Манифест",
           what_we_publish: "Что мы издаем",
           p1: "AM Publishing специализируется на художественной прозе и автофикшне. Мы верим в книгу как в эстетический объект.",
           p2: "Мы не ограничиваем себя жанрами, но нас неизменно привлекают тексты с глубиной, психологической точностью и сильным авторским голосом.",
@@ -410,7 +409,8 @@ export const translations: Record<Language, TranslationTree> = {
           ready: "Готовы отправить рукопись?",
           ready_sub: "Мы всегда в поиске новых имен. Станьте частью AM Publishing.",
           format_note: "* Принимаем файлы в формате PDF или Word",
-          go_to_form: "Перейти к форме заявки"
+          go_to_form: "Перейти к форме заявки",
+          form_url: "https://docs.google.com/forms/d/e/1FAIpQLSc9Dxc9XRKuhebrkJP6WmHaXmIrTVY9LwnXZHGLkmEpf5iioA/viewform?usp=publish-editor"
         },
         about: {
           title: "О нас",
@@ -989,7 +989,6 @@ export const translations: Record<Language, TranslationTree> = {
         authors: {
           title: "For Authors",
           subtitle: "We are looking for authors who value not only plot, but also depth, psychological insight, and atmosphere in literature.",
-          manifesto: "Manifest",
           what_we_publish: "What We Publish",
           p1: "AM Publishing specializes in literary fiction and autofiction. We believe in the book as an aesthetic object.",
           p2: "We do not limit ourselves by genre, but we are consistently drawn to writing with depth, psychological precision, and a strong authorial voice.",
@@ -1011,7 +1010,8 @@ export const translations: Record<Language, TranslationTree> = {
           ready: "Ready to submit a manuscript?",
           ready_sub: "We are always looking for new names. Become part of AM Publishing.",
           format_note: "* We accept files in PDF or Word format",
-          go_to_form: "Go to Application Form"
+          go_to_form: "Go to Application Form",
+          form_url: "https://docs.google.com/forms/d/e/1FAIpQLSc9Dxc9XRKuhebrkJP6WmHaXmIrTVY9LwnXZHGLkmEpf5iioA/viewform?usp=publish-editor"
         },
         about: {
           title: "About Us",
@@ -1529,7 +1529,6 @@ export const translations: Record<Language, TranslationTree> = {
         authors: {
           title: "Für Autoren",
           subtitle: "Wir suchen Autor:innen, denen in der Literatur nicht nur Handlung, sondern auch Tiefe, psychologische Präzision und Atmosphäre wichtig sind.",
-          manifesto: "Manifest",
           what_we_publish: "Was wir veröffentlichen",
           p1: "AM Publishing ist spezialisiert auf literarische Prosa und Autofiktion. Wir glauben an das Buch als ästhetisches Objekt.",
           p2: "Wir beschränken uns nicht auf Genres, fühlen uns jedoch immer wieder zu Texten mit Tiefe, psychologischer Präzision und einer starken eigenen Stimme hingezogen.",
@@ -1551,7 +1550,8 @@ export const translations: Record<Language, TranslationTree> = {
           ready: "Bereit, ein Manuskript einzureichen?",
           ready_sub: "Wir sind immer auf der Suche nach neuen Namen. Werden Sie Teil von AM Publishing.",
           format_note: "* Wir akzeptieren Dateien im PDF- oder Word-Format",
-          go_to_form: "Zum Antragsformular"
+          go_to_form: "Zum Antragsformular",
+          form_url: "https://docs.google.com/forms/d/e/1FAIpQLSc9Dxc9XRKuhebrkJP6WmHaXmIrTVY9LwnXZHGLkmEpf5iioA/viewform?usp=publish-editor"
         },
         about: {
           title: "Über uns",

@@ -180,9 +180,6 @@ export const AuthorsPage: React.FC = () => {
       <section className="py-24 container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-20 items-start">
           <div className="md:col-span-7">
-            <span className="text-accent text-xs font-bold uppercase tracking-[0.25em] mb-6 block flex items-center gap-2">
-              <span className="w-8 h-[1px] bg-accent"></span> {t('static.authors.manifesto')}
-            </span>
             <h2 className="text-4xl md:text-5xl font-serif text-primary mb-10 leading-[1.1]">
               {t('static.authors.what_we_publish')}
             </h2>
@@ -255,8 +252,8 @@ export const AuthorsPage: React.FC = () => {
               {t('static.authors.ready_sub')}
             </p>
             
-            <a 
-              href="https://docs.google.com/forms/d/e/1FAIpQLSc9Dxc9XRKuhebrkJP6WmHaXmIrTVY9LwnXZHGLkmEpf5iioA/viewform?usp=publish-editor"
+            <a
+              href={t('static.authors.form_url')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-4 bg-white text-primary px-10 py-5 uppercase tracking-[0.2em] text-xs font-bold hover:bg-accent hover:text-white transition-all duration-300 shadow-2xl hover:-translate-y-1"
