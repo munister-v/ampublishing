@@ -1,5 +1,17 @@
 [
   {
+    "id": "news-1787648573122",
+    "date": "2026-08-25",
+    "title": "In Berlin fand das zweite Literaturpicknick von AM Publishing statt",
+    "preview": "Am 23. August haben wir in Berlin erneut Buchliebhaber zu einem Literaturpicknick versammelt. Wir haben uns kennengelernt, uns unterhalten, Würstchen gegrillt und natürlich Bücher aus unserem Bücherkoffer getauscht.",
+    "category": "Nachrichten",
+    "imageAlt": "Buchveranstaltungen in Berlin",
+    "featured": false,
+    "blocks": [],
+    "body": "Es sieht so aus, als würde bei AM Publishing eine weitere Tradition entstehen!\nAm 23. August fand im Volkspark Friedrichshain unser zweites Literaturpicknick statt. Trotz des bewölkten Wetters kamen wir wieder in großer Runde zusammen, um uns kennenzulernen, über Bücher und vieles mehr zu sprechen, Zeit miteinander zu verbringen und natürlich Geschichten auszutauschen.\nZu Beginn des Treffens legte jeder, der wollte, die mitgebrachten Bücher in unseren mittlerweile schon traditionellen Bücherkoffer, und am Ende des Picknicks veranstalteten wir einen Büchertausch, bei dem sich die Teilnehmer eine neue Geschichte aussuchen und mit nach Hause nehmen konnten.\nDoch Bücher waren bei weitem nicht der einzige Grund für unser Treffen. Wir unterhielten uns, lernten uns kennen, grillten Würstchen, tauschten Eindrücke über Gelesenes aus und verbrachten einfach einen schönen Sonntagstag miteinander.\nFür AM Publishing ist es nicht nur wichtig, Bücher zu veröffentlichen, sondern auch einen Raum für lebendigen Austausch rund um diese Bücher zu schaffen. Deshalb werden solche Treffen zu einem festen Bestandteil des Lebens unseres Verlags werden. Solange es das Wetter zulässt, werden wir uns in den Berliner Parks treffen, und sobald es kälter wird, möchten wir unsere Veranstaltungen in Innenräume verlegen und neue Formate ausprobieren: Büchertausch, gemeinsames Lesen, Buchdiskussionen und andere literarische Treffen.\nUnd wenn AM Publishing eines Tages über eigene Räumlichkeiten verfügt, werden wir die Leser auf jeden Fall dort versammeln.\nDenn Bücher sind nicht nur Geschichten, die wir lesen. Manchmal bieten sie den Anlass, Menschen zu treffen, denen wir sonst vielleicht nie begegnet wären.",
+    "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/news-news-1787648573122-1787648922841.webp"
+  },
+  {
     "id": "news-1784020885211",
     "date": "2026-07-12",
     "title": "Das erste Literaturpicknick von AM Publishing fand in Berlin statt",

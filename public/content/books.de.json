@@ -25,7 +25,16 @@
     ],
     "series": "",
     "ageRating": "18+",
-    "variants": [],
+    "variants": [
+      {
+        "id": "seryy-dol-paperback",
+        "format": "paperback",
+        "language": "Russisch",
+        "price": 0,
+        "stock": 500,
+        "isbn": ""
+      }
+    ],
     "releaseDate": "2026-10-26",
     "story": {
       "quote": "...Die Wesen der Nacht werden dich in dieser Nacht fangen und fortschleppen. In ihre Behausung, ins Herz der Dunkelheit, und dort wirst du für immer verschwinden. Ich musste es dir erzählen – ob du es glaubst oder nicht, bleibt dir überlassen.",
@@ -218,7 +227,16 @@
     ],
     "series": "Komplexe Menschen",
     "ageRating": "16+",
-    "variants": [],
+    "variants": [
+      {
+        "id": "orden-ne-spravedlivosti-paperback",
+        "format": "paperback",
+        "language": "Russisch",
+        "price": 0,
+        "stock": 500,
+        "isbn": ""
+      }
+    ],
     "releaseDate": "2026-10-01",
     "story": {
       "quote": "…was wäre dein Gutes, wenn es das Böse nicht gäbe, und wie würde die Erde aussehen, wenn die Schatten von ihr verschwunden wären?",

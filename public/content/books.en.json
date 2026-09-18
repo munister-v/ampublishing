@@ -25,7 +25,16 @@
     ],
     "series": "",
     "ageRating": "18+",
-    "variants": [],
+    "variants": [
+      {
+        "id": "seryy-dol-paperback",
+        "format": "paperback",
+        "language": "Russian",
+        "price": 0,
+        "stock": 500,
+        "isbn": ""
+      }
+    ],
     "releaseDate": "2026-10-26",
     "story": {
       "quote": "...The creatures of the night—and tonight, once they catch you, they’ll drag you away. To their lair, in the heart of darkness, and there you’ll vanish forever. I had to tell you this; believe it or not—it’s up to you.",
@@ -218,7 +227,16 @@
     ],
     "series": "Complicated People",
     "ageRating": "16+",
-    "variants": [],
+    "variants": [
+      {
+        "id": "orden-ne-spravedlivosti-paperback",
+        "format": "paperback",
+        "language": "Russian",
+        "price": 0,
+        "stock": 500,
+        "isbn": ""
+      }
+    ],
     "releaseDate": "2026-10-01",
     "story": {
       "quote": "…what would your goodness be like if evil did not exist, and what would the earth look like if shadows disappeared from it?",

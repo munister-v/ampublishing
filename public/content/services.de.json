@@ -12,7 +12,10 @@
         "Lektorat, Korrektorat, Satz",
         "Covergestaltung und druckfertiges Layout",
         "ISBN und Impressum",
-        "Druck der Auflage und Übergabe an den Autor"
+        "Druck der Auflage und Übergabe an den Autor",
+        "Bewertung des wirtschaftlichen Potenzials",
+        "Bericht im PDF-Format, 12–14 Seiten",
+        "Die Möglichkeit, ein Verlagsangebot zu erhalten, sofern das Manuskript zum Verlagsprogramm von AM Publishing passt"
       ],
       "note": "Die Zeitplanung hängt vom Umfang des Manuskripts ab — wir stimmen sie zu Beginn ab.",
       "priceNote": "Individuelle Kalkulation",
@@ -27,8 +30,7 @@
         "Korrektorat — Rechtschreibung, Zeichensetzung, Einheitlichkeit",
         "Anmerkungen der Redaktion zur Textstruktur",
         "Eine Korrekturrunde nach Abstimmung",
-        "Empfehlungen zur Verbesserung einzelner Abschnitte",
-        "Wahrung der Stimme des Autors und der Besonderheiten des Werks"
+        "Empfehlungen zur Verbesserung einzelner Abschnitte"
       ],
       "note": "Der Endpreis und der Bearbeitungszeitraum hängen vom Umfang, dem Zustand des Manuskripts und dem Umfang der erforderlichen redaktionellen Arbeit ab. Nach Durchsicht des Textes unterbreiten wir dem Autor ein individuelles Angebot. Alle wesentlichen Änderungen werden unter Wahrung der Absicht des Autors vorgenommen und mit ihm abgestimmt.",
       "priceNote": "Individuelle Kalkulation",
@@ -43,26 +45,10 @@
         "Finales Cover für Druck und digitale Ausgabe",
         "Satz des Innenteils",
         "Druckfertige Dateien für die Druckerei",
-        "Bearbeitungsdauer: bis zu 30 Kalendertage"
+        "Bearbeitungsdauer: bis zu 30 Kalendertage",
+        "Wahrung der Stimme des Autors und der Besonderheiten des Werks"
       ],
       "note": "Der Endpreis richtet sich nach dem Umfang des Manuskripts. Nach Vereinbarung der Bedingungen wird dem Autor eine Rechnung ausgestellt. Mit der Lektüre wird nach Zahlungseingang begonnen.\nAchtung! Diese Dienstleistung stellt keine Garantie für die Veröffentlichung des Werks bei AM Publishing dar.",
-      "priceNote": "Individuelle Kalkulation",
-      "enabled": true
-    },
-    {
-      "id": "printing",
-      "title": "Druck der Auflage",
-      "summary": "Auflagen in jeder Größe.",
-      "includes": [
-        "Auswahl von Papier, Bindung und Format",
-        "Digital- oder Offsetdruck",
-        "Qualitätskontrolle der Auflage",
-        "Versand und Lieferung",
-        "Zielgruppe",
-        "Bewertung des wirtschaftlichen Potenzials",
-        "Bericht im PDF-Format, 12–14 Seiten"
-      ],
-      "note": "Der Endpreis richtet sich nach dem Umfang des Manuskripts. Nach Vereinbarung der Bedingungen wird dem Autor eine Rechnung zur Zahlung ausgestellt. Die Begutachtung beginnt nach Eingang der Zahlung. Die Bearbeitungszeit beträgt bis zu 30 Kalendertage.\nAchtung! Die Begutachtung durch den Verlag erfolgt durch Fachleute und stellt keine Garantie für die Veröffentlichung des Werks bei AM Publishing oder einem anderen Verlag dar.",
       "priceNote": "Individuelle Kalkulation",
       "enabled": true
     }
@@ -95,16 +81,6 @@
       "id": "faq-644o",
       "question": "Was bringt eine Begutachtung des Manuskripts durch den Verlag?",
       "answer": "Eine Verlagsbewertung ist eine professionelle Begutachtung eines Werks. Sie richtet sich an Autoren, die eine ausführliche Analyse ihres Manuskripts wünschen.\nDas Gutachten umfasst eine Analyse der Stärken und Schwächen des Werks, eine Bewertung der Handlung, des Aufbaus und der Figuren, die Bestimmung der Zielgruppe, eine Einschätzung des kommerziellen Potenzials sowie Empfehlungen für die weitere Bearbeitung des Textes."
-    },
-    {
-      "id": "price",
-      "question": "Wie lange dauert das Korrekturlesen?",
-      "answer": "Die Bearbeitungszeit hängt vom Umfang und vom Zustand des Manuskripts ab. Im Durchschnitt dauert das Korrekturlesen zwischen 2 und 6 Wochen. Nachdem wir uns mit dem Text vertraut gemacht haben, teilen wir Ihnen den genauen Fertigstellungstermin mit."
-    },
-    {
-      "id": "rights",
-      "question": "Wie lange dauert das Lektorat eines literarischen Textes?",
-      "answer": "Das Lektorat erfordert eine gründliche Analyse des Textes, daher werden die Fristen individuell berechnet. Im Durchschnitt dauert die Bearbeitung zwischen 4 und 10 Wochen, je nach Umfang des Manuskripts und Komplexität der Aufgaben."
     }
   ]
 }
