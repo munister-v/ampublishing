@@ -10,6 +10,9 @@ import {
 import { RadioConfigForm } from './RadioConfigForm';
 import { ServicesEditor } from './ServicesEditor';
 import { IntegrationsPanel } from './IntegrationsPanel';
+import { SeoCenter, EntrySeoEditor } from './SeoCenter';
+import { ContentHistory } from './ContentHistory';
+import { CommandPalette, type Command } from '../components/CommandPalette';
 import { buildDhlTrackingUrl } from '../utils/dhl';
 import { getLeadLog } from '../services/leads';
 import { contentStore, WriteLogEntry } from '../services/contentStore';
@@ -65,9 +68,13 @@ import {
   Target,
   TrendingUp,
   CalendarDays,
+  History,
+  Command as CommandIcon,
+  Keyboard,
+  Search,
 } from 'lucide-react';
 
-type AdminTab = 'command' | 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'payments' | 'integrations' | 'orders' | 'status' | 'radio';
+type AdminTab = 'command' | 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'seo' | 'history' | 'payments' | 'integrations' | 'orders' | 'status' | 'radio';
 
 const getBookEditorReadiness = (book: Book) => {
   const checks = [
@@ -90,6 +97,8 @@ const ADMIN_TAB_META: Record<AdminTab, { title: string; description: string }> =
   about: { title: 'О нас', description: 'Содержание и визуальная структура страницы издательства.' },
   services: { title: 'Услуги', description: 'Направления работы, состав услуг и условия сотрудничества.' },
   site: { title: 'Навигация и футер', description: 'Меню, контакты, социальные ссылки и системные настройки.' },
+  seo: { title: 'SEO-центр', description: 'Аудит, мета-теги страниц, превью в Google и Telegram, подтверждение владения.' },
+  history: { title: 'История правок', description: 'Все изменения контента с разницей «до/после» и отменой в один клик.' },
   integrations: { title: 'Shopify и сервисы', description: 'Магазин, заявки и аналитика сайта.' },
   status: { title: 'Состояние сайта', description: 'Диагностика публикаций, API и последних операций.' },
   payments: { title: 'Оплата', description: 'Архивный раздел локальной оплаты.' },
@@ -224,6 +233,10 @@ const contentGroups: ContentGroup[] = [
     ],
   },
 ];
+
+const contentFieldLabels: Record<string, string> = Object.fromEntries(
+  contentGroups.flatMap(group => group.fields.map(field => [field.key, field.label])),
+);
 
 const createBookTemplate = (language: Language): Book => ({
   id: `book-${Date.now()}`,
@@ -1138,6 +1151,8 @@ export const AdminPage: React.FC = () => {
   const [copyDrafts, setCopyDrafts] = useState<Record<string, string>>({});
   const [bookJsonDrafts, setBookJsonDrafts] = useState({ variants: '[]', themes: '[]', reviews: '[]' });
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState<string>('');
   const [lastPublishedAt, setLastPublishedAt] = useState<string>('');
   const [newPassword, setNewPassword] = useState('');
@@ -1397,12 +1412,25 @@ export const AdminPage: React.FC = () => {
   }, [selectedLanguage, copyDrafts, selectedBookId, selectedNewsId, bookDraft, newsDraft, bookJsonDrafts]);
 
   // Mark dirty on user edits — skipNext refs let the DB-sync useEffects suppress a false-dirty
-  const bookDraftRef = useRef(bookDraft);
+  // Books compare against a snapshot instead of "any change after the skip":
+  // the variants/themes/reviews JSON drafts are re-derived from the draft one
+  // render later, and that second update used to flag every freshly opened
+  // book as unsaved.
+  const bookBaselineRef = useRef<string | null>(null);
   const skipBookDirtyRef = useRef(false);
   useEffect(() => {
-    if (skipBookDirtyRef.current) { skipBookDirtyRef.current = false; bookDraftRef.current = bookDraft; return; }
-    if (bookDraftRef.current !== null && bookDraft !== null) setBookDirty(true);
-    bookDraftRef.current = bookDraft;
+    if (!bookDraft) return;
+    const derivedJson = {
+      variants: JSON.stringify(bookDraft.variants || [], null, 2),
+      themes: JSON.stringify(bookDraft.story?.themes || [], null, 2),
+      reviews: JSON.stringify(bookDraft.story?.reviews || [], null, 2),
+    };
+    if (skipBookDirtyRef.current || bookBaselineRef.current === null) {
+      skipBookDirtyRef.current = false;
+      bookBaselineRef.current = JSON.stringify([bookDraft, derivedJson]);
+      return;
+    }
+    if (JSON.stringify([bookDraft, bookJsonDrafts]) !== bookBaselineRef.current) setBookDirty(true);
   }, [bookDraft, bookJsonDrafts]);
 
   const newsDraftRef = useRef(newsDraft);
@@ -1429,6 +1457,19 @@ export const AdminPage: React.FC = () => {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(open => !open);
+        return;
+      }
+      const target = e.target as HTMLElement | null;
+      const typing = target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+      if (!typing && e.key === '?' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setShortcutsOpen(open => !open);
+        return;
+      }
+      if (e.key === 'Escape') setShortcutsOpen(false);
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         if (activeTab === 'books' && handleSaveBookRef.current) handleSaveBookRef.current();
@@ -1942,9 +1983,87 @@ export const AdminPage: React.FC = () => {
     setNewsDraft(next);
     setNewsDirty(false);
   };
+  const openBook = (bookId: string) => {
+    changeAdminTab('books');
+    selectAdminBook(bookId);
+  };
+  const openNews = (newsId: string) => {
+    changeAdminTab('news');
+    selectAdminNews(newsId);
+  };
+
+  const paletteCommands: Command[] = [
+    ...(Object.keys(ADMIN_TAB_META) as AdminTab[])
+      .filter(tab => tab !== 'payments' && tab !== 'orders')
+      .map(tab => ({
+        id: `tab-${tab}`,
+        group: 'Разделы',
+        label: ADMIN_TAB_META[tab].title,
+        hint: ADMIN_TAB_META[tab].description,
+        icon: <ArrowRight size={14} />,
+        run: () => changeAdminTab(tab),
+      })),
+    { id: 'new-book', group: 'Действия', label: 'Новая книга', icon: <Plus size={14} />, keywords: 'создать добавить book', run: () => { changeAdminTab('books'); startNewBook(); } },
+    { id: 'new-news', group: 'Действия', label: 'Новый материал / мероприятие', icon: <Plus size={14} />, keywords: 'создать новость событие event', run: () => { changeAdminTab('news'); startNewNews(); } },
+    { id: 'open-site', group: 'Действия', label: 'Открыть сайт', icon: <ExternalLink size={14} />, run: () => window.open('/', '_blank', 'noopener') },
+    { id: 'open-shopify', group: 'Действия', label: 'Открыть Shopify', icon: <Store size={14} />, run: () => window.open(SHOPIFY_STORE_URL, '_blank', 'noopener') },
+    { id: 'refresh', group: 'Действия', label: 'Обновить данные', icon: <RefreshCw size={14} />, keywords: 'reload перезагрузить', run: () => { loadAdminData(); } },
+    { id: 'export', group: 'Действия', label: 'Скачать резервную копию', icon: <Download size={14} />, keywords: 'экспорт backup', run: () => { handleExport(); } },
+    { id: 'shortcuts', group: 'Действия', label: 'Горячие клавиши', icon: <Keyboard size={14} />, shortcut: '?', run: () => setShortcutsOpen(true) },
+    ...(['ru', 'en', 'de'] as Language[]).map(lang => ({
+      id: `lang-${lang}`,
+      group: 'Язык редактирования',
+      label: `Редактировать ${lang.toUpperCase()}`,
+      icon: <Globe size={14} />,
+      keywords: 'язык language',
+      run: () => changeAdminLanguage(lang),
+    })),
+    ...books.map(book => ({
+      id: `book-${book.id}`,
+      group: 'Книги',
+      label: book.title || book.id,
+      hint: book.author,
+      icon: <BookOpen size={14} />,
+      keywords: `${book.id} ${(book.aliases || []).join(' ')}`,
+      run: () => openBook(book.id),
+    })),
+    ...news.map(item => ({
+      id: `news-${item.id}`,
+      group: 'Мероприятия',
+      label: item.title || item.id,
+      hint: [item.date, item.draft ? 'черновик' : ''].filter(Boolean).join(' · '),
+      icon: <Newspaper size={14} />,
+      keywords: item.category,
+      run: () => openNews(item.id),
+    })),
+  ];
 
   return (
     <div className="admin-ui min-h-screen bg-[#F4F4F0] flex flex-col md:flex-row text-primary md:h-screen md:overflow-hidden">
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} commands={paletteCommands} />
+      {shortcutsOpen ? (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-primary/40 p-4 backdrop-blur-sm" onClick={() => setShortcutsOpen(false)}>
+          <div role="dialog" aria-modal="true" aria-label="Горячие клавиши" className="w-full max-w-md border border-primary/20 bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-3xl">Горячие клавиши</h2>
+              <button onClick={() => setShortcutsOpen(false)} aria-label="Закрыть" className="p-2 hover:bg-[#F4F4F0]"><X size={16} /></button>
+            </div>
+            <dl className="mt-5 divide-y divide-primary/10 text-sm">
+              {[
+                ['⌘K / Ctrl+K', 'Быстрый поиск: разделы, книги, материалы, действия'],
+                ['⌘S / Ctrl+S', 'Сохранить и опубликовать книгу или материал'],
+                ['?', 'Эта подсказка'],
+                ['Esc', 'Закрыть окно'],
+              ].map(([keys, text]) => (
+                <div key={keys} className="flex items-center justify-between gap-4 py-3">
+                  <dd className="text-gray-600">{text}</dd>
+                  <dt><kbd className="whitespace-nowrap border border-primary/15 bg-[#F8F8F5] px-2 py-1 font-mono text-[11px]">{keys}</kbd></dt>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      ) : null}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
@@ -1975,6 +2094,16 @@ export const AdminPage: React.FC = () => {
           <p className="text-[10px] font-mono opacity-60 uppercase tracking-[0.24em] mt-2">Управление контентом</p>
         </div>
 
+        <div className="px-5 pt-5">
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="flex min-h-[44px] w-full items-center gap-3 border border-white/15 bg-white/[.04] px-3 text-left text-xs text-white/55 transition-colors hover:border-accent/60 hover:text-white"
+          >
+            <Search size={15} />
+            <span className="flex-1">Быстрый поиск…</span>
+            <kbd className="inline-flex items-center gap-0.5 border border-white/15 px-1.5 py-0.5 font-mono text-[10px] text-white/45"><CommandIcon size={10} />K</kbd>
+          </button>
+        </div>
         <nav className="space-y-6 p-5" aria-label="Разделы админки">
           {([
             {
@@ -1984,8 +2113,8 @@ export const AdminPage: React.FC = () => {
             {
               label: 'Контент',
               items: [
-                { id: 'books', label: 'Книги', icon: <BookOpen size={17} /> },
-                { id: 'news', label: 'Мероприятия', icon: <Newspaper size={17} /> },
+                { id: 'books', label: 'Книги', icon: <BookOpen size={17} />, count: books.length },
+                { id: 'news', label: 'Мероприятия', icon: <Newspaper size={17} />, count: news.length },
                 { id: 'authors', label: 'Авторы', icon: <Globe size={17} /> },
                 { id: 'radio', label: 'Радио', icon: <Wifi size={17} /> },
               ],
@@ -1997,16 +2126,18 @@ export const AdminPage: React.FC = () => {
                 { id: 'about', label: 'О нас', icon: <Info size={17} /> },
                 { id: 'services', label: 'Услуги', icon: <Clipboard size={17} /> },
                 { id: 'site', label: 'Навигация и футер', icon: <Layout size={17} /> },
+                { id: 'seo', label: 'SEO', icon: <Search size={17} /> },
               ],
             },
             {
               label: 'Система',
               items: [
                 { id: 'integrations', label: 'Shopify и сервисы', icon: <GitBranch size={17} />, badge: newLeadsCount },
+                { id: 'history', label: 'История правок', icon: <History size={17} /> },
                 { id: 'status', label: 'Состояние сайта', icon: <Activity size={17} /> },
               ],
             },
-          ] as { label: string; items: { id: AdminTab; label: string; icon: React.ReactNode; badge?: number }[] }[]).map(group => (
+          ] as { label: string; items: { id: AdminTab; label: string; icon: React.ReactNode; badge?: number; count?: number }[] }[]).map(group => (
             <div key={group.label}>
               <p className="mb-2 px-3 font-mono text-[9px] font-bold uppercase tracking-[0.22em] text-white/35">{group.label}</p>
               <div className="space-y-1">
@@ -2024,6 +2155,7 @@ export const AdminPage: React.FC = () => {
                     {item.icon}
                     <span>{item.label}</span>
                     {Boolean(item.badge) && <span className="ml-auto min-w-[20px] bg-accent px-1.5 py-0.5 text-center text-[9px] font-bold text-primary">{item.badge}</span>}
+                    {!item.badge && item.count !== undefined && database ? <span className="ml-auto font-mono text-[10px] font-normal tabular-nums text-white/35">{item.count}</span> : null}
                   </button>
                 ))}
               </div>
@@ -2257,6 +2389,7 @@ export const AdminPage: React.FC = () => {
                       </div>
                       <h1 className="font-serif text-5xl md:text-7xl leading-[.92] mt-8 max-w-3xl">Издательство<br /><span className="text-accent italic">в одном кадре.</span></h1>
                       <p className="mt-7 max-w-xl text-sm md:text-base text-white/65 leading-relaxed">Каталог, материалы, заявки и готовность сайта собраны в одном редакционном пространстве. Заказы, оплата и доставка полностью ведутся в Shopify.</p>
+                      <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Быстрый поиск — <kbd className="border border-white/20 px-1.5 py-0.5 text-white/70">⌘K</kbd> · подсказки — <kbd className="border border-white/20 px-1.5 py-0.5 text-white/70">?</kbd></p>
                     </div>
                     <button onClick={() => setActiveTab(nextAction.tab)} className="mt-9 min-h-12 w-fit inline-flex items-center gap-3 bg-accent text-primary px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] hover:bg-white focus:outline-none focus:ring-4 focus:ring-accent/30 transition-colors">
                       {nextAction.label}<ArrowRight size={16} />
@@ -2318,7 +2451,7 @@ export const AdminPage: React.FC = () => {
 
               <div className="bg-white border border-primary/10">
                 <div className="p-6 md:p-8 border-b border-primary/10"><p className="text-[10px] uppercase tracking-[0.2em] font-mono text-gray-400">Быстрый старт</p><h2 className="font-serif text-3xl mt-2">Что редактируем сейчас?</h2></div>
-                <div className="grid md:grid-cols-3 gap-px bg-primary/10">
+                <div className="grid md:grid-cols-3 xl:grid-cols-5 gap-px bg-primary/10">
                   <button onClick={() => setActiveTab('books')} className="min-h-[140px] bg-white p-6 text-left hover:bg-[#F8F8F4] focus:ring-4 focus:ring-inset focus:ring-accent/35">
                     <BookOpen size={20} className="text-accent" /><p className="mt-6 font-serif text-2xl">Книгу</p><p className="mt-2 text-xs leading-relaxed text-gray-500">Карточка, обложка и ссылка Shopify.</p>
                   </button>
@@ -2328,6 +2461,12 @@ export const AdminPage: React.FC = () => {
                   <a href={SHOPIFY_STORE_URL} target="_blank" rel="noopener noreferrer" className="min-h-[140px] bg-white p-6 text-left hover:bg-[#F8F8F4] focus:ring-4 focus:ring-inset focus:ring-accent/35">
                     <Store size={20} className="text-accent" /><p className="mt-6 font-serif text-2xl">Shopify</p><p className="mt-2 text-xs leading-relaxed text-gray-500">Товары, заказы, оплата и доставка.</p>
                   </a>
+                  <button onClick={() => setActiveTab('seo')} className="min-h-[140px] bg-white p-6 text-left hover:bg-[#F8F8F4] focus:ring-4 focus:ring-inset focus:ring-accent/35">
+                    <Search size={20} className="text-accent" /><p className="mt-6 font-serif text-2xl">SEO</p><p className="mt-2 text-xs leading-relaxed text-gray-500">Аудит, превью в Google и Telegram.</p>
+                  </button>
+                  <button onClick={() => setActiveTab('history')} className="min-h-[140px] bg-white p-6 text-left hover:bg-[#F8F8F4] focus:ring-4 focus:ring-inset focus:ring-accent/35">
+                    <History size={20} className="text-accent" /><p className="mt-6 font-serif text-2xl">История</p><p className="mt-2 text-xs leading-relaxed text-gray-500">Что менялось и откат правки.</p>
+                  </button>
                 </div>
               </div>
             </section>
@@ -2550,6 +2689,7 @@ export const AdminPage: React.FC = () => {
                       { href: '#book-shopify', label: 'Shopify' },
                       { href: '#book-cover', label: 'Обложка' },
                       { href: '#book-details', label: 'Описание' },
+                      { href: '#book-seo', label: 'SEO' },
                       { href: '#book-story', label: 'Story Page' },
                     ].map(item => (
                       <a
@@ -2949,6 +3089,17 @@ export const AdminPage: React.FC = () => {
                   </div>
                   </div>
 
+                  <div id="book-seo" className="scroll-mt-32 space-y-5 border-t border-gray-100 pt-6">
+                    <div>
+                      <h4 className="font-serif text-2xl">Поиск и соцсети</h4>
+                      <p className="mt-1 text-xs text-gray-500">Как книга выглядит в Google и в ссылке, отправленной в Telegram. Всё необязательно — пустые поля заполняются автоматически.</p>
+                    </div>
+                    <LF label="Alt-текст обложки" hint="Коротко, что на обложке. Помогает незрячим читателям и поиску по картинкам.">
+                      <input value={bookDraft.coverAlt || ''} onChange={e => setBookDraft(prev => prev ? { ...prev, coverAlt: e.target.value } : prev)} className="w-full border border-gray-300 px-4 py-3" placeholder={`Обложка книги «${bookDraft.title}» — ${bookDraft.author}`} />
+                    </LF>
+                    <EntrySeoEditor kind="book" entry={bookDraft} onChange={seo => setBookDraft(prev => prev ? { ...prev, seo } : prev)} />
+                  </div>
+
                   <div id="book-story" className="scroll-mt-32 space-y-5">
                     <div className="flex items-center justify-between border-t border-gray-100 pt-6">
                       <h4 className="font-serif text-2xl">Story Page</h4>
@@ -3189,6 +3340,38 @@ export const AdminPage: React.FC = () => {
                         onChange={value => setNewsDraft(prev => prev ? { ...prev, imageUrl: value } : prev)}
                         filenamePrefix={`news-${newsDraft.id || 'story'}`}
                       />
+
+                      <section className="space-y-5 border border-primary/10 bg-[#FBFBF8] p-5">
+                        <div>
+                          <h4 className="font-serif text-2xl">Мероприятие</h4>
+                          <p className="mt-1 text-xs text-gray-500">Если это событие — заполните дату и место: Google покажет его в блоке «Мероприятия» в поиске и на Картах.</p>
+                        </div>
+                        <div className="grid gap-5 md:grid-cols-2">
+                          <LF label="Начало">
+                            <input type="datetime-local" value={newsDraft.eventStart ? newsDraft.eventStart.slice(0, 16) : ''} onChange={e => setNewsDraft(prev => prev ? { ...prev, eventStart: e.target.value || undefined } : prev)} className="w-full border border-gray-300 bg-white px-3 py-2.5 text-sm" />
+                          </LF>
+                          <LF label="Окончание">
+                            <input type="datetime-local" value={newsDraft.eventEnd ? newsDraft.eventEnd.slice(0, 16) : ''} onChange={e => setNewsDraft(prev => prev ? { ...prev, eventEnd: e.target.value || undefined } : prev)} className="w-full border border-gray-300 bg-white px-3 py-2.5 text-sm" />
+                          </LF>
+                          <LF label="Место" hint="Пусто — онлайн-событие">
+                            <input value={newsDraft.eventLocation || ''} onChange={e => setNewsDraft(prev => prev ? { ...prev, eventLocation: e.target.value } : prev)} className="w-full border border-gray-300 bg-white px-3 py-2.5 text-sm" placeholder="Buchhandlung Dussmann" />
+                          </LF>
+                          <LF label="Адрес">
+                            <input value={newsDraft.eventAddress || ''} onChange={e => setNewsDraft(prev => prev ? { ...prev, eventAddress: e.target.value } : prev)} className="w-full border border-gray-300 bg-white px-3 py-2.5 text-sm" placeholder="Friedrichstraße 90, 10117 Berlin" />
+                          </LF>
+                          <LF label="Ссылка на регистрацию / трансляцию" className="md:col-span-2">
+                            <input value={newsDraft.eventUrl || ''} onChange={e => setNewsDraft(prev => prev ? { ...prev, eventUrl: e.target.value } : prev)} className="w-full border border-gray-300 bg-white px-3 py-2.5 font-mono text-sm" placeholder="https://" />
+                          </LF>
+                        </div>
+                      </section>
+
+                      <section className="space-y-5 border border-primary/10 bg-white p-5">
+                        <div>
+                          <h4 className="font-serif text-2xl">Поиск и соцсети</h4>
+                          <p className="mt-1 text-xs text-gray-500">Необязательно — по умолчанию используются заголовок, анонс и обложка.</p>
+                        </div>
+                        <EntrySeoEditor kind="news" entry={newsDraft} onChange={seo => setNewsDraft(prev => prev ? { ...prev, seo } : prev)} />
+                      </section>
                     </div>
 
                     <aside className="space-y-5 2xl:sticky 2xl:top-24 2xl:self-start">
@@ -3862,6 +4045,21 @@ export const AdminPage: React.FC = () => {
             </details>
           </section>;
         })() : null}
+
+        {database && activeTab === 'seo' ? (
+          <SeoCenter database={database} onToast={showToast} onOpenBook={openBook} onOpenNews={openNews} />
+        ) : null}
+
+        {activeTab === 'history' ? (
+          <ContentHistory
+            onToast={showToast}
+            labelFor={key => contentFieldLabels[key]}
+            onRestored={async () => {
+              await loadAdminData();
+              await reloadContent();
+            }}
+          />
+        ) : null}
 
         {activeTab === 'status' ? <StatusPanel /> : null}
 

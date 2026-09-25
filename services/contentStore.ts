@@ -170,6 +170,24 @@ const ghWriteBinaryFile = async (path: string, base64Content: string, message: s
   return data.content?.download_url || `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
 };
 
+// ----------------- Authenticated GET helper (history, diffs) -----------------
+
+export type ContentCommit = { sha: string; parent: string; message: string; date: string; author: string };
+export type ContentCommitFile = { filename: string; status: string; additions: number; deletions: number; patch: string };
+
+const ghGetJson = async (repoPath: string): Promise<unknown> => {
+  const token = getPAT();
+  const url = `${GH_API}/repos/${GH_OWNER}/${GH_REPO}${repoPath}`;
+  let res = await fetch(url, {
+    headers: token ? ghHeaders(token) : { Accept: 'application/vnd.github+json' },
+    cache: 'no-store',
+  });
+  // The repo is public: an expired token shouldn't hide the history.
+  if (res.status === 401 && token) res = await fetch(url, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+  if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+  return res.json();
+};
+
 // ----------------- Public JSON fetch (no auth) -----------------
 
 const fetchContent = async <T,>(filename: string, fallback: T): Promise<T> => {
@@ -581,6 +599,48 @@ export const contentStore = {
   async getDatabase(): Promise<Record<Language, LocalizedCatalogData>> {
     await ensureLoaded();
     return clone(cache.database!);
+  },
+
+  // ── Content history (admin → «История») ────────────────────────────────
+
+  /** Recent commits that touched public/content (newest first). */
+  async listContentCommits(page = 1, perPage = 30): Promise<ContentCommit[]> {
+    const data = await ghGetJson(`/commits?path=public/content&sha=${GH_BRANCH}&per_page=${perPage}&page=${page}`);
+    return (data as any[]).map(item => ({
+      sha: item.sha,
+      parent: item.parents?.[0]?.sha || '',
+      message: item.commit?.message || '',
+      date: item.commit?.author?.date || item.commit?.committer?.date || '',
+      author: item.author?.login || item.commit?.author?.name || '',
+    }));
+  },
+
+  /** Files changed by one commit, with unified-diff patches. */
+  async getCommitFiles(sha: string): Promise<ContentCommitFile[]> {
+    const data = await ghGetJson(`/commits/${sha}`);
+    return ((data as any).files || []).map((file: any) => ({
+      filename: file.filename,
+      status: file.status,
+      additions: file.additions,
+      deletions: file.deletions,
+      patch: file.patch || '',
+    }));
+  },
+
+  /**
+   * Put a content file back to how it was at `ref` (a commit sha). Writes a
+   * new commit — history is never rewritten, so a restore can be undone too.
+   */
+  async restoreFileVersion(path: string, ref: string): Promise<void> {
+    if (!path.startsWith('public/content/') || !path.endsWith('.json')) {
+      throw new Error('Восстанавливать можно только файлы контента (.json)');
+    }
+    const data = await ghGetJson(`/contents/${path}?ref=${ref}`) as any;
+    const bytes = Uint8Array.from(atob(String(data.content || '').replace(/\n/g, '')), char => char.charCodeAt(0));
+    const parsed = JSON.parse(new TextDecoder().decode(bytes));
+    await ghWriteFile(path, parsed, `admin: restore ${path.replace('public/content/', '')} @ ${ref.slice(0, 7)}`);
+    cache.loaded = false;
+    cache.loadingPromise = null;
   },
 
   async refresh() {

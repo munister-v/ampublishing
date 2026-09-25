@@ -5,5 +5,7 @@ Disallow: /login
 Disallow: /cart
 Disallow: /checkout
 Disallow: /radio/admin
+Disallow: /content/admin-auth.json
+Disallow: /content/orders.json
 
 Sitemap: https://ampublishing.org/sitemap.xml

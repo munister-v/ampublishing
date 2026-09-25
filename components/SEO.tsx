@@ -1,103 +1,35 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useApp } from '../AppContext';
-import { Book } from '../types';
-import { findBookByRouteId, getBookPath } from '../utils/bookRoutes';
+import { SeoSettings } from '../types';
+import { findBookByRouteId } from '../utils/bookRoutes';
+import { getSeoSettings } from '../services/seoSettings';
+import {
+  SITE_URL,
+  LANGS,
+  OG_LOCALES,
+  mergeSeoSettings,
+  absoluteUrl,
+  resolveRouteMeta,
+  resolveBookMeta,
+  resolveNewsMeta,
+  buildOrganizationSchema,
+  buildWebsiteSchema,
+  buildBreadcrumbSchema,
+  buildBookSchema,
+  buildNewsSchema,
+  buildItemListSchema,
+  crumbsForPath,
+  getBookPath,
+  getNewsPath,
+} from '../seo/core.mjs';
 
-const SITE_URL = 'https://ampublishing.org';
-const SITE_NAME = 'AM Publishing Berlin';
-const DEFAULT_IMAGE = `${SITE_URL}/images/home-hero.webp`;
-const DEFAULT_DESCRIPTION =
-  'AM Publishing Berlin is an independent publisher of contemporary literary prose, psychological fiction, and Russian-language books with worldwide delivery.';
+// Everything here mirrors scripts/prerender-seo.mjs, which writes the same
+// tags into the static HTML at build time. This component keeps them right
+// after client-side navigation and when the visitor switches language.
 
-type SeoConfig = {
-  title: string;
-  description: string;
-  image?: string;
-  type?: string;
-  robots?: string;
-};
-
-const routeSeo: Record<string, SeoConfig> = {
-  '/': {
-    title: 'AM Publishing Berlin | Independent Literary Publisher',
-    description: DEFAULT_DESCRIPTION,
-  },
-  '/catalog': {
-    title: 'Book Catalog | AM Publishing Berlin',
-    description:
-      'Browse AM Publishing books, literary prose, psychological fiction, hardcover editions, special editions, and digital excerpts.',
-  },
-  '/shop': {
-    title: 'Book Shop | AM Publishing Berlin',
-    description:
-      'Order AM Publishing books online. Hardcover, special editions, and digital excerpts with international delivery.',
-  },
-  '/our-authors': {
-    title: 'Authors | AM Publishing Berlin',
-    description:
-      'Meet the authors of AM Publishing Berlin: contemporary literary voices, psychological prose, autofiction, and modern Russian-language literature.',
-  },
-  '/authors': {
-    title: 'For Authors | Submit a Manuscript to AM Publishing',
-    description:
-      'Information for writers who want to publish literary prose, autofiction, psychological fiction, or author projects with AM Publishing Berlin.',
-  },
-  '/about': {
-    title: 'About AM Publishing Berlin',
-    description:
-      'Learn about AM Publishing Berlin, an independent literary publisher focused on contemporary prose, editorial care, and beautiful book objects.',
-  },
-  '/media': {
-    title: 'Media & Journal | AM Publishing Berlin',
-    description:
-      'News, journal notes, literary announcements, and updates from AM Publishing Berlin.',
-  },
-  '/radio': {
-    title: 'AM Publishing Radio | Literature, Authors, Books',
-    description:
-      'AM Publishing Radio: live broadcasts, podcasts, conversations about literature, authors, publishing, and books.',
-  },
-  '/services': {
-    title: 'Publishing Services | AM Publishing Berlin',
-    description:
-      'Editorial, publishing, book design, and author project services from AM Publishing Berlin.',
-  },
-  '/tracking': {
-    title: 'Track Your Parcel | AM Publishing Berlin',
-    description: 'Track a parcel sent by AM Publishing Berlin via DHL.',
-    robots: 'noindex,follow',
-  },
-  '/services/order': {
-    title: 'Request Publishing Services | AM Publishing Berlin',
-    description:
-      'Send a publishing or manuscript request to AM Publishing Berlin for editorial review and project estimation.',
-  },
-  '/privacy': {
-    title: 'Privacy Policy | AM Publishing Berlin',
-    description: 'Privacy policy and data protection information for AM Publishing Berlin.',
-    robots: 'noindex,follow',
-  },
-  '/terms': {
-    title: 'Terms | AM Publishing Berlin',
-    description: 'Terms and conditions for AM Publishing Berlin.',
-    robots: 'noindex,follow',
-  },
-  '/impressum': {
-    title: 'Impressum | AM Publishing Berlin',
-    description: 'Legal notice and publishing information for AM Publishing Berlin.',
-    robots: 'noindex,follow',
-  },
-};
-
-const absoluteUrl = (path: string) => {
-  if (!path) return DEFAULT_IMAGE;
-  if (/^https?:\/\//i.test(path)) return path;
-  return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
-};
-
-const upsertMeta = (selector: string, attr: 'content' | 'href', value: string, create: () => HTMLMetaElement | HTMLLinkElement) => {
-  let element = document.head.querySelector<HTMLMetaElement | HTMLLinkElement>(selector);
+const upsert = (selector: string, attr: 'content' | 'href', value: string, create: () => HTMLElement) => {
+  let element = document.head.querySelector<HTMLElement>(selector);
   if (!element) {
     element = create();
     document.head.appendChild(element);
@@ -105,117 +37,35 @@ const upsertMeta = (selector: string, attr: 'content' | 'href', value: string, c
   element.setAttribute(attr, value);
 };
 
-const setMetaName = (name: string, content: string) => {
-  upsertMeta(`meta[name="${name}"]`, 'content', content, () => {
+const setMeta = (key: 'name' | 'property', id: string, content: string) => {
+  const selector = `meta[${key}="${id}"]`;
+  if (!content) {
+    document.head.querySelector(selector)?.remove();
+    return;
+  }
+  upsert(selector, 'content', content, () => {
     const meta = document.createElement('meta');
-    meta.setAttribute('name', name);
+    meta.setAttribute(key, id);
     return meta;
   });
 };
 
-const setMetaProperty = (property: string, content: string) => {
-  upsertMeta(`meta[property="${property}"]`, 'content', content, () => {
-    const meta = document.createElement('meta');
-    meta.setAttribute('property', property);
-    return meta;
-  });
-};
-
-const setLink = (rel: string, href: string, extra?: Record<string, string>) => {
-  const selector = extra?.hreflang
-    ? `link[rel="${rel}"][hreflang="${extra.hreflang}"]`
-    : `link[rel="${rel}"]:not([hreflang])`;
-  upsertMeta(selector, 'href', href, () => {
+const setLink = (rel: string, href: string, hreflang?: string) => {
+  const selector = hreflang ? `link[rel="${rel}"][hreflang="${hreflang}"]` : `link[rel="${rel}"]:not([hreflang])`;
+  upsert(selector, 'href', href, () => {
     const link = document.createElement('link');
     link.setAttribute('rel', rel);
-    if (extra) Object.entries(extra).forEach(([key, value]) => link.setAttribute(key, value));
+    if (hreflang) link.setAttribute('hreflang', hreflang);
     return link;
   });
 };
 
-const buildBreadcrumb = (pathname: string) => {
-  const labels: Record<string, string> = {
-    catalog: 'Catalog',
-    shop: 'Shop',
-    product: 'Product',
-    authors: 'For Authors',
-    'our-authors': 'Authors',
-    about: 'About',
-    media: 'Media',
-    radio: 'Radio',
-    services: 'Services',
-  };
-  const parts = pathname.split('/').filter(Boolean);
-  const items = [{ name: 'Home', url: SITE_URL }];
-  let current = '';
-  parts.forEach(part => {
-    current += `/${part}`;
-    items.push({ name: labels[part] || part, url: `${SITE_URL}${current}` });
-  });
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: items.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.name,
-      item: item.url,
-    })),
-  };
-};
-
-const buildOrganizationSchema = () => ({
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: SITE_NAME,
-  url: SITE_URL,
-  logo: `${SITE_URL}/logo-dark.png`,
-  image: DEFAULT_IMAGE,
-  email: 'am.hybridpublishing@gmail.com',
-  sameAs: ['https://t.me/ampublishingberlin', 'https://www.instagram.com/am.publishing'],
-});
-
-const buildWebsiteSchema = () => ({
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: SITE_NAME,
-  url: SITE_URL,
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: `${SITE_URL}/catalog?search={search_term_string}`,
-    'query-input': 'required name=search_term_string',
-  },
-});
-
-const buildBookSchema = (book: Book) => ({
-  '@context': 'https://schema.org',
-  '@type': 'Book',
-  name: book.title,
-  author: {
-    '@type': 'Person',
-    name: book.author,
-  },
-  publisher: {
-    '@type': 'Organization',
-    name: book.details.publisher || SITE_NAME,
-  },
-  image: absoluteUrl(book.coverUrl),
-  description: book.description,
-  inLanguage: book.variants[0]?.language || 'Russian',
-  isbn: book.variants[0]?.isbn,
-  datePublished: book.releaseDate,
-  numberOfPages: book.details.pages,
-  offers: {
-    '@type': 'Offer',
-    price: book.price,
-    priceCurrency: 'EUR',
-    availability: book.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-    url: `${SITE_URL}${getBookPath(book)}`,
-  },
-});
-
 const setJsonLd = (id: string, value: unknown) => {
   let script = document.head.querySelector<HTMLScriptElement>(`script#${id}`);
+  if (!value) {
+    script?.remove();
+    return;
+  }
   if (!script) {
     script = document.createElement('script');
     script.id = id;
@@ -227,61 +77,92 @@ const setJsonLd = (id: string, value: unknown) => {
 
 export const SEO: React.FC = () => {
   const location = useLocation();
-  const { books } = useApp();
+  const { books, news, language, siteSettings } = useApp();
+  const [settings, setSettings] = useState<SeoSettings>(() => mergeSeoSettings(null) as SeoSettings);
 
   useEffect(() => {
-    const pathname = location.pathname;
-    const productMatch = pathname.match(/^\/product\/([^/]+)/);
-    const product = productMatch ? findBookByRouteId(books, productMatch[1]) : undefined;
-    const route = product
-      ? {
-          title: `${product.title} by ${product.author} | AM Publishing Berlin`,
-          description: product.description,
-          image: product.coverUrl,
-          type: 'book',
-        }
-      : routeSeo[pathname] || routeSeo['/'];
-    const hasIndexableQuery = location.search && !pathname.startsWith('/product/');
-    const robots = hasIndexableQuery ? 'noindex,follow' : route.robots || 'index,follow,max-image-preview:large';
-    const canonicalPath = product ? getBookPath(product) : (pathname === '/shop' ? '/catalog' : pathname);
-    const canonical = `${SITE_URL}${canonicalPath === '/' ? '/' : canonicalPath}`;
-    const image = absoluteUrl(route.image || DEFAULT_IMAGE);
+    getSeoSettings().then(setSettings).catch(() => {});
+  }, []);
 
-    document.title = route.title;
-    setMetaName('description', route.description);
-    setMetaName('robots', robots);
-    setMetaName('googlebot', robots);
-    setMetaName('author', SITE_NAME);
-    setMetaName(
-      'keywords',
-      'AM Publishing Berlin, independent publisher, literary publisher, contemporary prose, psychological fiction, Russian literature, books from Berlin',
-    );
+  useEffect(() => {
+    const pathname = location.pathname.replace(/\/+$/, '') || '/';
+    if (pathname.startsWith('/admin') || pathname === '/login' || pathname.startsWith('/radio/admin')) {
+      setMeta('name', 'robots', 'noindex,nofollow');
+      return;
+    }
+
+    const productMatch = pathname.match(/^\/product\/([^/]+)/);
+    const newsMatch = pathname.match(/^\/news\/([^/]+)/);
+    const book = productMatch ? findBookByRouteId(books, productMatch[1]) : undefined;
+    const newsItem = newsMatch ? news.find(item => item.id === decodeURIComponent(newsMatch[1])) : undefined;
+
+    const meta = book
+      ? resolveBookMeta(book, settings)
+      : newsItem
+        ? resolveNewsMeta(newsItem, settings)
+        : resolveRouteMeta(pathname, language, settings);
+
+    const params = new URLSearchParams(location.search);
+    const langParam = params.get('lang');
+    const onlyLangParam = [...params.keys()].every(key => key === 'lang');
+    // Filtered catalog views (?search=, ?genre=…) are thin duplicates; keep them out of the index.
+    const robots = location.search && !onlyLangParam ? 'noindex,follow' : meta.robots;
+    const canonicalPath = meta.path === '/' ? '/' : meta.path;
+    const canonical = `${SITE_URL}${canonicalPath}${langParam && LANGS.includes(langParam) ? `?lang=${langParam}` : ''}`;
+    const image = absoluteUrl(meta.image, settings.defaultImage);
+
+    document.documentElement.lang = language;
+    document.title = meta.title;
+    setMeta('name', 'description', meta.description);
+    setMeta('name', 'robots', robots);
+    setMeta('name', 'googlebot', robots);
+    setMeta('name', 'keywords', settings.keywords);
+    setMeta('name', 'author', book?.author || settings.siteName);
 
     setLink('canonical', canonical);
-    setLink('alternate', `${SITE_URL}/`, { hreflang: 'x-default' });
+    setLink('alternate', `${SITE_URL}${canonicalPath}`, 'x-default');
+    LANGS.forEach(lang => setLink('alternate', `${SITE_URL}${canonicalPath}?lang=${lang}`, lang));
 
-    setMetaProperty('og:type', route.type || 'website');
-    setMetaProperty('og:site_name', SITE_NAME);
-    setMetaProperty('og:url', canonical);
-    setMetaProperty('og:title', route.title);
-    setMetaProperty('og:description', route.description);
-    setMetaProperty('og:image', image);
-    setMetaProperty('og:image:alt', route.title);
+    setMeta('property', 'og:type', meta.type === 'book' ? 'book' : meta.type === 'article' ? 'article' : 'website');
+    setMeta('property', 'og:site_name', settings.siteName);
+    setMeta('property', 'og:url', canonical);
+    setMeta('property', 'og:title', meta.title);
+    setMeta('property', 'og:description', meta.description);
+    setMeta('property', 'og:image', image);
+    setMeta('property', 'og:image:alt', ('imageAlt' in meta && meta.imageAlt) || meta.title);
+    setMeta('property', 'og:locale', OG_LOCALES[language]);
+    setMeta('property', 'book:author', book?.author || '');
+    setMeta('property', 'book:isbn', book?.variants?.find(variant => variant.isbn)?.isbn || '');
+    setMeta('property', 'book:release_date', book?.releaseDate || '');
+    setMeta('property', 'article:published_time', newsItem ? (newsItem.publishAt || newsItem.date) : '');
 
-    setMetaName('twitter:card', 'summary_large_image');
-    setMetaName('twitter:title', route.title);
-    setMetaName('twitter:description', route.description);
-    setMetaName('twitter:image', image);
+    setMeta('name', 'twitter:card', 'summary_large_image');
+    setMeta('name', 'twitter:site', settings.twitterHandle);
+    setMeta('name', 'twitter:title', meta.title);
+    setMeta('name', 'twitter:description', meta.description);
+    setMeta('name', 'twitter:image', image);
 
-    setJsonLd('seo-org-jsonld', buildOrganizationSchema());
-    setJsonLd('seo-website-jsonld', buildWebsiteSchema());
-    setJsonLd('seo-breadcrumb-jsonld', buildBreadcrumb(canonicalPath));
-    if (product) {
-      setJsonLd('seo-book-jsonld', buildBookSchema(product));
-    } else {
-      document.head.querySelector('script#seo-book-jsonld')?.remove();
-    }
-  }, [books, location.pathname, location.search]);
+    setMeta('name', 'google-site-verification', settings.verification.google);
+    setMeta('name', 'msvalidate.01', settings.verification.bing);
+    setMeta('name', 'yandex-verification', settings.verification.yandex);
+    setMeta('name', 'p:domain_verify', settings.verification.pinterest);
+    setMeta('name', 'facebook-domain-verification', settings.verification.facebookDomain);
+
+    setJsonLd('seo-org-jsonld', buildOrganizationSchema(settings, siteSettings));
+    setJsonLd('seo-website-jsonld', buildWebsiteSchema(settings, language));
+    const leaf = book?.title || newsItem?.title;
+    setJsonLd('seo-breadcrumb-jsonld', canonicalPath === '/' ? null : buildBreadcrumbSchema(language, crumbsForPath(language, canonicalPath, leaf)));
+    setJsonLd('seo-book-jsonld', book ? buildBookSchema(book, settings) : null);
+    setJsonLd('seo-news-jsonld', newsItem ? buildNewsSchema(newsItem, settings, language) : null);
+    setJsonLd(
+      'seo-list-jsonld',
+      canonicalPath === '/catalog' && books.length
+        ? buildItemListSchema(books.map(item => ({ path: getBookPath(item), name: item.title })), meta.title)
+        : canonicalPath === '/media' && news.length
+          ? buildItemListSchema(news.map(item => ({ path: getNewsPath(item), name: item.title })), meta.title)
+          : null,
+    );
+  }, [books, news, language, siteSettings, settings, location.pathname, location.search]);
 
   return null;
 };

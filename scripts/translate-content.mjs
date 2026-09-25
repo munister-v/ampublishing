@@ -31,6 +31,9 @@ const SKIP_KEYS = new Set([
   'releaseDate', 'badges', 'type', 'isPreorder', 'ageRating', 'format',
   'purchaseLinks', 'price', 'oldPrice', 'stock', 'pages', 'year',
   'variants',
+  // SEO / event fields added with the admin SEO centre
+  'eventStart', 'eventEnd', 'eventUrl', 'eventAddress', 'image', 'noindex',
+  'imageUrl', 'publishAt', 'date',
 ]);
 
 const VARIANT_LANG_MAP = {

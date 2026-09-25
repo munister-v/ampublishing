@@ -67,6 +67,17 @@ export interface Book {
   releaseDate: string; // ISO date for sorting
   story?: BookStory;
   purchaseLinks?: PurchaseLink[];
+  /** Необязательные SEO-поля; пустые — берутся из названия/описания. */
+  seo?: EntrySeo;
+  /** Alt-текст обложки (для доступности и поиска по картинкам). */
+  coverAlt?: string;
+}
+
+export interface EntrySeo {
+  title?: string;
+  description?: string;
+  image?: string;
+  noindex?: boolean;
 }
 
 // Editable external "buy elsewhere" links (Mnogoknig, Mostik.de, etc.)
@@ -127,6 +138,13 @@ export interface NewsItem {
   blocks?: NewsBlock[];
   draft?: boolean;
   publishAt?: string;
+  /** Место и время события — если заполнено, страница получает schema.org Event. */
+  eventStart?: string;
+  eventEnd?: string;
+  eventLocation?: string;
+  eventAddress?: string;
+  eventUrl?: string;
+  seo?: EntrySeo;
 }
 
 // --- SERVICES (раздел «Услуги», редактируется в админке) ---
@@ -483,4 +501,41 @@ export interface ApiError {
   code: string; 
   message: string; 
   details?: any; 
+}
+
+// --- SEO (public/content/seo.json, редактируется в админке → SEO) ---
+
+export interface PageSeoLocale {
+  title?: string;
+  description?: string;
+}
+
+export interface PageSeoEntry {
+  ru?: PageSeoLocale;
+  en?: PageSeoLocale;
+  de?: PageSeoLocale;
+  image?: string;
+  noindex?: boolean;
+}
+
+export interface SeoSettings {
+  siteName: string;
+  titleTemplate: string;
+  defaultImage: string;
+  keywords: string;
+  twitterHandle: string;
+  organization: {
+    legalName: string;
+    foundingDate: string;
+    city: string;
+    country: string;
+  };
+  verification: {
+    google: string;
+    bing: string;
+    yandex: string;
+    pinterest: string;
+    facebookDomain: string;
+  };
+  pages: Record<string, PageSeoEntry>;
 }

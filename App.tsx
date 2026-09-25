@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -20,10 +20,18 @@ import { ServicesPage } from './pages/ServicesPage';
 import { TrackingPage } from './pages/TrackingPage';
 import { AuthorsPage, AboutPage, MediaPage, PrivacyPage, ImpressumPage, TermsPage, OurAuthorsPage, NewsPage } from './pages/StaticPages';
 import { NotFoundPage } from './pages/NotFoundPage';
-import { LoginPage } from './pages/LoginPage';
-import { AdminPage } from './pages/AdminPage';
-import { RadioPage } from './pages/RadioPage';
-import { RadioAdminPage } from './pages/RadioAdminPage';
+// Heavy, rarely-visited screens load on demand so readers don't download the
+// whole CMS (≈half the bundle) just to open a book page.
+const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
+const RadioPage = lazy(() => import('./pages/RadioPage').then(m => ({ default: m.RadioPage })));
+const RadioAdminPage = lazy(() => import('./pages/RadioAdminPage').then(m => ({ default: m.RadioAdminPage })));
+
+const RouteFallback: React.FC = () => (
+  <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-label="Loading">
+    <span className="h-8 w-8 animate-spin rounded-full border-2 border-primary/15 border-t-accent" />
+  </div>
+);
 import { SHOPIFY_STORE_URL } from './utils/purchaseLinks';
 
 // --- App Content with Routing ---
@@ -62,6 +70,7 @@ const AppContent: React.FC = () => {
       {!isAdminRoute && <Header />}
       
       <main key={location.pathname} className="flex-1 relative z-10 page-enter">
+        <Suspense fallback={<RouteFallback />}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
@@ -98,6 +107,7 @@ const AppContent: React.FC = () => {
           
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        </Suspense>
       </main>
 
       {!isAdminRoute && <Footer />}

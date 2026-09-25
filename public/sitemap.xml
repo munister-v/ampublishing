@@ -1,75 +1,168 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://ampublishing.org/</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/?lang=de"/>
   </url>
   <url>
     <loc>https://ampublishing.org/catalog</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/catalog"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/catalog?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/catalog?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/catalog?lang=de"/>
   </url>
   <url>
     <loc>https://ampublishing.org/our-authors</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/our-authors"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/our-authors?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/our-authors?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/our-authors?lang=de"/>
   </url>
   <url>
     <loc>https://ampublishing.org/authors</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/authors"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/authors?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/authors?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/authors?lang=de"/>
   </url>
   <url>
     <loc>https://ampublishing.org/about</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/about"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/about?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/about?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/about?lang=de"/>
   </url>
   <url>
     <loc>https://ampublishing.org/media</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/media"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/media?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/media?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/media?lang=de"/>
   </url>
   <url>
     <loc>https://ampublishing.org/radio</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/radio"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/radio?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/radio?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/radio?lang=de"/>
   </url>
   <url>
     <loc>https://ampublishing.org/services</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/services"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/services?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/services?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/services?lang=de"/>
+  </url>
+  <url>
+    <loc>https://ampublishing.org/services/order</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/services/order"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/services/order?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/services/order?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/services/order?lang=de"/>
   </url>
   <url>
     <loc>https://ampublishing.org/product/seryy-dol</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/product/seryy-dol"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/product/seryy-dol?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/product/seryy-dol?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/product/seryy-dol?lang=de"/>
+    <image:image><image:loc>https://ampublishing.org/images/uploads/cover-seryy-dol-1785093167259.webp</image:loc><image:title>Серый Дол</image:title></image:image>
   </url>
   <url>
     <loc>https://ampublishing.org/product/v-tantse-delyuziy</loc>
     <lastmod>2026-07-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/product/v-tantse-delyuziy"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/product/v-tantse-delyuziy?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/product/v-tantse-delyuziy?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/product/v-tantse-delyuziy?lang=de"/>
+    <image:image><image:loc>https://ampublishing.org/images/uploads/cover-v-tantse-delyuziy-1784554037133.webp</image:loc><image:title>В танце делюзий</image:title></image:image>
   </url>
   <url>
     <loc>https://ampublishing.org/product/orden-ne-spravedlivosti</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/product/orden-ne-spravedlivosti"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/product/orden-ne-spravedlivosti?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/product/orden-ne-spravedlivosti?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/product/orden-ne-spravedlivosti?lang=de"/>
+    <image:image><image:loc>https://ampublishing.org/images/uploads/cover-orden-ne-spravedlivosti-1784019599879.webp</image:loc><image:title>Орден (не) Справедливости</image:title></image:image>
   </url>
   <url>
     <loc>https://ampublishing.org/product/ambook-001</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/product/ambook-001"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/product/ambook-001?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/product/ambook-001?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/product/ambook-001?lang=de"/>
+    <image:image><image:loc>https://ampublishing.org/images/uploads/cover-ambook-001-copy-1783444144753.webp</image:loc><image:title>Всё, что останется</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://ampublishing.org/news/news-1787648573122</loc>
+    <lastmod>2026-08-25</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/news/news-1787648573122"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/news/news-1787648573122?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/news/news-1787648573122?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/news/news-1787648573122?lang=de"/>
+    <image:image><image:loc>https://ampublishing.org/images/uploads/news-news-1787648573122-1787648922841.webp</image:loc><image:title>В Берлине прошёл второй литературный пикник AM Publishing</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://ampublishing.org/news/news-1784020885211</loc>
+    <lastmod>2026-07-12</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/news/news-1784020885211"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/news/news-1784020885211?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/news/news-1784020885211?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/news/news-1784020885211?lang=de"/>
+  </url>
+  <url>
+    <loc>https://ampublishing.org/news/news-2</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ampublishing.org/news/news-2"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ampublishing.org/news/news-2?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ampublishing.org/news/news-2?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ampublishing.org/news/news-2?lang=de"/>
   </url>
 </urlset>
