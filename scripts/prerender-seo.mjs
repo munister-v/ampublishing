@@ -146,11 +146,18 @@ const renderPage = ({ html, head, body, home = false }) =>
     .replace('<div id="root"></div>', `<div id="root">${body}</div>`);
 
 const writeShell = async (route, content) => {
+  // `/product/x` → dist/product/x.html: GitHub Pages serves it at the
+  // extensionless URL with a 200. A directory with index.html would 301 to
+  // `/product/x/`, contradicting the canonical URL.
   const target = route === '/'
     ? path.join(distDir, 'index.html')
-    : path.join(distDir, decodeURIComponent(route).replace(/^\/+|\/+$/g, ''), 'index.html');
+    : path.join(distDir, `${decodeURIComponent(route).replace(/^\/+|\/+$/g, '')}.html`);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, content);
+  // A route that is also a folder (/services + /services/order) may be
+  // resolved as the folder by Pages — give that folder the same page.
+  const folder = target.replace(/\.html$/, '');
+  if (route !== '/' && existsSync(folder)) await writeFile(path.join(folder, 'index.html'), content);
 };
 
 const breadcrumb = (canonicalPath, leaf) =>
@@ -162,7 +169,8 @@ let count = 0;
 const bookLinks = books.map(book => `<li><a href="${esc(getBookPath(book))}">${esc(book.title)}</a>${book.author ? ` — ${esc(book.author)}` : ''}</li>`).join('');
 const newsLinks = news.map(item => `<li><a href="${esc(getNewsPath(item))}">${esc(item.title)}</a> <time datetime="${esc(item.date)}">${esc(item.date)}</time></li>`).join('');
 
-for (const route of [...Object.keys(ROUTE_SEO), '/shop']) {
+// Deepest first, so /services/order exists before /services checks for its folder.
+for (const route of [...Object.keys(ROUTE_SEO), '/shop'].sort((a, b) => b.split('/').length - a.split('/').length)) {
   const meta = resolveRouteMeta(route, LANG, settings);
   const listSchema = meta.path === '/catalog'
     ? buildItemListSchema(books.map(book => ({ path: getBookPath(book), name: book.title })), meta.title)
