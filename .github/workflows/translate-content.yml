@@ -1,4 +1,4 @@
-name: Translate content (DeepL)
+name: Translate content (OpenAI / DeepL)
 
 on:
   push:
@@ -34,6 +34,7 @@ jobs:
 
       - name: Run translator
         env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
         run: node scripts/translate-content.mjs
 
@@ -48,6 +49,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No translation changes."
           else
-            git commit -m "ci(translate): sync EN/DE from RU via DeepL"
+            git commit -m "ci(translate): sync EN/DE from RU"
             git push
           fi

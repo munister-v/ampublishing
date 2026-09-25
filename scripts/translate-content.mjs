@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-// Translate public/content/*.ru.json → *.en.json / *.de.json via DeepL.
+// Translate public/content/*.ru.json → *.en.json / *.de.json via OpenAI
+// (gpt-4o-mini, cheap) or DeepL — OpenAI wins when OPENAI_API_KEY is set,
+// and a DeepL run that hits its monthly quota falls back to OpenAI.
 // Only fills strings that are missing in the target locale; manual edits are preserved.
 
 import { readFile, writeFile } from 'node:fs/promises';
@@ -10,12 +12,15 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 /** Пауза между запросами: free-тариф не любит плотных серий. */
 const REQUEST_GAP_MS = Number(process.env.DEEPL_GAP_MS || 350);
 
-const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
-if (!DEEPL_API_KEY) {
+const DEEPL_API_KEY = process.env.DEEPL_API_KEY || '';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const OPENAI_MODEL = process.env.TRANSLATE_MODEL || 'gpt-4o-mini';
+let provider = OPENAI_API_KEY ? 'openai' : 'deepl';
+if (!DEEPL_API_KEY && !OPENAI_API_KEY) {
   // Раньше здесь был тихий выход с кодом 0: workflow годами показывал зелёные
   // галочки, а переводы не делались, и это заметили только по пустому каталогу
   // на EN/DE. Пусть лучше падает громко.
-  console.error('DEEPL_API_KEY not set — перевод не выполнен.');
+  console.error('Нет ни OPENAI_API_KEY, ни DEEPL_API_KEY — перевод не выполнен.');
   process.exit(1);
 }
 
@@ -46,7 +51,48 @@ const isUrlOrId = (s) =>
 // Tiny LRU-ish cache to avoid duplicate DeepL calls within a single run.
 const cache = new Map();
 
+const LANG_NAMES = { en: 'English (US)', de: 'German' };
+
+async function openaiTranslate(text, lang) {
+  let res;
+  for (let attempt = 0; ; attempt++) {
+    res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        temperature: 0.2,
+        messages: [
+          {
+            role: 'system',
+            content: `You translate website copy of AM Publishing Berlin, an independent literary publisher, from Russian into ${LANG_NAMES[lang]}. Keep the literary tone, meaning and length. Preserve line breaks, markdown markers (##, >, -, •), punctuation style, URLs, emails and numbers exactly. Keep proper names of people and book titles transliterated consistently. Reply with the translation only — no quotes, no notes.`,
+          },
+          { role: 'user', content: text },
+        ],
+      }),
+    });
+    if (res.status !== 429 && res.status < 500) break;
+    if (attempt >= 5) break;
+    const wait = Math.min(30000, 1500 * 2 ** attempt);
+    console.log(`OpenAI ${res.status}, повтор через ${Math.round(wait / 1000)} с…`);
+    await sleep(wait);
+  }
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`OpenAI ${res.status}: ${err.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  return data?.choices?.[0]?.message?.content?.trim() || text;
+}
+
 async function deeplTranslate(text, lang) {
+  if (provider === 'openai') {
+    const cacheKey = `${lang}|${text}`;
+    if (cache.has(cacheKey)) return cache.get(cacheKey);
+    const out = await openaiTranslate(text, lang);
+    cache.set(cacheKey, out);
+    return out;
+  }
   const cacheKey = `${lang}|${text}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
@@ -73,6 +119,11 @@ async function deeplTranslate(text, lang) {
     // 429 — превышена частота, 456 — исчерпана квота символов (её ждать
     // бессмысленно, поэтому падаем сразу с понятным текстом).
     if (res.status === 456) {
+      if (OPENAI_API_KEY) {
+        console.log(`DeepL: квота исчерпана — переключаюсь на OpenAI (${OPENAI_MODEL}).`);
+        provider = 'openai';
+        return deeplTranslate(text, lang);
+      }
       throw new Error('DeepL 456: месячная квота символов исчерпана');
     }
     if (res.status !== 429 && res.status < 500) break;
@@ -231,7 +282,7 @@ async function syncServices() {
 }
 
 async function main() {
-  console.log(`DeepL endpoint: ${DEEPL_ENDPOINT}`);
+  console.log(provider === 'openai' ? `Переводчик: OpenAI ${OPENAI_MODEL}` : `DeepL endpoint: ${DEEPL_ENDPOINT}`);
   await syncCollection('books');
   await syncCollection('news');
   await syncOverrides();
