@@ -65,7 +65,7 @@ async function openaiTranslate(text, lang) {
         messages: [
           {
             role: 'system',
-            content: `You translate website copy of AM Publishing Berlin, an independent literary publisher, from Russian into ${LANG_NAMES[lang]}. Keep the literary tone, meaning and length. Preserve line breaks, markdown markers (##, >, -, •), punctuation style, URLs, emails and numbers exactly. Keep proper names of people and book titles transliterated consistently. Reply with the translation only — no quotes, no notes.`,
+            content: `You translate website copy of AM Publishing Berlin, an independent literary publisher, from Russian into ${LANG_NAMES[lang]}. Keep the literary tone, meaning and length. Preserve line breaks, markdown markers (##, >, -, •), punctuation style, URLs, emails and numbers exactly. Transliterate only names of people; translate titles of books, events and open calls into natural ${LANG_NAMES[lang]}. Reply with the translation only — no quotes, no notes.`,
           },
           { role: 'user', content: text },
         ],
