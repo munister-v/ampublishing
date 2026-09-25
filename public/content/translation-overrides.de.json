@@ -123,5 +123,13 @@
   "static.about.stat2_text": "die erste Auflage jedes Buches",
   "static.about.cta_button": "",
   "static.authors.p2": "\n— moderne Liebesromane;\n\n— moderne psychologische Prosa mit einer ausgeprägten Liebesgeschichte.\nDie genauen Teilnahmebedingungen und das Einreichungsformular werden am 1. Oktober veröffentlicht.",
-  "static.authors.subtitle": "Wir prüfen neue Manuskripte ausschließlich im Rahmen der ausgeschriebenen Open Calls."
+  "static.authors.subtitle": "Wir prüfen neue Manuskripte ausschließlich im Rahmen der ausgeschriebenen Open Calls.",
+  "static.authors.what_we_publish": "OPEN CALL \"Lyubov' i zhizn'\"",
+  "static.authors.prose_sub": "vom 1. Oktober bis zum 31. Dezember 2026",
+  "static.authors.prose": "## Fristen für die Einreichung von Manuskripten",
+  "static.authors.poetry_sub": "von 8 bis 16 a.l.",
+  "static.authors.poetry": "Umfang",
+  "static.authors.ready_sub": "Der Link zum Einreichungsformular wird am 1. Oktober erscheinen.",
+  "static.authors.go_to_form": "## Zu den Bedingungen für die Einreichung von Manuskripten",
+  "static.authors.form_url": "https://docs.google.com/document/d/1e03fxc9KN95YylAmCGjfJFh0FCuQmv71jCQt5spAmrg/edit?usp=sharing"
 }

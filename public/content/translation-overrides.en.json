@@ -123,5 +123,13 @@
   "static.about.stat2_text": "the first printing of each book",
   "static.about.cta_button": "",
   "static.authors.p2": "\n— contemporary romance novels;\n\n— contemporary psychological fiction with a strong romantic storyline.\nDetailed guidelines and submission instructions will be published on October 1.",
-  "static.authors.subtitle": "We only consider new manuscripts as part of announced open calls."
+  "static.authors.subtitle": "We only consider new manuscripts as part of announced open calls.",
+  "static.authors.what_we_publish": "OPEN CALL \"Lyubov' i zhizn'\"",
+  "static.authors.prose_sub": "from October 1 to December 31, 2026",
+  "static.authors.prose": "## Manuscript Submission Deadlines",
+  "static.authors.poetry_sub": "from 8 to 16 a.l.",
+  "static.authors.poetry": "Volume",
+  "static.authors.ready_sub": "The link to the submission form will appear on October 1.",
+  "static.authors.go_to_form": "Go to the submission guidelines",
+  "static.authors.form_url": "https://docs.google.com/document/d/1e03fxc9KN95YylAmCGjfJFh0FCuQmv71jCQt5spAmrg/edit?usp=sharing"
 }
