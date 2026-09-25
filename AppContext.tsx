@@ -279,12 +279,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  // "{count}" inserts a value; "{count:позиция|позиции|позиций}" picks the
+  // plural form for the number (ru: one|few|many, en/de: one|other).
+  const interpolate = (value: string, params: Record<string, string | number>) =>
+    value
+      .replace(/{(\w+):([^}]+)}/g, (_, name, forms) => {
+        const variants = String(forms).split('|');
+        const category = new Intl.PluralRules(language).select(Number(params[name]) || 0);
+        const index = category === 'one' ? 0 : category === 'few' ? 1 : variants.length - 1;
+        return variants[Math.min(index, variants.length - 1)];
+      })
+      .replace(/{(\w+)}/g, (_, match) => params[match] != null ? String(params[match]) : `{${match}}`);
+
   const t = (key: string, params?: Record<string, string | number>) => {
     const overrideValue = translationOverrides[language]?.[key];
     if (typeof overrideValue !== 'undefined') {
-      if (typeof overrideValue === 'string' && params) {
-        return overrideValue.replace(/{(\w+)}/g, (_, match) => params[match] != null ? String(params[match]) : `{${match}}`);
-      }
+      if (typeof overrideValue === 'string' && params) return interpolate(overrideValue, params);
       return overrideValue;
     }
 
@@ -294,9 +304,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (value && typeof value === 'object' && k in value) value = value[k];
       else return key; 
     }
-    if (typeof value === 'string' && params) {
-        return value.replace(/{(\w+)}/g, (_, match) => params[match] != null ? String(params[match]) : `{${match}}`);
-    }
+    if (typeof value === 'string' && params) return interpolate(value, params);
     return value;
   };
 

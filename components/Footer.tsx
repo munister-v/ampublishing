@@ -42,6 +42,27 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
+        {/* Navigation — mobile (used to be desktop-only) */}
+        <nav className="border-b border-white/10 px-6 py-8" aria-label={t('footer.directory')}>
+          <img src="/logo-white.svg" alt="AM Publishing" className="mb-7 h-11 w-auto" draggable={false} />
+          <ul className="grid grid-cols-2 gap-x-6 font-serif text-xl">
+            {([
+              ['/catalog', t('nav.catalog')],
+              ['/our-authors', t('nav.our_authors')],
+              ['/authors', t('nav.authors')],
+              ['/services', t('nav.services')],
+              ['/about', t('nav.about')],
+              ['/media', t('nav.media')],
+              ['/radio', t('nav.radio')],
+              ['/tracking', t('tracking.title')],
+            ] as [string, string][]).map(([to, label]) => (
+              <li key={to}>
+                <Link to={to} className="flex min-h-11 items-center border-b border-white/[0.07] transition-colors hover:text-accent">{label}</Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
         {/* Copyright strip — mobile */}
         <div className="px-6 pb-7 pt-6 font-mono text-[9px] uppercase tracking-[0.16em] text-white/45">
           <a
@@ -68,7 +89,7 @@ export const Footer: React.FC = () => {
         {/* 1. BRAND BLOCK */}
         <div className="p-8 md:p-10 border-b sm:border-b-0 sm:border-r md:border-r border-white/20 flex flex-col justify-between">
           <div>
-            <img src="/logo-white.png" alt="AM Publishing" className="w-20 h-20 object-contain mb-5 -ml-1" draggable={false} />
+            <img src="/logo-white.svg" alt="AM Publishing" className="h-14 w-auto mb-6" draggable={false} />
             <p className="font-mono text-xs max-w-[260px] opacity-60 leading-relaxed">
               {t('footer.desc')}
             </p>
@@ -93,6 +114,7 @@ export const Footer: React.FC = () => {
             <li><Link to="/tracking" className="hover:text-accent transition-all">{t('tracking.title')}</Link></li>
             <li><Link to="/about" className="hover:text-accent transition-all">{t('nav.about')}</Link></li>
             <li><Link to="/media" className="hover:text-accent transition-all">{t('nav.media')}</Link></li>
+            <li><Link to="/radio" className="hover:text-accent transition-all">{t('nav.radio')}</Link></li>
           </ul>
         </div>
 

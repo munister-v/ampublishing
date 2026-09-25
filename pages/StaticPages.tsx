@@ -215,7 +215,7 @@ export const AuthorsPage: React.FC = () => {
       {/* Submission Process (Redesigned) */}
       <section className="bg-white py-24 border-t border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
             <h2 className="text-3xl md:text-4xl font-serif text-primary">{t('static.authors.process_title')}</h2>
             <div className="h-[1px] flex-1 bg-gray-100 mx-8 hidden md:block"></div>
           </div>

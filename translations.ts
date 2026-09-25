@@ -481,7 +481,7 @@ export const translations: Record<Language, TranslationTree> = {
           title_new: "Новинки",
           title_bestseller: "Бестселлеры",
           title_search: "Результаты поиска",
-          showing_results: "Показано {count} результатов",
+          showing_results: "Показано {count} {count:результат|результата|результатов}",
           reset: "Сбросить",
           sort_by: "Сортировка",
           view_grid: "Сетка",
@@ -494,8 +494,8 @@ export const translations: Record<Language, TranslationTree> = {
             alpha_asc: "А-Я"
           },
           archive_label: "Архив · Каталог",
-          items_count: "{count} позиций",
-          results_count: "{count} результатов",
+          items_count: "{count} {count:позиция|позиции|позиций}",
+          results_count: "{count} {count:результат|результата|результатов}",
           formats: {
             hardcover: "Твёрдая обложка",
             paperback: "Мягкая обложка",
@@ -794,7 +794,7 @@ export const translations: Record<Language, TranslationTree> = {
       title_new: "New Arrivals",
       title_bestseller: "Bestsellers",
       title_search: "Search Results",
-      showing_results: "Showing {count} results",
+      showing_results: "Showing {count} {count:result|results}",
       reset: "Reset",
       sort_by: "Sort by",
       view_grid: "Grid",
@@ -807,8 +807,8 @@ export const translations: Record<Language, TranslationTree> = {
         alpha_asc: "A-Z"
       },
       archive_label: "Archive · Catalog",
-      items_count: "{count} items",
-      results_count: "{count} results",
+      items_count: "{count} {count:item|items}",
+      results_count: "{count} {count:result|results}",
       formats: {
         hardcover: "Hardcover",
         paperback: "Paperback",
@@ -1323,7 +1323,7 @@ export const translations: Record<Language, TranslationTree> = {
       title_new: "Neuheiten",
       title_bestseller: "Bestseller",
       title_search: "Suchergebnisse",
-      showing_results: "Zeige {count} Ergebnisse",
+      showing_results: "Zeige {count} {count:Ergebnis|Ergebnisse}",
       reset: "Zurücksetzen",
       sort_by: "Sortieren nach",
       view_grid: "Raster",
@@ -1337,7 +1337,7 @@ export const translations: Record<Language, TranslationTree> = {
       },
       archive_label: "Archiv · Katalog",
       items_count: "{count} Titel",
-      results_count: "{count} Ergebnisse",
+      results_count: "{count} {count:Ergebnis|Ergebnisse}",
       formats: {
         hardcover: "Hardcover",
         paperback: "Taschenbuch",

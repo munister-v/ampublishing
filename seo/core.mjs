@@ -62,7 +62,7 @@ export const ROUTE_SEO = {
   },
   '/about': {
     changefreq: 'monthly', priority: '0.7',
-    ru: { title: 'О издательстве', description: 'AM Publishing Berlin — независимое издательство: редакционная работа, внимание к тексту и красивые книги как объект.' },
+    ru: { title: 'Об издательстве', description: 'AM Publishing Berlin — независимое издательство: редакционная работа, внимание к тексту и красивые книги как объект.' },
     en: { title: 'About Us', description: 'AM Publishing Berlin is an independent literary publisher focused on contemporary prose, editorial care and beautiful book objects.' },
     de: { title: 'Über uns', description: 'AM Publishing Berlin ist ein unabhängiger Literaturverlag mit Fokus auf zeitgenössische Prosa, sorgfältiges Lektorat und schöne Buchobjekte.' },
   },

@@ -34,7 +34,7 @@ export const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[85vh]">
            
            {/* Left: Text */}
-           <div className="lg:col-span-8 p-6 md:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-primary relative">
+           <div className="lg:col-span-8 px-5 py-8 sm:p-6 md:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-primary relative">
               <div className="flex justify-between items-start animate-fade-in gpu-accelerated">
                  <span className="inline-flex items-center gap-3 border border-primary/15 bg-white/65 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-primary/70 shadow-[0_8px_28px_-20px_rgba(4,15,30,0.45)] backdrop-blur-sm md:text-[11px]">
                    <span aria-hidden className="h-px w-6 bg-accent" />
@@ -53,17 +53,17 @@ export const HomePage: React.FC = () => {
                 </h1>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-8 items-end justify-between mt-12 animate-fade-up delay-300 gpu-accelerated">
-                 <p className="max-w-xs text-sm font-mono leading-tight">
+              <div className="flex flex-col md:flex-row gap-8 items-stretch md:items-end justify-between mt-10 md:mt-12 animate-fade-up delay-300 gpu-accelerated">
+                 <p className="max-w-sm text-[13px] md:text-sm font-mono leading-snug text-primary/80">
                     {t('home.hero_subtitle')}
                  </p>
                  <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
-                    <Link to="/our-authors" className="min-h-[52px] bg-primary text-white px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent hover:text-primary transition-colors border border-primary duration-300 flex items-center justify-center text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+                    <Link to="/our-authors" className="min-h-[52px] whitespace-nowrap bg-primary text-white px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-accent hover:text-primary transition-colors border border-primary duration-300 flex items-center justify-center text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                        {t('nav.our_authors')}
                     </Link>
                     <Link
                        to="/about"
-                       className="min-h-[52px] bg-transparent text-primary px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-white transition-colors border border-primary duration-300 flex items-center justify-center gap-2 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                       className="min-h-[52px] whitespace-nowrap bg-transparent text-primary px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-white transition-colors border border-primary duration-300 flex items-center justify-center gap-2 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     >
                        {t('nav.about')} <ArrowRight size={15} aria-hidden="true" />
                     </Link>
@@ -72,7 +72,7 @@ export const HomePage: React.FC = () => {
            </div>
 
            {/* Right: Visual */}
-           <div className="lg:col-span-4 bg-primary relative group border-l border-primary -ml-[1px] overflow-hidden min-h-[300px] lg:min-h-auto">
+           <div className="lg:col-span-4 bg-primary relative group border-l border-primary -ml-[1px] overflow-hidden min-h-[360px] sm:min-h-[440px] lg:min-h-auto">
               {/*
                 absolute inset-0, не w-full h-full: внутри CSS grid высота строки
                 считается ДО того, как h-full картинки может её унаследовать, поэтому
@@ -107,22 +107,29 @@ export const HomePage: React.FC = () => {
       {newBooks.length > 0 && <section>
          <div className="grid grid-cols-1 md:grid-cols-12">
             {/* Sidebar Title */}
-            <div className="md:col-span-1 border-r border-primary flex items-center justify-center py-12 md:py-0 bg-white">
-               <h2 className="md:-rotate-90 text-2xl font-bold uppercase tracking-[0.3em] whitespace-nowrap">
+            <div className="md:col-span-1 border-b md:border-b-0 md:border-r border-primary flex items-center justify-between md:justify-center gap-4 px-5 py-6 md:p-0 bg-white">
+               <h2 className="md:-rotate-90 text-lg md:text-2xl font-bold uppercase tracking-[0.3em] whitespace-nowrap">
                   {t('home.new_arrivals')}
                </h2>
+               <Link to="/catalog" className="md:hidden inline-flex min-h-[44px] items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-primary/60 hover:text-accent">
+                  {t('home.view_all')} <ArrowRight size={13} aria-hidden="true" />
+               </Link>
             </div>
 
             {/* Products */}
             <div className="md:col-span-11">
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-b border-primary">
+               {/* Phones: a swipeable row (the next cover peeks in as a hint)
+                   instead of four full-screen cards stacked ~3000px tall. */}
+               <div className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-4 border-b border-primary">
                   {newBooks.map((book) => (
-                     <ProductCard key={book.id} book={book} />
+                     <div key={book.id} className="w-[78%] shrink-0 snap-start sm:w-auto">
+                        <ProductCard book={book} />
+                     </div>
                   ))}
                </div>
-               <div className="border-b border-primary p-4 flex justify-end">
-                  <Link to="/catalog" className="text-xs font-mono uppercase underline hover:text-accent transition-colors duration-300">
-                     {t('home.view_all')} &rarr;
+               <div className="hidden md:flex border-b border-primary justify-end">
+                  <Link to="/catalog" className="group inline-flex min-h-[52px] items-center gap-2 border-l border-primary px-6 font-mono text-[11px] uppercase tracking-[0.16em] hover:bg-primary hover:text-white transition-colors duration-300">
+                     {t('home.view_all')} <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
                   </Link>
                </div>
             </div>
@@ -131,12 +138,12 @@ export const HomePage: React.FC = () => {
 
       {/* 4. EDITORIAL / CONCEPT */}
       <section className="grid grid-cols-1 md:grid-cols-2 border-b border-primary min-h-[600px]">
-         <div className="p-12 md:p-20 flex flex-col justify-center border-b md:border-b-0 md:border-r border-primary bg-[#E8EDF2]">
-            <BookOpen className="mb-12 text-primary" size={64} strokeWidth={0.5} />
-            <h2 className="text-6xl md:text-8xl font-serif leading-[0.8] mb-8">
+         <div className="px-5 py-14 sm:p-12 md:p-20 flex flex-col justify-center border-b md:border-b-0 md:border-r border-primary bg-[#E8EDF2]">
+            <BookOpen className="mb-8 md:mb-12 text-primary" size={56} strokeWidth={0.5} />
+            <h2 className="text-6xl md:text-8xl font-serif leading-[0.85] mb-6 md:mb-8">
                {t('home.global_reach').split(' ')[0]} <br/> {t('home.global_reach').split(' ')[1]}
             </h2>
-            <p className="font-mono text-sm max-w-sm mb-12">
+            <p className="font-mono text-sm max-w-sm mb-10 md:mb-12">
                {t('home.global_desc')}
             </p>
             <div className="grid grid-cols-2 gap-px bg-primary border border-primary">
@@ -175,8 +182,19 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 5. JOURNAL LIST */}
-      {news.length > 0 && <section className="bg-white">
-         {news.map((n, idx) => (
+      {news.length > 0 && <section className="bg-white" aria-labelledby="home-news-title">
+         <div className="flex items-end justify-between gap-6 border-b border-primary px-5 pb-6 pt-12 md:px-12 md:pt-16">
+            <div>
+               <p className="mb-3 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
+                  <span aria-hidden className="h-px w-7 bg-accent" />AM Publishing
+               </p>
+               <h2 id="home-news-title" className="font-serif text-4xl leading-none md:text-6xl">{t('nav.media')}</h2>
+            </div>
+            <Link to="/media" className="group inline-flex min-h-[44px] shrink-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-primary/60 hover:text-accent md:text-[11px]">
+               {t('home.view_all')} <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
+            </Link>
+         </div>
+         {news.slice(0, 4).map((n, idx) => (
             <Link
                key={n.id}
                to={`/news/${n.id}`}
@@ -189,7 +207,7 @@ export const HomePage: React.FC = () => {
                  этом лежала в данных, но не выводилась, и читатель не понимал,
                  о чём новость, пока не откроет её.
                */}
-               <div className="border-b border-primary px-8 py-10 md:px-12 md:py-12 flex flex-col md:flex-row md:items-start gap-4 md:gap-10 transition-colors duration-500 ease-out group-hover:bg-primary/[0.03]">
+               <div className="border-b border-primary px-5 py-8 md:px-12 md:py-12 flex flex-col md:flex-row md:items-start gap-4 md:gap-10 transition-colors duration-500 ease-out group-hover:bg-primary/[0.03]">
                   <div className="md:w-40 shrink-0 flex items-center gap-3 md:block">
                      <span className="font-mono text-[10px] tabular-nums text-primary/30">{String(idx + 1).padStart(2, '0')}</span>
                      <time
@@ -206,7 +224,7 @@ export const HomePage: React.FC = () => {
                            {n.category}
                         </span>
                      ) : null}
-                     <h3 className="font-serif text-3xl md:text-[2.6rem] leading-[1.12] transition-transform duration-300 group-hover:translate-x-1">
+                     <h3 className="font-serif text-[1.75rem] md:text-[2.6rem] leading-[1.12] text-balance transition-transform duration-300 group-hover:translate-x-1">
                         {n.title}
                      </h3>
                      {n.preview ? (

@@ -129,8 +129,8 @@ export const ProductPage: React.FC = () => {
                <div className="border border-primary bg-[#F4F4F0] p-5 md:p-6 mb-10">
                   <div className="flex flex-col gap-4">
                      <div className="flex justify-between items-baseline gap-4">
-                        <span className="font-mono text-xs uppercase">{t('product.purchase')}</span>
-                        <span className={`${hasLocalPrice ? 'text-4xl font-serif' : 'text-sm font-mono uppercase tracking-[0.16em]'} text-right text-primary`}>
+                        <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-primary/55">{t('product.purchase')}</span>
+                        <span className={`${hasLocalPrice ? 'text-4xl font-serif' : 'text-[11px] sm:text-xs font-mono uppercase tracking-[0.12em] sm:tracking-[0.16em] leading-snug'} text-right text-primary`}>
                           {hasLocalPrice ? `${book.price.toFixed(2)} ${region.currency}` : t('product.price_in_shop')}
                         </span>
                      </div>

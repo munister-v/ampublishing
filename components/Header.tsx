@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Search, Menu, X, ArrowRight, ArrowUpRight, Clock, Trash2 } from 'lucide-react';
+import { Search, Menu, X, ArrowRight, ArrowUpRight, Clock, Trash2, ChevronDown, Check } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { setDocumentScrollLock } from '../utils/scrollLock';
 import { SHOPIFY_STORE_URL } from '../utils/purchaseLinks';
@@ -15,6 +15,63 @@ export const BrandLogo: React.FC<{ className?: string; white?: boolean }> = ({ c
     draggable={false}
   />
 );
+
+const LANGUAGE_NAMES = { ru: 'Русский', en: 'English', de: 'Deutsch' } as const;
+
+// One button with the current language and a small menu. Three stacked
+// buttons used to overflow the header on touch tablets, where every button
+// gets a 44px minimum height.
+const LanguageMenu: React.FC<{ language: 'ru' | 'en' | 'de'; onSelect: (lang: 'ru' | 'en' | 'de') => void }> = ({ language, onSelect }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent | KeyboardEvent) => {
+      if (event instanceof KeyboardEvent ? event.key === 'Escape' : !ref.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative hidden md:flex w-[68px] border-r border-primary">
+      <button
+        onClick={() => setOpen(value => !value)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Language: ${LANGUAGE_NAMES[language]}`}
+        className={`flex w-full items-center justify-center gap-1 font-mono text-[11px] font-bold uppercase tracking-[0.12em] transition-colors duration-300 ${open ? 'bg-primary text-white' : 'hover:bg-primary/[0.05]'}`}
+      >
+        {language}
+        <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+      {open ? (
+        <div role="menu" className="absolute right-0 top-full z-50 mt-px w-44 border border-primary bg-[#F4F4F0] shadow-[0_18px_40px_-18px_rgba(4,15,30,0.45)] animate-fade-in">
+          {(['ru', 'en', 'de'] as const).map(lang => (
+            <button
+              key={lang}
+              role="menuitemradio"
+              aria-checked={language === lang}
+              onClick={() => { onSelect(lang); setOpen(false); }}
+              className={`flex min-h-[44px] w-full items-center justify-between gap-3 border-b border-primary/10 px-4 text-left text-sm last:border-b-0 transition-colors ${language === lang ? 'font-semibold' : 'text-primary/70 hover:bg-white hover:text-primary'}`}
+            >
+              <span className="flex items-center gap-3">
+                <span className="w-6 font-mono text-[10px] uppercase tracking-[0.12em] text-primary/45">{lang}</span>
+                {LANGUAGE_NAMES[lang]}
+              </span>
+              {language === lang ? <Check size={14} className="text-accent" aria-hidden="true" /> : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 export const Header: React.FC = () => {
   const { language, setLanguage, t, searchHistory, addSearchHistory, clearSearchHistory, siteSettings } = useApp();
@@ -92,14 +149,13 @@ export const Header: React.FC = () => {
             ))}
           </nav>
 
-          <div className="flex-1 lg:hidden border-r border-primary"></div>
-
-          {/* Tools Grid */}
-          <div className="flex items-stretch">
+          {/* Tools Grid — on phones it takes the free width, so the shop
+              button can carry its label instead of a lone arrow. */}
+          <div className="flex flex-1 items-stretch justify-end lg:flex-none">
              <button 
               onClick={() => setSearchOpen(!searchOpen)}
               aria-label="Toggle Search"
-              className={`w-[56px] md:w-[76px] border-r border-primary flex items-center justify-center transition-colors duration-500 relative group overflow-hidden ${searchOpen ? 'text-white' : ''}`}
+              className={`w-[56px] md:w-[76px] md:border-l lg:border-l-0 border-r border-primary flex items-center justify-center transition-colors duration-500 relative group overflow-hidden ${searchOpen ? 'text-white' : ''}`}
             >
               <div className={`absolute inset-0 bg-primary transition-transform duration-500 ease-out-quart ${searchOpen ? 'translate-y-0' : 'translate-y-full group-hover:translate-y-0'}`}></div>
               <div className="relative z-10 group-hover:text-white transition-colors duration-500">
@@ -107,29 +163,19 @@ export const Header: React.FC = () => {
               </div>
             </button>
 
-            <div className="hidden md:flex flex-col w-[60px] border-r border-primary text-[9px] font-mono">
-              {(['en', 'de', 'ru'] as const).map(lang => (
-                <button 
-                  key={lang}
-                  onClick={() => setLanguage(lang)}
-                  className={`flex-1 flex items-center justify-center uppercase hover:bg-accent hover:text-white transition-colors duration-500 ${language === lang ? 'bg-primary text-white' : ''}`}
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
+            <LanguageMenu language={language} onSelect={setLanguage} />
 
             <a
               href={SHOPIFY_STORE_URL}
               onClick={() => analytics.track('shopify_buy_click', { source: 'header', destination: SHOPIFY_STORE_URL })}
               aria-label={t('nav.shop')}
-              className="w-[56px] md:w-[148px] min-h-[44px] flex items-center justify-center gap-2 relative group overflow-hidden border-primary border-l md:border-l-0 bg-accent text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
+              className="flex-1 max-w-[180px] md:flex-none md:max-w-none md:w-[148px] min-h-[44px] flex items-center justify-center gap-2 relative group overflow-hidden border-primary bg-accent text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
             >
               <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-              <span className="relative z-10 hidden md:inline text-[10px] font-bold uppercase tracking-[0.2em] group-hover:text-white transition-colors duration-300">
+              <span className="relative z-10 text-[10px] font-bold uppercase tracking-[0.18em] group-hover:text-white transition-colors duration-300">
                 {t('nav.shop')}
               </span>
-              <ArrowUpRight className="relative z-10 group-hover:text-white transition-colors duration-300" size={18} strokeWidth={1.5} aria-hidden="true" />
+              <ArrowUpRight className="relative z-10 group-hover:text-white transition-colors duration-300" size={16} strokeWidth={1.5} aria-hidden="true" />
             </a>
 
              <button 

@@ -172,7 +172,7 @@ export const CatalogPage: React.FC = () => {
     <div className="bg-[#F4F4F0] pt-[58px] md:pt-[76px]">
       
       {/* 1. CATALOG HEADER */}
-      <div className="border-b border-primary p-6 md:p-12 bg-white flex flex-col md:flex-row justify-between items-end gap-6 relative z-20">
+      <div className="border-b border-primary px-5 py-8 sm:p-6 md:p-12 bg-white flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-20">
         <div>
             <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400 block mb-2">{t('catalog.archive_label')}</span>
             <h1 className="text-5xl md:text-8xl font-serif uppercase leading-[0.9] text-primary break-words">
