@@ -131,5 +131,7 @@
   "static.authors.poetry": "Umfang",
   "static.authors.ready_sub": "Der Link zum Einreichungsformular wird am 1. Oktober erscheinen.",
   "static.authors.go_to_form": "## Zu den Bedingungen für die Einreichung von Manuskripten",
-  "static.authors.form_url": "https://docs.google.com/document/d/1e03fxc9KN95YylAmCGjfJFh0FCuQmv71jCQt5spAmrg/edit?usp=sharing"
+  "static.authors.form_url": "https://docs.google.com/document/d/1e03fxc9KN95YylAmCGjfJFh0FCuQmv71jCQt5spAmrg/edit?usp=sharing",
+  "static.authors.ready": "Bereit, das Manuskript einzureichen?",
+  "static.authors.format_note": "* Wir akzeptieren Dateien im PDF- oder Word-Format"
 }

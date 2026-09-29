@@ -131,5 +131,7 @@
   "static.authors.poetry": "Volume",
   "static.authors.ready_sub": "The link to the submission form will appear on October 1.",
   "static.authors.go_to_form": "Go to the submission guidelines",
-  "static.authors.form_url": "https://docs.google.com/document/d/1e03fxc9KN95YylAmCGjfJFh0FCuQmv71jCQt5spAmrg/edit?usp=sharing"
+  "static.authors.form_url": "https://docs.google.com/document/d/1e03fxc9KN95YylAmCGjfJFh0FCuQmv71jCQt5spAmrg/edit?usp=sharing",
+  "static.authors.ready": "Ready to submit your manuscript?",
+  "static.authors.format_note": "* We accept files in PDF or Word format"
 }
