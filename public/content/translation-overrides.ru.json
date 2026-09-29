@@ -132,5 +132,6 @@
   "static.authors.ready_sub": "Ссылка на форму подачи появится 1 октября.",
   "static.authors.go_to_form": "Перейти к форме заявки",
   "static.authors.form_url": "https://docs.google.com/forms/d/e/1FAIpQLSdUoO2cVqJJWC1NwCEpalNunhnLjLsD2uF64f3UGqbEKO_dAg/viewform?usp=publish-editor",
-  "static.authors.ready": "Готовы отправить рукопись?"
+  "static.authors.ready": "Готовы отправить рукопись?",
+  "static.authors.format_note": "* Принимаем файлы в формате PDF или Word"
 }
