@@ -37,6 +37,17 @@ const Field: React.FC<{ label: string; hint?: string; children: React.ReactNode 
   </label>
 );
 
+const download = (name: string, data: unknown) => {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
+};
+const readJson = (file: File) => new Promise<unknown>((res, rej) => {
+  const r = new FileReader(); r.onload = () => { try { res(JSON.parse(String(r.result))); } catch { rej(new Error('Это не JSON')); } }; r.onerror = () => rej(new Error('Не прочитать файл')); r.readAsText(file);
+});
+const toDataUrl = (file: File) => new Promise<string>((res, rej) => {
+  const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = () => rej(new Error('Не прочитать файл')); r.readAsDataURL(file);
+});
+
 async function load<T>(file: string): Promise<T | null> {
   try {
     const res = await fetch(`${BASE}${file}?t=${Date.now()}`, { cache: 'no-store' });
@@ -91,6 +102,26 @@ const EventsEditor: React.FC<Props> = ({ onToast }) => {
     setList(l => [...(l || []), { id: `event-${Date.now().toString(36)}`, kind: 'offline', title: 'Новое событие', start: new Date().toISOString().slice(0, 10), draft: true }]);
     setSel((list || []).length); setDirty(true);
   };
+  const duplicate = (i: number) => {
+    setList(l => l && [...l, { ...l[i], id: `${l[i].id}-copy`, title: `${l[i].title} (копия)`, draft: true }]);
+    setSel((list || []).length); setDirty(true);
+  };
+  const sortByDate = () => { setList(l => l && [...l].sort((a, b) => a.start.localeCompare(b.start))); setSel(0); setDirty(true); };
+  const upload = async (i: number, f?: File) => {
+    if (!f) return;
+    try {
+      const url = await contentStore.uploadImage(`event-${list![i].id}-${Date.now()}.${(f.name.split('.').pop() || 'jpg').toLowerCase()}`, await toDataUrl(f));
+      patch(i, { imageUrl: url }); onToast('Картинка загружена', 'success');
+    } catch (e: any) { onToast(e?.message || 'Не удалось загрузить картинку', 'error'); }
+  };
+  const importFile = async (f?: File) => {
+    if (!f) return;
+    try {
+      const d = await readJson(f);
+      if (!Array.isArray(d)) throw new Error('Нужен массив событий');
+      setList(d as AppEvent[]); setSel(0); setDirty(true); onToast('Файл загружен, проверьте и сохраните', 'success');
+    } catch (e: any) { onToast(e?.message || 'Ошибка файла', 'error'); }
+  };
   const remove = (i: number) => {
     if (!window.confirm('Удалить это событие из афиши?')) return;
     setList(l => l && l.filter((_, k) => k !== i)); setSel(0); setDirty(true);
@@ -135,10 +166,15 @@ const EventsEditor: React.FC<Props> = ({ onToast }) => {
             <button key={ev.id + i} onClick={() => setSel(i)}
               className={`w-full text-left border px-4 py-3 ${i === sel ? 'border-primary bg-primary/5' : 'border-gray-200'}`}>
               <div className="text-sm font-medium">{ev.title || 'Без названия'}</div>
-              <div className="text-xs text-gray-500">{ev.start}{ev.draft ? ' · черновик' : ''}</div>
+              <div className="text-xs text-gray-500">{ev.start}{ev.draft ? ' · черновик' : ''}{ev.start.slice(0, 10) < new Date().toISOString().slice(0, 10) ? ' · прошло' : ''}</div>
             </button>
           ))}
           <button onClick={add} className={`${btn} w-full`}>+ Добавить событие</button>
+          <div className="flex gap-2 text-xs">
+            <button onClick={sortByDate} className="underline text-gray-600">По дате</button>
+            <button onClick={() => download(`events.${lang}.json`, list)} className="underline text-gray-600">Скачать копию</button>
+            <label className="underline text-gray-600 cursor-pointer">Загрузить<input type="file" accept="application/json" className="hidden" onChange={x => { importFile(x.target.files?.[0]); x.target.value = ''; }} /></label>
+          </div>
         </div>
 
         {e ? (
@@ -156,7 +192,13 @@ const EventsEditor: React.FC<Props> = ({ onToast }) => {
               <Field label="Адрес (для карты)"><input className={input} value={e.address || ''} onChange={x => patch(sel, { address: x.target.value })} /></Field>
               <Field label="Ссылка на эфир / запись"><input className={input} value={e.url || ''} onChange={x => patch(sel, { url: x.target.value })} /></Field>
               <Field label="Кодовое слово" hint="Произносится на событии; ввод отмечает читателя как присутствовавшего"><input className={input} value={e.code || ''} onChange={x => patch(sel, { code: x.target.value })} /></Field>
-              <Field label="Картинка (URL)"><input className={input} value={e.imageUrl || ''} onChange={x => patch(sel, { imageUrl: x.target.value })} /></Field>
+              <Field label="Картинка (URL или загрузка)">
+                <div className="flex gap-2 items-center">
+                  <input className={input} value={e.imageUrl || ''} onChange={x => patch(sel, { imageUrl: x.target.value })} />
+                  <label className={`${btn} cursor-pointer whitespace-nowrap`}>Файл<input type="file" accept="image/*" className="hidden" onChange={x => { upload(sel, x.target.files?.[0]); x.target.value = ''; }} /></label>
+                </div>
+                {e.imageUrl ? <img src={e.imageUrl} alt="" className="mt-2 h-24 object-cover" /> : null}
+              </Field>
               <Field label="id книги"><input className={input} value={e.bookId || ''} onChange={x => patch(sel, { bookId: x.target.value })} /></Field>
               <Field label="id новости на сайте"><input className={input} value={e.newsId || ''} onChange={x => patch(sel, { newsId: x.target.value })} /></Field>
             </div>
@@ -166,7 +208,10 @@ const EventsEditor: React.FC<Props> = ({ onToast }) => {
               <label className="flex items-center gap-2"><input type="checkbox" checked={!!e.registration} onChange={x => patch(sel, { registration: x.target.checked })} /> Запись (кнопка «Забронировать место»)</label>
               <label className="flex items-center gap-2"><input type="checkbox" checked={!!e.draft} onChange={x => patch(sel, { draft: x.target.checked })} /> Черновик (в приложении не виден)</label>
             </div>
-            <button onClick={() => remove(sel)} className="text-sm text-red-700 underline">Удалить событие</button>
+            <div className="flex gap-6 text-sm">
+              <button onClick={() => duplicate(sel)} className="underline">Дублировать</button>
+              <button onClick={() => remove(sel)} className="text-red-700 underline">Удалить событие</button>
+            </div>
           </div>
         ) : <p className="text-sm text-gray-500">В афише пока ничего нет.</p>}
       </div>
@@ -219,6 +264,7 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     let off = false;
@@ -258,6 +304,44 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
     if (!window.confirm('Удалить вопрос? Очки за него, если читатель уже ответил, остаются.')) return;
     editLevel({ questions: level.questions.filter((_, k) => k !== qi) }); setQi(0);
   };
+  const moveQuestion = (d: number) => {
+    const to = qi + d; if (to < 0 || to >= level.questions.length) return;
+    const qs = [...level.questions]; [qs[qi], qs[to]] = [qs[to], qs[qi]];
+    editLevel({ questions: qs }); setQi(to);
+  };
+  const duplicateQuestion = () => {
+    const next = level.questions.reduce((m, x) => Math.max(m, Number(x.id.split('-').pop()) || 0), 0) + 1;
+    editLevel({ questions: [...level.questions, { ...q, id: `${level.id}-${next}`, options: [...q.options] }] });
+    setQi(level.questions.length);
+  };
+  const removeLevel = () => {
+    if (topic.levels.length < 2 || li !== topic.levels.length - 1) { window.alert('Удалить можно только последний уровень (id уровней идут подряд).'); return; }
+    if (!window.confirm(`Удалить уровень «${level.title}» со всеми вопросами?`)) return;
+    editTopic({ levels: topic.levels.slice(0, -1) }); setLi(li - 1); setQi(0);
+  };
+  const addTopic = () => {
+    const id = (window.prompt('Короткий id латиницей (например: tyutchev)') || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (!id || topics.some(t => t.id === id)) return;
+    setTopics(t => [...t, { id, title: 'Новый', subtitle: '', icon: 'book.closed', levels: [{ id: `${id}-1`, title: 'Начала', subtitle: '', questions: [] }], ...(isWriters ? { years: '', group: 'golden' } : {}) }]);
+    setTi(topics.length); setLi(0); setQi(0);
+  };
+  const importFile = async (f?: File) => {
+    if (!f) return;
+    try {
+      const d = await readJson(f) as QuizFile;
+      if (!d || !(isWriters ? d.writers : d.topics)) throw new Error(isWriters ? 'В файле нет списка writers' : 'В файле нет списка topics');
+      setData(d); if (!isWriters && d.skills) setSkills(d.skills);
+      setTi(0); setLi(0); setQi(0); setDirty(true); window.alert('Файл загружен. Проверьте и нажмите «Сохранить».');
+    } catch (e: any) { onToast(e?.message || 'Ошибка файла', 'error'); }
+  };
+  const hits = useMemo(() => {
+    const t = search.trim().toLowerCase(); if (t.length < 3) return [];
+    const out: { ti: number; li: number; qi: number; text: string }[] = [];
+    topics.forEach((tp, a) => tp.levels.forEach((lv, b) => lv.questions.forEach((x, c) => {
+      if ((x.q + ' ' + x.options.join(' ') + ' ' + x.note).toLowerCase().includes(t)) out.push({ ti: a, li: b, qi: c, text: x.q });
+    })));
+    return out.slice(0, 12);
+  }, [search, topics]);
   const addLevel = () => {
     const n = topic.levels.length + 1;
     editTopic({ levels: [...topic.levels, { id: `${topic.id}-${n}`, title: `Уровень ${n}`, subtitle: '', questions: [] }] });
@@ -295,6 +379,18 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
         {topics.length} {isWriters ? 'писателей' : 'разделов'}, {topics.reduce((a, t) => a + t.levels.reduce((b, l) => b + l.questions.length, 0), 0)} вопросов.
         Положение верного ответа (А/Б/В/Г): {answers.join(' / ')}. Приложение варианты не перемешивает, держите их ровно.
       </p>
+      <div className="space-y-2">
+        <input className={input} placeholder="Поиск по вопросам, вариантам и пояснениям (от 3 букв)" value={search} onChange={e => setSearch(e.target.value)} />
+        {hits.length ? (
+          <ul className="border border-gray-200 divide-y text-sm">
+            {hits.map(h => (
+              <li key={`${h.ti}-${h.li}-${h.qi}`}><button className="w-full text-left px-3 py-2 hover:bg-primary/5" onClick={() => { setTi(h.ti); setLi(h.li); setQi(h.qi); setSearch(''); }}>
+                <span className="text-xs text-gray-400">{topics[h.ti].title} · {h.li + 1}.{h.qi + 1}</span> {h.text}
+              </button></li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         <div className="space-y-1 max-h-[70vh] overflow-auto">
           {topics.map((t, i) => (
@@ -303,6 +399,11 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
               {t.title}<span className="block text-xs text-gray-400">{t.levels.reduce((b, l) => b + l.questions.length, 0)} вопр.</span>
             </button>
           ))}
+          <button onClick={addTopic} className={`${btn} w-full`}>+ {isWriters ? 'Писатель' : 'Раздел'}</button>
+          <div className="flex gap-3 text-xs pt-1">
+            <button onClick={() => download(file, data)} className="underline text-gray-600">Скачать копию</button>
+            <label className="underline text-gray-600 cursor-pointer">Загрузить<input type="file" accept="application/json" className="hidden" onChange={x => { importFile(x.target.files?.[0]); x.target.value = ''; }} /></label>
+          </div>
         </div>
 
         {topic ? (
@@ -325,6 +426,7 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
                 <button key={l.id} onClick={() => { setLi(j); setQi(0); }} className={`${btn} ${j === li ? 'bg-primary text-white' : ''}`}>{j + 1}. {l.title}</button>
               ))}
               <button onClick={addLevel} className={btn}>+ уровень</button>
+              <button onClick={removeLevel} className="text-sm text-red-700 underline px-2">удалить последний</button>
             </div>
 
             {level ? (
@@ -359,7 +461,12 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
                         {skills.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
                       </select>
                     </Field>
-                    <button onClick={removeQuestion} className="text-sm text-red-700 underline">Удалить вопрос</button>
+                    <div className="flex flex-wrap gap-5 text-sm">
+                      <button onClick={() => moveQuestion(-1)} className="underline">← Выше</button>
+                      <button onClick={() => moveQuestion(1)} className="underline">Ниже →</button>
+                      <button onClick={duplicateQuestion} className="underline">Дублировать</button>
+                      <button onClick={removeQuestion} className="text-red-700 underline">Удалить вопрос</button>
+                    </div>
                   </div>
                 ) : <p className="text-sm text-gray-500">В этом уровне нет вопросов.</p>}
               </>
