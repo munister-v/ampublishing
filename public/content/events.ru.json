@@ -1,0 +1,14 @@
+[
+ {"id": "picnic-2026-08", "kind": "offline", "title": "Второй литературный пикник", "start": "2026-08-23",
+  "place": "Volkspark Friedrichshain, Берлин", "address": "Volkspark Friedrichshain, Berlin",
+  "summary": "Книжный чемодан, книгообмен, гриль и разговоры о прочитанном.",
+  "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/news-news-1787648573122-1787648922841.webp",
+  "newsId": "news-1787648573122"},
+ {"id": "picnic-2026-07", "kind": "offline", "title": "Первый литературный пикник", "start": "2026-07-12",
+  "place": "Берлин", "summary": "Первая встреча читателей издательства: знакомство и обмен книгами.",
+  "newsId": "news-1784020885211"},
+ {"id": "sample-online", "draft": true, "kind": "online", "title": "Образец: онлайн-встреча с автором", "start": "2026-11-20T19:00",
+  "url": "https://example.com/stream", "registration": true, "code": "КНИГА",
+  "summary": "Черновик-образец для редакции. Виден только в отладочной сборке.",
+  "body": "Так выглядит событие с записью, ссылкой на эфир и кодовым словом для отметки участия."}
+]

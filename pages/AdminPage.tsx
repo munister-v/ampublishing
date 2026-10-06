@@ -9,6 +9,7 @@ import {
 } from '../services/radioApi';
 import { RadioConfigForm } from './RadioConfigForm';
 import { ServicesEditor } from './ServicesEditor';
+import { AppContentEditor } from './AppContentEditor';
 import { IntegrationsPanel } from './IntegrationsPanel';
 import { SeoCenter, EntrySeoEditor } from './SeoCenter';
 import { ContentHistory } from './ContentHistory';
@@ -74,7 +75,7 @@ import {
   Search,
 } from 'lucide-react';
 
-type AdminTab = 'command' | 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'seo' | 'history' | 'payments' | 'integrations' | 'orders' | 'status' | 'radio';
+type AdminTab = 'command' | 'copy' | 'books' | 'news' | 'authors' | 'about' | 'services' | 'site' | 'seo' | 'history' | 'payments' | 'integrations' | 'orders' | 'status' | 'radio' | 'app';
 
 const getBookEditorReadiness = (book: Book) => {
   const checks = [
@@ -92,6 +93,7 @@ const ADMIN_TAB_META: Record<AdminTab, { title: string; description: string }> =
   books: { title: 'Книги', description: 'Карточки витрины, обложки, форматы и ссылки на товары Shopify.' },
   news: { title: 'Мероприятия', description: 'Новости, события, анонсы и публикации издательства.' },
   authors: { title: 'Авторы', description: 'Страница авторов и редакционная подача участников каталога.' },
+  app: { title: 'Приложение', description: 'Афиша событий и вопросы Мастерской для мобильного приложения.' },
   radio: { title: 'Радио', description: 'Анонсы эфиров, сообщения, закрепления и настройки радио.' },
   copy: { title: 'Тексты сайта', description: 'Переводимые заголовки, подписи и системные тексты.' },
   about: { title: 'О нас', description: 'Содержание и визуальная структура страницы издательства.' },
@@ -2117,6 +2119,7 @@ export const AdminPage: React.FC = () => {
                 { id: 'news', label: 'Мероприятия', icon: <Newspaper size={17} />, count: news.length },
                 { id: 'authors', label: 'Авторы', icon: <Globe size={17} /> },
                 { id: 'radio', label: 'Радио', icon: <Wifi size={17} /> },
+                { id: 'app', label: 'Приложение', icon: <Layout size={17} /> },
               ],
             },
             {
@@ -3776,6 +3779,8 @@ export const AdminPage: React.FC = () => {
             }}
           />
         ) : null}
+
+        {activeTab === 'app' ? <AppContentEditor onToast={showToast} /> : null}
 
         {activeTab === 'services' ? (
           <ServicesEditor language={selectedLanguage} onToast={showToast} />
