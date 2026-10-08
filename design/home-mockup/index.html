@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AM Publishing · главная (мокап)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Mockup of ampublishing.org's home page in the app's language: paper, navy plates with a gold
+   hairline, the real emblem as the hero, soft rounded cards, capsule buttons. Not part of the build. */
+:root{
+  --paper:#f4f2ee; --card:#ffffff; --ink:#14213d; --ink-soft:#5b6476;
+  --navy:#0f1a33; --navy-2:#1b2b55; --on-navy:#f3ecdf; --gold:#c9a66b; --gold-text:#8a6a33; --on-gold:#0f1a33;
+  --hair:rgba(201,166,107,.45); --shade:rgba(15,26,51,.10);
+  --r-card:22px; --r-plate:28px; --r-hero:40px; --gutter:clamp(20px,4vw,56px);
+  --serif:"Cormorant Garamond",Georgia,serif; --sans:"Manrope",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.wrap{max-width:1320px;margin:0 auto;padding:0 var(--gutter)}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--gold-text)}
+.on-navy .eyebrow,.eyebrow.gold{color:var(--gold)}
+h1,h2,h3{font-family:var(--serif);font-weight:500;letter-spacing:-.01em}
+.cap{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 26px;border-radius:999px;font:600 15px var(--sans);transition:transform .2s}
+.cap:hover{transform:translateY(-2px)}
+.cap.gold{background:var(--gold);color:var(--on-gold)}
+.cap.line{border:1px solid var(--hair);color:var(--on-navy)}
+.cap.ink{background:var(--ink);color:#fff}
+.cap.soft{background:rgba(201,166,107,.28);color:var(--ink);height:42px;padding:0 18px;font-size:14px}
+
+/* header */
+header{position:sticky;top:0;z-index:5;background:rgba(244,242,238,.86);backdrop-filter:blur(14px)}
+.bar{display:flex;align-items:center;gap:36px;height:78px}
+.bar .logo{height:38px;width:48px;background:var(--ink);-webkit-mask:url(../../public/logo-white.svg) center/contain no-repeat;mask:url(../../public/logo-white.svg) center/contain no-repeat}
+.bar nav{display:flex;gap:28px;font:500 15px var(--sans);color:var(--ink-soft)}
+.bar nav a:hover{color:var(--ink)}
+.bar .end{margin-left:auto;display:flex;align-items:center;gap:14px;font:600 13px var(--sans)}
+
+/* hero: the navy plate with rays and the gold emblem, as the app's house card */
+.hero{position:relative;margin-top:8px;border-radius:var(--r-hero);overflow:hidden;color:var(--on-navy);
+  background:radial-gradient(120% 90% at 78% 30%,#22356a 0%,var(--navy) 55%,#0a1226 100%);
+  box-shadow:0 40px 80px -40px rgba(15,26,51,.55);display:grid;grid-template-columns:1.05fr .95fr;min-height:620px}
+.hero::before{content:"";position:absolute;inset:0;background:repeating-conic-gradient(from 0deg at 72% 42%,rgba(201,166,107,.10) 0 .6deg,transparent .6deg 6deg);
+  -webkit-mask:radial-gradient(circle at 72% 42%,#000 0,#000 35%,transparent 70%);mask:radial-gradient(circle at 72% 42%,#000 0,#000 35%,transparent 70%)}
+.hero::after{content:"";position:absolute;inset:14px;border:1px solid var(--hair);border-radius:calc(var(--r-hero) - 12px);pointer-events:none}
+.hero .copy{position:relative;padding:72px 0 64px 72px;display:flex;flex-direction:column;justify-content:center;gap:26px}
+.hero h1{font-size:clamp(52px,6vw,88px);line-height:.98;color:#fbf6ec}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero p{font:400 18px/1.6 var(--sans);color:rgba(243,236,223,.72);max-width:470px}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+.hero .art{position:relative}
+.emblem{position:absolute;left:50%;top:50%;width:66%;aspect-ratio:432/350;transform:translate(-50%,-50%);
+  background:linear-gradient(160deg,#f3dca5 0%,#c9a66b 45%,#8a6a33 100%);
+  -webkit-mask:url(../../public/logo-white.svg) center/contain no-repeat;mask:url(../../public/logo-white.svg) center/contain no-repeat;
+  filter:drop-shadow(0 20px 40px rgba(0,0,0,.4))}
+.wordmark{position:absolute;left:50%;top:76%;transform:translateX(-50%);font:600 28px var(--sans);letter-spacing:.32em;color:var(--gold);white-space:nowrap}
+.dust{position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 20% 30%,rgba(243,236,223,.6) 50%,transparent 51%),radial-gradient(1px 1px at 70% 15%,rgba(243,236,223,.5) 50%,transparent 51%),radial-gradient(1.5px 1.5px at 85% 60%,rgba(243,236,223,.5) 50%,transparent 51%),radial-gradient(1px 1px at 40% 80%,rgba(243,236,223,.5) 50%,transparent 51%),radial-gradient(1px 1px at 10% 65%,rgba(243,236,223,.4) 50%,transparent 51%)}
+
+/* the editors' notice, the same gold plate as in the app */
+.notice{margin-top:22px;display:flex;align-items:center;gap:16px;background:var(--gold);color:var(--on-gold);border-radius:var(--r-card);padding:18px 26px;font:600 16px var(--sans);box-shadow:0 14px 30px -18px var(--shade)}
+.notice .go{margin-left:auto;font-size:14px;opacity:.8}
+
+section{margin-top:104px}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px}
+.head h2{font-size:clamp(38px,4vw,56px);line-height:1}
+.head a{font:600 14px var(--sans);color:var(--ink-soft)}
+
+/* books */
+.books{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.book{background:var(--card);border-radius:var(--r-card);padding:18px 18px 22px;box-shadow:0 18px 40px -26px var(--shade);transition:transform .3s}
+.book:hover{transform:translateY(-6px)}
+.book .cover{position:relative;aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:#e9e4da;box-shadow:0 18px 30px -18px rgba(0,0,0,.45)}
+.book .cover img{width:100%;height:100%;object-fit:cover}
+.tag{position:absolute;left:10px;top:10px;background:var(--navy);color:var(--gold);font:700 10px var(--sans);letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:999px}
+.book h3{margin-top:18px;font-size:26px;line-height:1.05}
+.book .by{margin-top:6px;font:500 14px var(--sans);color:var(--ink-soft)}
+.book .row{margin-top:16px;display:flex;align-items:center;justify-content:space-between;font:600 13px var(--sans)}
+.book .row span{color:var(--gold-text)}
+
+/* workshop + events */
+.duo{display:grid;grid-template-columns:1.2fr .8fr;gap:22px}
+.plate{position:relative;border-radius:var(--r-plate);padding:44px;overflow:hidden;color:var(--on-navy);
+  background:radial-gradient(120% 120% at 90% 0%,var(--navy-2) 0%,var(--navy) 60%,#0a1226 100%)}
+.plate::after{content:"";position:absolute;inset:10px;border:1px solid var(--hair);border-radius:calc(var(--r-plate) - 8px);pointer-events:none}
+.plate h3{font-size:46px;line-height:1.02;color:#fbf6ec;margin-top:14px}
+.plate p{font:400 16px/1.6 var(--sans);color:rgba(243,236,223,.7);margin-top:14px;max-width:520px}
+.ws{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center;margin-top:30px}
+.ring{width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--gold) 0 38%,rgba(243,236,223,.12) 38% 100%);display:grid;place-items:center}
+.ring b{width:108px;height:108px;border-radius:50%;background:var(--navy);display:grid;place-items:center;font:500 34px var(--serif);color:#fbf6ec}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stats div{border-top:1px solid rgba(201,166,107,.35);padding-top:12px}
+.stats strong{display:block;font:500 40px/1 var(--serif);color:var(--gold)}
+.stats span{font:500 13px var(--sans);color:rgba(243,236,223,.65)}
+.skills{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.skills span{border:1px solid rgba(243,236,223,.18);border-radius:999px;padding:8px 14px;font:500 13px var(--sans);color:rgba(243,236,223,.85)}
+.plate .cap{margin-top:30px}
+.event{display:flex;flex-direction:column}
+.event .pic{margin:-44px -44px 26px;height:260px;background:#1b2b55 url(../../public/images/uploads/cover-seryy-dol-1785093167259.webp) center 30%/cover;position:relative}
+.event .pic::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,var(--navy) 100%)}
+.date{display:flex;align-items:flex-end;gap:18px;margin-top:auto;padding-top:26px}
+.date .day{background:var(--gold);color:var(--on-gold);border-radius:16px;padding:10px 16px;text-align:center;font:600 13px var(--sans)}
+.date .day b{display:block;font:500 40px/1 var(--serif)}
+.date .left{font:500 64px/1 var(--serif);color:var(--gold)}
+.date .left small{display:block;font:600 11px var(--sans);letter-spacing:.2em;color:rgba(243,236,223,.6);text-transform:uppercase}
+
+/* authors */
+.authors{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.author{background:var(--card);border-radius:var(--r-card);padding:30px 24px;text-align:center;box-shadow:0 18px 40px -26px var(--shade)}
+.author .ph{width:132px;height:132px;margin:0 auto;border-radius:50%;background:#e9e4da center/cover;border:3px solid #fff;box-shadow:0 0 0 1px var(--hair)}
+.author .ph.initials{display:grid;place-items:center;background:var(--navy);color:var(--gold);font:500 44px var(--serif)}
+.author h3{margin-top:18px;font-size:28px}
+.author p{margin-top:4px;font:500 14px var(--sans);color:var(--ink-soft)}
+
+/* the app */
+.app{display:grid;grid-template-columns:.9fr 1.1fr;gap:40px;align-items:center;border-radius:var(--r-hero);padding:64px 72px;
+  background:linear-gradient(135deg,#fffdf8 0%,#efe8da 100%);box-shadow:inset 0 0 0 1px rgba(201,166,107,.35)}
+.app h2{font-size:clamp(42px,4.4vw,64px);line-height:1}
+.app p{font:400 17px/1.65 var(--sans);color:var(--ink-soft);margin-top:18px;max-width:460px}
+.app ul{list-style:none;margin-top:22px;display:grid;gap:10px;font:500 15px var(--sans)}
+.app li::before{content:"✦";color:var(--gold);margin-right:10px}
+.store{display:inline-flex;align-items:center;gap:12px;margin-top:28px;background:#000;color:#fff;border-radius:14px;padding:12px 22px}
+.store b{display:block;font:600 20px/1 var(--sans)}
+.store small{font:500 11px var(--sans);opacity:.8}
+.phones{position:relative;height:560px}
+.phone{position:absolute;width:250px;aspect-ratio:1320/2868;border-radius:44px;padding:9px;background:#0b0f1a;box-shadow:0 40px 60px -30px rgba(15,26,51,.55)}
+.phone img{width:100%;height:100%;object-fit:cover;border-radius:36px}
+.phone:nth-child(1){left:2%;top:60px;transform:rotate(-6deg)}
+.phone:nth-child(2){left:32%;top:0;z-index:2}
+.phone:nth-child(3){left:62%;top:60px;transform:rotate(6deg)}
+
+/* for authors */
+.manuscript{display:grid;grid-template-columns:1.3fr .7fr;gap:30px;align-items:end}
+.manuscript h3{font-size:58px}
+.steps{display:grid;gap:14px}
+.steps div{display:grid;grid-template-columns:44px 1fr;gap:10px;font:500 15px/1.5 var(--sans);color:rgba(243,236,223,.8)}
+.steps b{font:500 30px/1 var(--serif);color:var(--gold)}
+
+footer{margin-top:110px;padding:56px 0 70px;border-top:1px solid rgba(20,33,61,.1);display:flex;justify-content:space-between;gap:30px;font:500 14px var(--sans);color:var(--ink-soft)}
+
+@media (max-width:980px){
+  .bar nav{display:none}
+  .hero,.duo,.app,.manuscript{grid-template-columns:1fr}
+  .hero .copy{padding:56px 28px 0}
+  .hero .art{height:360px}
+  .books,.authors{grid-template-columns:repeat(2,1fr)}
+  .app{padding:40px 28px}.phones{height:440px}.phone{width:190px}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap bar">
+  <a class="logo" href="#" aria-label="AM Publishing"></a>
+  <nav><a href="#">Каталог</a><a href="#">Авторы</a><a href="#">Мастерская</a><a href="#">События</a><a href="#">Авторам</a><a href="#">Радио</a></nav>
+  <div class="end"><span>RU</span><a class="cap soft" href="#">Магазин ↗</a></div>
+</div></header>
+
+<main class="wrap">
+  <div class="hero on-navy">
+    <div class="copy">
+      <span class="eyebrow gold">Издательство · Берлин · с 2026 года</span>
+      <h1>Книги, которые <em>берут</em> с собой</h1>
+      <p>Современная проза на русском языке: психологическая глубина, тонкие оттенки и истории, которые легко взять в дорогу и невозможно забыть.</p>
+      <div class="ctas"><a class="cap gold" href="#">Каталог книг</a><a class="cap line" href="#">Приложение для iPhone</a></div>
+    </div>
+    <div class="art"><div class="dust"></div><div class="emblem"></div></div>
+  </div>
+
+  <a class="notice" href="#"><span>✦</span>Премьера «Серого Дола» 26 октября – предзаказ подписанных экземпляров открыт<span class="go">Подробнее ↗</span></a>
+
+  <section>
+    <div class="head"><div><span class="eyebrow">Каталог</span><h2>Книги издательства</h2></div><a href="#">Все книги →</a></div>
+    <div class="books">
+      <a class="book" href="#"><div class="cover"><span class="tag">Премьера 26.10</span><img src="../../public/images/uploads/cover-seryy-dol-1785093167259.webp" alt=""></div><h3>Серый Дол</h3><div class="by">Николай Покуш · тёмное фэнтези</div><div class="row"><span>Предзаказ</span>Отрывок →</div></a>
+      <a class="book" href="#"><div class="cover"><span class="tag">Новинка</span><img src="../../public/images/uploads/cover-v-tantse-delyuziy-1784554037133.webp" alt=""></div><h3>В танце делюзий</h3><div class="by">Алекса Драган · автофикшен</div><div class="row"><span>Предзаказ</span>Отрывок →</div></a>
+      <a class="book" href="#"><div class="cover"><span class="tag">Новинка</span><img src="../../public/images/uploads/cover-orden-ne-spravedlivosti-1784019599879.webp" alt=""></div><h3>Орден (не) Справедливости</h3><div class="by">Надя Хедвиг · магический реализм</div><div class="row"><span>Предзаказ</span>Отрывок →</div></a>
+      <a class="book" href="#"><div class="cover"><span class="tag">Новинка</span><img src="../../public/images/uploads/cover-ambook-001-copy-1783444144753.webp" alt=""></div><h3>Всё, что останется</h3><div class="by">Сергей Калинин · современная проза</div><div class="row"><span>Предзаказ</span>Отрывок →</div></a>
+    </div>
+  </section>
+
+  <section class="duo">
+    <div class="plate on-navy">
+      <span class="eyebrow">Мастерская</span>
+      <h3>Литературные навыки – каждый день</h3>
+      <p>Тропы и фигуры речи, стихосложение, премии и тридцать писателей от Пушкина до Набокова. Семь вопросов в день, и приложение само возвращает к тому, в чём вы ошиблись.</p>
+      <div class="ws">
+        <div class="ring"><b>38%</b></div>
+        <div class="stats"><div><strong>1000+</strong><span>вопросов</span></div><div><strong>30</strong><span>писателей</span></div><div><strong>3</strong><span>уровня в каждом</span></div></div>
+      </div>
+      <div class="skills"><span>Тропы</span><span>Фигуры речи</span><span>Стихосложение</span><span>Роды и формы</span><span>Герои и места</span><span>Премии</span></div>
+      <a class="cap gold" href="#">Пройти тренировку дня →</a>
+    </div>
+    <div class="plate on-navy event">
+      <div class="pic"></div>
+      <span class="eyebrow">Премьера</span>
+      <h3>Серый Дол</h3>
+      <p>Николай Покуш представляет роман: чтения, автограф-сессия и разговор о тёмном фэнтези.</p>
+      <div class="date"><div class="day"><b>26</b>окт.</div><div class="left">18<small>дней до начала</small></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><div><span class="eyebrow">Наши авторы</span><h2>Голоса издательства</h2></div><a href="#">Все авторы →</a></div>
+    <div class="authors">
+      <a class="author" href="#"><div class="ph initials">НП</div><h3>Николай Покуш</h3><p>Серый Дол</p></a>
+      <a class="author" href="#"><div class="ph" style="background-image:url(../../public/images/authors/aleksa-dragan.jpg)"></div><h3>Алекса Драган</h3><p>В танце делюзий</p></a>
+      <a class="author" href="#"><div class="ph" style="background-image:url(../../public/images/authors/nadia-hedvig.jpg)"></div><h3>Надя Хедвиг</h3><p>Орден (не) Справедливости</p></a>
+      <a class="author" href="#"><div class="ph" style="background-image:url(../../public/images/authors/sergey-kalinin.jpg)"></div><h3>Сергей Калинин</h3><p>Всё, что останется</p></a>
+    </div>
+  </section>
+
+  <section class="app">
+    <div>
+      <span class="eyebrow">Приложение</span>
+      <h2>Издательство в кармане</h2>
+      <p>Отрывки всех книг, Мастерская с тренировкой дня, афиша с билетами и карта читателя с баллами, которые дают скидку на события и мерч.</p>
+      <ul><li>Читалка с отрывками и цитатами</li><li>Тренировка дня и блиц на 7 вопросов</li><li>Билеты и кодовые слова на встречах</li></ul>
+      <a class="store" href="#"><span style="font-size:30px"></span><span><small>Загрузите в</small><b>App Store</b></span></a>
+    </div>
+    <div class="phones">
+      <div class="phone"><img src="03-workshop.jpg" alt=""></div>
+      <div class="phone"><img src="01-home.jpg" alt=""></div>
+      <div class="phone"><img src="04-events.jpg" alt=""></div>
+    </div>
+  </section>
+
+  <section class="plate on-navy manuscript">
+    <div>
+      <span class="eyebrow">Авторам</span>
+      <h3>Ваша рукопись может стать следующей книгой</h3>
+      <p>Мы читаем современную прозу на русском языке и отвечаем каждому автору. Редактура, корректура, вёрстка и издание – под одной крышей.</p>
+      <a class="cap gold" href="#">Подать рукопись</a>
+    </div>
+    <div class="steps">
+      <div><b>I</b>Вы присылаете синопсис и ссылку на текст</div>
+      <div><b>II</b>Редактор читает и отвечает на почту</div>
+      <div><b>III</b>Если книга подходит, предлагаем условия</div>
+    </div>
+  </section>
+
+  <footer><span>© 2026 AM Publishing · Берлин</span><span>Telegram · Instagram · am.hybridpublishing@gmail.com</span></footer>
+</main>
+</body>
+</html>
