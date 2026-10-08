@@ -254,6 +254,114 @@ const checkQuiz = (topics: Topic[], skills: Skill[], writers: boolean): string[]
   return errors;
 };
 
+// Questions typed or pasted as plain text, one block per question, blocks split by an empty line:
+//   Кто написал «Шинель»?
+//   Пушкин
+//   * Гоголь          ← the right answer is marked with * or +
+//   Лермонтов
+//   Чехов
+//   = Повесть 1842 года.   ← the note after the answer
+//   # tropes               ← the skill, optional
+type Draft = { q: string; options: string[]; answer: number; note: string; skill?: string };
+
+const OPTION_MARK = /^\s*(?:[АБВГабвгABCDabcd1-4][).]|[-–•])\s*/;
+const parseQuestions = (text: string): { items: Draft[]; errors: string[] } => {
+  const items: Draft[] = [];
+  const errors: string[] = [];
+  text.replace(/\r/g, '').split(/\n\s*\n/).map(b => b.trim()).filter(Boolean).forEach((block, n) => {
+    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+    const d: Draft = { q: '', options: [], answer: -1, note: '' };
+    lines.forEach((line, i) => {
+      if (i === 0) { d.q = line.replace(/^\d+[.)]\s*/, ''); return; }
+      if (/^(=|пояснение:)/i.test(line)) { d.note = line.replace(/^(=|пояснение:)\s*/i, ''); return; }
+      if (line.startsWith('#')) { d.skill = line.slice(1).trim(); return; }
+      let o = line;
+      const right = /^\s*[*+]/.test(o) || /\s[*+]$/.test(o);
+      o = o.replace(/^\s*[*+]\s*/, '').replace(/\s[*+]$/, '').replace(OPTION_MARK, '').trim();
+      if (right) d.answer = d.options.length;
+      d.options.push(o);
+    });
+    const name = `Блок ${n + 1}${d.q ? ` («${d.q.slice(0, 40)}»)` : ''}`;
+    if (d.options.length !== 4) errors.push(`${name}: вариантов ${d.options.length}, нужно 4`);
+    else if (d.answer < 0) errors.push(`${name}: не отмечен верный ответ (* или + перед вариантом)`);
+    else items.push(d);
+  });
+  return { items, errors };
+};
+
+/// Puts the right answer where the bank has it least often, so the four places stay even.
+const balance = (items: Draft[], counts: number[]): Draft[] => {
+  const c = [...counts];
+  return items.map(d => {
+    const to = c.indexOf(Math.min(...c));
+    c[to]++;
+    if (to === d.answer) return d;
+    const options = [...d.options];
+    [options[to], options[d.answer]] = [options[d.answer], options[to]];
+    return { ...d, options, answer: to };
+  });
+};
+
+// A table for proof-reading in Excel or Google Sheets, read back by id.
+const CSV_HEAD = ['id', 'раздел', 'уровень', 'вопрос', 'А', 'Б', 'В', 'Г', 'верный', 'пояснение', 'навык'];
+const csvCell = (v: string) => (/[;"\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+const toCsv = (topics: Topic[]) => '﻿' + [CSV_HEAD, ...topics.flatMap(t => t.levels.flatMap(l => l.questions.map(x =>
+  [x.id, t.title, l.title, x.q, ...x.options, 'АБВГ'[x.answer] || '', x.note, x.skill])))]
+  .map(r => r.map(c => csvCell(String(c ?? ''))).join(';')).join('\r\n');
+
+const parseCsv = (text: string): string[][] => {
+  const src = text.replace(/^﻿/, '');
+  const sep = (src.split('\n')[0].match(/;/g) || []).length >= (src.split('\n')[0].match(/,/g) || []).length ? ';' : ',';
+  const rows: string[][] = []; let row: string[] = []; let cell = ''; let quoted = false;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (quoted) {
+      if (ch === '"' && src[i + 1] === '"') { cell += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else cell += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === sep) { row.push(cell); cell = ''; }
+    else if (ch === '\n') { row.push(cell.replace(/\r$/, '')); rows.push(row); row = []; cell = ''; }
+    else cell += ch;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim()));
+};
+
+/// Applies a proof-read table: rows are matched by id; a new id of an existing level is added to it.
+const applyCsv = (topics: Topic[], rows: string[][]): { topics: Topic[]; changed: number; added: number; skipped: string[] } => {
+  const head = rows[0].map(h => h.trim().toLowerCase());
+  const col = (name: string) => head.indexOf(name.toLowerCase());
+  const need = ['id', 'вопрос', 'а', 'б', 'в', 'г', 'верный'];
+  const missing = need.filter(n => col(n) < 0);
+  if (missing.length) throw new Error(`В таблице нет столбцов: ${missing.join(', ')}`);
+  let changed = 0; let added = 0; const skipped: string[] = [];
+  const out = topics.map(t => ({ ...t, levels: t.levels.map(l => ({ ...l, questions: l.questions.map(x => ({ ...x, options: [...x.options] })) })) }));
+  rows.slice(1).forEach(r => {
+    const get = (n: string) => (col(n) >= 0 ? (r[col(n)] || '').trim() : '');
+    const id = get('id');
+    const answer = 'АБВГABCD'.indexOf(get('верный').toUpperCase().slice(0, 1)) % 4;
+    const next: Partial<Question> = { q: get('вопрос'), options: ['а', 'б', 'в', 'г'].map(get), answer };
+    if (col('пояснение') >= 0) next.note = get('пояснение');
+    if (col('навык') >= 0 && get('навык')) next.skill = get('навык');
+    if (!id || answer < 0) { skipped.push(id || '(без id)'); return; }
+    for (const t of out) for (const l of t.levels) {
+      const i = l.questions.findIndex(x => x.id === id);
+      if (i >= 0) {
+        const before = JSON.stringify(l.questions[i]);
+        l.questions[i] = { ...l.questions[i], ...next } as Question;
+        if (JSON.stringify(l.questions[i]) !== before) changed++;
+        return;
+      }
+    }
+    const level = out.flatMap(t => t.levels).find(l => id.startsWith(`${l.id}-`) && /^\d+$/.test(id.slice(l.id.length + 1)));
+    if (!level) { skipped.push(id); return; }
+    level.questions.push({ id, note: '', skill: level.questions[0]?.skill || '', ...next } as Question);
+    added++;
+  });
+  return { topics: out, changed, added, skipped };
+};
+
 const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }> = ({ onToast, file }) => {
   const isWriters = file === 'writers.ru.json';
   const [data, setData] = useState<QuizFile | null>(null);
@@ -342,6 +450,33 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
     })));
     return out.slice(0, 12);
   }, [search, topics]);
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const pasted = useMemo(() => parseQuestions(pasteText), [pasteText]);
+  const addPasted = () => {
+    const counts = [0, 1, 2, 3].map(n => topics.reduce((a, t) => a + t.levels.reduce((b, l) => b + l.questions.filter(x => x.answer === n).length, 0), 0));
+    let next = level.questions.reduce((m, x) => Math.max(m, Number(x.id.split('-').pop()) || 0), 0);
+    const fallback = level.questions[0]?.skill || (isWriters ? 'writers' : topic.id);
+    const fresh = balance(pasted.items, counts).map(d => ({
+      id: `${level.id}-${++next}`, q: d.q, options: d.options, answer: d.answer, note: d.note,
+      skill: d.skill && skills.some(s => s.id === d.skill) ? d.skill : fallback,
+    }));
+    editLevel({ questions: [...level.questions, ...fresh] });
+    setQi(level.questions.length); setPasteText(''); setPasteOpen(false);
+    onToast(`Добавлено вопросов: ${fresh.length}. Верные ответы разложены ровно по А–Г.`, 'success');
+  };
+  const exportCsv = () => {
+    const url = URL.createObjectURL(new Blob([toCsv(topics)], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = file.replace('.json', '.csv'); a.click(); URL.revokeObjectURL(url);
+  };
+  const importCsv = async (f?: File) => {
+    if (!f) return;
+    try {
+      const r = applyCsv(topics, parseCsv(await f.text()));
+      setTopics(() => r.topics);
+      window.alert(`Таблица применена.\nИзменено вопросов: ${r.changed}\nДобавлено: ${r.added}${r.skipped.length ? `\nПропущено строк: ${r.skipped.length} (${r.skipped.slice(0, 8).join(', ')}${r.skipped.length > 8 ? '…' : ''})` : ''}\n\nПроверьте и нажмите «Сохранить и опубликовать».`);
+    } catch (e: any) { onToast(e?.message || 'Не удалось прочитать таблицу', 'error'); }
+  };
   const addLevel = () => {
     const n = topic.levels.length + 1;
     editTopic({ levels: [...topic.levels, { id: `${topic.id}-${n}`, title: `Уровень ${n}`, subtitle: '', questions: [] }] });
@@ -400,9 +535,15 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
             </button>
           ))}
           <button onClick={addTopic} className={`${btn} w-full`}>+ {isWriters ? 'Писатель' : 'Раздел'}</button>
+          <div className="border border-gray-200 p-3 mt-3 space-y-2 text-xs">
+            <div className="text-[11px] uppercase tracking-wider text-gray-500">Таблица для вычитки</div>
+            <button onClick={exportCsv} className="block underline text-gray-700">Выгрузить в Excel / Google Таблицы</button>
+            <label className="block underline text-gray-700 cursor-pointer">Загрузить исправленную таблицу<input type="file" accept=".csv,text/csv" className="hidden" onChange={x => { importCsv(x.target.files?.[0]); x.target.value = ''; }} /></label>
+            <p className="text-gray-400">Правьте текст, варианты и букву верного ответа; строки сопоставляются по id. Новый id вида «уровень-номер» добавит вопрос.</p>
+          </div>
           <div className="flex gap-3 text-xs pt-1">
-            <button onClick={() => download(file, data)} className="underline text-gray-600">Скачать копию</button>
-            <label className="underline text-gray-600 cursor-pointer">Загрузить<input type="file" accept="application/json" className="hidden" onChange={x => { importFile(x.target.files?.[0]); x.target.value = ''; }} /></label>
+            <button onClick={() => download(file, data)} className="underline text-gray-600">Скачать JSON</button>
+            <label className="underline text-gray-600 cursor-pointer">Загрузить JSON<input type="file" accept="application/json" className="hidden" onChange={x => { importFile(x.target.files?.[0]); x.target.value = ''; }} /></label>
           </div>
         </div>
 
@@ -439,8 +580,25 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
                   {level.questions.map((x, k) => (
                     <button key={x.id} onClick={() => setQi(k)} className={`w-9 h-9 text-xs border ${k === qi ? 'bg-primary text-white border-primary' : 'border-gray-300'}`}>{k + 1}</button>
                   ))}
-                  <button onClick={addQuestion} className="w-9 h-9 text-lg border border-dashed border-gray-400">+</button>
+                  <button onClick={addQuestion} className="w-9 h-9 text-lg border border-dashed border-gray-400" title="Один вопрос">+</button>
+                  <button onClick={() => setPasteOpen(o => !o)} className={`${btn} h-9 py-0`}>{pasteOpen ? 'Закрыть' : 'Добавить списком'}</button>
                 </div>
+
+                {pasteOpen ? (
+                  <div className="border border-primary/30 bg-primary/5 p-4 space-y-3">
+                    <p className="text-xs text-gray-600">
+                      Вставьте вопросы текстом, между вопросами пустая строка. Первая строка – вопрос, дальше четыре варианта,
+                      верный отмечен <b>*</b> или <b>+</b>. Строка с <b>=</b> – пояснение, с <b>#</b> – навык (необязательно).
+                      Верные ответы сами разложатся ровно по А–Г.
+                    </p>
+                    <textarea rows={10} className={`${input} font-mono`} value={pasteText} onChange={e => setPasteText(e.target.value)}
+                      placeholder={'Кто написал «Шинель»?\nПушкин\n* Гоголь\nЛермонтов\nЧехов\n= Повесть 1842 года, «Петербургские повести».\n\nСледующий вопрос…'} />
+                    {pasted.errors.length ? <ul className="text-xs text-red-700 list-disc pl-5">{pasted.errors.map(x => <li key={x}>{x}</li>)}</ul> : null}
+                    <button className={btnMain} disabled={!pasted.items.length} onClick={addPasted}>
+                      Добавить в «{level.title}»: {pasted.items.length}
+                    </button>
+                  </div>
+                ) : null}
 
                 {q ? (
                   <div className="space-y-4 border border-gray-200 p-5">
@@ -489,10 +647,123 @@ const QuizEditor: React.FC<Props & { file: 'quiz.ru.json' | 'writers.ru.json' }>
   );
 };
 
+// ───────────────────────── settings ─────────────────────────
+
+// app-settings.json: what the editors may change in the app without a new build.
+type Texts = { ru: string; en: string; de: string };
+type AppSettings = {
+  contacts: { email: string; telegram: string; instagram: string; shop: string };
+  notice: { on: boolean; text: Texts; url: string; until: string };
+  manuscripts: { open: boolean; closedText: Texts };
+};
+const DEFAULT_SETTINGS: AppSettings = {
+  contacts: { email: 'am.hybridpublishing@gmail.com', telegram: 'https://t.me/ampublishingberlin', instagram: 'https://www.instagram.com/am.publishing', shop: 'https://shop.ampublishing.org' },
+  notice: { on: false, text: { ru: '', en: '', de: '' }, url: '', until: '' },
+  manuscripts: { open: true, closedText: { ru: '', en: '', de: '' } },
+};
+const LANGS: [Lang, string][] = [['ru', 'Русский'], ['en', 'English'], ['de', 'Deutsch']];
+
+const checkSettings = (s: AppSettings): string[] => {
+  const errors: string[] = [];
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.contacts.email)) errors.push('Почта издательства указана неверно');
+  (['telegram', 'instagram', 'shop'] as const).forEach(k => { if (!/^https:\/\//.test(s.contacts[k])) errors.push(`Ссылка «${k}» должна начинаться с https://`); });
+  if (s.notice.on && !s.notice.text.ru.trim()) errors.push('Объявление включено, но русского текста нет');
+  if (s.notice.url && !/^https:\/\//.test(s.notice.url)) errors.push('Ссылка объявления должна начинаться с https://');
+  if (s.notice.until && !/^\d{4}-\d{2}-\d{2}$/.test(s.notice.until)) errors.push('Дата «до» должна быть вида 2026-11-20');
+  if (!s.manuscripts.open && !s.manuscripts.closedText.ru.trim()) errors.push('Приём рукописей закрыт: напишите авторам, почему и до когда');
+  return errors;
+};
+
+const SettingsEditor: React.FC<Props> = ({ onToast }) => {
+  const [s, setS] = useState<AppSettings | null>(null);
+  const [fileExists, setFileExists] = useState(true);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    load<Partial<AppSettings>>('app-settings.json').then(d => {
+      setFileExists(d !== null);
+      setS({
+        contacts: { ...DEFAULT_SETTINGS.contacts, ...d?.contacts },
+        notice: { ...DEFAULT_SETTINGS.notice, ...d?.notice, text: { ...DEFAULT_SETTINGS.notice.text, ...d?.notice?.text } },
+        manuscripts: { ...DEFAULT_SETTINGS.manuscripts, ...d?.manuscripts, closedText: { ...DEFAULT_SETTINGS.manuscripts.closedText, ...d?.manuscripts?.closedText } },
+      });
+    });
+  }, []);
+  const errors = useMemo(() => (s ? checkSettings(s) : []), [s]);
+  const set = <K extends keyof AppSettings>(k: K, p: Partial<AppSettings[K]>) => { setS(x => x && { ...x, [k]: { ...x[k], ...p } }); setDirty(true); };
+
+  const save = async () => {
+    if (!s || errors.length) return;
+    setSaving(true);
+    try {
+      const tidyTexts = (t: Texts): Texts => ({ ru: tidy(t.ru.trim()), en: tidy(t.en.trim()), de: tidy(t.de.trim()) });
+      const out: AppSettings = { ...s, notice: { ...s.notice, text: tidyTexts(s.notice.text) }, manuscripts: { ...s.manuscripts, closedText: tidyTexts(s.manuscripts.closedText) } };
+      await contentStore.ghWritePublicFile('public/content/app-settings.json', out, 'admin: app settings');
+      setDirty(false); setFileExists(true);
+      onToast('Настройки сохранены. Приложение применит их после публикации сайта.', 'success');
+    } catch (e: any) { onToast(e?.message || 'Не удалось сохранить', 'error'); }
+    finally { setSaving(false); }
+  };
+
+  if (!s) return <p className="text-sm text-gray-500">Загрузка…</p>;
+  const texts = (value: Texts, onChange: (t: Texts) => void, rows = 2) => (
+    <div className="grid gap-3 md:grid-cols-3">
+      {LANGS.map(([l, name]) => (
+        <Field key={l} label={name}><textarea rows={rows} className={input} value={value[l]} onChange={e => onChange({ ...value, [l]: e.target.value })} /></Field>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="space-y-8">
+      {!fileExists ? <p className="text-xs text-amber-700">Файла app-settings.json пока нет: приложение работает со значениями по умолчанию. Сохранение создаст его.</p> : null}
+
+      <div className="border border-gray-200 p-5 space-y-4">
+        <div>
+          <h4 className="text-lg font-serif">Объявление на главной</h4>
+          <p className="text-xs text-gray-500">Золотая плашка под эмблемой: предзаказ, перенос события, важная новость.</p>
+        </div>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={s.notice.on} onChange={e => set('notice', { on: e.target.checked })} /> Показывать объявление</label>
+        {texts(s.notice.text, text => set('notice', { text }))}
+        <div className="grid gap-3 md:grid-cols-2">
+          <Field label="Ссылка по нажатию (необязательно)"><input className={input} value={s.notice.url} onChange={e => set('notice', { url: e.target.value })} placeholder="https://ampublishing.org/…" /></Field>
+          <Field label="Показывать до (включительно)" hint="Пусто – пока не выключите"><input type="date" className={input} value={s.notice.until} onChange={e => set('notice', { until: e.target.value })} /></Field>
+        </div>
+      </div>
+
+      <div className="border border-gray-200 p-5 space-y-4">
+        <div>
+          <h4 className="text-lg font-serif">Приём рукописей</h4>
+          <p className="text-xs text-gray-500">Если закрыть, форма «Отправить рукопись» в приложении покажет ваше сообщение вместо полей. Заявки на услуги принимаются как прежде.</p>
+        </div>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={s.manuscripts.open} onChange={e => set('manuscripts', { open: e.target.checked })} /> Рукописи принимаются</label>
+        {!s.manuscripts.open ? texts(s.manuscripts.closedText, closedText => set('manuscripts', { closedText }), 3) : null}
+      </div>
+
+      <div className="border border-gray-200 p-5 space-y-4">
+        <h4 className="text-lg font-serif">Контакты в приложении</h4>
+        <div className="grid gap-3 md:grid-cols-2">
+          <Field label="Почта издательства"><input className={input} value={s.contacts.email} onChange={e => set('contacts', { email: e.target.value })} /></Field>
+          <Field label="Магазин"><input className={input} value={s.contacts.shop} onChange={e => set('contacts', { shop: e.target.value })} /></Field>
+          <Field label="Telegram"><input className={input} value={s.contacts.telegram} onChange={e => set('contacts', { telegram: e.target.value })} /></Field>
+          <Field label="Instagram"><input className={input} value={s.contacts.instagram} onChange={e => set('contacts', { instagram: e.target.value })} /></Field>
+        </div>
+      </div>
+
+      {errors.length ? <ul className="text-sm text-red-700 list-disc pl-5">{errors.map(x => <li key={x}>{x}</li>)}</ul> : null}
+      <div className="flex items-center gap-4">
+        <button className={btnMain} disabled={!dirty || saving || errors.length > 0} onClick={save}>{saving ? 'Сохраняю…' : 'Сохранить и опубликовать'}</button>
+        {dirty ? <span className="text-xs text-amber-700">Есть несохранённые правки</span> : null}
+      </div>
+    </div>
+  );
+};
+
 // ───────────────────────── section ─────────────────────────
 
 export const AppContentEditor: React.FC<Props> = ({ onToast }) => {
-  const [part, setPart] = useState<'events' | 'quiz' | 'writers'>('events');
+  const [part, setPart] = useState<'events' | 'quiz' | 'writers' | 'settings'>('events');
   return (
     <section className="bg-white border border-primary/10 p-6 md:p-8 space-y-8">
       <div>
@@ -502,13 +773,14 @@ export const AppContentEditor: React.FC<Props> = ({ onToast }) => {
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
-        {([['events', 'Афиша событий'], ['quiz', 'Вопросы: предметы'], ['writers', 'Вопросы: писатели']] as const).map(([id, label]) => (
+        {([['events', 'Афиша событий'], ['quiz', 'Вопросы: предметы'], ['writers', 'Вопросы: писатели'], ['settings', 'Настройки приложения']] as const).map(([id, label]) => (
           <button key={id} onClick={() => setPart(id)} className={`${btn} ${part === id ? 'bg-primary text-white' : ''}`}>{label}</button>
         ))}
       </div>
       {part === 'events' ? <EventsEditor onToast={onToast} /> : null}
       {part === 'quiz' ? <QuizEditor key="q" file="quiz.ru.json" onToast={onToast} /> : null}
       {part === 'writers' ? <QuizEditor key="w" file="writers.ru.json" onToast={onToast} /> : null}
+      {part === 'settings' ? <SettingsEditor onToast={onToast} /> : null}
     </section>
   );
 };

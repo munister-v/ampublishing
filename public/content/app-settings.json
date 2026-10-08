@@ -1,0 +1,18 @@
+{
+  "contacts": {
+    "email": "am.hybridpublishing@gmail.com",
+    "telegram": "https://t.me/ampublishingberlin",
+    "instagram": "https://www.instagram.com/am.publishing",
+    "shop": "https://shop.ampublishing.org"
+  },
+  "notice": {
+    "on": false,
+    "text": { "ru": "", "en": "", "de": "" },
+    "url": "",
+    "until": ""
+  },
+  "manuscripts": {
+    "open": true,
+    "closedText": { "ru": "", "en": "", "de": "" }
+  }
+}
