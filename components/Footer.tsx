@@ -4,6 +4,10 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { ArrowUpRight, Send } from 'lucide-react';
 
+/* Официальный бейдж Apple (public/app/app-store-badge-white.svg), без изменений.
+   Параметры itscg/itsct – метка перехода с сайта в App Store Connect. */
+const APP_STORE_URL = 'https://apps.apple.com/us/app/am-publishing/id6820372256?itscg=30200&itsct=apps_box_link&mttnsubad=6820372256';
+
 export const Footer: React.FC = () => {
   const { t } = useApp();
 
@@ -62,6 +66,19 @@ export const Footer: React.FC = () => {
             ))}
           </ul>
         </nav>
+
+        {/* App Store — mobile */}
+        <div className="border-b border-white/10 px-6 py-9">
+          <p className="mb-4 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
+            <span className="inline-block h-px w-7 bg-accent/70" />
+            {t('footer.app_label')}
+          </p>
+          <p className="font-serif text-2xl leading-tight">{t('footer.app_title')}</p>
+          <p className="mb-6 mt-3 max-w-sm text-[13px] leading-6 text-white/65">{t('footer.app_desc')}</p>
+          <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label={t('footer.app_alt')} className="inline-block leading-none active:opacity-80">
+            <img src="/app/app-store-badge-white.svg" alt={t('footer.app_alt')} width={160} height={53} className="h-[53px] w-auto" loading="lazy" />
+          </a>
+        </div>
 
         {/* Copyright strip — mobile */}
         <div className="px-6 pb-7 pt-6 font-mono text-[9px] uppercase tracking-[0.16em] text-white/45">
@@ -148,6 +165,22 @@ export const Footer: React.FC = () => {
             </a>
           </div>
         </div>
+      </div>
+
+      {/* APP STORE BAND — desktop */}
+      <div className="hidden sm:flex items-center justify-between gap-8 border-t border-white/20 px-8 py-7 md:px-10">
+        <div className="min-w-0">
+          <p className="mb-2 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.28em] text-accent">
+            <span className="inline-block h-px w-8 bg-accent" />
+            {t('footer.app_label')}
+          </p>
+          <p className="font-serif text-2xl md:text-3xl leading-tight">{t('footer.app_title')}</p>
+          <p className="mt-2 max-w-xl font-mono text-xs leading-relaxed text-white/55">{t('footer.app_desc')}</p>
+        </div>
+        <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label={t('footer.app_alt')}
+          className="flex-shrink-0 leading-none transition-transform duration-200 hover:-translate-y-0.5">
+          <img src="/app/app-store-badge-white.svg" alt={t('footer.app_alt')} width={160} height={53} className="h-[53px] w-auto" loading="lazy" />
+        </a>
       </div>
 
       {/* COPYRIGHT STRIP — desktop only (mobile has its own above) */}
