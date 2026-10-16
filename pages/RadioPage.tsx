@@ -537,24 +537,24 @@ function GifPicker({ onPick, onClose }: { onPick: (url: string) => void; onClose
     <div className="absolute bottom-full left-0 right-0 bg-bg border border-primary shadow-lg z-50 flex flex-col" style={{ maxHeight: '55dvh' }}>
       <div className="flex items-center gap-2 p-2 border-b border-primary">
         <input
-          className="flex-1 bg-transparent border border-primary/30 px-3 py-1.5 text-sm outline-none font-sans placeholder:text-primary/30 focus:border-primary"
+          className="flex-1 bg-transparent border border-primary/30 px-3 py-1.5 text-sm outline-none font-sans placeholder:text-primary/60 focus:border-primary"
           placeholder="Пошук GIF…"
           value={query}
           onChange={e => setQuery(e.target.value)}
           autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
         />
-        <span className="font-mono text-[8px] uppercase tracking-widest text-primary/30">Tenor</span>
-        <button onClick={onClose} className="text-primary/40 hover:text-primary px-1">✕</button>
+        <span className="font-mono text-[8px] uppercase tracking-widest text-primary/60">Tenor</span>
+        <button onClick={onClose} className="text-primary/60 hover:text-primary px-1">✕</button>
       </div>
       <div className="overflow-y-auto p-1 grid grid-cols-3 gap-1">
-        {loading && <div className="col-span-3 text-center py-8 font-mono text-xs text-primary/30">…</div>}
+        {loading && <div className="col-span-3 text-center py-8 font-mono text-xs text-primary/60">…</div>}
         {!loading && gifs.map(g => (
           <button key={g.id} type="button" onClick={() => { onPick(g.url); onClose(); }}
             className="aspect-video overflow-hidden border border-primary/10 hover:border-primary transition-colors">
             <img src={g.preview} alt="" loading="lazy" className="w-full h-full object-cover" />
           </button>
         ))}
-        {!loading && gifs.length === 0 && <div className="col-span-3 text-center py-8 font-mono text-xs text-primary/30">—</div>}
+        {!loading && gifs.length === 0 && <div className="col-span-3 text-center py-8 font-mono text-xs text-primary/60">—</div>}
       </div>
     </div>
   );
@@ -576,7 +576,7 @@ function EmojiPicker({ onPick, onClose }: { onPick: (e: string) => void; onClose
             {g.label}
           </button>
         ))}
-        <button onClick={onClose} className="px-3 text-primary/40 hover:text-primary border-l border-primary">✕</button>
+        <button onClick={onClose} className="px-3 text-primary/60 hover:text-primary border-l border-primary">✕</button>
       </div>
       <div className="grid grid-cols-8 gap-0 p-2">
         {EMOJI_GROUPS[tab].emojis.map(e => (
@@ -616,11 +616,11 @@ function AnnouncementCard({ msg, onPin }: { msg: RadioMessage; onPin: (id: numbe
           <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent" />
           {/* Type badge inside image */}
           <div className="absolute top-4 left-4 flex items-center gap-2">
-            <span className={`font-mono text-[9px] uppercase tracking-[0.28em] px-2.5 py-1 border ${isPodcast ? 'border-accent/60 text-accent bg-primary/70' : 'border-white/30 text-white/80 bg-primary/70'}`}>
+            <span className={`font-mono text-[12.5px] uppercase tracking-[0.28em] px-2.5 py-1 border ${isPodcast ? 'border-accent/60 text-accent bg-primary/70' : 'border-white/30 text-white/80 bg-primary/70'}`}>
               {isPodcast ? '🎙 Podcast' : '📢 Announcement'}
             </span>
             {msg.is_pinned && (
-              <span className="font-mono text-[9px] uppercase tracking-widest px-2 py-1 bg-accent text-primary">
+              <span className="font-mono text-[12.5px] uppercase tracking-widest px-2 py-1 bg-accent text-primary">
                 Pinned
               </span>
             )}
@@ -635,12 +635,12 @@ function AnnouncementCard({ msg, onPin }: { msg: RadioMessage; onPin: (id: numbe
       ) : (
         /* No image — top badge row */
         <div className="flex items-center justify-between px-5 pt-5 pb-0">
-          <span className={`font-mono text-[9px] uppercase tracking-[0.28em] flex items-center gap-2 ${isPodcast ? 'text-accent' : 'text-white/50'}`}>
+          <span className={`font-mono text-[12.5px] uppercase tracking-[0.28em] flex items-center gap-2 ${isPodcast ? 'text-accent' : 'text-white/50'}`}>
             <span className={`inline-block w-4 h-px ${isPodcast ? 'bg-accent' : 'bg-white/30'}`} />
             {isPodcast ? 'Podcast' : 'Announcement'}
           </span>
           {msg.is_pinned && (
-            <span className="font-mono text-[9px] uppercase tracking-widest text-accent border border-accent/40 px-2 py-0.5">Pinned</span>
+            <span className="font-mono text-[12.5px] uppercase tracking-widest text-accent border border-accent/40 px-2 py-0.5">Pinned</span>
           )}
         </div>
       )}
@@ -669,7 +669,7 @@ function AnnouncementCard({ msg, onPin }: { msg: RadioMessage; onPin: (id: numbe
         <div className="flex items-center justify-between gap-3">
           {msg.meta_url ? (
             <a href={msg.meta_url} target="_blank" rel="noopener noreferrer"
-              className={`group/btn inline-flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.2em] border px-4 py-2.5 transition-all duration-300 ${isPodcast ? 'border-accent/50 text-accent hover:bg-accent hover:text-primary' : 'border-white/25 text-white/70 hover:border-accent hover:text-accent'}`}>
+              className={`group/btn inline-flex items-center gap-2.5 font-mono text-[12px] uppercase tracking-[0.2em] border px-4 py-2.5 transition-all duration-300 ${isPodcast ? 'border-accent/50 text-accent hover:bg-accent hover:text-primary' : 'border-white/25 text-white/70 hover:border-accent hover:text-accent'}`}>
               <span>{isPodcast ? '▶ Listen' : 'Read more'}</span>
               <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform">
                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -677,7 +677,7 @@ function AnnouncementCard({ msg, onPin }: { msg: RadioMessage; onPin: (id: numbe
             </a>
           ) : <span />}
           <button onClick={() => onPin(msg.id)}
-            className="font-mono text-[9px] uppercase tracking-widest text-white/20 hover:text-accent transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0">
+            className="font-mono text-[12.5px] uppercase tracking-widest text-white/20 hover:text-accent transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0">
             {msg.is_pinned ? '− unpin' : '+ pin'}
           </button>
         </div>
@@ -700,7 +700,7 @@ function DemoCard({ L }: { L: Record<string, string> }) {
           <img src="/images/home-hero.webp" alt="" className="w-full h-full object-cover opacity-55" />
           <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent" />
           <div className="absolute top-4 left-4">
-            <span className="font-mono text-[9px] uppercase tracking-[0.28em] px-2.5 py-1 border border-white/30 text-white/80 bg-primary/70">
+            <span className="font-mono text-[12.5px] uppercase tracking-[0.28em] px-2.5 py-1 border border-white/30 text-white/80 bg-primary/70">
               📢 {L.typeAnnouncement}
             </span>
           </div>
@@ -711,7 +711,7 @@ function DemoCard({ L }: { L: Record<string, string> }) {
         <div className="px-5 pb-5 pt-4">
           <p className="text-sm text-white/50 leading-relaxed mb-4">{L.demoBody}</p>
           <div className="h-px bg-white/8 mb-4" />
-          <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] border border-accent/40 px-4 py-2.5 text-accent/80">
+          <span className="inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.2em] border border-accent/40 px-4 py-2.5 text-accent/80">
             {L.demoBtn}
             <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </span>
@@ -722,8 +722,8 @@ function DemoCard({ L }: { L: Record<string, string> }) {
       <div className="space-y-px">
         {[L.emptyHint1, L.emptyHint2, L.emptyHint3].map((h, i) => (
           <div key={i} className="flex items-center gap-3 py-3 border-t border-white/8">
-            <span className="font-mono text-[9px] text-accent/50 w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
-            <span className="font-mono text-[10px] text-white/30 leading-snug">{h}</span>
+            <span className="font-mono text-[11px] text-accent/50 w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
+            <span className="font-mono text-[12px] text-white/30 leading-snug">{h}</span>
           </div>
         ))}
       </div>
@@ -750,7 +750,7 @@ function EmptyPanel({ tab, L }: { tab: 'ann' | 'pod' | 'pin'; L: Record<string, 
       <div className="w-full max-w-[220px] space-y-px">
         {[L.emptyHint1, L.emptyHint2, L.emptyHint3].map((h, i) => (
           <div key={i} className="flex items-center gap-3 py-2.5 border-t border-white/8 text-left">
-            <span className="font-mono text-[10px] text-accent/60 w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
+            <span className="font-mono text-[12px] text-accent/60 w-4 flex-shrink-0 tabular-nums">0{i + 1}</span>
             <span className="font-mono text-[11px] text-white/35 leading-snug">{h}</span>
           </div>
         ))}
@@ -781,7 +781,7 @@ function LiveDot({ count }: { count: number }) {
         <span className="animate-ping absolute inline-flex h-full w-full bg-accent opacity-75" />
         <span className="relative inline-flex h-2 w-2 bg-accent" />
       </span>
-      <span className="font-mono text-[10px] uppercase tracking-widest text-accent">{count} online</span>
+      <span className="font-mono text-[12px] uppercase tracking-widest text-accent">{count} online</span>
     </div>
   );
 }
@@ -790,8 +790,8 @@ function LiveDot({ count }: { count: number }) {
 function StatRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="flex items-center justify-between py-1.5 border-b border-white/8 last:border-0">
-      <span className="font-mono text-[9px] uppercase tracking-widest text-white/35">{label}</span>
-      <span className={`font-mono text-[10px] ${accent ? 'text-accent' : 'text-white/55'}`}>{value}</span>
+      <span className="font-mono text-[12.5px] uppercase tracking-widest text-white/35">{label}</span>
+      <span className={`font-mono text-[12px] ${accent ? 'text-accent' : 'text-white/55'}`}>{value}</span>
     </div>
   );
 }
@@ -859,7 +859,7 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
             {isLive && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-current rounded-full animate-ping opacity-60" />}
           </span>
           <span className="flex-1 text-left min-w-0">
-            <span className="block font-mono text-[10px] uppercase tracking-[0.25em] opacity-60 mb-0.5">
+            <span className="block font-mono text-[12px] uppercase tracking-[0.25em] opacity-60 mb-0.5">
               {isActive ? L.stopListening : L.listenLive}
             </span>
             <span className="block font-serif text-lg leading-none truncate">{statusLabel}</span>
@@ -869,7 +869,7 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
         {/* Mobile autoplay unlock */}
         {audio.audioBlocked && (
           <button onClick={audio.unlockAudio}
-            className="w-full flex items-center justify-center gap-2.5 mb-4 px-4 py-3 bg-accent/15 border border-accent/40 text-accent font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-accent/25 transition-colors animate-pulse">
+            className="w-full flex items-center justify-center gap-2.5 mb-4 px-4 py-3 bg-accent/15 border border-accent/40 text-accent font-mono text-[12px] uppercase tracking-[0.2em] hover:bg-accent/25 transition-colors animate-pulse">
             <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 flex-shrink-0"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
             Tap to hear audio
           </button>
@@ -880,15 +880,15 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
           {onAirNames.length > 0 ? (
             <>
               <EqBars active={isLive} />
-              <span className="font-mono text-[10px] text-white/45 truncate">
+              <span className="font-mono text-[12px] text-white/45 truncate">
                 <span className="text-accent uppercase tracking-widest">{L.onAirNow}: </span>
                 {onAirNames.join(', ')}
               </span>
             </>
           ) : isActive ? (
-            <span className="font-mono text-[10px] text-white/30 italic">{L.nobodyOnAir}</span>
+            <span className="font-mono text-[12px] text-white/30 italic">{L.nobodyOnAir}</span>
           ) : (
-            <span className="font-mono text-[10px] text-white/25">{L.listenHint}</span>
+            <span className="font-mono text-[12px] text-white/25">{L.listenHint}</span>
           )}
         </div>
 
@@ -902,14 +902,14 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
           <input type="range" min="0" max="1" step="0.05" value={audio.muted ? 0 : audio.volume}
             onChange={e => { audio.setVolume(Number(e.target.value)); if (audio.muted && Number(e.target.value) > 0) audio.toggleMute(); }}
             className="flex-1 h-px appearance-none bg-white/15 accent-[#C9A66B] cursor-pointer" />
-          <span className="font-mono text-[10px] text-white/30 w-8 text-right tabular-nums">{Math.round(audio.volume * 100)}%</span>
+          <span className="font-mono text-[12px] text-white/30 w-8 text-right tabular-nums">{Math.round(audio.volume * 100)}%</span>
         </div>
       </div>
 
       {/* Optional: GO ON AIR (secondary — most people just listen) */}
       <div className="px-5 py-4 border-b border-white/8">
         <button onClick={audio.toggleAir}
-          className={`w-full flex items-center justify-center gap-2.5 px-3 py-2.5 font-mono text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${audio.onAir ? 'bg-accent text-primary' : 'border border-white/15 text-white/55 hover:border-accent hover:text-accent'}`}>
+          className={`w-full flex items-center justify-center gap-2.5 px-3 py-2.5 font-mono text-[12px] uppercase tracking-[0.2em] transition-all duration-300 ${audio.onAir ? 'bg-accent text-primary' : 'border border-white/15 text-white/55 hover:border-accent hover:text-accent'}`}>
           <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5">
             <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z" stroke="currentColor" strokeWidth="1.7"/>
             <path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
@@ -924,7 +924,7 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
         {audio.onAir && audio.micDevices.length > 0 && (
           <select value={audio.selectedMic} onChange={e => audio.setSelectedMic(e.target.value)}
             style={{ background: 'rgba(255,255,255,0.05)', colorScheme: 'dark' }}
-            className="w-full border border-white/10 px-2 py-1.5 font-mono text-[10px] outline-none hover:border-white/25 transition-colors mt-3 text-white/55">
+            className="w-full border border-white/10 px-2 py-1.5 font-mono text-[12px] outline-none hover:border-white/25 transition-colors mt-3 text-white/55">
             <option value="">{L.defaultMic}</option>
             {audio.micDevices.map(d => (
               <option key={d.deviceId} value={d.deviceId}>{d.label || `Mic ${d.deviceId.slice(0, 6)}`}</option>
@@ -932,7 +932,7 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
           </select>
         )}
         {audio.micGranted === false && (
-          <p className="font-mono text-[9px] text-red-400/70 mt-2 leading-snug">{L.micGrant}</p>
+          <p className="font-mono text-[11px] text-red-400/70 mt-2 leading-snug">{L.micGrant}</p>
         )}
       </div>
 
@@ -940,7 +940,7 @@ function PlayerBlock({ audio, L, onToggle, isActive }: {
       <div className="border-b border-white/8">
         <button onClick={() => setStatsOpen(s => !s)}
           className="w-full flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors">
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/30">{L.statsTitle}</span>
+          <span className="font-mono text-[12px] uppercase tracking-[0.25em] text-white/30">{L.statsTitle}</span>
           <svg viewBox="0 0 24 24" fill="none" className={`w-3.5 h-3.5 text-white/25 transition-transform ${statsOpen ? 'rotate-180' : ''}`}>
             <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -1028,7 +1028,7 @@ function Composer({ onSend, onTyping, disabled, L, replyTo, onCancelReply }: {
           <button type="button" onClick={() => { setShowEmoji(s => !s); setShowGif(false); }}
             className={`w-10 h-10 flex items-center justify-center text-xl transition-colors ${showEmoji ? 'text-accent' : 'text-white/30 hover:text-white/60'}`}>😊</button>
           <button type="button" onClick={() => { setShowGif(s => !s); setShowEmoji(false); }}
-            className={`w-10 h-10 flex items-center justify-center font-mono text-[10px] font-bold uppercase tracking-widest transition-colors ${showGif ? 'text-accent' : 'text-white/30 hover:text-white/60'}`}>GIF</button>
+            className={`w-10 h-10 flex items-center justify-center font-mono text-[12px] font-bold uppercase tracking-widest transition-colors ${showGif ? 'text-accent' : 'text-white/30 hover:text-white/60'}`}>GIF</button>
         </div>
 
         <textarea ref={textareaRef} value={text} onChange={e => onChangeText(e.target.value)}
@@ -1083,8 +1083,8 @@ function NameEditModal({ user, onSave, onClose, L }: {
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-primary/60 backdrop-blur-sm px-4" onMouseDown={onClose}>
       <div className="bg-bg border border-primary w-full max-w-sm shadow-2xl" onMouseDown={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-primary">
-          <span className="font-mono text-[10px] uppercase tracking-widest">{L.editName}</span>
-          <button onClick={onClose} className="text-primary/40 hover:text-primary text-lg leading-none">✕</button>
+          <span className="font-mono text-[12px] uppercase tracking-widest">{L.editName}</span>
+          <button onClick={onClose} className="text-primary/60 hover:text-primary text-lg leading-none">✕</button>
         </div>
         <form onSubmit={submit} className="p-5 space-y-5">
           {/* Preview */}
@@ -1095,12 +1095,12 @@ function NameEditModal({ user, onSave, onClose, L }: {
             <span className="font-bold text-sm" style={{ color }}>{name || '—'}</span>
           </div>
           <div>
-            <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40 mb-1.5 block">{L.nickname}</span>
+            <span className="font-mono text-[12.5px] uppercase tracking-widest text-primary/60 mb-1.5 block">{L.nickname}</span>
             <input value={name} onChange={e => setName(e.target.value)} autoFocus maxLength={24}
               className="w-full bg-transparent border border-primary/30 px-3 py-2.5 text-sm outline-none focus:border-primary font-sans" />
           </div>
           <div>
-            <span className="font-mono text-[9px] uppercase tracking-widest text-primary/40 mb-2 block">{L.color}</span>
+            <span className="font-mono text-[12.5px] uppercase tracking-widest text-primary/60 mb-2 block">{L.color}</span>
             <div className="flex flex-wrap gap-2">
               {RADIO_COLORS.map(c => (
                 <button key={c} type="button" onClick={() => setColor(c)}
@@ -1109,9 +1109,9 @@ function NameEditModal({ user, onSave, onClose, L }: {
               ))}
             </div>
           </div>
-          {err && <p className="font-mono text-[10px] text-red-500">{err}</p>}
+          {err && <p className="font-mono text-[12px] text-red-500">{err}</p>}
           <button type="submit" disabled={saving}
-            className="w-full bg-primary text-white font-mono text-[10px] uppercase tracking-widest py-3 hover:bg-accent hover:text-primary transition-colors disabled:opacity-40">
+            className="w-full bg-primary text-white font-mono text-[12px] uppercase tracking-widest py-3 hover:bg-accent hover:text-primary transition-colors disabled:opacity-40">
             {saving ? '…' : L.save}
           </button>
         </form>
@@ -1125,7 +1125,7 @@ function IdentityChip({ user, onEdit, L }: { user: RadioUser; onEdit: () => void
   return (
     <button onClick={onEdit} title={L.editName}
       className="group flex items-center gap-2 border border-white/15 hover:border-white/35 pl-1 pr-2.5 py-1 transition-colors">
-      <span className="w-6 h-6 flex items-center justify-center text-[9px] font-bold uppercase text-white flex-shrink-0" style={{ backgroundColor: user.color }}>
+      <span className="w-6 h-6 flex items-center justify-center text-[11px] font-bold uppercase text-white flex-shrink-0" style={{ backgroundColor: user.color }}>
         {user.nickname.slice(0, 2)}
       </span>
       <span className="text-xs font-medium max-w-[90px] truncate text-white/70 group-hover:text-white transition-colors">{user.nickname}</span>
@@ -1143,7 +1143,7 @@ function ReplyQuote({ reply, onJump }: { reply: NonNullable<RadioMessage['reply_
       className="flex items-stretch gap-2 mb-1 text-left max-w-full group/q">
       <span className="w-0.5 bg-white/20 flex-shrink-0 group-hover/q:bg-accent transition-colors" />
       <span className="min-w-0">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-white/40 block">{reply.nickname}</span>
+        <span className="font-mono text-[12px] uppercase tracking-widest text-white/40 block">{reply.nickname}</span>
         <span className="text-xs text-white/35 truncate block">{reply.text}</span>
       </span>
     </button>
@@ -1179,8 +1179,8 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
         {!grouped && (
           <div className="flex items-baseline gap-2 mb-1">
             <span className="font-semibold text-[13px]" style={{ color: isOwn ? '#C9A66B' : msg.color }}>{isOwn ? L.you : msg.nickname}</span>
-            <span className="font-mono text-[10px] text-white/25">{formatTime(msg.created_at)}</span>
-            {msg.edited_at && <span className="font-mono text-[9px] text-white/20">({L.edited})</span>}
+            <span className="font-mono text-[12px] text-white/25">{formatTime(msg.created_at)}</span>
+            {msg.edited_at && <span className="font-mono text-[11px] text-white/20">({L.edited})</span>}
           </div>
         )}
 
@@ -1195,8 +1195,8 @@ function ChatMessageRow({ msg, isOwn, grouped, L, onReply, onReact, onEdit, onDe
               }}
               className="w-full resize-none bg-bg border border-primary/30 px-3 py-2 text-sm outline-none focus:border-primary font-sans" />
             <div className="flex gap-2">
-              <button onClick={saveEdit} className="font-mono text-[9px] uppercase tracking-widest bg-primary text-white px-3 py-1.5 hover:bg-accent hover:text-primary transition-colors">{L.save}</button>
-              <button onClick={() => { setEditing(false); setDraft(msg.text); }} className="font-mono text-[9px] uppercase tracking-widest text-primary/40 px-3 py-1.5 hover:text-primary transition-colors">{L.cancel}</button>
+              <button onClick={saveEdit} className="font-mono text-[12.5px] uppercase tracking-widest bg-primary text-white px-3 py-1.5 hover:bg-accent hover:text-primary transition-colors">{L.save}</button>
+              <button onClick={() => { setEditing(false); setDraft(msg.text); }} className="font-mono text-[12.5px] uppercase tracking-widest text-primary/60 px-3 py-1.5 hover:text-primary transition-colors">{L.cancel}</button>
             </div>
           </div>
         ) : (
@@ -1295,6 +1295,8 @@ export const RadioPage: React.FC = () => {
   const adminClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastIdRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const chatBoxRef = useRef<HTMLDivElement>(null);
+  const stickRef = useRef(true);   // follow new messages only while the reader is at the bottom
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audio = useRadioAudio(user ? getToken() : null, user?.id ?? null);
 
@@ -1327,6 +1329,7 @@ export const RadioPage: React.FC = () => {
       edited: 'изм.', react: 'Реакция', reply: 'Ответить', edit: 'Изменить', delete: 'Удалить',
       replyingTo: 'Ответ', typing: 'печатает…', nameRule: 'Имя: 2–24 символа',
       deleteConfirm: 'Удалить сообщение?',
+      withHost: 'с', more: 'Подробнее', emptyChat: 'Здесь пока тихо. Напишите первым.', share: 'Поделиться', linkCopied: 'Ссылка скопирована',
       subscribeKicker: 'Канал издательства',
       heroSubtitle: 'Прямые эфиры и подкасты о литературе, авторах и книгах',
       nowOnAir: 'Сейчас в эфире', guestLabel: 'Гость эфира', scheduleLabel: 'Расписание', viewAll: 'Смотреть все',
@@ -1361,6 +1364,7 @@ export const RadioPage: React.FC = () => {
       edited: 'edited', react: 'React', reply: 'Reply', edit: 'Edit', delete: 'Delete',
       replyingTo: 'Reply to', typing: 'typing…', nameRule: 'Name: 2–24 chars',
       deleteConfirm: 'Delete message?',
+      withHost: 'with', more: 'More', emptyChat: 'Quiet so far. Be the first to write.', share: 'Share', linkCopied: 'Link copied',
       subscribeKicker: 'Publisher channel',
       heroSubtitle: 'Live broadcasts and podcasts on literature, authors and books',
       nowOnAir: 'On air now', guestLabel: 'On-air guest', scheduleLabel: 'Schedule', viewAll: 'View all',
@@ -1395,6 +1399,7 @@ export const RadioPage: React.FC = () => {
       edited: 'bearb.', react: 'Reaktion', reply: 'Antworten', edit: 'Bearbeiten', delete: 'Löschen',
       replyingTo: 'Antwort an', typing: 'schreibt…', nameRule: 'Name: 2–24 Zeichen',
       deleteConfirm: 'Nachricht löschen?',
+      withHost: 'mit', more: 'Mehr', emptyChat: 'Noch ruhig hier. Schreiben Sie als Erste:r.', share: 'Teilen', linkCopied: 'Link kopiert',
       subscribeKicker: 'Verlagskanal',
       heroSubtitle: 'Live-Sendungen und Podcasts über Literatur, Autoren und Bücher',
       nowOnAir: 'Jetzt live', guestLabel: 'Studiogast', scheduleLabel: 'Programm', viewAll: 'Alle ansehen',
@@ -1434,6 +1439,7 @@ export const RadioPage: React.FC = () => {
   useEffect(() => {
     if (!user) return;
     pollRef.current = setInterval(async () => {
+      if (document.hidden) return;
       try {
         const r = await pollRadioMessages(lastIdRef.current);
         if (r.messages.length) {
@@ -1455,18 +1461,25 @@ export const RadioPage: React.FC = () => {
       } catch { }
     }, POLL_MS);
     onlinePollRef.current = setInterval(async () => {
+      if (document.hidden) return;
       try { const ol = await fetchRadioOnline(); setOnline(ol); } catch {}
-    }, 1000);
+    }, 5000);
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
       if (onlinePollRef.current) clearInterval(onlinePollRef.current);
     };
   }, [user]);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  // Раньше scrollIntoView тянул за собой всю страницу при каждом новом сообщении.
+  // Теперь прокручивается только окно чата, и только если читатель внизу.
+  useEffect(() => {
+    const el = chatBoxRef.current;
+    if (el && stickRef.current) el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   const handleSend = useCallback(async (payload: Parameters<typeof sendRadioMessage>[0]) => {
     if (!getRadioUser()) await radioGuestJoin();
+    stickRef.current = true;
     const msg = await sendRadioMessage(payload);
     if (msg.msg_type !== 'chat') setPinned(prev => [...prev, msg]);
     setMessages(prev => [...prev, msg]);
@@ -1557,6 +1570,47 @@ export const RadioPage: React.FC = () => {
     ? { title: config.book_title, author: config.book_author || '', image: config.book_image || '/images/ambook-cover.jpg', url: config.book_url || '' }
     : (book ? { title: book.meta_title || '', author: book.meta_description || '', image: book.meta_image || '/images/ambook-cover.jpg', url: book.meta_url || '' } : null);
 
+  // Пробел запускает и останавливает эфир (кроме момента, когда вы печатаете).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || e.repeat) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(el.tagName) || el.isContentEditable)) return;
+      e.preventDefault();
+      audio.togglePlay();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [audio.togglePlay]);
+
+  // Во вкладке видно, что идёт эфир и сколько новых сообщений пришло, пока вы были на другой.
+  const [unread, setUnread] = useState(0);
+  const seenRef = useRef(0);
+  useEffect(() => {
+    const n = chatMessages.length;
+    if (n > seenRef.current && document.hidden) setUnread(u => u + (n - seenRef.current));
+    seenRef.current = n;
+  }, [chatMessages.length]);
+  useEffect(() => {
+    const clear = () => { if (!document.hidden) setUnread(0); };
+    document.addEventListener('visibilitychange', clear);
+    return () => document.removeEventListener('visibilitychange', clear);
+  }, []);
+  useEffect(() => {
+    const base = document.title.replace(/^(\(\d+\) )?(● )?/, '');
+    document.title = `${unread > 0 ? `(${unread}) ` : ''}${isLive ? '● ' : ''}${base}`;
+    return () => { document.title = base; };
+  }, [unread, isLive]);
+
+  const [shared, setShared] = useState(false);
+  const shareRadio = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) await navigator.share({ title: 'AM Publishing Radio', url });
+      else { await navigator.clipboard.writeText(url); setShared(true); window.setTimeout(() => setShared(false), 1800); }
+    } catch { /* пользователь закрыл окно шаринга */ }
+  };
+
   const sendChat = async () => {
     const t = chatInput.trim();
     if (!t) return;
@@ -1580,11 +1634,11 @@ export const RadioPage: React.FC = () => {
         <div className="grid md:grid-cols-2 lg:border-r border-primary/15">
           {/* text */}
           <div className="order-2 md:order-1 px-6 md:px-10 lg:px-12 py-10 md:py-14 flex flex-col justify-center">
-            <button onClick={handleAdminTrigger} className="font-mono text-[10px] md:text-[11px] uppercase tracking-[0.3em] text-accent flex items-center gap-3 mb-6 select-none">
-              <span className="w-7 h-px bg-accent/70" /> AM Publishing Radio
+            <button onClick={handleAdminTrigger} className="mb-6 select-none text-left font-sans text-[12px] font-bold uppercase tracking-[0.26em] text-accent">
+              AM Publishing Radio
             </button>
             <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl leading-[0.92] mb-6">AM Publishing<br />Radio</h1>
-            <p className="font-mono text-xs md:text-sm text-primary/55 leading-relaxed max-w-sm mb-9">{L.heroSubtitle}</p>
+            <p className="font-mono text-xs md:text-sm text-primary/70 leading-relaxed max-w-sm mb-9">{L.heroSubtitle}</p>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
               <button onClick={audio.togglePlay}
@@ -1596,12 +1650,12 @@ export const RadioPage: React.FC = () => {
                       ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" /></svg>
                       : <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-0.5"><path d="M8 5.5l12 6.5-12 6.5V5.5Z" /></svg>}
                 </span>
-                <span className="font-mono text-[11px] uppercase tracking-[0.2em]">{isActive ? L.stopAir : L.listenLive}</span>
+                <span className="font-mono text-[12.5px] uppercase tracking-[0.2em]">{isActive ? L.stopAir : L.listenLive}</span>
               </button>
 
               <div className="flex items-center gap-3">
                 <EqBars active={isLive} />
-                <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-primary/45">
+                <span className="flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.2em] text-primary/60">
                   <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-accent animate-pulse' : 'bg-primary/25'}`} />
                   {isLive ? 'LIVE' : statusLabel}
                 </span>
@@ -1609,19 +1663,25 @@ export const RadioPage: React.FC = () => {
             </div>
 
             {/* volume + go on air */}
-            <div className="flex items-center gap-4 mt-7">
-              <button onClick={audio.toggleMute} className="text-primary/40 hover:text-primary transition-colors flex-shrink-0">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 mt-7">
+              <button onClick={audio.toggleMute} className="text-primary/60 hover:text-primary transition-colors flex-shrink-0">
                 {audio.muted
                   ? <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M19 9l-6 6M13 9l6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
                   : <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M15.5 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>}
               </button>
               <input type="range" min="0" max="1" step="0.05" value={audio.muted ? 0 : audio.volume}
                 onChange={e => { audio.setVolume(Number(e.target.value)); if (audio.muted && Number(e.target.value) > 0) audio.toggleMute(); }}
-                className="w-28 h-px appearance-none bg-primary/20 accent-[#C9A66B] cursor-pointer" />
+                className="w-20 sm:w-28 h-px appearance-none bg-primary/20 accent-[#C9A66B] cursor-pointer" />
               <span className="w-px h-3 bg-primary/15" />
               <button onClick={audio.toggleAir}
-                className={`font-mono text-[10px] uppercase tracking-[0.2em] transition-colors ${audio.onAir ? 'text-accent' : 'text-primary/40 hover:text-accent'}`}>
+                className={`whitespace-nowrap font-mono text-[12px] uppercase tracking-[0.2em] transition-colors ${audio.onAir ? 'text-accent' : 'text-primary/60 hover:text-accent'}`}>
                 {audio.onAir ? L.leaveAir : L.goOnAir} →
+              </button>
+              <span className="w-px h-3 bg-primary/15" />
+              <button onClick={shareRadio} aria-label={shared ? L.linkCopied : L.share} title={shared ? L.linkCopied : L.share}
+                className="inline-flex items-center gap-2 whitespace-nowrap font-mono text-[12px] uppercase tracking-[0.2em] text-primary/60 hover:text-accent transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <span className="hidden sm:inline">{shared ? L.linkCopied : L.share}</span>
               </button>
             </div>
           </div>
@@ -1636,26 +1696,26 @@ export const RadioPage: React.FC = () => {
 
         {/* right: now on air */}
         <aside className="px-6 md:px-10 py-10 md:py-12 flex flex-col">
-          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/40 mb-5">{L.nowOnAir}</p>
+          <p className="font-mono text-[12px] uppercase tracking-[0.28em] text-primary/60 mb-5">{L.nowOnAir}</p>
           <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-2">
             {liveBroadcaster ? (nowTitle || L.live) : (nowTitle || 'AM Publishing Radio')}
           </h2>
           {(liveBroadcaster || nowHost) && (
-            <p className="font-serif text-lg italic text-accent mb-4">с {liveBroadcaster ? liveBroadcaster.nickname : nowHost}</p>
+            <p className="font-serif text-lg italic text-accent mb-4">{L.withHost} {liveBroadcaster ? liveBroadcaster.nickname : nowHost}</p>
           )}
-          <p className="text-sm text-primary/55 leading-relaxed">{nowDesc || L.heroSubtitle}</p>
+          <p className="text-sm text-primary/70 leading-relaxed">{nowDesc || L.heroSubtitle}</p>
 
           {guest && (
             <>
               <div className="h-px bg-primary/10 my-7" />
-              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/40 mb-3">{L.guestLabel}</p>
+              <p className="font-mono text-[12px] uppercase tracking-[0.28em] text-primary/60 mb-3">{L.guestLabel}</p>
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="font-serif text-xl leading-snug mb-1.5">{guest.name || '—'}</p>
-                  {guest.role && <p className="text-xs text-primary/50 leading-relaxed">{guest.role}</p>}
+                  {guest.role && <p className="text-xs text-primary/65 leading-relaxed">{guest.role}</p>}
                 </div>
                 {(guest.time || guest.duration) && (
-                  <div className="text-right flex-shrink-0 font-mono text-[10px] text-primary/40 space-y-1 pt-1">
+                  <div className="text-right flex-shrink-0 font-mono text-[12px] text-primary/60 space-y-1 pt-1">
                     {guest.time && <p className="whitespace-nowrap">{guest.time}</p>}
                     {guest.duration && <p className="whitespace-nowrap">{guest.duration}</p>}
                   </div>
@@ -1663,7 +1723,7 @@ export const RadioPage: React.FC = () => {
               </div>
               {guest.url && (
                 <a href={guest.url} target="_blank" rel="noopener noreferrer"
-                  className="inline-block mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-accent hover:underline">Подробнее →</a>
+                  className="inline-block mt-3 font-mono text-[12px] uppercase tracking-[0.2em] text-accent hover:underline">{L.more} →</a>
               )}
             </>
           )}
@@ -1675,18 +1735,18 @@ export const RadioPage: React.FC = () => {
         {/* chat */}
         <div className="lg:border-r border-primary/15 flex flex-col">
           <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b border-primary/10">
-            <p className="font-mono text-[11px] uppercase tracking-[0.25em]">{L.chatTitle}</p>
-            <span className="font-mono text-[11px] text-primary/45 flex items-center gap-2">
+            <p className="font-mono text-[12.5px] uppercase tracking-[0.25em]">{L.chatTitle}</p>
+            <span className="font-mono text-[11px] text-primary/60 flex items-center gap-2">
               {listenersCount} {L.listenersWord}
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 md:px-8 py-5 space-y-5 max-h-[480px] min-h-[300px]">
-            {loading && <p className="font-mono text-xs text-primary/35 text-center py-12">{L.loading}</p>}
+          <div ref={chatBoxRef} onScroll={e => { const el = e.currentTarget; stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120; }} className="flex-1 overflow-y-auto overscroll-contain px-6 md:px-8 py-5 space-y-5 max-h-[480px] min-h-[300px]">
+            {loading && <p className="font-mono text-xs text-primary/60 text-center py-12">{L.loading}</p>}
             {!loading && error && <p className="font-mono text-xs text-red-500/70 text-center py-12">{error}</p>}
             {!loading && !error && chatMessages.length === 0 && (
-              <p className="font-mono text-xs text-primary/30 text-center py-12">—</p>
+              <p className="font-mono text-sm text-primary/70 text-center py-12">{L.emptyChat}</p>
             )}
             {chatMessages.map(m => {
               const isOwn = user?.id === m.user_id;
@@ -1699,13 +1759,13 @@ export const RadioPage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2.5 mb-1">
                       <span className="font-semibold text-sm" style={{ color: isOwn ? '#C9A66B' : undefined }}>{isOwn ? L.you : m.nickname}</span>
-                      <span className="font-mono text-[10px] text-primary/35">{formatTime(m.created_at)}</span>
-                      {m.edited_at && <span className="font-mono text-[9px] text-primary/25">({L.edited})</span>}
+                      <span className="font-mono text-[12px] text-primary/60">{formatTime(m.created_at)}</span>
+                      {m.edited_at && <span className="font-mono text-[11px] text-primary/60">({L.edited})</span>}
                     </div>
                     <p className="text-sm text-primary/75 leading-relaxed break-words"><MsgContent text={m.text} /></p>
                   </div>
                   <button onClick={() => handleReact(m.id, '❤️')} title={L.react}
-                    className={`flex items-center gap-1.5 flex-shrink-0 mt-0.5 transition-colors ${reacted ? 'text-accent' : 'text-primary/30 hover:text-accent'}`}>
+                    className={`flex items-center gap-1.5 flex-shrink-0 mt-0.5 transition-colors ${reacted ? 'text-accent' : 'text-primary/60 hover:text-accent'}`}>
                     <svg viewBox="0 0 24 24" fill={reacted ? 'currentColor' : 'none'} className="w-4 h-4"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2 4.8 5.3 4.8c2 0 3.3 1.2 4.7 2.9 1.4-1.7 2.7-2.9 4.7-2.9 3.3 0 4.9 3.5 3.3 6.9C19.5 16.4 12 21 12 21Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
                     {likes > 0 && <span className="font-mono text-[11px] tabular-nums">{likes}</span>}
                   </button>
@@ -1719,23 +1779,23 @@ export const RadioPage: React.FC = () => {
             {replyTo && (
               <div className="flex items-center gap-2 mb-2.5 text-xs">
                 <span className="w-0.5 self-stretch bg-accent" />
-                <span className="font-mono text-[9px] uppercase tracking-widest text-primary/35">{L.replyingTo}</span>
+                <span className="font-mono text-[12.5px] uppercase tracking-widest text-primary/60">{L.replyingTo}</span>
                 <span className="font-semibold" style={{ color: replyTo.color }}>{replyTo.nickname}</span>
-                <span className="text-primary/40 truncate flex-1">{replyTo.text.slice(0, 50)}</span>
-                <button onClick={() => setReplyTo(null)} className="text-primary/30 hover:text-primary flex-shrink-0">✕</button>
+                <span className="text-primary/60 truncate flex-1">{replyTo.text.slice(0, 50)}</span>
+                <button onClick={() => setReplyTo(null)} className="text-primary/60 hover:text-primary flex-shrink-0">✕</button>
               </div>
             )}
             <form onSubmit={e => { e.preventDefault(); sendChat(); }} className="flex items-center gap-3">
               <input value={chatInput} onChange={e => onChatType(e.target.value)} placeholder={L.placeholder} maxLength={2000}
                 disabled={!!error}
-                className="flex-1 bg-transparent border-b border-primary/15 focus:border-primary/45 py-2.5 text-sm outline-none transition-colors placeholder:text-primary/30" />
+                className="flex-1 bg-transparent border-b border-primary/15 focus:border-primary/45 py-2.5 text-sm outline-none transition-colors placeholder:text-primary/60" />
               <button type="submit" disabled={!chatInput.trim() || !!error}
                 className="w-11 h-11 bg-primary text-white flex items-center justify-center hover:bg-accent hover:text-primary transition-colors flex-shrink-0 disabled:opacity-30">
                 <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M4 12l16-8-6 16-3-6-7-2Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
             </form>
             {typing.length > 0 && (
-              <p className="font-mono text-[10px] text-primary/35 mt-2">{typing.slice(0, 3).map(t => t.nickname).join(', ')} {L.typing}</p>
+              <p className="font-mono text-[12px] text-primary/60 mt-2">{typing.slice(0, 3).map(t => t.nickname).join(', ')} {L.typing}</p>
             )}
           </div>
         </div>
@@ -1745,16 +1805,16 @@ export const RadioPage: React.FC = () => {
           {/* schedule */}
           <div className="px-6 md:px-8 py-7">
             <div className="flex items-center justify-between mb-6">
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em]">{L.scheduleLabel}</p>
+              <p className="font-mono text-[12.5px] uppercase tracking-[0.25em]">{L.scheduleLabel}</p>
             </div>
             {cfgSchedule.length > 0 ? (
               <ul className="space-y-5">
                 {cfgSchedule.map((row, i) => (
                   <li key={i} className="flex gap-4">
-                    <span className="font-mono text-[11px] text-primary/40 tabular-nums pt-0.5 w-12 flex-shrink-0">{row.time || '—'}</span>
+                    <span className="font-mono text-[11px] text-primary/60 tabular-nums pt-0.5 w-12 flex-shrink-0">{row.time || '—'}</span>
                     <div className="min-w-0">
                       <p className="font-serif text-base leading-snug">{row.title}</p>
-                      {row.host && <p className="text-xs text-primary/45 mt-0.5 line-clamp-1">{row.host}</p>}
+                      {row.host && <p className="text-xs text-primary/60 mt-0.5 line-clamp-1">{row.host}</p>}
                     </div>
                   </li>
                 ))}
@@ -1763,21 +1823,21 @@ export const RadioPage: React.FC = () => {
               <ul className="space-y-5">
                 {scheduleItems.map(m => (
                   <li key={m.id} className="flex gap-4">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-accent/80 pt-1 w-12 flex-shrink-0">{m.msg_type === 'podcast' ? 'POD' : 'ANN'}</span>
+                    <span className="font-mono text-[12px] uppercase tracking-widest text-accent/80 pt-1 w-12 flex-shrink-0">{m.msg_type === 'podcast' ? 'POD' : 'ANN'}</span>
                     <div className="min-w-0">
                       <p className="font-serif text-base leading-snug">{m.meta_title || m.text?.slice(0, 60) || '—'}</p>
-                      {m.meta_description && <p className="text-xs text-primary/45 mt-0.5 line-clamp-1">{m.meta_description}</p>}
+                      {m.meta_description && <p className="text-xs text-primary/60 mt-0.5 line-clamp-1">{m.meta_description}</p>}
                     </div>
                   </li>
                 ))}
               </ul>
-            ) : <p className="font-mono text-xs text-primary/35">{L.soonOnAir}</p>}
+            ) : <p className="font-mono text-xs text-primary/60">{L.soonOnAir}</p>}
           </div>
 
           {/* editor pick / book of week */}
           {bookCard && (
             <div className="px-6 md:px-8 py-7">
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em] mb-5">{L.editorPick}</p>
+              <p className="font-mono text-[12.5px] uppercase tracking-[0.25em] mb-5">{L.editorPick}</p>
               <a href={bookCard.url || undefined} target={bookCard.url ? '_blank' : undefined} rel="noopener noreferrer"
                 className={`flex items-center gap-5 ${bookCard.url ? 'group' : ''}`}>
                 <div className="w-16 h-[88px] flex-shrink-0 overflow-hidden bg-primary/5 border border-primary/10">
@@ -1786,13 +1846,13 @@ export const RadioPage: React.FC = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-serif text-lg leading-tight mb-1 group-hover:text-accent transition-colors">{bookCard.title || '—'}</p>
-                  <p className="text-xs text-primary/50 mb-2 line-clamp-1">{bookCard.author || L.author}</p>
-                  <p className="font-mono text-[9px] uppercase tracking-widest text-primary/35">{L.bookOfWeek}</p>
+                  <p className="text-xs text-primary/65 mb-2 line-clamp-1">{bookCard.author || L.author}</p>
+                  <p className="font-mono text-[12.5px] uppercase tracking-widest text-primary/60">{L.bookOfWeek}</p>
                 </div>
                 {!config.book_title && books.length > 1 && (
                   <div className="flex flex-col gap-2 flex-shrink-0">
-                    <button type="button" onClick={e => { e.preventDefault(); setBookIdx(i => (i - 1 + books.length) % books.length); }} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">‹</button>
-                    <button type="button" onClick={e => { e.preventDefault(); setBookIdx(i => (i + 1) % books.length); }} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">›</button>
+                    <button type="button" onClick={e => { e.preventDefault(); setBookIdx(i => (i - 1 + books.length) % books.length); }} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/65 hover:border-accent hover:text-accent transition-colors">‹</button>
+                    <button type="button" onClick={e => { e.preventDefault(); setBookIdx(i => (i + 1) % books.length); }} className="w-7 h-7 border border-primary/20 flex items-center justify-center text-primary/65 hover:border-accent hover:text-accent transition-colors">›</button>
                   </div>
                 )}
               </a>
@@ -1802,7 +1862,7 @@ export const RadioPage: React.FC = () => {
           {/* latest podcast */}
           {latestPodcast && (
             <div className="px-6 md:px-8 py-7">
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em] mb-5">{L.latestPodcastLabel}</p>
+              <p className="font-mono text-[12.5px] uppercase tracking-[0.25em] mb-5">{L.latestPodcastLabel}</p>
               <div className="flex items-center gap-4">
                 <a href={latestPodcast.meta_url || '#'} target="_blank" rel="noopener noreferrer"
                   className="w-12 h-12 rounded-full border border-primary/25 flex items-center justify-center text-primary/60 hover:border-accent hover:text-accent transition-colors flex-shrink-0">
@@ -1810,8 +1870,8 @@ export const RadioPage: React.FC = () => {
                 </a>
                 <div className="min-w-0">
                   <p className="font-serif text-lg leading-tight">{latestPodcast.meta_title || '—'}</p>
-                  {latestPodcast.meta_description && <p className="text-xs text-primary/45 line-clamp-1">{latestPodcast.meta_description}</p>}
-                  <p className="font-mono text-[9px] uppercase tracking-widest text-accent mt-1.5">{L.listenWord} →</p>
+                  {latestPodcast.meta_description && <p className="text-xs text-primary/60 line-clamp-1">{latestPodcast.meta_description}</p>}
+                  <p className="font-mono text-[12.5px] uppercase tracking-widest text-accent mt-1.5">{L.listenWord} →</p>
                 </div>
               </div>
             </div>
@@ -1821,8 +1881,8 @@ export const RadioPage: React.FC = () => {
           <a href={tgUrl} target="_blank" rel="noopener noreferrer"
             className="group flex items-center justify-between px-6 md:px-8 py-7 hover:bg-primary/[0.03] transition-colors">
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em] mb-1.5">{L.weInTelegram}</p>
-              <p className="text-sm text-primary/55 group-hover:text-primary transition-colors">{tgHandle}</p>
+              <p className="font-mono text-[12.5px] uppercase tracking-[0.25em] mb-1.5">{L.weInTelegram}</p>
+              <p className="text-sm text-primary/70 group-hover:text-primary transition-colors">{tgHandle}</p>
             </div>
             <span className="text-accent text-lg group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
           </a>
@@ -1830,15 +1890,15 @@ export const RadioPage: React.FC = () => {
       </section>
 
       {/* ════ LATEST BROADCASTS ════ */}
-      <section className="px-6 md:px-10 lg:px-12 py-10 md:py-14">
+      {broadcasts.length > 0 && <section className="px-6 md:px-10 lg:px-12 py-10 md:py-14">
         <div className="flex items-center justify-between mb-8">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em]">{L.latestBroadcasts}</p>
+          <p className="font-mono text-[12.5px] uppercase tracking-[0.25em]">{L.latestBroadcasts}</p>
           {broadcasts.length > 2 && (
             <div className="flex gap-2">
               <button onClick={() => carouselRef.current?.scrollBy({ left: -320, behavior: 'smooth' })}
-                className="w-9 h-9 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">‹</button>
+                className="w-9 h-9 border border-primary/20 flex items-center justify-center text-primary/65 hover:border-accent hover:text-accent transition-colors">‹</button>
               <button onClick={() => carouselRef.current?.scrollBy({ left: 320, behavior: 'smooth' })}
-                className="w-9 h-9 border border-primary/20 flex items-center justify-center text-primary/50 hover:border-accent hover:text-accent transition-colors">›</button>
+                className="w-9 h-9 border border-primary/20 flex items-center justify-center text-primary/65 hover:border-accent hover:text-accent transition-colors">›</button>
             </div>
           )}
         </div>
@@ -1856,14 +1916,14 @@ export const RadioPage: React.FC = () => {
                     </span>
                   </a>
                 </div>
-                <p className="font-mono text-[9px] uppercase tracking-widest text-accent mb-1.5">{m.msg_type === 'podcast' ? L.typePodcast : L.typeAnnouncement}</p>
+                <p className="font-mono text-[12.5px] uppercase tracking-widest text-accent mb-1.5">{m.msg_type === 'podcast' ? L.typePodcast : L.typeAnnouncement}</p>
                 <h3 className="font-serif text-lg leading-tight mb-1">{m.meta_title || m.text?.slice(0, 50) || '—'}</h3>
-                {m.meta_description && <p className="text-xs text-primary/45 line-clamp-1">{m.meta_description}</p>}
+                {m.meta_description && <p className="text-xs text-primary/60 line-clamp-1">{m.meta_description}</p>}
               </article>
             ))}
           </div>
-        ) : <p className="font-mono text-xs text-primary/35">{L.noBroadcasts}</p>}
-      </section>
+        ) : <p className="font-mono text-xs text-primary/60">{L.noBroadcasts}</p>}
+      </section>}
 
       {editingName && user && (
         <NameEditModal user={user} onSave={handleRename} onClose={() => setEditingName(false)} L={L} />
