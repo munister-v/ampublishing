@@ -43,16 +43,25 @@ export const EuropeGlyph: React.FC<{ className?: string }> = ({ className }) => 
 };
 
 /**
- * Compact DHL delivery-partner badge. Renders the wordmark in DHL's brand
- * colours (own typography/markup, not a copy of their vector logo file) so
- * the tile reads as an official-feeling badge without hot-linking or
- * downloading any third-party asset.
+ * DHL delivery-partner badge. Own vector drawing of the wordmark in DHL's brand
+ * colours (yellow plate, red slanted letters with the three speed stripes), not a
+ * copy of their logo file, so it stays crisp at any size and needs no asset fetch.
+ * The viewBox is fixed (aspect 3.3:1): size it with width/height classes.
  */
 export const DHLBadge: React.FC<{ className?: string }> = ({ className }) => (
-  <span
-    className={`inline-flex items-center justify-center px-3 py-1 rounded-sm font-sans font-black italic tracking-tight ${className || ''}`}
-    style={{ background: '#FFCC00', color: '#D40511' }}
-  >
-    DHL
-  </span>
+  <svg viewBox="0 0 132 40" role="img" aria-label="DHL" className={className} xmlns="http://www.w3.org/2000/svg">
+    <rect width="132" height="40" rx="3" fill="#FFCC00" />
+    <g fill="#D40511" transform="skewX(-12) translate(8 0)">
+      {/* three speed stripes */}
+      <rect x="6" y="12" width="14" height="3.2" />
+      <rect x="2" y="18.4" width="18" height="3.2" />
+      <rect x="6" y="24.8" width="14" height="3.2" />
+      {/* D */}
+      <path d="M26 8h13.5c8.2 0 13.5 5 13.5 12s-5.300 12-13.500 12H26V8zm8 6.600v10.800h4.800c3.600 0 5.800-2.200 5.800-5.400s-2.200-5.400-5.800-5.400H34z" fillRule="evenodd" />
+      {/* H */}
+      <path d="M58 8h8v9h9.500V8h8v24h-8v-9H66v9h-8V8z" />
+      {/* L */}
+      <path d="M90 8h8v17.400h12V32H90V8z" />
+    </g>
+  </svg>
 );

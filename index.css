@@ -26,7 +26,8 @@
     color: #040F1E;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
+    /* clip, не hidden: hidden делает body контейнером прокрутки и ломает position: sticky */
+    overflow-x: clip;
     position: relative;
     -webkit-tap-highlight-color: transparent;
     text-rendering: optimizeLegibility;
@@ -181,6 +182,10 @@
   }
   .rounded-full {
     border-radius: 9999px !important;
+  }
+  /* Явное разрешение скругления для устройств и особых форм: задайте --rx на элементе */
+  .rx {
+    border-radius: var(--rx, 0) !important;
   }
 
   .text-outline {

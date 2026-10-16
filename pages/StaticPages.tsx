@@ -5,6 +5,7 @@ import { useApp } from '../AppContext';
 import { Link, useParams } from 'react-router-dom';
 import { Prose } from '../components/Prose';
 import { getAuthorShowcaseContent } from '../services/authorShowcase';
+import { Reveal } from '../components/Reveal';
 import type { AboutLayoutSettings, NewsBlock } from '../types';
 import { formatNewsDate } from '../utils/newsDate';
 
@@ -392,8 +393,36 @@ export const OurAuthorsPage: React.FC = () => {
 };
 
 // --- About Page ---
+type Milestone = { date: string; title: Record<'ru' | 'en' | 'de', string>; text: Record<'ru' | 'en' | 'de', string> };
+
+// Вехи пути издательства: факты из новостей, афиши и App Store (приложение вышло 13 октября).
+const MILESTONES: Milestone[] = [
+  { date: '2026-05-03',
+    title: { ru: 'Анонс первого тиража', en: 'First print run announced', de: 'Erste Auflage angekündigt' },
+    text: { ru: 'Первое издание AM Publishing отправляется по всему миру небольшим, тщательно сделанным тиражом.', en: 'The first AM Publishing edition ships worldwide in a small, carefully produced run.', de: 'Die erste Ausgabe von AM Publishing geht in einer kleinen, sorgfältig produzierten Auflage in die ganze Welt.' } },
+  { date: '2026-06-26',
+    title: { ru: 'Первые четыре книги готовятся к печати', en: 'The first four books get ready for print', de: 'Die ersten vier Bücher werden druckfertig' },
+    text: { ru: 'Мы всё ближе к отправке первых четырёх книг в типографию.', en: 'We are getting closer to sending the first four books to the printer.', de: 'Wir sind der Abgabe der ersten vier Bücher an die Druckerei ein gutes Stück näher gekommen.' } },
+  { date: '2026-07-12',
+    title: { ru: 'Первый литературный пикник', en: 'The first literary picnic', de: 'Das erste Literaturpicknick' },
+    text: { ru: 'Первая встреча читателей, которую издательство провело в Берлине.', en: 'The first reader meet-up organised by the publisher took place in Berlin.', de: 'Das erste Lesertreffen des Verlags fand in Berlin statt.' } },
+  { date: '2026-08-23',
+    title: { ru: 'Второй литературный пикник', en: 'The second literary picnic', de: 'Das zweite Literaturpicknick' },
+    text: { ru: 'Volkspark Friedrichshain: книжный чемодан, книгообмен, гриль и разговоры о прочитанном.', en: 'Volkspark Friedrichshain: a book trunk, a book swap, a grill and conversation about what we have read.', de: 'Volkspark Friedrichshain: Bücherkoffer, Bücher-Tausch, Grill und Gespräche über das Gelesene.' } },
+  { date: '2026-10-13',
+    title: { ru: 'Выходит приложение AM Publishing', en: 'The AM Publishing app is out', de: 'Die AM-Publishing-App erscheint' },
+    text: { ru: 'Библиотека с отрывками, литературная мастерская, афиша событий и карта читателя теперь в App Store.', en: 'The library with excerpts, the literary workshop, the events calendar and the reader card are now in the App Store.', de: 'Bibliothek mit Leseproben, Literaturwerkstatt, Veranstaltungskalender und Leserkarte sind jetzt im App Store.' } },
+];
+
+const ABOUT_NUMBERS: Record<'ru' | 'en' | 'de', { books: string; authors: string; picnics: string; langs: string; journey: string; journeyLead: string; soon: string }> = {
+  ru: { books: 'книги в каталоге', authors: 'авторов издательства', picnics: 'литературных пикника в Берлине', langs: 'языка: сайт и приложение', journey: 'Наш путь', journeyLead: 'Издательство родилось в Берлине в 2026 году. Вот как мы шли к первым книгам.', soon: 'скоро' },
+  en: { books: 'books in the catalogue', authors: 'publishing-house authors', picnics: 'literary picnics in Berlin', langs: 'languages: site and app', journey: 'Our path', journeyLead: 'The publishing house was born in Berlin in 2026. This is how we got to our first books.', soon: 'soon' },
+  de: { books: 'Bücher im Katalog', authors: 'Autor:innen des Verlags', picnics: 'Literaturpicknicks in Berlin', langs: 'Sprachen: Website und App', journey: 'Unser Weg', journeyLead: 'Der Verlag wurde 2026 in Berlin gegründet. So kamen wir zu den ersten Büchern.', soon: 'bald' },
+};
+const ABOUT_LOCALE: Record<string, string> = { ru: 'ru-RU', en: 'en-GB', de: 'de-DE' };
+
 export const AboutPage: React.FC = () => {
-  const { t, language, siteSettings } = useApp();
+  const { t, language, siteSettings, books } = useApp();
   const fallbackCopy: Record<string, Record<'ru' | 'en' | 'de', string>> = {
     eyebrow: { ru: 'Независимое издательство · Берлин', en: 'Independent publishing house · Berlin', de: 'Unabhängiger Verlag · Berlin' },
     quote: { ru: 'Книги, в которых форма становится частью смысла.', en: 'Books where form becomes part of the meaning.', de: 'Bücher, in denen Form zum Teil der Bedeutung wird.' },
@@ -427,6 +456,26 @@ export const AboutPage: React.FC = () => {
   const legacyMissionImage = t('static.about.mission_image') as string;
   const missionImage = layout.missionImageUrl || (legacyMissionImage !== 'static.about.mission_image' ? legacyMissionImage : '');
   const team = layout.team.filter(member => member.enabled);
+
+  // Цифры и путь: берём из данных каталога и афиши, а не пишем руками.
+  const nums = ABOUT_NUMBERS[language] ?? ABOUT_NUMBERS.en;
+  const authorCount = getAuthorShowcaseContent(language, t('static.our_authors.showcase_items')).length;
+  const today = new Date().toISOString().slice(0, 10);
+  const premiere = books.find(b => b.releaseDate && b.releaseDate >= today);
+  const milestones: Milestone[] = [...MILESTONES];
+  if (premiere) {
+    milestones.push({
+      date: premiere.releaseDate,
+      title: { ru: `Премьера «${premiere.title}»`, en: `Premiere of “${premiere.title}”`, de: `Premiere von „${premiere.title}“` },
+      text: { ru: `Книга автора ${premiere.author} выходит в свет. Предзаказ открыт.`, en: `The new book by ${premiere.author} comes out. Pre-orders are open.`, de: `Das neue Buch von ${premiere.author} erscheint. Vorbestellung offen.` },
+    });
+  }
+  const numbers: [string, string][] = [
+    [String(books.length), nums.books],
+    [String(authorCount), nums.authors],
+    ['2', nums.picnics],
+    ['3', nums.langs],
+  ];
 
   const sections: Record<string, React.ReactNode> = {
     hero: (
@@ -463,6 +512,54 @@ export const AboutPage: React.FC = () => {
                 </blockquote>
               )}
             </div>
+          </div>
+        </div>
+      </section>
+    ),
+    numbers: (
+      <section className="bg-primary text-white" aria-label="AM Publishing">
+        <div className="container mx-auto grid grid-cols-2 px-0 md:grid-cols-4">
+          {numbers.map(([value, label], i) => (
+            <Reveal key={label} delay={i * 90} className={`border-white/15 px-6 py-10 md:py-14 md:px-8 ${i % 2 === 0 ? 'border-r' : ''} ${i < 2 ? 'border-b md:border-b-0' : ''} ${i < 3 ? 'md:border-r' : 'md:border-r-0'}`}>
+              <strong className="block font-serif text-6xl font-normal leading-none text-accent md:text-7xl">{value}</strong>
+              <span className="mt-4 block font-mono text-[12px] uppercase tracking-[0.14em] text-white/75">{label}</span>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+    ),
+    journey: (
+      <section className="bg-white py-20 md:py-28" aria-labelledby="about-journey-title">
+        <div className="container mx-auto px-5 md:px-8">
+          <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+            <div className="lg:col-span-4">
+              <div className="lg:sticky lg:top-32">
+                <p className="mb-5 font-mono text-[12px] uppercase tracking-[0.22em] text-accent">AM Publishing · 2026</p>
+                <h2 id="about-journey-title" className="font-serif text-5xl leading-[1] text-primary md:text-7xl">{nums.journey}</h2>
+                <p className="mt-6 max-w-sm text-[17px] leading-relaxed text-primary/70">{nums.journeyLead}</p>
+              </div>
+            </div>
+            <ol className="lg:col-span-8 border-t border-primary/15">
+              {milestones.map(m => {
+                const d = new Date(m.date);
+                const upcoming = m.date > today;
+                return (
+                  <li key={m.date + m.title.en} className="border-b border-primary/15">
+                    <Reveal className="grid grid-cols-[84px_1fr] gap-5 py-8 md:grid-cols-[140px_1fr] md:gap-10 md:py-11">
+                      <div>
+                        <span className={`block font-serif text-5xl leading-none md:text-7xl ${upcoming ? 'text-accent' : 'text-primary'}`}>{d.toLocaleDateString(ABOUT_LOCALE[language] ?? 'en-GB', { day: 'numeric' })}</span>
+                        <span className="mt-2 block font-mono text-[12px] uppercase tracking-[0.12em] text-primary/65">{d.toLocaleDateString(ABOUT_LOCALE[language] ?? 'en-GB', { month: 'short' }).replace('.', '')}</span>
+                      </div>
+                      <div>
+                        {upcoming && <span className="mb-3 inline-block bg-accent px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-primary">{nums.soon}</span>}
+                        <h3 className="font-serif text-2xl leading-tight text-primary md:text-4xl">{m.title[language] ?? m.title.en}</h3>
+                        <p className="mt-3 max-w-xl text-[16px] leading-relaxed text-primary/70">{m.text[language] ?? m.text.en}</p>
+                      </div>
+                    </Reveal>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         </div>
       </section>
@@ -547,9 +644,9 @@ export const AboutPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-white pt-[58px] md:pt-[76px] overflow-x-hidden">
+    <div className="bg-white pt-[58px] md:pt-[76px] overflow-x-clip">
       {!layout.sections.some(section => section.id === 'hero' && section.enabled) && <h1 className="sr-only">{t('static.about.title')}</h1>}
-      {layout.sections.filter(section => section.enabled).map(section => <React.Fragment key={section.id}>{sections[section.id]}</React.Fragment>)}
+      {layout.sections.filter(section => section.enabled).flatMap(section => (section.id === 'story' ? ['story', 'numbers', 'journey'] : [section.id])).map(id => <React.Fragment key={id}>{sections[id]}</React.Fragment>)}
     </div>
   );
 };
