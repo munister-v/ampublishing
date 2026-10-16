@@ -414,10 +414,10 @@ const MILESTONES: Milestone[] = [
     text: { ru: 'Библиотека с отрывками, литературная мастерская, афиша событий и карта читателя теперь в App Store.', en: 'The library with excerpts, the literary workshop, the events calendar and the reader card are now in the App Store.', de: 'Bibliothek mit Leseproben, Literaturwerkstatt, Veranstaltungskalender und Leserkarte sind jetzt im App Store.' } },
 ];
 
-const ABOUT_NUMBERS: Record<'ru' | 'en' | 'de', { books: string; authors: string; picnics: string; langs: string; journey: string; journeyLead: string; soon: string }> = {
-  ru: { books: 'книги в каталоге', authors: 'авторов издательства', picnics: 'литературных пикника в Берлине', langs: 'языка: сайт и приложение', journey: 'Наш путь', journeyLead: 'Издательство родилось в Берлине в 2026 году. Вот как мы шли к первым книгам.', soon: 'скоро' },
-  en: { books: 'books in the catalogue', authors: 'publishing-house authors', picnics: 'literary picnics in Berlin', langs: 'languages: site and app', journey: 'Our path', journeyLead: 'The publishing house was born in Berlin in 2026. This is how we got to our first books.', soon: 'soon' },
-  de: { books: 'Bücher im Katalog', authors: 'Autor:innen des Verlags', picnics: 'Literaturpicknicks in Berlin', langs: 'Sprachen: Website und App', journey: 'Unser Weg', journeyLead: 'Der Verlag wurde 2026 in Berlin gegründet. So kamen wir zu den ersten Büchern.', soon: 'bald' },
+const ABOUT_NUMBERS: Record<'ru' | 'en' | 'de', { journey: string; journeyLead: string; soon: string }> = {
+  ru: { journey: 'Наш путь', journeyLead: 'Издательство родилось в Берлине в 2026 году. Вот как мы шли к первым книгам.', soon: 'скоро' },
+  en: { journey: 'Our path', journeyLead: 'The publishing house was born in Berlin in 2026. This is how we got to our first books.', soon: 'soon' },
+  de: { journey: 'Unser Weg', journeyLead: 'Der Verlag wurde 2026 in Berlin gegründet. So kamen wir zu den ersten Büchern.', soon: 'bald' },
 };
 const ABOUT_LOCALE: Record<string, string> = { ru: 'ru-RU', en: 'en-GB', de: 'de-DE' };
 
@@ -459,7 +459,6 @@ export const AboutPage: React.FC = () => {
 
   // Цифры и путь: берём из данных каталога и афиши, а не пишем руками.
   const nums = ABOUT_NUMBERS[language] ?? ABOUT_NUMBERS.en;
-  const authorCount = getAuthorShowcaseContent(language, t('static.our_authors.showcase_items')).length;
   const today = new Date().toISOString().slice(0, 10);
   const premiere = books.find(b => b.releaseDate && b.releaseDate >= today);
   const milestones: Milestone[] = [...MILESTONES];
@@ -470,12 +469,6 @@ export const AboutPage: React.FC = () => {
       text: { ru: `Книга автора ${premiere.author} выходит в свет. Предзаказ открыт.`, en: `The new book by ${premiere.author} comes out. Pre-orders are open.`, de: `Das neue Buch von ${premiere.author} erscheint. Vorbestellung offen.` },
     });
   }
-  const numbers: [string, string][] = [
-    [String(books.length), nums.books],
-    [String(authorCount), nums.authors],
-    ['2', nums.picnics],
-    ['3', nums.langs],
-  ];
 
   const sections: Record<string, React.ReactNode> = {
     hero: (
@@ -513,18 +506,6 @@ export const AboutPage: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
-      </section>
-    ),
-    numbers: (
-      <section className="bg-primary text-white" aria-label="AM Publishing">
-        <div className="container mx-auto grid grid-cols-2 px-0 md:grid-cols-4">
-          {numbers.map(([value, label], i) => (
-            <Reveal key={label} delay={i * 90} className={`border-white/15 px-6 py-10 md:py-14 md:px-8 ${i % 2 === 0 ? 'border-r' : ''} ${i < 2 ? 'border-b md:border-b-0' : ''} ${i < 3 ? 'md:border-r' : 'md:border-r-0'}`}>
-              <strong className="block font-serif text-6xl font-normal leading-none text-accent md:text-7xl">{value}</strong>
-              <span className="mt-4 block font-mono text-[12px] uppercase tracking-[0.14em] text-white/75">{label}</span>
-            </Reveal>
-          ))}
         </div>
       </section>
     ),
@@ -646,7 +627,7 @@ export const AboutPage: React.FC = () => {
   return (
     <div className="bg-white pt-[58px] md:pt-[76px] overflow-x-clip">
       {!layout.sections.some(section => section.id === 'hero' && section.enabled) && <h1 className="sr-only">{t('static.about.title')}</h1>}
-      {layout.sections.filter(section => section.enabled).flatMap(section => (section.id === 'story' ? ['story', 'numbers', 'journey'] : [section.id])).map(id => <React.Fragment key={id}>{sections[id]}</React.Fragment>)}
+      {layout.sections.filter(section => section.enabled).flatMap(section => (section.id === 'story' ? ['story', 'journey'] : [section.id])).map(id => <React.Fragment key={id}>{sections[id]}</React.Fragment>)}
     </div>
   );
 };
