@@ -54,6 +54,7 @@ export const CatalogPage: React.FC = () => {
   const activeFormats = searchParams.getAll('format') as Format[];
   const activeSort = (searchParams.get('sort') as SortOption) || 'default';
   const showPreorders = searchParams.get('preorder') === 'true';
+  const hasPreorders = books.some(book => book.isPreorder);
   const showInStock = searchParams.get('instock') === 'true';
   const minPrice = searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : null;
   const maxPrice = searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : null;
@@ -280,13 +281,13 @@ export const CatalogPage: React.FC = () => {
                     <span className="text-sm font-mono uppercase text-gray-600 group-hover:text-primary">{t('catalog.filters.in_stock')}</span>
                     <input type="checkbox" className="hidden" checked={showInStock} onChange={() => updateParams('instock', showInStock ? 'false' : 'true', 'set')} />
                  </label>
-                 <label className="flex items-center gap-3 cursor-pointer group">
+                 {hasPreorders && <label className="flex items-center gap-3 cursor-pointer group">
                     <div className={`w-4 h-4 border border-primary flex items-center justify-center transition-colors ${showPreorders ? 'bg-primary' : 'bg-white'}`}>
                         {showPreorders && <Check size={10} className="text-white" />}
                     </div>
                     <span className="text-sm font-mono uppercase text-gray-600 group-hover:text-primary">{t('nav.preorder')}</span>
                     <input type="checkbox" className="hidden" checked={showPreorders} onChange={() => updateParams('preorder', showPreorders ? 'false' : 'true', 'set')} />
-                 </label>
+                 </label>}
               </FilterAccordion>
 
               {/* Format */}
@@ -421,7 +422,7 @@ export const CatalogPage: React.FC = () => {
                 <div>
                   <h3 className="font-bold mb-4 uppercase border-b border-primary/20 pb-2">{t('catalog.filters.availability')}</h3>
                   <div className="flex flex-wrap gap-2">
-                    {['instock', 'preorder'].map(opt => {
+                    {['instock', ...(hasPreorders ? ['preorder'] : [])].map(opt => {
                       const paramKey = opt === 'instock' ? 'instock' : 'preorder';
                       const active = searchParams.get(paramKey) === 'true';
                       return (
