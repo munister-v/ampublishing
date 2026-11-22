@@ -25,9 +25,7 @@
       "knownFor": "The book \"In the Dance of Delusions\"",
       "bio": "Aleksa's first novella appeared in a leading literary journal; her second was longlisted for the Litsey prize. Her work is an inquiry into the human soul: relationships, addictions of every kind, and the line between norm and pathology. Genre is secondary for her — she writes horror, science fiction and fantasy, but feels closest to magic realism, gothic and the family saga.",
       "tags": [
-        "magic realism",
-        "gothic",
-        "psychological prose"
+        "magic realism"
       ],
       "imageUrl": "/images/authors/aleksa-dragan.jpg"
     },
@@ -40,8 +38,7 @@
       "knownFor": "The book \"Everything That Will Remain\"",
       "bio": "Born in Gomel, Belarus. Sergey published his first book twelve years ago and has been searching, trying and moving forward ever since. His texts are about choice, freedom, and the dream — about how hard it can be to learn to live your own life and how important it is not to give up.",
       "tags": [
-        "contemporary prose",
-        "psychological realism"
+        "contemporary prose"
       ],
       "imageUrl": "/images/authors/sergey-kalinin.jpg"
     },
@@ -86,7 +83,6 @@
       "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1782205768945.webp"
     }
   ],
-  "static.about.mission_image": "/images/about-hero.jpg",
   "static.about.p1": "Sometimes it feels like my whole life is spent on the move: another city, another country, new routes, suitcases, roads…\n\nAnd in the midst of all this movement, I really long for something of my own—something I can take with me.\n",
   "static.about.title": "About Us",
   "static.about.subtitle": "An independent Russian-language publishing house based in Berlin",
@@ -133,5 +129,7 @@
   "static.authors.go_to_form": "Go to the submission guidelines",
   "static.authors.form_url": "https://docs.google.com/document/d/1e03fxc9KN95YylAmCGjfJFh0FCuQmv71jCQt5spAmrg/edit?usp=sharing",
   "static.authors.ready": "Ready to submit your manuscript?",
-  "static.authors.format_note": "* We accept files in PDF or Word format"
+  "static.authors.format_note": "* We accept files in PDF or Word format",
+  "static.authors.step3_d": "We respond within 8 months. Due to the high volume of submissions, we do not review rejected texts.",
+  "static.about.mission_image": "/images/about-hero.jpg"
 }

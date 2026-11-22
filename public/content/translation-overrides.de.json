@@ -25,9 +25,7 @@
       "knownFor": "Das Buch „Im Tanz der Wahnvorstellungen“",
       "bio": "Aleksas erste Novelle erschien in einer angesehenen Literaturzeitschrift, ihre zweite stand auf der Longlist des Lizei-Preises. Im Zentrum ihres Schreibens steht die Erforschung der menschlichen Seele: Beziehungen, Abhängigkeiten, der Grat zwischen Norm und Pathologie. Genres sind ihr zweitrangig — sie schreibt Horror, Science-Fiction und Fantasy, am nächsten stehen ihr magischer Realismus, Gotik und die Familiensaga.",
       "tags": [
-        "magischer realismus",
-        "gotik",
-        "psychologische Prosa"
+        "magischer realismus"
       ],
       "imageUrl": "/images/authors/aleksa-dragan.jpg"
     },
@@ -40,8 +38,7 @@
       "knownFor": "Das Buch „Alles, was bleibt“",
       "bio": "Geboren in Gomel, Belarus. Sein erstes Buch veröffentlichte Sergey vor zwölf Jahren — seitdem sucht, probiert und geht er weiter. Seine Texte handeln von Entscheidung, Freiheit und Traum, davon, wie schwer es ist, das eigene Leben zu lernen, und wie wichtig es ist, nicht aufzugeben.",
       "tags": [
-        "zeitgenössische Prosa",
-        "psychologischer Realismus"
+        "zeitgenössische Prosa"
       ],
       "imageUrl": "/images/authors/sergey-kalinin.jpg"
     },
@@ -86,7 +83,6 @@
       "imageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/upload-1782205768945.webp"
     }
   ],
-  "static.about.mission_image": "/images/about-hero.jpg",
   "static.about.p1": "Manchmal hat man das Gefühl, dass das ganze Leben im Wandel steht: eine andere Stadt, ein anderes Land, neue Routen, Koffer, Reisen …\n\nUnd inmitten dieses Wandels sehnt man sich so sehr nach etwas Eigenem, nach etwas, das man mitnehmen kann.\n",
   "static.about.title": "Über uns",
   "static.about.subtitle": "Ein unabhängiger russischsprachiger Verlag aus Berlin",
@@ -133,5 +129,7 @@
   "static.authors.go_to_form": "## Zu den Bedingungen für die Einreichung von Manuskripten",
   "static.authors.form_url": "https://docs.google.com/document/d/1e03fxc9KN95YylAmCGjfJFh0FCuQmv71jCQt5spAmrg/edit?usp=sharing",
   "static.authors.ready": "Bereit, das Manuskript einzureichen?",
-  "static.authors.format_note": "* Wir akzeptieren Dateien im PDF- oder Word-Format"
+  "static.authors.format_note": "* Wir akzeptieren Dateien im PDF- oder Word-Format",
+  "static.authors.step3_d": "Wir antworten innerhalb von 8 Monaten. Aufgrund des hohen Aufkommens an Bewerbungen überprüfen wir abgelehnte Texte nicht.",
+  "static.about.mission_image": "/images/about-hero.jpg"
 }
