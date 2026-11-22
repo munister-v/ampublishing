@@ -149,7 +149,7 @@
       }
     ],
     "heroImageUrl": "/images/about-hero.jpg",
-    "missionImageUrl": "/images/about-hero.jpg",
+    "missionImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-mission-1795384068036.webp",
     "missionImageSide": "right",
     "team": [
       {
