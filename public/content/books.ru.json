@@ -314,7 +314,7 @@
     ],
     "title": "Всё, что останется",
     "author": "Сергей Калинин",
-    "price": 0,
+    "price": 14.99,
     "coverUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/cover-ambook-001-copy-1783444144753.webp",
     "badges": [
       "new"
@@ -337,7 +337,16 @@
     "series": "Сложные люди",
     "ageRating": "16+",
     "releaseDate": "2026-10-01",
-    "variants": [],
+    "variants": [
+      {
+        "id": "ambook-001-paperback",
+        "format": "paperback",
+        "language": "Русский",
+        "price": 14.99,
+        "stock": 500,
+        "isbn": ""
+      }
+    ],
     "story": {
       "quote": "...как ответить на этот странный, но не дающий покоя вопрос: «А что же останется после меня?»",
       "quoteSource": "Из романа, глава 49",
@@ -396,7 +405,7 @@
       {
         "id": "mostik",
         "label": "Mostik.de",
-        "url": ""
+        "url": "https://mostik.de/products/vse-chto-ostanetsya-9783913004006?_pos=1&_sid=8e18d035e&_ss=r"
       }
     ]
   }
