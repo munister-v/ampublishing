@@ -148,7 +148,7 @@
         "enabled": true
       }
     ],
-    "heroImageUrl": "/images/about-hero.jpg",
+    "heroImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-hero-1795384111118.webp",
     "missionImageUrl": "https://raw.githubusercontent.com/munister-v/ampublishing/main/public/images/uploads/about-mission-1795384068036.webp",
     "missionImageSide": "right",
     "team": [
