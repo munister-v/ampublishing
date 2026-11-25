@@ -96,7 +96,8 @@ export const Footer: React.FC = () => {
           <div className="grid border-y border-white/10 text-center">
             <Link to="/impressum" className="flex min-h-11 items-center justify-center border-b border-white/10 transition-colors hover:text-white">{t('footer.links.impressum')}</Link>
             <Link to="/privacy" className="flex min-h-11 items-center justify-center border-b border-white/10 transition-colors hover:text-white">{t('footer.links.privacy')}</Link>
-            <Link to="/terms" className="flex min-h-11 items-center justify-center transition-colors hover:text-white">{t('footer.links.terms')}</Link>
+            <Link to="/terms" className="flex min-h-11 items-center justify-center border-b border-white/10 transition-colors hover:text-white">{t('footer.links.terms')}</Link>
+            <a href="/app/" className="flex min-h-11 items-center justify-center transition-colors hover:text-white">Android</a>
           </div>
         </div>
       </div>
@@ -197,6 +198,7 @@ export const Footer: React.FC = () => {
           <Link to="/impressum" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.impressum')}</Link>
           <Link to="/privacy" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.privacy')}</Link>
           <Link to="/terms" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.terms')}</Link>
+          <a href="/app/" className="hover:text-white hover:opacity-100 transition-opacity">Android</a>
         </div>
       </div>
     </footer>
