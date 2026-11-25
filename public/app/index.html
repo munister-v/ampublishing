@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AM Publishing для Android</title>
+<meta name="description" content="Приложение AM Publishing для Android: скачать APK.">
+<link rel="icon" href="/icons/icon-32.png">
+<style>
+:root{--ink:#040f1e;--paper:#f4f4f0;--gold:#c9a66b;--gt:#8a6833}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 -apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:32px 22px 64px}
+.plate{background:var(--ink);color:var(--paper);border:1px solid rgba(201,166,107,.35);border-radius:28px;padding:28px}
+.plate img{height:36px;display:block}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:28px 0 8px}
+h1{font:500 38px/1.1 Georgia,"Times New Roman",serif;margin:0 0 12px}
+.plate p{margin:0 0 22px;opacity:.8}
+.btn{display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;background:var(--gold);color:var(--ink);font-weight:600;text-decoration:none}
+.btn:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+h2{font:500 24px/1.2 Georgia,serif;margin:36px 0 12px}
+ol{padding-left:22px;margin:0}li{margin:0 0 8px}
+.meta{font-size:14px;opacity:.7;word-break:break-all}
+.lang{display:flex;gap:8px;margin-bottom:20px}
+.lang button{min-height:40px;padding:0 16px;border-radius:999px;border:0;background:rgba(4,15,30,.06);font:inherit;font-weight:600;color:var(--ink);cursor:pointer}
+.lang button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+[data-l]{display:none}[data-l].on{display:revert}
+</style>
+</head>
+<body>
+<main>
+<div class="lang" role="group" aria-label="Language">
+<button data-set="ru" aria-pressed="true">Русский</button><button data-set="en" aria-pressed="false">English</button><button data-set="de" aria-pressed="false">Deutsch</button>
+</div>
+<div class="plate">
+<img src="/logo-white.svg" alt="AM Publishing">
+<div class="eyebrow">Android</div>
+<h1><span data-l="ru" class="on">Приложение для Android</span><span data-l="en">App for Android</span><span data-l="de">App für Android</span></h1>
+<p><span data-l="ru" class="on">Книги, мастерская, события и читательский билет. Без регистрации и входа.</span><span data-l="en">Books, workshop, events and a reader's card. No sign-up, no login.</span><span data-l="de">Bücher, Werkstatt, Termine und Leserkarte. Ohne Registrierung und Login.</span></p>
+<a class="btn" href="/app/ampublishing.apk" download>
+<span data-l="ru" class="on">Скачать APK · 2.5M</span><span data-l="en">Download APK · 2.5M</span><span data-l="de">APK laden · 2.5M</span></a>
+</div>
+<h2><span data-l="ru" class="on">Как установить</span><span data-l="en">How to install</span><span data-l="de">Installation</span></h2>
+<ol data-l="ru" class="on"><li>Скачайте файл на телефон.</li><li>Откройте его из загрузок.</li><li>Если Android спросит, разрешите установку из этого источника (браузера или «Файлов»).</li><li>Нажмите «Установить».</li></ol>
+<ol data-l="en"><li>Download the file to your phone.</li><li>Open it from Downloads.</li><li>If Android asks, allow installs from this source (your browser or Files).</li><li>Tap Install.</li></ol>
+<ol data-l="de"><li>Datei auf das Handy laden.</li><li>Aus den Downloads öffnen.</li><li>Falls Android fragt, Installation aus dieser Quelle erlauben (Browser oder Dateien).</li><li>Auf Installieren tippen.</li></ol>
+<p class="meta">Android 8+ · v1.0 · SHA-256<br>6293cff5904e36e6788a6f5198059c9c85f701d6895829a1faab0164e67f1a40</p>
+</main>
+<script>
+var b=document.querySelectorAll('[data-set]'),e=document.querySelectorAll('[data-l]');
+function set(l){document.documentElement.lang=l;e.forEach(function(x){x.classList.toggle('on',x.dataset.l===l)});b.forEach(function(x){x.setAttribute('aria-pressed',x.dataset.set===l)})}
+b.forEach(function(x){x.onclick=function(){set(x.dataset.set)}});
+var n=(navigator.language||'ru').slice(0,2);if(n==='en'||n==='de')set(n);
+</script>
+</body>
+</html>
