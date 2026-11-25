@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { ArrowUpRight, Instagram, Send } from 'lucide-react';
 import { PhoneFrame } from './PhoneFrame';
+import { AndroidBadge } from './AndroidBadge';
 
 /* Официальный бейдж Apple (public/app/app-store-badge-white.svg), без изменений.
    Параметры itscg/itsct – метка перехода с сайта в App Store Connect. */
@@ -76,9 +77,12 @@ export const Footer: React.FC = () => {
           </p>
           <p className="font-serif text-2xl leading-tight">{t('footer.app_title')}</p>
           <p className="mb-6 mt-3 max-w-sm text-[15px] leading-7 text-white/80">{t('footer.app_desc')}</p>
-          <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label={t('footer.app_alt')} className="inline-block leading-none active:opacity-80">
-            <img src="/app/app-store-badge-white.svg" alt={t('footer.app_alt')} width={160} height={53} className="h-[53px] w-auto" loading="lazy" />
-          </a>
+          <div className="flex flex-wrap items-center gap-3">
+            <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label={t('footer.app_alt')} className="inline-block leading-none active:opacity-80">
+              <img src="/app/app-store-badge-white.svg" alt={t('footer.app_alt')} width={160} height={53} className="h-[53px] w-auto" loading="lazy" />
+            </a>
+            <AndroidBadge />
+          </div>
         </div>
 
         {/* Copyright strip — mobile */}
@@ -96,8 +100,7 @@ export const Footer: React.FC = () => {
           <div className="grid border-y border-white/10 text-center">
             <Link to="/impressum" className="flex min-h-11 items-center justify-center border-b border-white/10 transition-colors hover:text-white">{t('footer.links.impressum')}</Link>
             <Link to="/privacy" className="flex min-h-11 items-center justify-center border-b border-white/10 transition-colors hover:text-white">{t('footer.links.privacy')}</Link>
-            <Link to="/terms" className="flex min-h-11 items-center justify-center border-b border-white/10 transition-colors hover:text-white">{t('footer.links.terms')}</Link>
-            <a href="/app/" className="flex min-h-11 items-center justify-center transition-colors hover:text-white">Android</a>
+            <Link to="/terms" className="flex min-h-11 items-center justify-center transition-colors hover:text-white">{t('footer.links.terms')}</Link>
           </div>
         </div>
       </div>
@@ -180,10 +183,13 @@ export const Footer: React.FC = () => {
             </p>
             <p className="font-serif text-3xl md:text-4xl leading-tight">{t('footer.app_title')}</p>
             <p className="mt-3 max-w-xl font-mono text-[14px] leading-relaxed text-white/80">{t('footer.app_desc')}</p>
-            <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label={t('footer.app_alt')}
-              className="mt-6 inline-block leading-none transition-transform duration-200 hover:-translate-y-0.5">
-              <img src="/app/app-store-badge-white.svg" alt={t('footer.app_alt')} width={160} height={53} className="h-[53px] w-auto" loading="lazy" />
-            </a>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label={t('footer.app_alt')}
+                className="inline-block leading-none transition-transform duration-200 hover:-translate-y-0.5">
+                <img src="/app/app-store-badge-white.svg" alt={t('footer.app_alt')} width={160} height={53} className="h-[53px] w-auto" loading="lazy" />
+              </a>
+              <AndroidBadge />
+            </div>
           </div>
           <div aria-hidden="true" className="relative mr-4 hidden h-[190px] w-[150px] shrink-0 overflow-hidden md:mr-16 md:block">
             <PhoneFrame src="/images/app/home.jpg" className="absolute left-0 top-6 w-[150px]" />
@@ -198,7 +204,6 @@ export const Footer: React.FC = () => {
           <Link to="/impressum" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.impressum')}</Link>
           <Link to="/privacy" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.privacy')}</Link>
           <Link to="/terms" className="hover:text-white hover:opacity-100 transition-opacity">{t('footer.links.terms')}</Link>
-          <a href="/app/" className="hover:text-white hover:opacity-100 transition-opacity">Android</a>
         </div>
       </div>
     </footer>

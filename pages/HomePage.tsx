@@ -1,3 +1,4 @@
+import { AndroidBadge } from '../components/AndroidBadge';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, Sparkles } from 'lucide-react';
@@ -293,10 +294,11 @@ export const HomePage: React.FC = () => {
                   })}
                </ul>
 
-               <div className="mt-10 flex justify-center sm:justify-start">
+               <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
                   <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label={t('footer.app_alt')} className="inline-block leading-none transition-transform hover:-translate-y-0.5">
                      <img src={`${base}app/app-store-badge-white.svg`} alt={t('footer.app_alt')} width={160} height={53} className="h-[53px] w-auto" loading="lazy" />
                   </a>
+                  <AndroidBadge />
                </div>
             </Reveal>
 

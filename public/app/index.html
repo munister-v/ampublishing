@@ -4,47 +4,112 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AM Publishing для Android</title>
-<meta name="description" content="Приложение AM Publishing для Android: скачать APK.">
+<meta name="description" content="Приложение AM Publishing для Android: каталог книг, литературная мастерская, события и читательская карта. Бесплатно.">
 <link rel="icon" href="/icons/icon-32.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
 <style>
-:root{--ink:#040f1e;--paper:#f4f4f0;--gold:#c9a66b;--gt:#8a6833}
+:root{--ink:#040f1e;--paper:#f4f4f0;--gold:#c9a66b;--gt:#8a6833;--navy:#040f1e}
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 -apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:640px;margin:0 auto;padding:32px 22px 64px}
-.plate{background:var(--ink);color:var(--paper);border:1px solid rgba(201,166,107,.35);border-radius:28px;padding:28px}
-.plate img{height:36px;display:block}
-.eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:28px 0 8px}
-h1{font:500 38px/1.1 Georgia,"Times New Roman",serif;margin:0 0 12px}
-.plate p{margin:0 0 22px;opacity:.8}
-.btn{display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;background:var(--gold);color:var(--ink);font-weight:600;text-decoration:none}
-.btn:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
-h2{font:500 24px/1.2 Georgia,serif;margin:36px 0 12px}
-ol{padding-left:22px;margin:0}li{margin:0 0 8px}
-.meta{font-size:14px;opacity:.7;word-break:break-all}
-.lang{display:flex;gap:8px;margin-bottom:20px}
-.lang button{min-height:40px;padding:0 16px;border-radius:999px;border:0;background:rgba(4,15,30,.06);font:inherit;font-weight:600;color:var(--ink);cursor:pointer}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.top{display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:0 auto;padding:18px 22px}
+.top a.home{display:inline-flex;min-height:44px;align-items:center;text-decoration:none;font-weight:600}
+.lang{display:flex;gap:6px}
+.lang button{min-height:40px;padding:0 14px;border-radius:999px;border:0;background:rgba(4,15,30,.06);font:inherit;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
 .lang button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
-[data-l]{display:none}[data-l].on{display:revert}
+main{max-width:960px;margin:0 auto;padding:0 22px 72px}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;background:var(--navy);color:var(--paper);border:1px solid rgba(201,166,107,.35);border-radius:32px;padding:32px}
+.icon{width:128px;height:128px;border-radius:29px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 6px}
+h1{font:500 clamp(32px,6vw,48px)/1.05 Georgia,"Times New Roman",serif;margin:0 0 8px}
+.lead{margin:0 0 20px;opacity:.8;max-width:34em}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 28px;border-radius:999px;background:var(--gold);color:var(--ink);font-weight:700;text-decoration:none;transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.ios{display:inline-flex;min-height:52px;align-items:center;padding:0 20px;border-radius:999px;border:1px solid rgba(244,244,240,.3);color:var(--paper);text-decoration:none;font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);margin:28px 0 8px;border-top:1px solid rgba(4,15,30,.14);border-bottom:1px solid rgba(4,15,30,.14)}
+.facts div{padding:16px 8px;text-align:center;border-left:1px solid rgba(4,15,30,.14)}
+.facts div:first-child{border-left:0}
+.facts b{display:block;font-size:20px}
+.facts span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;font-weight:700}
+h2{font:500 28px/1.2 Georgia,serif;margin:44px 0 16px}
+.shots{display:flex;gap:16px;overflow-x:auto;padding:4px 2px 18px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.shots img{height:440px;width:auto;border-radius:28px;border:1px solid rgba(4,15,30,.14);box-shadow:0 10px 28px rgba(4,15,30,.16);scroll-snap-align:start;flex:none;background:#fff}
+.feat{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.feat div{background:#fff;border:1px solid rgba(4,15,30,.12);border-radius:22px;padding:20px}
+.feat h3{font:600 19px/1.2 Georgia,serif;margin:0 0 6px}
+.feat p{margin:0;font-size:15px;opacity:.75}
+ol{padding-left:22px;margin:0}li{margin:0 0 10px}
+.meta{font-size:13px;opacity:.6;word-break:break-all;margin-top:28px}
+[data-l]:not(.on){display:none}
+@media(max-width:640px){
+.hero{grid-template-columns:1fr;padding:26px;text-align:left}.icon{width:96px;height:96px;border-radius:22px}
+.facts{grid-template-columns:repeat(2,1fr)}.facts div:nth-child(3){border-left:0}.facts div:nth-child(n+3){border-top:1px solid rgba(4,15,30,.14)}
+.feat{grid-template-columns:1fr}.shots img{height:380px}
+.btn,.ios{width:100%;justify-content:center}}
 </style>
 </head>
 <body>
-<main>
+<div class="top">
+<a class="home" href="/">← ampublishing.org</a>
 <div class="lang" role="group" aria-label="Language">
-<button data-set="ru" aria-pressed="true">Русский</button><button data-set="en" aria-pressed="false">English</button><button data-set="de" aria-pressed="false">Deutsch</button>
+<button data-set="ru" aria-pressed="true">RU</button><button data-set="en" aria-pressed="false">EN</button><button data-set="de" aria-pressed="false">DE</button>
 </div>
-<div class="plate">
-<img src="/logo-white.svg" alt="AM Publishing">
-<div class="eyebrow">Android</div>
-<h1><span data-l="ru" class="on">Приложение для Android</span><span data-l="en">App for Android</span><span data-l="de">App für Android</span></h1>
-<p><span data-l="ru" class="on">Книги, мастерская, события и читательский билет. Без регистрации и входа.</span><span data-l="en">Books, workshop, events and a reader's card. No sign-up, no login.</span><span data-l="de">Bücher, Werkstatt, Termine und Leserkarte. Ohne Registrierung und Login.</span></p>
+</div>
+<main>
+<section class="hero">
+<img class="icon" src="/app/icon.png" alt="AM Publishing" width="128" height="128">
+<div>
+<p class="eyebrow">Android · <span data-l="ru" class="on">Бесплатно</span><span data-l="en">Free</span><span data-l="de">Kostenlos</span></p>
+<h1>AM Publishing</h1>
+<p class="lead"><span data-l="ru" class="on">Книги издательства, литературная мастерская, события и читательская карта в одном приложении. Без регистрации и входа.</span><span data-l="en">The publisher's books, a literary workshop, events and a reader's card in one app. No sign-up, no login.</span><span data-l="de">Bücher des Verlags, Literaturwerkstatt, Veranstaltungen und Leserkarte in einer App. Ohne Registrierung und Login.</span></p>
+<div class="row">
 <a class="btn" href="/app/ampublishing.apk" download>
-<span data-l="ru" class="on">Скачать APK · 2.5M</span><span data-l="en">Download APK · 2.5M</span><span data-l="de">APK laden · 2.5M</span></a>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+<span data-l="ru" class="on">Скачать APK</span><span data-l="en">Download APK</span><span data-l="de">APK laden</span></a>
+<a class="ios" href="https://apps.apple.com/us/app/am-publishing/id6820372256" rel="noopener"><span data-l="ru" class="on">Для iPhone</span><span data-l="en">For iPhone</span><span data-l="de">Für iPhone</span></a>
 </div>
+</div>
+</section>
+
+<div class="facts">
+<div><b>2,5 MB</b><span><span data-l="ru" class="on">Размер</span><span data-l="en">Size</span><span data-l="de">Größe</span></span></div>
+<div><b>8+</b><span>Android</span></div>
+<div><b>1.0</b><span><span data-l="ru" class="on">Версия</span><span data-l="en">Version</span><span data-l="de">Version</span></span></div>
+<div><b>RU · EN · DE</b><span><span data-l="ru" class="on">Языки</span><span data-l="en">Languages</span><span data-l="de">Sprachen</span></span></div>
+</div>
+
+<h2><span data-l="ru" class="on">Как выглядит</span><span data-l="en">Preview</span><span data-l="de">Vorschau</span></h2>
+<div class="shots" tabindex="0" role="group" aria-label="Screenshots">
+<img src="/images/app/home.jpg" alt="" loading="lazy"><img src="/images/app/library.jpg" alt="" loading="lazy"><img src="/images/app/workshop.jpg" alt="" loading="lazy"><img src="/images/app/events.jpg" alt="" loading="lazy"><img src="/images/app/cabinet.jpg" alt="" loading="lazy">
+</div>
+
+<div class="feat on" data-l="ru">
+<div><h3>Библиотека</h3><p>Книги и авторы издательства, отрывки для чтения.</p></div>
+<div><h3>Мастерская</h3><p>Литературные навыки, уровни и баллы за верные ответы.</p></div>
+<div><h3>События</h3><p>Встречи в Берлине, эфиры и премьеры книг.</p></div>
+<div><h3>Читательская карта</h3><p>Ваши баллы и прогресс хранятся на телефоне.</p></div>
+</div>
+<div class="feat" data-l="en">
+<div><h3>Library</h3><p>The house's books and authors, excerpts to read.</p></div>
+<div><h3>Workshop</h3><p>Literary skills, levels and points for right answers.</p></div>
+<div><h3>Events</h3><p>Gatherings in Berlin, broadcasts and book premieres.</p></div>
+<div><h3>Reader's card</h3><p>Your points and progress stay on your phone.</p></div>
+</div>
+<div class="feat" data-l="de">
+<div><h3>Bibliothek</h3><p>Bücher und Autoren des Verlags, Leseproben.</p></div>
+<div><h3>Werkstatt</h3><p>Literarische Fertigkeiten, Level und Punkte für richtige Antworten.</p></div>
+<div><h3>Termine</h3><p>Treffen in Berlin, Sendungen und Buchpremieren.</p></div>
+<div><h3>Leserkarte</h3><p>Punkte und Fortschritt bleiben auf dem Handy.</p></div>
+</div>
+
 <h2><span data-l="ru" class="on">Как установить</span><span data-l="en">How to install</span><span data-l="de">Installation</span></h2>
 <ol data-l="ru" class="on"><li>Скачайте файл на телефон.</li><li>Откройте его из загрузок.</li><li>Если Android спросит, разрешите установку из этого источника (браузера или «Файлов»).</li><li>Нажмите «Установить».</li></ol>
 <ol data-l="en"><li>Download the file to your phone.</li><li>Open it from Downloads.</li><li>If Android asks, allow installs from this source (your browser or Files).</li><li>Tap Install.</li></ol>
 <ol data-l="de"><li>Datei auf das Handy laden.</li><li>Aus den Downloads öffnen.</li><li>Falls Android fragt, Installation aus dieser Quelle erlauben (Browser oder Dateien).</li><li>Auf Installieren tippen.</li></ol>
-<p class="meta">Android 8+ · v1.0 · SHA-256<br>6293cff5904e36e6788a6f5198059c9c85f701d6895829a1faab0164e67f1a40</p>
+<p class="meta">SHA-256<br>6293cff5904e36e6788a6f5198059c9c85f701d6895829a1faab0164e67f1a40</p>
 </main>
 <script>
 var b=document.querySelectorAll('[data-set]'),e=document.querySelectorAll('[data-l]');
